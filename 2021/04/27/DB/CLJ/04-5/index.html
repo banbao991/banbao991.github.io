@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="Insert、Delete、Truncate、Update、Merge、Output">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.04. 数据更新">
+<meta property="og:url" content="http://example.com/2021/04/27/DB/CLJ/04-5/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Insert、Delete、Truncate、Update、Merge、Output">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-04-27T09:13:12.000Z">
+<meta property="article:modified_time" content="2021-05-05T15:26:37.136Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2021/04/27/DB/CLJ/04-5/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.04. 数据更新 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0"><span class="nav-text">数据更新</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F"><span class="nav-text">全局变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#row_count"><span class="nav-text">row_count()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#insert"><span class="nav-text">Insert</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%98%BE%E5%BC%8F%E8%A1%8C"><span class="nav-text">插入显式行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E5%AD%90%E6%9F%A5%E8%AF%A2"><span class="nav-text">插入子查询</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#replace-into"><span class="nav-text">replace into</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#delete"><span class="nav-text">Delete</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E8%A1%A8%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C"><span class="nav-text">多表删除操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C"><span class="nav-text">删除操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#truncate"><span class="nav-text">Truncate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#update"><span class="nav-text">Update</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1"><span class="nav-text">例子 1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-2"><span class="nav-text">例子 2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-3-case-when"><span class="nav-text">例子 3 (case when)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#merge"><span class="nav-text">Merge</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%8C%E6%8B%B7%E8%B4%9D"><span class="nav-text">行拷贝</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A8%E5%90%8C%E6%AD%A5-upsert"><span class="nav-text">表同步: UPSERT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#merge-%E5%91%BD%E4%BB%A4"><span class="nav-text">Merge 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A8%E5%90%8C%E6%AD%A5%E4%B8%80%E4%B8%AA%E5%85%B8%E5%9E%8B%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-text">表同步一个典型的应用场景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#output"><span class="nav-text">Output</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/27/DB/CLJ/04-5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.04. 数据更新
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-27 17:13:12" itemprop="dateCreated datePublished" datetime="2021-04-27T17:13:12+08:00">2021-04-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-05-05 23:26:37" itemprop="dateModified" datetime="2021-05-05T23:26:37+08:00">2021-05-05</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Insert、Delete、Truncate、Update、Merge、Output</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="数据更新">数据更新</h1>
+<ul>
+<li>Insert</li>
+<li>Delete</li>
+<li>Truncate</li>
+<li>Update</li>
+<li>Output</li>
+<li>Merge</li>
+</ul>
+<h2 id="全局变量">全局变量</h2>
+<h3 id="row_count">row_count()</h3>
+<ul>
+<li>返回<strong>受上一语句影响的行数</strong></li>
+<li>任何不返回行的语句将这一变量设置为 0</li>
+<li>例子：删除了多少行</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> S</span><br><span class="line"><span class="keyword">select</span> row_count()</span><br></pre></td></tr></table></figure>
+<h2 id="insert">Insert</h2>
+<ul>
+<li>形式</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 插入一条指定好值的行 */</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> 表名[(列名[, 列名]...)] <span class="keyword">values</span> (值[,值],...,)</span><br><span class="line"><span class="comment">/* 插入子查询结果中的若干行 */</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span>表名[（列名[，列名]…](子查询)</span><br></pre></td></tr></table></figure>
+<h3 id="插入显式行">插入显式行</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> PROF <span class="keyword">values</span></span><br><span class="line">    (P123,<span class="string">&#x27;王明&#x27;</span>,<span class="number">35</span>,D08,<span class="number">498</span>),</span><br><span class="line">    (P124,<span class="string">&#x27;李明&#x27;</span>,<span class="number">38</span>,D01,<span class="number">698</span>)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> PROF(pno, pname, dno) <span class="keyword">values</span></span><br><span class="line">    <span class="type">row</span>(P123, <span class="string">&#x27;王明&#x27;</span>, D08),</span><br><span class="line">    <span class="type">row</span>(P125, <span class="string">&#x27;李明&#x27;</span>, D08)</span><br></pre></td></tr></table></figure>
+<h3 id="插入子查询">插入子查询</h3>
+<ul>
+<li>将平均成绩大于 90 的学生加入到 EXCELLENT 中</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> EXCELLENT (sno, grade)</span><br><span class="line"><span class="keyword">select</span> sno,<span class="built_in">avg</span>(grade)</span><br><span class="line"><span class="keyword">from</span> SC</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span>(sno)</span><br><span class="line"><span class="keyword">having</span> <span class="built_in">avg</span>(grade) <span class="operator">&gt;</span> <span class="number">90</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> sno, <span class="built_in">avg</span>(grade)</span><br><span class="line"><span class="keyword">into</span> EXCELLENT (sno, grade)</span><br><span class="line"><span class="keyword">from</span> SC</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span>(sno)</span><br><span class="line"><span class="keyword">having</span> <span class="built_in">avg</span>(grade) <span class="operator">&gt;</span> <span class="number">90</span></span><br></pre></td></tr></table></figure>
+<h3 id="replace-into">replace into</h3>
+<ul>
+<li>替换原有的数据行</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_replace(</span><br><span class="line">    id <span class="type">int</span> auto_increment <span class="keyword">primary</span> <span class="keyword">key</span>,</span><br><span class="line">    name <span class="type">char</span>(<span class="number">10</span>),</span><br><span class="line">    cur_time datetime</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_replace (name,cur_time)</span><br><span class="line"><span class="keyword">values</span>(<span class="string">&#x27;A&#x27;</span>,now()),(<span class="string">&#x27;B&#x27;</span>,now())</span><br><span class="line"></span><br><span class="line">replace test_replace <span class="keyword">values</span>(<span class="number">1</span>,<span class="string">&#x27;AA&#x27;</span>,now())</span><br></pre></td></tr></table></figure>
+<h2 id="delete">Delete</h2>
+<ul>
+<li>从表中删除符合条件的元组</li>
+<li><strong>如果没有 where 语句，则删除所有元组</strong></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> 表名 [<span class="keyword">where</span> 条件表达式]</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 清除所有选课记录 */</span></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> SC</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 删除王明老师所有的任课记录 */</span></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> PC</span><br><span class="line"><span class="keyword">where</span> pno <span class="keyword">in</span> (</span><br><span class="line">    <span class="keyword">select</span> pno</span><br><span class="line">    <span class="keyword">from</span> PROF</span><br><span class="line">    <span class="keyword">where</span> pname<span class="operator">=</span><span class="string">&#x27;王明&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>删除的时候，用 in 而不是 =
+<ul>
+<li>可能有两个人都叫王明，使用 = 会报错</li>
+<li>运行时错误</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> delA(a <span class="type">int</span>);</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> delB(b <span class="type">int</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> delA <span class="keyword">values</span>(<span class="number">1</span>),(<span class="number">3</span>),(<span class="number">4</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> delB <span class="keyword">values</span>(<span class="number">3</span>),(<span class="number">4</span>),(<span class="number">5</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* =/in */</span></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> delA <span class="keyword">where</span> a<span class="operator">=</span>(<span class="keyword">select</span> b <span class="keyword">from</span> delB <span class="keyword">where</span> b<span class="operator">&lt;</span><span class="number">4</span>);</span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> delA <span class="keyword">where</span> a<span class="operator">=</span>(<span class="keyword">select</span> b <span class="keyword">from</span> delB <span class="keyword">where</span> b<span class="operator">&gt;</span><span class="number">3</span>);</span><br><span class="line"><span class="comment">/* ERROR 1242(21000):Subquery returns more than 1 row */</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>可以使用 <code>limit 1</code> 限制只输出一行</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> delB</span><br><span class="line"><span class="keyword">where</span> b<span class="operator">&lt;</span><span class="number">5</span></span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> b <span class="keyword">desc</span></span><br><span class="line">limit <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<h3 id="多表删除操作">多表删除操作</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> t1,t2 <span class="keyword">from</span> t1 <span class="keyword">inner</span> <span class="keyword">join</span> t2 <span class="keyword">inner</span> <span class="keyword">join</span> t3</span><br><span class="line"><span class="keyword">where</span> t1.id<span class="operator">=</span>t2.id <span class="keyword">and</span> t2.id<span class="operator">=</span>t3.id</span><br><span class="line"></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> t1,t2 <span class="keyword">using</span> t1 <span class="keyword">inner</span> <span class="keyword">join</span> t2 <span class="keyword">inner</span> <span class="keyword">join</span> t3</span><br><span class="line"><span class="keyword">where</span> t1.id<span class="operator">=</span>t2.id <span class="keyword">and</span> t2.id<span class="operator">=</span>t3.id</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> PC <span class="keyword">from</span> PROF <span class="keyword">inner</span> <span class="keyword">join</span> PC</span><br><span class="line"><span class="keyword">where</span> pname<span class="operator">=</span><span class="string">&#x27;王明&#x27;</span> <span class="keyword">and</span> PROF.pno<span class="operator">=</span>PC.pno</span><br></pre></td></tr></table></figure>
+<h3 id="删除操作">删除操作</h3>
+<h3 id="例子">例子</h3>
+<ul>
+<li>删除低于平均工资的老师记录</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 这样的语句是错误的 */</span></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> PROF</span><br><span class="line"><span class="keyword">where</span> salary <span class="operator">&lt;</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="built_in">avg</span>(salary)</span><br><span class="line">    <span class="keyword">from</span> PROF</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>思考：是先找到所有符合条件的行，一并删除，还是找到一个删除一个
+<ul>
+<li>应该是先找到，然后会一并删除</li>
+<li>删除的时候会加锁，一并删除可以保持对外的一致性</li>
+</ul></li>
+<li><strong>MySQL 不允许从子查询中出现的表中删除数据</strong></li>
+<li>解决方法，先找出平均工资，然后再删除</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 生成临时视图 */</span></span><br><span class="line"><span class="keyword">with</span> tmp <span class="keyword">as</span>(</span><br><span class="line">    <span class="keyword">select</span> <span class="built_in">avg</span>(val) <span class="keyword">as</span> A</span><br><span class="line">    <span class="keyword">from</span> test_del</span><br><span class="line">)</span><br><span class="line"><span class="keyword">delete</span> test_del <span class="keyword">from</span> test_del <span class="keyword">inner</span> <span class="keyword">join</span> tmp <span class="keyword">where</span> val <span class="operator">&gt;</span> A;</span><br></pre></td></tr></table></figure>
+<h2 id="truncate">Truncate</h2>
+<ul>
+<li>清空表</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">truncate</span> <span class="keyword">table</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>删除表中的所有行，而不记录单个行删除操作
+<ul>
+<li>相对于用 delete 语句删除整个表而言，更加高效</li>
+<li>数据库一般都有<strong>日志记录</strong>，用于恢复数据库
+<ul>
+<li>delete 删除一个表会产生行级的记录</li>
+<li>truncate 删除整个表只会产生页级的记录</li>
+</ul></li>
+</ul></li>
+<li>truncate table 在功能上与不带 where 子句的 delete 语句相同
+<ul>
+<li>但 truncate table 比 delete 速度快，且使用的系统和事务日志资源少</li>
+<li>auto_increment 计数器重置为种子值</li>
+</ul></li>
+</ul>
+<h2 id="update">Update</h2>
+<ul>
+<li>更新操作的命令格式</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> 表名</span><br><span class="line"><span class="keyword">set</span> 列名 <span class="operator">=</span> 表达式<span class="operator">|</span>子查询</span><br><span class="line">    列名 <span class="operator">=</span> [,表达式<span class="operator">|</span>子查询]</span><br><span class="line">    ...</span><br><span class="line">[<span class="keyword">where</span> 条件表达式]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>指定对哪些列进行更新，以及更新后的值是什么</li>
+</ul>
+<h3 id="例子-1">例子 1</h3>
+<ul>
+<li>老师工资上调 5%</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> PROF</span><br><span class="line"><span class="keyword">set</span> salary <span class="operator">=</span> salary<span class="operator">*</span><span class="number">1.05</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>将 D01系系主任的工资改为该系的平均工资</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* SQL 语句无效 */</span></span><br><span class="line"><span class="comment">/* 和删除一样, MySQL 不允许从子查询中出现的表中更新数据 */</span></span><br><span class="line"><span class="keyword">update</span> PROF</span><br><span class="line"><span class="keyword">set</span> salary <span class="operator">=</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="built_in">avg</span>(salary)</span><br><span class="line">    <span class="keyword">from</span> PROF</span><br><span class="line">    <span class="keyword">where</span> dno<span class="operator">=</span>D01</span><br><span class="line">)</span><br><span class="line"><span class="keyword">where</span> pno<span class="operator">=</span> (</span><br><span class="line">    selectdean</span><br><span class="line">    <span class="keyword">from</span> DEPT</span><br><span class="line">    <span class="keyword">where</span> dno<span class="operator">=</span>D01</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>解决方法是一致的，临时视图</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> tmp <span class="keyword">as</span>(<span class="keyword">select</span> <span class="built_in">avg</span>(salary) avgsal <span class="keyword">from</span> PROF <span class="keyword">where</span> dno<span class="operator">=</span>D01)</span><br><span class="line"><span class="keyword">update</span> PROF,tmp</span><br><span class="line"><span class="keyword">set</span> salary <span class="operator">=</span> tmp.avgsal</span><br></pre></td></tr></table></figure>
+<h3 id="例子-2">例子 2</h3>
+<ul>
+<li>当 C1 课程的成绩小于该课程的平均成绩时，将其提高 5%</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> tmp <span class="keyword">as</span>(<span class="keyword">select</span> <span class="built_in">avg</span>(grade) avggrade <span class="keyword">from</span> SC <span class="keyword">where</span> cno<span class="operator">=</span>C1)</span><br><span class="line"><span class="keyword">update</span> SC,tmp</span><br><span class="line"><span class="keyword">set</span> grade <span class="operator">=</span> grade<span class="operator">*</span><span class="number">1.05</span> <span class="keyword">where</span> cno<span class="operator">=</span>C1 <span class="keyword">and</span> grade<span class="operator">&lt;</span>tmp.avggrade</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对所有的课程，满足上述条件的都进行修改</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> tmp <span class="keyword">as</span>(</span><br><span class="line">    <span class="keyword">select</span> cno, <span class="built_in">avg</span>(grade) avggrade</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">group</span> <span class="keyword">by</span> cno</span><br><span class="line">)</span><br><span class="line"><span class="keyword">update</span> SC,tmp</span><br><span class="line"><span class="keyword">where</span> SC.cno<span class="operator">=</span>tmp.cno</span><br><span class="line"><span class="keyword">set</span> grade <span class="operator">=</span> grade<span class="operator">*</span><span class="number">1.05</span> <span class="keyword">where</span> grade<span class="operator">&lt;</span>tmp.avggrade</span><br></pre></td></tr></table></figure>
+<h3 id="例子-3-case-when">例子 3 (case when)</h3>
+<ul>
+<li>工资超过 2000 的缴纳 10% 所得税，其余的缴纳 5% 所得税</li>
+<li>如果写成两个 SQL，需要考虑执行顺序
+<ul>
+<li>这里需要先写 5% 的征税（工资小于等于2000），再写 10% 的征税（工资大于2000）</li>
+<li><strong>写成多个 SQL 是不好的习惯</strong></li>
+</ul></li>
+<li>最好写成一个 SQL
+<ul>
+<li><code>case when</code></li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> PROF</span><br><span class="line"><span class="keyword">set</span> SAL <span class="operator">=</span></span><br><span class="line">    <span class="keyword">case</span> SAL</span><br><span class="line">        <span class="keyword">when</span> SAL <span class="operator">&gt;</span> <span class="number">2000</span> <span class="keyword">then</span> SAL <span class="operator">*</span> <span class="number">0.9</span></span><br><span class="line">        <span class="keyword">when</span> SAL <span class="operator">&lt;=</span> <span class="number">2000</span> <span class="keyword">then</span> SAL <span class="operator">*</span> <span class="number">0.95</span></span><br></pre></td></tr></table></figure>
+<h2 id="merge">Merge</h2>
+<h3 id="行拷贝">行拷贝</h3>
+<ul>
+<li>R(ID, A, B), S(ID, A, B)</li>
+<li>使用 S 相同 ID 的记录覆盖 R 中相同 ID 的记录</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 错误的写法 */</span></span><br><span class="line"><span class="keyword">update</span> R</span><br><span class="line"><span class="keyword">set</span></span><br><span class="line">    A <span class="operator">=</span> (<span class="keyword">select</span> S.A <span class="keyword">from</span> S <span class="keyword">where</span> R.ID<span class="operator">=</span>S.ID),</span><br><span class="line">    B <span class="operator">=</span> (<span class="keyword">select</span> S.B <span class="keyword">from</span> S <span class="keyword">where</span> R.ID<span class="operator">=</span>S.ID)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>怎么处理呢？</strong>
+<ul>
+<li><strong>表同步问题</strong></li>
+</ul></li>
+</ul>
+<h3 id="表同步-upsert">表同步: UPSERT</h3>
+<ul>
+<li>UPSERT：表同步</li>
+<li>在把一组记录加载到表中时，一个经典的挑战是如何识别和处理目标表中已有的记录</li>
+<li>常用的方法如下
+<ul>
+<li>如果某记录不存在，就将它插入</li>
+<li>如果存在，就用源表中的数据更新该记录</li>
+</ul></li>
+<li>需要定义复杂的存储过程来完成一系列 INSERT 或 UPDATE 命令，这个技术通常被称为 UPSERT</li>
+<li>应用场景
+<ul>
+<li>业务表不能够一直增大，否则会拖慢系统的性能，因此需要定时保存到历史表中</li>
+</ul></li>
+</ul>
+<h3 id="merge-命令">Merge 命令</h3>
+<ul>
+<li>merge 子句指定作为插入、更新或删除操作目标的表</li>
+<li>using 子句指定要与目标联接的数据源</li>
+<li>on 子句指定决定目标与源的匹配位置的联接条件</li>
+<li>when 子句基于 on 子句的结果指定所要采取的操作
+<ul>
+<li>when matched</li>
+<li>when not matched by target</li>
+<li>when not matched by source</li>
+</ul></li>
+</ul>
+<h3 id="表同步一个典型的应用场景">表同步一个典型的应用场景</h3>
+<ul>
+<li>数据仓库中的 FactBuyingHabits 表跟踪客户购买产品的最后日期，事务数据库每周都会生成一个包括该周采购情况的PurchaseRecords 表</li>
+<li>需要定期将 PurchaseRecords 表中的信息合并到 FactBuyingHabits 表中
+<ul>
+<li>对于不存在的产品-客户对，插入新行</li>
+<li>对于已存在的产品-客户对，更新最近的购买日期</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 指定目标表 */</span></span><br><span class="line"><span class="keyword">merge</span> dbo.FactBuyingHabits <span class="keyword">as</span> target</span><br><span class="line"><span class="comment">/* 指定源表(可以是表或子查询) */</span></span><br><span class="line"><span class="keyword">using</span> (</span><br><span class="line">    <span class="keyword">select</span> CustomerID, ProductID, PurchaseDate</span><br><span class="line">    <span class="keyword">from</span> dbo.Purchases</span><br><span class="line">) <span class="keyword">as</span> source</span><br><span class="line"><span class="comment">/* 指定行匹配(连接条件) */</span></span><br><span class="line"><span class="keyword">on</span>(</span><br><span class="line">    Target.ProductID <span class="operator">=</span> Source.ProductID</span><br><span class="line">    <span class="keyword">and</span> Target.CustomerID <span class="operator">=</span> Source.CustomerID</span><br><span class="line">)</span><br><span class="line"><span class="comment">/* 不同情况的操作 */</span></span><br><span class="line"><span class="comment">/* 匹配上 */</span></span><br><span class="line"><span class="keyword">when</span> matched <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">update</span> setTarget.LastPurchaseDate <span class="operator">=</span> Source.PurchaseDate</span><br><span class="line"><span class="comment">/* 目标表中没有 */</span></span><br><span class="line"><span class="keyword">when</span> <span class="keyword">not</span> matched <span class="keyword">by</span> target <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">insert</span>(CustomerID, ProductID, LastPurchaseDate)</span><br><span class="line">    <span class="keyword">values</span>(Source.CustomerID, Source.ProductID, Source.PurchaseDate)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Merge 命令的产生是源于本是据数据仓库的发展</li>
+<li>更新操作对于数据库而言是很关键的，一般会有记录（谁更新了什么）
+<ul>
+<li>审计</li>
+</ul></li>
+</ul>
+<h2 id="output">Output</h2>
+<ul>
+<li>Output：记录更新历史</li>
+<li>执行修改操作只返回影响了多少行的信息，无从获知到底影响到了哪些行</li>
+<li>如果在修改操作语句中带上output，就可以输出具体的影响信息</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">output&#123; deleted|inserted&#125;.&#123; * | column_name&#125;</span><br><span class="line">[<span class="keyword">into</span> table_name]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>deleted 和 inserted 是两个虚表，deleted 里面存放修改之前的值，inserted 里面存放的是修改之后的值</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span> <span class="variable">@recordChange</span> <span class="keyword">table</span>(</span><br><span class="line">    beforeGrade <span class="type">int</span>,</span><br><span class="line">    afterGrade  <span class="type">int</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span> sc</span><br><span class="line"><span class="keyword">set</span> grade<span class="operator">=</span>grade<span class="operator">*</span><span class="number">1.05</span></span><br><span class="line">output deleted.grade,inserted.gradeinto <span class="variable">@recordChange</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> sc</span><br><span class="line">output deleted.<span class="operator">*</span> <span class="keyword">into</span> delHistory</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/27/DB/CLJ/04-4/" rel="prev" title="数据库概论.陈立军.04.SQL 数据查询(3)">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.04.SQL 数据查询(3)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/29/CG/YLQ-GAMES202/08/" rel="next" title="GAMES202.闫令琪.08.实时全局光照(屏幕空间)(SSAO/SSDO)">
+                  GAMES202.闫令琪.08.实时全局光照(屏幕空间)(SSAO/SSDO) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

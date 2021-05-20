@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="动画、动画的历史、关键帧动画、物理模拟、弹簧质点模型、粒子系统、运动学、逆运动学、Rigging">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES101.闫令琪.12.动画与模拟(Lecture 21)">
+<meta property="og:url" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="动画、动画的历史、关键帧动画、物理模拟、弹簧质点模型、粒子系统、运动学、逆运动学、Rigging">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401154620043.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401155000489.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401200539173.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401202146335.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401202528815.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401204250184.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401205009298.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401205354628.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401211126993.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401211333098.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401211837682.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401212105160.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401220905052.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401234930535.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401235801146.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401235842580.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210402000012688.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210402000209841.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210402001325862.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210402001401828.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210402001550942.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210402001723638.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210402002734021.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210402003138064.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210402003601782.png">
+<meta property="article:published_time" content="2021-04-01T07:16:52.000Z">
+<meta property="article:modified_time" content="2021-04-02T07:05:05.081Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/image-20210401154620043.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES101.闫令琪.12.动画与模拟(Lecture 21) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A8%E7%94%BB%E4%B8%8E%E6%A8%A1%E6%8B%9F"><span class="nav-text">动画与模拟</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E7%94%BB"><span class="nav-text">动画</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E7%94%BB%E7%9A%84%E5%8E%86%E5%8F%B2"><span class="nav-text">动画的历史</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A9%E6%9C%9F%E7%9A%84%E5%A3%81%E7%94%BB"><span class="nav-text">早期的壁画</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#phenakistoscope"><span class="nav-text">Phenakistoscope</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%B5%E5%BD%B1"><span class="nav-text">电影</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E7%94%BB-1"><span class="nav-text">动画</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E5%B8%A7%E5%8A%A8%E7%94%BB"><span class="nav-text">关键帧动画</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E5%B8%A7%E6%8F%92%E5%80%BC"><span class="nav-text">关键帧插值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E6%A8%A1%E6%8B%9F"><span class="nav-text">物理模拟</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%A8%E7%82%B9%E5%BC%B9%E7%B0%A7%E7%B3%BB%E7%BB%9F"><span class="nav-text">质点弹簧系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84%E5%BC%B9%E7%B0%A7%E7%BB%B3"><span class="nav-text">简单的弹簧绳</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%B4%E5%8F%91"><span class="nav-text">头发</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%83%E6%96%99"><span class="nav-text">布料</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%A8%E7%82%B9%E5%BC%B9%E7%B0%A7%E7%B3%BB%E7%BB%9F-1"><span class="nav-text">质点弹簧系统</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%90%86%E6%83%B3%E7%9A%84%E5%BC%B9%E7%B0%A7"><span class="nav-text">理想的弹簧</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%89%E9%95%BF%E5%BA%A6%E7%9A%84%E5%BC%B9%E7%B0%A7"><span class="nav-text">有长度的弹簧</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%98%BB%E5%B0%BC"><span class="nav-text">阻尼</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%84%E5%90%88"><span class="nav-text">组合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%B9%E7%B0%A7%E6%A8%A1%E6%8B%9F%E5%B8%83"><span class="nav-text">弹簧模拟布</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%981%E5%88%87%E5%8F%98"><span class="nav-text">问题1：切变</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%982%E4%B8%8D%E6%88%90%E5%B9%B3%E9%9D%A2"><span class="nav-text">问题2：不成平面</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AD%96%E7%95%A5"><span class="nav-text">策略</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%89%E9%99%90%E5%85%83%E6%96%B9%E6%B3%95%E6%A8%A1%E6%8B%9F%E5%B8%83%E6%96%99"><span class="nav-text">有限元方法模拟布料</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B2%92%E5%AD%90%E7%B3%BB%E7%BB%9F"><span class="nav-text">粒子系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%AE%97%E6%B3%95"><span class="nav-text">简单算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B2%92%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E5%8A%9B%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text">粒子系统中力的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B2%92%E5%AD%90%E7%9A%84%E6%89%A9%E5%B1%95"><span class="nav-text">粒子的扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E6%8B%9F%E9%B8%9F%E7%BE%A4"><span class="nav-text">模拟鸟群</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E4%BE%8B%E5%AD%90"><span class="nav-text">其他例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%AC%94%E8%AE%B0"><span class="nav-text">其他笔记</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E8%BF%90%E5%8A%A8%E5%AD%A6"><span class="nav-text">正运动学</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E8%8A%82%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-text">关节的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E4%BB%B7"><span class="nav-text">评价</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-text">问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A5%BD%E5%A4%84"><span class="nav-text">好处</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%86%E8%BF%90%E5%8A%A8%E5%AD%A6"><span class="nav-text">逆运动学</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E8%8A%82%E7%9A%84%E4%BE%8B%E5%AD%90-1"><span class="nav-text">关节的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E4%BB%B7-1"><span class="nav-text">评价</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98-1"><span class="nav-text">问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E7%AD%96%E7%95%A5"><span class="nav-text">解决策略</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%86%E8%BF%90%E5%8A%A8%E5%AD%A6%E4%BE%8B%E5%AD%90"><span class="nav-text">逆运动学例子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rigging"><span class="nav-text">Rigging</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#blend-shape"><span class="nav-text">Blend Shape</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#motion-capture"><span class="nav-text">Motion Capture</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%9A%84%E6%8E%A7%E5%88%B6%E7%82%B9%E6%A8%A1%E5%9E%8B"><span class="nav-text">其他的控制点模型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E7%94%BB%E4%BA%A7%E4%B8%9A%E7%9A%84-pipeline"><span class="nav-text">动画产业的 pipeline</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/01/CG/YLQ-GAMES101/12/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES101.闫令琪.12.动画与模拟(Lecture 21)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-01 15:16:52" itemprop="dateCreated datePublished" datetime="2021-04-01T15:16:52+08:00">2021-04-01</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-02 15:05:05" itemprop="dateModified" datetime="2021-04-02T15:05:05+08:00">2021-04-02</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES101/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES101</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">动画、动画的历史、关键帧动画、物理模拟、弹簧质点模型、粒子系统、运动学、逆运动学、Rigging</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/av90798049</li>
+</ul>
+<h1 id="动画与模拟">动画与模拟</h1>
+<ul>
+<li>animation</li>
+<li>内容
+<ul>
+<li>History</li>
+<li>Keyframe animation</li>
+<li>Physical simulation</li>
+<li>Kinematics</li>
+<li>Rigging</li>
+</ul></li>
+</ul>
+<h2 id="动画">动画</h2>
+<ul>
+<li>动画的动机：让物体动起来
+<ul>
+<li>是一种交流的工具</li>
+<li>更关注美学特征，物理上差不多对就行</li>
+</ul></li>
+<li>建模，几何的拓展
+<ul>
+<li>时间轴上的扩展</li>
+</ul></li>
+<li>动画的形成：快速播放的图片序列
+<ul>
+<li>电影：24 fps</li>
+<li>视频：30 fps</li>
+<li>VR：90 fps
+<ul>
+<li>不晕的要求</li>
+</ul></li>
+<li>frames per second</li>
+</ul></li>
+</ul>
+<h2 id="动画的历史">动画的历史</h2>
+<h3 id="早期的壁画">早期的壁画</h3>
+<ul>
+<li>一些图片序列</li>
+<li>我们将这些图片截取下来动态的播放，可以看到动态的狩猎图</li>
+<li>这说明很早的时候，大家就已经知道动画就是一系列的图片序列而已，只是当时缺少播放设备罢了</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401154620043.png" style="zoom:50%;"></p>
+<h3 id="phenakistoscope">Phenakistoscope</h3>
+<ul>
+<li>1831</li>
+<li>圆盘，边上画上画，但是你只能看到一部分区域</li>
+<li>转起来则会有动画的效果</li>
+<li>小时候玩的小人书，翻页动画</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401155000489.png" style="zoom:50%;"></p>
+<h3 id="电影">电影</h3>
+<ul>
+<li>最早用于科学研究
+<ul>
+<li>例如：捕捉马的运动形态</li>
+</ul></li>
+</ul>
+<h3 id="动画-1">动画</h3>
+<ul>
+<li>白雪公主和七个小矮人
+<ul>
+<li>Disney, “Snow White and the Seven Dwarfs” (1937)</li>
+<li>第一部手绘的长达 40 分钟的动画（电影长度）
+<ul>
+<li>First Hand-Drawn Feature-Length (&gt;40 mins) Animation</li>
+<li>feature length，时间大于等于 40 分钟，电影的长度</li>
+</ul></li>
+</ul></li>
+<li>Ivan Sutherland, “Sketchpad” (1963) – Light pen, vector display
+<ul>
+<li>First Digital-Computer-Generated Animation</li>
+<li>可以支持用一根激光笔在显示屏上画出、移动简单的几何体</li>
+</ul></li>
+<li>早期的动画
+<ul>
+<li>三维网格显示任务的面目表情</li>
+<li>Ed Catmull &amp; Frederick Parke, “Computer Animated Faces” (1972)</li>
+</ul></li>
+<li>侏罗纪公园
+<ul>
+<li>Jurassic Park (1993)</li>
+<li>里程碑式的作品</li>
+<li>真正把电脑生成的恐龙放到了电影里</li>
+</ul></li>
+<li>玩具总动员
+<ul>
+<li>Pixar, “Toy Story” (1995)</li>
+<li>First CG-Generated Feature-Length Film</li>
+<li>第一部完全由电脑生成的电影</li>
+<li>当时还是使用<strong>光栅化技术</strong>，没有光线跟踪</li>
+</ul></li>
+<li>天降美食
+<ul>
+<li>Sony Pictures Animation, “Cloudy With a Chance of Meatballs” (2009)</li>
+<li>东西掉进水里的模拟还不是很逼真
+<ul>
+<li>涟漪</li>
+</ul></li>
+</ul></li>
+<li>冰雪奇缘2
+<ul>
+<li>Walt Disney Animation Studios, “Frozen 2” (2019)</li>
+<li>充满大量细节：花瓣、草地、特效</li>
+</ul></li>
+</ul>
+<h2 id="关键帧动画">关键帧动画</h2>
+<ul>
+<li>keyframe animation</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401200539173.png" style="zoom:67%;"></p>
+<ul>
+<li>首先绘制一些重要的位置的场景，这些重要的位置就被称为<strong>关键帧</strong></li>
+<li>动画制作
+<ul>
+<li>Animator (e.g. lead animator) creates keyframes
+<ul>
+<li>负责人先画出关键帧</li>
+</ul></li>
+<li>Assistant (person or computer) creates in-between frames (“tweening”)
+<ul>
+<li>助手在将中间的过程补全</li>
+</ul></li>
+</ul></li>
+<li>flash
+<ul>
+<li>简单的图案可以从关键帧自动生成</li>
+</ul></li>
+</ul>
+<h3 id="关键帧插值">关键帧插值</h3>
+<ul>
+<li>插值是一门学问，做到自然真实是很难的</li>
+<li>连续性
+<ul>
+<li><span class="math inline">\(C1,C2,\cdots\)</span></li>
+</ul></li>
+</ul>
+<h2 id="物理模拟">物理模拟</h2>
+<ul>
+<li>physical simulation</li>
+<li>牛顿定律 <span class="math inline">\(F=ma\)</span>
+<ul>
+<li>Force = Mass x Acceleration</li>
+</ul></li>
+<li>简单的匀加速运动</li>
+</ul>
+<p><span class="math display">\[
+x^{t+\Delta t}=x^t+\Delta tv^t+\dfrac{1}{2}(\Delta t)^2a^t
+\]</span></p>
+<ul>
+<li>复杂的布料：如果考虑了所有力，就能很好的模拟出结果</li>
+<li>模拟得对的话，则不会出现<strong>穿模</strong>现象</li>
+<li>流体的模拟
+<ul>
+<li>模拟水滴的位置</li>
+<li>然后考虑怎么渲染得更真实</li>
+</ul></li>
+<li>割裂开模拟和真实感渲染这两步</li>
+</ul>
+<h2 id="质点弹簧系统">质点弹簧系统</h2>
+<ul>
+<li>Mass Spring System</li>
+</ul>
+<h3 id="例子">例子</h3>
+<h4 id="简单的弹簧绳">简单的弹簧绳</h4>
+<ul>
+<li>Mass Spring Rope</li>
+</ul>
+<h4 id="头发">头发</h4>
+<ul>
+<li>很复杂：摩擦力、重力、外力</li>
+</ul>
+<h4 id="布料">布料</h4>
+<ul>
+<li>Mass Spring Mesh</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401202146335.png" style="zoom:67%;"></p>
+<ul>
+<li>关于模拟布料的一篇论文</li>
+<li>Huamin Wang, Ravi Ramamoorthi, and James F. O'Brien. &quot;Data-Driven Elastic Models for Cloth: Modeling and Measurement&quot;. ACM Transactions on Graphics, 30(4):71:1–11, July 2011. Proceedings of ACM SIGGRAPH 2011, Vancouver, BC Canada.</li>
+</ul>
+<h3 id="质点弹簧系统-1">质点弹簧系统</h3>
+<ul>
+<li>一系列相互连接的质点和弹簧</li>
+</ul>
+<h4 id="理想的弹簧">理想的弹簧</h4>
+<ul>
+<li>没有长度</li>
+<li>被拉开多长，就产生多大的力</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401202528815.png" style="zoom:100%;"></p>
+<ul>
+<li>弹簧力大小的计算
+<ul>
+<li>胡克定律 Hooke’s Law</li>
+<li>劲度系数 <span class="math inline">\(k_s\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\boldsymbol{f_{a\to b}}=k_s(\mathbf{b}-\mathbf{a})
+\]</span></p>
+<p><span class="math display">\[
+\boldsymbol{f_{b\to a}}=-\boldsymbol{f_{a\to b}}
+\]</span></p>
+<h4 id="有长度的弹簧">有长度的弹簧</h4>
+<p><span class="math display">\[
+\boldsymbol{f_{a\to b}}=k_s(||\mathbf{b}-\mathbf{a}||-l)\dfrac{\mathbf{b}-\mathbf{a}}{||\mathbf{b}-\mathbf{a}||}
+\]</span></p>
+<ul>
+<li>胡克定律
+<ul>
+<li><span class="math inline">\(\dfrac{\mathbf{b}-\mathbf{a}}{||\mathbf{b}-\mathbf{a}||}\)</span> 表示方向</li>
+</ul></li>
+<li>问题：由于能量守恒，永远不会停下来
+<ul>
+<li><strong>加入一个摩擦力</strong></li>
+</ul></li>
+<li>记号</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\boldsymbol{x}\\
+&amp;\dot{\boldsymbol{x}}=\boldsymbol{v}\\
+&amp;\ddot{\boldsymbol{x}}=\boldsymbol{a}
+\end{aligned}
+\]</span></p>
+<h4 id="阻尼">阻尼</h4>
+<ul>
+<li>damping force</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401204250184.png" style="zoom:80%;"> <span class="math display">\[
+\boldsymbol{f}=-k_d\mathbf{\dot{b}}
+\]</span></p>
+<ul>
+<li>问题：会引起所有的运动都停下来（Slows down all motion）
+<ul>
+<li>表现不了弹簧内部的损耗</li>
+</ul></li>
+<li>表现问题的例子
+<ul>
+<li>两个质点和连接它们的弹簧，在光滑的水平面上同步的向右运动，理论上应该不会被停下来，而且弹簧之间应该没有相对运动</li>
+<li>但是按照这个模型他们会被停下来</li>
+</ul></li>
+<li>阻尼应该加在弹簧上，即两个质点的相对运动上（相对速度在弹簧方向上的分量）</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401205009298.png" style="zoom:80%;"> <span class="math display">\[
+\boldsymbol{f_{b}}=-k_d\dfrac{\mathbf{b}-\mathbf{a}}{||\mathbf{b}-\mathbf{a}||}\cdot(\mathbf{\dot{b}}-\mathbf{\dot{a}})\cdot \dfrac{\mathbf{b}-\mathbf{a}}{||\mathbf{b}-\mathbf{a}||}
+\]</span></p>
+<ul>
+<li>式子含义的解释</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401205354628.png" style="zoom:60%;"></p>
+<ul>
+<li>可以解释圆周运动，速度没有衰减的现象</li>
+</ul>
+<h3 id="组合">组合</h3>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401211126993.png" style="zoom:50%;"></p>
+<h3 id="弹簧模拟布">弹簧模拟布</h3>
+<h4 id="问题1切变">问题1：切变</h4>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401211333098.png" style="zoom:50%;"></p>
+<ul>
+<li>布有抵抗切变的力，但是这个模型对角线一拉会形变</li>
+</ul>
+<h4 id="问题2不成平面">问题2：不成平面</h4>
+<ul>
+<li>如果有一个力让这个结构不成平面，这个结构可能不会恢复
+<ul>
+<li>例如上面的结构沿着对角线对折</li>
+</ul></li>
+<li>但是现实的布料是会恢复的</li>
+</ul>
+<h4 id="策略">策略</h4>
+<ul>
+<li>加对角线弹簧
+<ul>
+<li>但是变得不对称了</li>
+<li>解决不了问题 2</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401211837682.png" style="zoom:50%;"></p>
+<ul>
+<li>加两个对角线
+<ul>
+<li>同样解决不了问题 2（竖直对折）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401212105160.png" style="zoom:50%;"></p>
+<ul>
+<li>每一个点和它相隔一个点的点相连
+<ul>
+<li>skip connection</li>
+<li>这样不管如果你把这个结构折成不在一个平面内的结构的话，势必会影响某个弹簧（产生恢复力）</li>
+<li>红线的连接相对较弱（劲度系数较小）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401220905052.png" style="zoom:67%;"></p>
+<h3 id="有限元方法模拟布料">有限元方法模拟布料</h3>
+<ul>
+<li>FEM：Finite Element Method</li>
+<li>广泛应用于汽车碰撞的模拟</li>
+<li>力的作用会传导</li>
+<li>FEM 写起来很复杂</li>
+</ul>
+<h2 id="粒子系统">粒子系统</h2>
+<ul>
+<li><strong>Particle System</strong></li>
+<li>把模型看成是很多个粒子的集合</li>
+<li>每个粒子的动作都被（非）物理上的力定义</li>
+<li>在现代图形学和游戏中广泛应用
+<ul>
+<li>实现比较简单和方便</li>
+<li>点越多，复杂度越高，模拟得越精细，执行越慢</li>
+</ul></li>
+<li>问题
+<ul>
+<li>可能需要大量的粒子（流体）</li>
+<li>可能需要一些其他的加速结构
+<ul>
+<li>例如要求粒子之间的引力（需要有一个很快得找到周围的粒子的方法）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="简单算法">简单算法</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">For each frame <span class="keyword">in</span> animation</span><br><span class="line">    [If needed] Create new particles</span><br><span class="line">    Calculate forces on each particle</span><br><span class="line">    Update each particle’s position <span class="keyword">and</span> velocity</span><br><span class="line">    [If needed] Remove dead particles</span><br><span class="line">    Render particles</span><br></pre></td></tr></table></figure>
+<ul>
+<li>建模的部分确定有哪些相互作用力</li>
+<li>怎么去解作用力
+<ul>
+<li>学术界更关心</li>
+<li>更难一些</li>
+</ul></li>
+<li>注意：<strong>模拟和渲染的过程是分开的</strong></li>
+</ul>
+<h3 id="粒子系统中力的作用">粒子系统中力的作用</h3>
+<ul>
+<li>Attraction and repulsion forces（引力与斥力）
+<ul>
+<li>Gravity, electromagnetism, …</li>
+<li>Springs, propulsion, …</li>
+</ul></li>
+<li>Damping forces（阻尼）
+<ul>
+<li>Friction, air drag, viscosity, …</li>
+</ul></li>
+<li>Collisions（碰撞）
+<ul>
+<li>Walls, containers, fixed objects, …</li>
+<li>Dynamic objects, character body parts, …</li>
+</ul></li>
+</ul>
+<h3 id="粒子的扩展">粒子的扩展</h3>
+<ul>
+<li>粒子：大规模范围内有很多小的重复的东西，这些东西可以理解为粒子</li>
+</ul>
+<h4 id="模拟鸟群">模拟鸟群</h4>
+<ul>
+<li>http://www.red3d.com/cwr/boids/)</li>
+<li>引力：和邻居的中心有个引力（任何一只鸟都不想落单，并且试图融入到他们中间去）</li>
+<li>斥力：和每只邻居中的鸟都有斥力（任何一只鸟都不希望和其他鸟离的太近）</li>
+<li>朝向：邻居的朝向平均值（希望沿着和邻居相同的方向飞）</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401234930535.png" style="zoom:60%;"></p>
+<h4 id="其他例子">其他例子</h4>
+<ul>
+<li>模拟分子结构
+<ul>
+<li>Molecular Dynamics</li>
+</ul></li>
+<li>人群的模拟
+<ul>
+<li>Crowds + “Rock” Dynamics</li>
+</ul></li>
+</ul>
+<h3 id="其他笔记">其他笔记</h3>
+<ul>
+<li>https://banbao991.github.io/2021/02/03/CG/LS/07/</li>
+</ul>
+<h2 id="正运动学">正运动学</h2>
+<ul>
+<li>Forward Kinematics</li>
+<li>做出一种动画，用于描述一个骨骼系统，能够表示和人类似的拓扑结构</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401235801146.png" style="zoom:50%;"></p>
+<ul>
+<li>Articulated skeleton（铰接式骨架）
+<ul>
+<li>Topology (what’s connected to what)
+<ul>
+<li>拓扑结构，具体怎么连接</li>
+</ul></li>
+<li>Geometric relations from joints
+<ul>
+<li>通过关节连接</li>
+</ul></li>
+<li>Tree structure (in absence of loops)
+<ul>
+<li>树的结构（无环）</li>
+</ul></li>
+</ul></li>
+<li>关节的类型
+<ul>
+<li>Pin：允许 1D 的旋转</li>
+<li>Ball：允许 2D 的旋转（像球一样旋转、可以转到平面外）</li>
+<li>Prismatic joint：允许拉长</li>
+</ul></li>
+<li>Pin（被钉住一样）</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210401235842580.png" style="zoom:100%;"></p>
+<ul>
+<li>Prismatic joint（棱柱形关节）</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210402000012688.png"></p>
+<h3 id="关节的例子">关节的例子</h3>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210402000209841.png" style="zoom:67%;"></p>
+<ul>
+<li>Pin 关节连接</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;p_x=l_1\cos(\theta_1)+l_2\cos(\theta_1+\theta_2)\\
+&amp;p_y=l_1\sin(\theta_1)+l_2\sin(\theta_1+\theta_2)\\
+\end{aligned}
+\]</span></p>
+<h3 id="评价">评价</h3>
+<h4 id="问题">问题</h4>
+<ul>
+<li>定义太过于物理</li>
+<li>不适合与艺术家
+<ul>
+<li>艺术家喜欢更加直观简单的定义，例如从哪里移动到哪里（而不是几个参数）</li>
+</ul></li>
+</ul>
+<h4 id="好处">好处</h4>
+<ul>
+<li>方便计算模拟，实现简单</li>
+</ul>
+<h2 id="逆运动学">逆运动学</h2>
+<ul>
+<li>告诉你运动的结果，然后计算出参数来模拟这个结果
+<ul>
+<li>例如给出轨迹，然后计算参数</li>
+</ul></li>
+</ul>
+<h3 id="关节的例子-1">关节的例子</h3>
+<ul>
+<li>给你 <span class="math inline">\(P\)</span> 点的轨迹，求出中间的过程中的 <span class="math inline">\(\theta_1,\theta_2\)</span> 的值，从而模拟这个运动</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210402001325862.png" style="zoom:67%;"></p>
+<ul>
+<li>解起来很复杂</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210402001401828.png" style="zoom:30%;"></p>
+<h3 id="评价-1">评价</h3>
+<h4 id="问题-1">问题</h4>
+<ul>
+<li>关节多了很难算</li>
+<li>解不唯一</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210402001550942.png" style="zoom: 70%;"></p>
+<ul>
+<li>可能无解
+<ul>
+<li>解只可能出现实线的圆环上，其他地方无解</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210402001723638.png" style="zoom:50%;"></p>
+<h4 id="解决策略">解决策略</h4>
+<ul>
+<li>优化方法求解（梯度下降）</li>
+</ul>
+<h3 id="逆运动学例子">逆运动学例子</h3>
+<ul>
+<li>Grochow et al., Style Based Inverse Kinematics</li>
+</ul>
+<h2 id="rigging">Rigging</h2>
+<ul>
+<li>指对于形状的控制
+<ul>
+<li>类似于木偶的控制</li>
+</ul></li>
+<li>Rigging is a set of higher level controls on a character that allow more rapid &amp; intuitive modification of pose, deformations, expression, etc</li>
+<li>一定程度上可以说是对于逆运动学的一个应用</li>
+<li>Rigging 本身很复杂
+<ul>
+<li>建模很复杂</li>
+</ul></li>
+</ul>
+<h3 id="blend-shape">Blend Shape</h3>
+<ul>
+<li>艺术家对同一个人物形象的两个动作已经做好了，不使用骨架，直接堆表面进行插值出中间的形态
+<ul>
+<li>对于<strong>控制点进行插值</strong></li>
+</ul></li>
+</ul>
+<h3 id="motion-capture">Motion Capture</h3>
+<ul>
+<li>动作捕捉</li>
+<li>真人的控制点</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210402002734021.png" style="zoom:60%;"></p>
+<ul>
+<li>好处
+<ul>
+<li>真实感非常强</li>
+<li>实际动作不需要艺术家去调，很方便（快）</li>
+</ul></li>
+<li>缺点
+<ul>
+<li>动作演员很辛苦</li>
+<li>动画人物的动作和现实人做出的动作还是有差异的
+<ul>
+<li>后期调整</li>
+</ul></li>
+<li>捕捉不到很好的数据</li>
+<li>成本高
+<ul>
+<li>需要很多个摄像机，才能捕捉到完整的信息</li>
+</ul></li>
+<li>人物动作自己遮挡到控制点</li>
+</ul></li>
+</ul>
+<h4 id="其他的控制点模型">其他的控制点模型</h4>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210402003138064.png" style="zoom:67%;"></p>
+<ul>
+<li>光学的方法（不受遮挡的影响）
+<ul>
+<li>应用相对广泛</li>
+<li>需要很多相机高频捕捉</li>
+</ul></li>
+<li>机械的方法（直接输出数据）</li>
+<li>得到的数据
+<ul>
+<li>每一个控制点的位置随着时间变化的信息</li>
+</ul></li>
+<li>可以得到非常真实的动画</li>
+<li><strong>恐怖谷效应</strong> Uncanny valley
+<ul>
+<li>过于真实带来的问题</li>
+</ul></li>
+<li>阿凡达 Avatar
+<ul>
+<li>使用了面部捕捉</li>
+<li>里程碑式的作品</li>
+</ul></li>
+</ul>
+<h2 id="动画产业的-pipeline">动画产业的 pipeline</h2>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/12/image-20210402003601782.png" style="zoom:100%;"></p>
+<ul>
+<li>VFX：visual effects</li>
+<li>开销：美工的开销、渲染的开销
+<ul>
+<li>动画电影的开销比请演员还高</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/01/CG/YLQ-GAMES101/11/" rel="prev" title="GAMES101.闫令琪.11.颜色与感知(Lecture 20)">
+                  <i class="fa fa-chevron-left"></i> GAMES101.闫令琪.11.颜色与感知(Lecture 20)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/01/CG/YLQ-GAMES101/13/" rel="next" title="GAMES101.闫令琪.13.动画与模拟(2)(Lecture 22)">
+                  GAMES101.闫令琪.13.动画与模拟(2)(Lecture 22) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

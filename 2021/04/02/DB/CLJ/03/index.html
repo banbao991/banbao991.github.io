@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="关系基本概念、关系模型三要素（数据结构、数据操作、完整性约束）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.03.关系模型">
+<meta property="og:url" content="http://example.com/2021/04/02/DB/CLJ/03/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="关系基本概念、关系模型三要素（数据结构、数据操作、完整性约束）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03/image-20210402205215019.png">
+<meta property="article:published_time" content="2021-04-02T09:48:17.000Z">
+<meta property="article:modified_time" content="2021-04-02T13:59:23.660Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/02/DB/CLJ/03/image-20210402205215019.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/02/DB/CLJ/03/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.03.关系模型 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B"><span class="nav-text">关系模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text">关系模型基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B%E7%9A%84%E8%AF%9E%E7%94%9F"><span class="nav-text">关系模型的诞生</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A9%E6%9C%9F%E4%BB%A3%E8%A1%A8%E7%B3%BB%E7%BB%9F"><span class="nav-text">早期代表系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%8E%E5%9B%BE%E7%81%B5%E5%A5%96"><span class="nav-text">数据库与图灵奖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%AE%E5%89%8D%E4%B8%BB%E6%B5%81%E7%9A%84%E5%95%86%E4%B8%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F"><span class="nav-text">目前主流的商业数据库系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%9B%E5%8D%A1%E5%B0%94%E7%A7%AF"><span class="nav-text">笛卡尔积</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%9B%E5%8D%A1%E5%B0%94%E7%A7%AF%E4%B8%8E%E5%85%B3%E7%B3%BB"><span class="nav-text">笛卡尔积与关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E5%AD%A6%E9%97%AE%E9%A2%98"><span class="nav-text">数学问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E7%9A%84%E6%80%A7%E8%B4%A8"><span class="nav-text">关系的性质</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B-3-%E8%A6%81%E7%B4%A0"><span class="nav-text">关系模型 3 要素</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A0%81"><span class="nav-text">码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F%E4%B8%8E%E5%85%B3%E7%B3%BB"><span class="nav-text">关系模式与关系</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F"><span class="nav-text">关系模式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB"><span class="nav-text">关系</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E6%9E%84%E6%88%90"><span class="nav-text">关系数据库的构成</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C"><span class="nav-text">数据操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%93%8D%E4%BD%9C"><span class="nav-text">关系操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E8%AF%AD%E8%A8%80%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-text">关系数据语言的特点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8A%BD%E8%B1%A1%E7%9A%84%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B%E6%9F%A5%E8%AF%A2%E8%AF%AD%E8%A8%80"><span class="nav-text">抽象的关系模型查询语言</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%BC%94%E7%AE%97"><span class="nav-text">关系演算</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0"><span class="nav-text">关系代数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E5%85%B3%E7%B3%BB%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80"><span class="nav-text">具体系统中的关系操作语言</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E6%80%A7%E7%BA%A6%E6%9D%9F"><span class="nav-text">完整性约束</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93%E5%AE%8C%E6%95%B4%E6%80%A7"><span class="nav-text">实体完整性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E7%85%A7%E5%AE%8C%E6%95%B4%E6%80%A7"><span class="nav-text">参照完整性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E5%AE%9A%E4%B9%89%E7%9A%84%E5%AE%8C%E6%95%B4%E6%80%A7"><span class="nav-text">用户定义的完整性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AF%94%E8%BE%83"><span class="nav-text">比较</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/02/DB/CLJ/03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.03.关系模型
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2021-04-02 17:48:17 / Modified: 21:59:23" itemprop="dateCreated datePublished" datetime="2021-04-02T17:48:17+08:00">2021-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">关系基本概念、关系模型三要素（数据结构、数据操作、完整性约束）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="关系模型">关系模型</h1>
+<ul>
+<li>简单即是有力</li>
+</ul>
+<h2 id="关系模型基本概念">关系模型基本概念</h2>
+<ul>
+<li>Table
+<ul>
+<li>An arrangement of words, numbers, orsigns, or combinations of them, as in parallel columns, to exhibit a set off acts or relations in a definite, compact, and comprehensive form; a synopsis or scheme.</li>
+</ul></li>
+</ul>
+<h3 id="关系模型的诞生">关系模型的诞生</h3>
+<ul>
+<li>E.F.Codd 于 70 年代初提出关系数据理论，他因此获得 1981 年的 ACM 图灵奖
+<ul>
+<li>1970: “A Relational Model of data for Large Shared Data Banks”</li>
+</ul></li>
+<li>提出关系代数和关系演算</li>
+<li>1972：1NF, 2NF, 3NF</li>
+<li>1974：BCNF</li>
+<li><strong>关系理论</strong>建立在<strong>集合代数理论基础</strong>之上，有着坚实的数学基础</li>
+</ul>
+<h3 id="早期代表系统">早期代表系统</h3>
+<ul>
+<li>SystemＲ：由 IBM 研制</li>
+<li>INGRES：由加州 Berkeley 分校研制</li>
+</ul>
+<h3 id="数据库与图灵奖">数据库与图灵奖</h3>
+<ul>
+<li>数据库有 4 位获得图灵奖的人</li>
+<li>Charles W. Bachman（查尔斯 • 巴赫曼）
+<ul>
+<li>1973 主持设计与开发了最早的<strong>网状</strong>数据库管理系统 IDS</li>
+</ul></li>
+<li>Edgar F. Codd（埃德加 • 科德）
+<ul>
+<li>1981 提出了<strong>关系数据库</strong></li>
+</ul></li>
+<li>James Gray（詹姆斯 • 格雷）
+<ul>
+<li>1998 解决保障数据的完整性、安全性、并行性，以及从故障恢复方面发挥了十分关键的作用，提出并实现数据库事务处理</li>
+</ul></li>
+<li>Michael Stonebraker（迈克尔.斯通布雷克
+<ul>
+<li>2014 创造了数据库系统一系列奠基性基本概念和实际技术</li>
+<li>基于 INGRES</li>
+</ul></li>
+</ul>
+<h3 id="目前主流的商业数据库系统">目前主流的商业数据库系统</h3>
+<ul>
+<li>Oracle, SQLServer, DB2</li>
+<li>开源数据库：MySQL, PostgreSQL</li>
+<li>OceanBase, GaussDB, 达梦
+<ul>
+<li>GaussDB 基于 PostgreSQL：华为</li>
+<li>达梦：武大</li>
+<li>OceanBase：阿里</li>
+</ul></li>
+<li>Access, SQLite
+<ul>
+<li>SOLite 装机量最大，手机上都有</li>
+</ul></li>
+</ul>
+<h3 id="笛卡尔积">笛卡尔积</h3>
+<h4 id="基本概念">基本概念</h4>
+<ul>
+<li><strong>域</strong>（Domain）
+<ul>
+<li>具有相同数据类型的一组值的集合</li>
+<li>如整数集合、字符串集合、全体学生集合</li>
+</ul></li>
+<li>一组域 <span class="math inline">\(D_1,D_1,\cdots,D_n\)</span> 的<strong>笛卡尔积</strong></li>
+</ul>
+<p><span class="math display">\[
+D_1\times D_2\times\cdots\times D_n=\left\{(d_1,d_2,\cdots,d_n)|d_i\in D_i,i=1,2,\cdots,n\right\}
+\]</span></p>
+<ul>
+<li>n <strong>元组</strong>（tuple）：笛卡尔积的元素 <span class="math inline">\((d_1,d_2,\cdots,d_n)\)</span></li>
+<li>元组的每个值 <span class="math inline">\(d_i\)</span> 称作<strong>分量</strong>（component）</li>
+<li>若 <span class="math inline">\(D_i\)</span> 的基数为 <span class="math inline">\(m_i\)</span>，则笛卡尔积的<strong>基数</strong>为 <span class="math inline">\(\prod_{i=1}^{n}m_i\)</span></li>
+<li>笛卡尔积可以表示为<strong>二维表</strong>的形式
+<ul>
+<li>每一列表示一个分量</li>
+</ul></li>
+<li><strong>关系</strong>：笛卡尔积的子集
+<ul>
+<li>笛卡尔积 <span class="math inline">\(D_1\times D_2\times\cdots\times D_n\)</span> 的<strong>子集</strong>称作在域 <span class="math inline">\(D_1,D_2,\cdots,D_n\)</span> 上的<strong>关系</strong> 用 <span class="math inline">\(R(D_1,D_2,\cdots,D_n)\)</span> 表示</li>
+<li><span class="math inline">\(R\)</span> 是关系的名字，<span class="math inline">\(n\)</span> 是关系的<strong>度</strong>或<strong>目</strong></li>
+</ul></li>
+</ul>
+<h4 id="笛卡尔积与关系">笛卡尔积与关系</h4>
+<ul>
+<li>笛卡尔积：<strong>可能的世界</strong></li>
+<li>关系：<strong>实际的世界</strong></li>
+<li>关系是笛卡尔积中有意义的子集
+<ul>
+<li>有意义：子集得有名字</li>
+<li>名称不一样，反应的现实中的关系也不一样</li>
+<li>例子
+<ul>
+<li>Teach（老师、学生、课程）：老师教授课程</li>
+<li>Assistant（老师、学生、课程）：学生给老师当助教</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="数学问题">数学问题</h4>
+<ul>
+<li><span class="math inline">\(D_1,D_2,D_3\)</span> 的基数分别为 <span class="math inline">\(d_1,d_2.d_3\)</span>，则 <span class="math inline">\(D_1\times D_2\times D_3\)</span> 包含的关系数目
+<ul>
+<li><span class="math inline">\(d_1\times d_2\times d_3\)</span></li>
+</ul></li>
+<li>13 个元素的集合，划分为多少个域，每个域多少个元素，使得笛卡尔积包含的关系数目最多
+<ul>
+<li>4 x 3 x 3 x 3 = 108</li>
+</ul></li>
+</ul>
+<h3 id="关系的性质">关系的性质</h3>
+<ul>
+<li>列是<strong>同质</strong>的，是<strong>同一类型的数据</strong>，即每一列中的分量来自同一域</li>
+<li>不同的列可以来自同一域，每列必须有不同的属性名
+<ul>
+<li>一元联系</li>
+</ul></li>
+<li>行列的顺序无关紧要</li>
+<li>任意两个元组不能完全相同（集合内不能有相同的两个元素）
+<ul>
+<li>实际的数据库的表允许重复行的存在</li>
+</ul></li>
+<li><strong>每一分量必须是不可再分的数据</strong>，称其为作满足第一范式（1NF）的关系</li>
+</ul>
+<p><img src="/2021/04/02/DB/CLJ/03/image-20210402205215019.png" style="zoom:80%;"></p>
+<ul>
+<li>从查询的角度，深入分析嵌套关系的利弊
+<ul>
+<li>如果查询某个学生选修的课程哪些
+<ul>
+<li>嵌套关系性能更高，直接通过学号索引就行</li>
+<li>1NF 关系需要先对学号过滤，再取出来课程</li>
+</ul></li>
+<li>如果查询选修的某个课程的学生有哪些
+<ul>
+<li>嵌套关系没办法直接表达（无法使用声明式查询，需要编程进行路径式查询）</li>
+<li>1NF 各种属性的查询没有区别</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="关系模型-3-要素">关系模型 3 要素</h2>
+<h3 id="数据结构">数据结构</h3>
+<ul>
+<li>单一的数据结构：<strong>关系</strong>
+<ul>
+<li>实体集、联系都表示成关系</li>
+</ul></li>
+<li>单一的数据结构好处是什么
+<ul>
+<li>实现数据库的时候，只需要实现一种数据结构</li>
+</ul></li>
+</ul>
+<h4 id="码">码</h4>
+<ul>
+<li><strong>候选码</strong>（Candidate Key）
+<ul>
+<li>关系中的一个属性组，其值能唯一标识一个元组</li>
+<li>若从属性组中去掉任何一个属性，它就不具有这一性质了，这样的属性组称作候选码</li>
+</ul></li>
+<li><strong>任何一个候选码</strong>中的属性称作<strong>主属性</strong></li>
+<li><strong>主码</strong>（PK: Primary Key）
+<ul>
+<li>进行数据库设计时，从一个关系的多个<strong>候选码</strong>中<strong>选定一个</strong>作为主码</li>
+</ul></li>
+<li><strong>外码</strong>（FK: Foreign Key）
+<ul>
+<li>关系 R 中的一个属性组，它不是 R 的码，但它与另一个关系 S 的码相对应，称这个属性组为 R 的外码</li>
+<li>反映实体之间的联系</li>
+</ul></li>
+</ul>
+<h4 id="关系模式与关系">关系模式与关系</h4>
+<h5 id="关系模式">关系模式</h5>
+<ul>
+<li>关系的描述，记作 <span class="math inline">\(R(A_1,A_2,\cdots,A_n)\)</span> 包括：
+<ul>
+<li><strong>关系名</strong>、<strong>关系中的属性名</strong></li>
+<li>属性向域的<strong>映象</strong>，通常说明为属性的类型、长度等</li>
+<li>属性间的<strong>数据依赖</strong>关系
+<ul>
+<li>比如在特定的时间和教室只能安排一门课</li>
+</ul></li>
+</ul></li>
+<li><strong>关系模式</strong>是<strong>型</strong>，是<strong>稳定</strong>的</li>
+</ul>
+<h5 id="关系">关系</h5>
+<ul>
+<li>某一时刻对应某个关系模式的内容（元组的集合）</li>
+<li><strong>关系</strong>是<strong>某一时刻的值</strong>，是<strong>随时间不断变化</strong>的</li>
+</ul>
+<h4 id="关系数据库的构成">关系数据库的构成</h4>
+<ul>
+<li>关系数据库的<strong>型</strong>
+<ul>
+<li>是<strong>关系模式</strong>的集合，即数据库描述</li>
+<li>称作数据库的<strong>内涵</strong>（Intension）</li>
+</ul></li>
+<li>关系数据库的<strong>值</strong>
+<ul>
+<li>是<strong>某一时刻关系</strong>的集合</li>
+<li>称作数据库的外延（Extension）</li>
+</ul></li>
+</ul>
+<h3 id="数据操作">数据操作</h3>
+<h4 id="关系操作">关系操作</h4>
+<ul>
+<li>关系操作是<strong>集合操作</strong></li>
+<li>操作的对象及结果都是集合</li>
+<li>是<strong>一次一集合</strong>（Set-at-a-time）的方式
+<ul>
+<li>非关系型的数据操作方式是<strong>一次一记录</strong> （Record-at-a-time）</li>
+</ul></li>
+</ul>
+<h4 id="关系数据语言的特点">关系数据语言的特点</h4>
+<ul>
+<li><strong>一体化</strong>
+<ul>
+<li>对象单一，都是关系，因此操作符也单一</li>
+</ul></li>
+<li><strong>非过程化</strong>
+<ul>
+<li>用户只需提出 “做什么”，无须说明 “怎么做”</li>
+<li>存取路径的选择和操作过程由系统自动完成</li>
+</ul></li>
+<li><strong>面向集合的存取方式</strong>
+<ul>
+<li>操作对象是一个或多个关系，结果是一个新的关系（一次一关系）</li>
+</ul></li>
+</ul>
+<h4 id="抽象的关系模型查询语言">抽象的关系模型查询语言</h4>
+<ul>
+<li>关系代数（主流）</li>
+<li>关系演算
+<ul>
+<li>元组关系演算</li>
+<li>域关系演算</li>
+</ul></li>
+</ul>
+<h5 id="关系演算">关系演算</h5>
+<ul>
+<li>用<strong>谓词</strong>来表达查询，只需描述所需信息的特性</li>
+<li>元组关系演算
+<ul>
+<li>谓词变元的<strong>基本对象</strong>是<strong>元组变量</strong></li>
+</ul></li>
+<li>域关系演算
+<ul>
+<li>谓词变元的<strong>基本对象</strong>是<strong>域变量</strong></li>
+</ul></li>
+</ul>
+<h5 id="关系代数">关系代数</h5>
+<ul>
+<li>用<strong>对关系的运算</strong>来表达查询</li>
+<li>需要指明所用操作</li>
+<li>相比关系演算，关系代数是过程性操作语言
+<ul>
+<li>这里的过程性指的是需要人为地把<strong>关系序列</strong>定义出来
+<ul>
+<li>和之前的过程性查询不是一个概念</li>
+</ul></li>
+<li>而关系演算只是通过一系列谓词来描述</li>
+</ul></li>
+</ul>
+<h5 id="具体系统中的关系操作语言">具体系统中的关系操作语言</h5>
+<ul>
+<li>SQL
+<ul>
+<li>介于关系代数和关系演算之间</li>
+<li>由 IBM 公司在研制 System R 时提出</li>
+</ul></li>
+<li>QUEL
+<ul>
+<li>基于 Codd 提出的<strong>元组关系演算</strong>语言 ALPHA</li>
+<li>在 INGRES 上实现</li>
+</ul></li>
+<li>QBE
+<ul>
+<li>基于<strong>域关系</strong>演算</li>
+<li>由 IBM 公司研制</li>
+</ul></li>
+</ul>
+<h3 id="完整性约束">完整性约束</h3>
+<ul>
+<li><strong>实体完整性</strong>、<strong>参照完整性</strong>、<strong>用户定义完整性</strong></li>
+</ul>
+<h4 id="实体完整性">实体完整性</h4>
+<ul>
+<li>关系的主码中的属性值不能为空值</li>
+<li>意义：关系对应到现实世界中的实体集，元组对应到实体，<strong>实体是相互可区分的</strong>，通过主码来唯一标识，若主码为空，则出现不可标识的实体，这是不容许的</li>
+<li>三值逻辑</li>
+</ul>
+<h4 id="参照完整性">参照完整性</h4>
+<ul>
+<li>相对于外码而言的</li>
+<li>如果关系 <span class="math inline">\(R_2\)</span> 的外码 <span class="math inline">\(F_k\)</span> 与关系 <span class="math inline">\(R_1\)</span> 的主码 <span class="math inline">\(P_k\)</span> 相对应，则 <span class="math inline">\(R_2\)</span> 中每个元组的 <span class="math inline">\(F_k\)</span> 值或者等于 <strong><span class="math inline">\(R_1\)</span> 中某个元组的 <span class="math inline">\(P_k\)</span> 值</strong>，或者为<strong>空值</strong>
+<ul>
+<li>空值是允许的，可以认为是未分配、不知道</li>
+</ul></li>
+<li>如果关系 <span class="math inline">\(R_2\)</span> 的某个元组 <span class="math inline">\(t_2\)</span> 参照了关系 <span class="math inline">\(R_1\)</span> 的某个元组 <span class="math inline">\(t_1\)</span>，则 <span class="math inline">\(t_1\)</span> 必须存在，也即必须与客观存在的实体发生联系</li>
+</ul>
+<h4 id="用户定义的完整性">用户定义的完整性</h4>
+<ul>
+<li>用户针对具体应用环境定义的完整性约束条件</li>
+<li>数据库应该支持这些功能，否则对应用程序言而言，就需要它自己去判断</li>
+</ul>
+<h4 id="比较">比较</h4>
+<ul>
+<li>实体完整性和参照完整性由系统自动支持</li>
+<li>系统提供定义和检验用户定义的完整性的机制</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/02/CG/YLQ-GAMES202/03/" rel="prev" title="GAMES202.闫令琪.03.实时阴影(1)">
+                  <i class="fa fa-chevron-left"></i> GAMES202.闫令琪.03.实时阴影(1)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/02/DB/CLJ/03-1/" rel="next" title="数据库概论.陈立军.03.关系模型(2)">
+                  数据库概论.陈立军.03.关系模型(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="欧拉方法、中点法、自适应步长方法、龙格库塔方法、RK4、流体的模拟、两大流派（拉格朗日方法、欧拉方法）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES101.闫令琪.13.动画与模拟(2)(Lecture 22)">
+<meta property="og:url" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/13/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="欧拉方法、中点法、自适应步长方法、龙格库塔方法、RK4、流体的模拟、两大流派（拉格朗日方法、欧拉方法）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/13/image-20210402104312620.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/13/image-20210402104639526.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/13/image-20210402105237738.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/13/image-20210402114539986.png">
+<meta property="og:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/13/image-20210402140922051.png">
+<meta property="article:published_time" content="2021-04-01T14:40:40.000Z">
+<meta property="article:modified_time" content="2021-04-29T16:17:32.016Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/01/CG/YLQ-GAMES101/13/image-20210402104312620.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/01/CG/YLQ-GAMES101/13/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES101.闫令琪.13.动画与模拟(2)(Lecture 22) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A8%E7%94%BB%E4%B8%8E%E6%A8%A1%E6%8B%9F"><span class="nav-text">动画与模拟</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E4%B8%AA%E7%B2%92%E5%AD%90%E7%9A%84%E6%A8%A1%E6%8B%9F"><span class="nav-text">单个粒子的模拟</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AC%A7%E6%8B%89%E6%96%B9%E6%B3%95"><span class="nav-text">欧拉方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">存在的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8D%E5%87%86%E7%A1%AE"><span class="nav-text">不准确</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8D%E7%A8%B3%E5%AE%9A"><span class="nav-text">不稳定</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-text">问题的比较</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E6%8A%97%E4%B8%8D%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="nav-text">对抗不稳定性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AD%E7%82%B9%E6%B3%95"><span class="nav-text">中点法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%97%E6%B3%95"><span class="nav-text">算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%84%E4%BB%B7"><span class="nav-text">评价</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E9%80%82%E5%BA%94%E6%AD%A5%E9%95%BF"><span class="nav-text">自适应步长</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%97%E6%B3%95-1"><span class="nav-text">算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%90%E5%BC%8F%E6%AC%A7%E6%8B%89%E6%96%B9%E6%B3%95"><span class="nav-text">隐式欧拉方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%BE%99%E6%A0%BC%E5%BA%93%E5%A1%94%E6%96%B9%E6%B3%95"><span class="nav-text">龙格库塔方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#rk4"><span class="nav-text">RK4</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%9E%E7%89%A9%E7%90%86%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-text">非物理的方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9A%E4%BD%93%E7%9A%84%E6%A8%A1%E6%8B%9F"><span class="nav-text">刚体的模拟</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%81%E4%BD%93%E7%9A%84%E6%A8%A1%E6%8B%9F"><span class="nav-text">流体的模拟</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#key-idea"><span class="nav-text">key idea</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E5%A4%A7%E6%B5%81%E6%B4%BE"><span class="nav-text">两大流派</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8B%89%E6%A0%BC%E6%9C%97%E6%97%A5%E6%96%B9%E6%B3%95"><span class="nav-text">拉格朗日方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AC%A7%E6%8B%89%E6%96%B9%E6%B3%95-1"><span class="nav-text">欧拉方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%A9%E8%B4%A8%E7%82%B9%E6%96%B9%E6%B3%95"><span class="nav-text">物质点方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF"><span class="nav-text">思路</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/01/CG/YLQ-GAMES101/13/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES101.闫令琪.13.动画与模拟(2)(Lecture 22)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-01 22:40:40" itemprop="dateCreated datePublished" datetime="2021-04-01T22:40:40+08:00">2021-04-01</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-30 00:17:32" itemprop="dateModified" datetime="2021-04-30T00:17:32+08:00">2021-04-30</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES101/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES101</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">欧拉方法、中点法、自适应步长方法、龙格库塔方法、RK4、流体的模拟、两大流派（拉格朗日方法、欧拉方法）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/av90798049</li>
+</ul>
+<h1 id="动画与模拟">动画与模拟</h1>
+<h2 id="单个粒子的模拟">单个粒子的模拟</h2>
+<ul>
+<li>假设单个粒子在速度场中运动
+<ul>
+<li>理想，实际很难找到一个速度场</li>
+</ul></li>
+<li>解常微分方程
+<ul>
+<li>ODE：Ordinary Differential Equation</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\dfrac{dx}{dt}=\dot{x}=v(x,t)
+\]</span></p>
+<h2 id="欧拉方法">欧拉方法</h2>
+<ul>
+<li>前向欧拉方法，显式欧拉方法</li>
+<li>简单的迭代方法</li>
+<li>广泛的使用</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\boldsymbol{x}^{t+\Delta t}=\boldsymbol{x}^{t}+\Delta t \dot{\boldsymbol{x}}^{t} \\ \dot{\boldsymbol{x}}^{t+\Delta t}=\dot{\boldsymbol{x}}^{t}+\Delta t \ddot{\boldsymbol{x}}^{t}
+\end{aligned}
+\]</span></p>
+<ul>
+<li>始终用上一个时刻的数据计算这一时刻的数据</li>
+</ul>
+<h3 id="存在的问题">存在的问题</h3>
+<h4 id="不准确">不准确</h4>
+<ul>
+<li>很不准确
+<ul>
+<li>可以通过减小步长来解决</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/13/image-20210402104312620.png" style="zoom: 70%;"></p>
+<h4 id="不稳定">不稳定</h4>
+<ul>
+<li>通常会趋于不稳定
+<ul>
+<li>例如下面的两个场景
+<ul>
+<li>场景1：只要有一小段步长，就会脱离螺旋线</li>
+<li>场景2：不能汇聚到中心，反而离中心越来越远（正反馈）</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/13/image-20210402104639526.png" style="zoom:70%;"></p>
+<h4 id="问题的比较">问题的比较</h4>
+<ul>
+<li>Errors
+<ul>
+<li>Errors at each time step accumulate. Accuracy decreases as simulation proceeds</li>
+<li><strong>Accuracy may not be critical in graphics applications</strong>
+<ul>
+<li>CG 中，物理上不太准确没啥大关系，效果好就行</li>
+</ul></li>
+</ul></li>
+<li>Instability
+<ul>
+<li>Errors can compound, causing the simulation to <strong>diverge</strong> even when the underlying system does not
+<ul>
+<li>你有一个模拟方法，但是不管你怎么模拟都不会收敛到实际的结果</li>
+<li>发散的结果和真实的差的特别大</li>
+</ul></li>
+<li>Lack of stability is a fundamental problem in simulation, and cannot be ignored
+<ul>
+<li>不稳定是个很严重的问题</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="对抗不稳定性">对抗不稳定性</h2>
+<h3 id="中点法">中点法</h3>
+<ul>
+<li>Midpoint Method</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/13/image-20210402105237738.png" style="zoom:60%;"></p>
+<h4 id="算法">算法</h4>
+<ul>
+<li>首先使用欧拉方法计算出下一个点的位置 a</li>
+<li>取原始点和 a 点连线的中点 b</li>
+<li>计算 b 点的方向</li>
+<li>用 b 点的方向在原始点上移动一段距离</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+x_{mid}=x(t)+\dfrac{\Delta t}{2}\cdot v(x(t),t)\\
+x(t+\Delta t)=x(t)+\Delta t\cdot v(x_{mid},t)
+\end{aligned}
+\]</span></p>
+<h4 id="评价">评价</h4>
+<ul>
+<li>思想：找一个更具代表性的速度</li>
+<li>中点法为什么更优？
+<ul>
+<li>比欧拉方法多了一个<strong>二次项</strong></li>
+</ul></li>
+<li>展开上述的公式</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\boldsymbol{x}^{t+\Delta t}&amp;=\boldsymbol{x}^{t}+\Delta t\left(\boldsymbol{\dot{x}}^{t}+\dfrac{\Delta t}{2}\cdot\boldsymbol{\ddot{x}}^{t} \right)\\
+&amp;=\boldsymbol{x}^{t}+\Delta t \dot{\boldsymbol{x}}^{t}+\dfrac{(\Delta t)^{2}}{2} \ddot{\boldsymbol{x}}^{t} \end{aligned}
+\]</span></p>
+<ul>
+<li>是欧拉方法的一个改进</li>
+</ul>
+<h3 id="自适应步长">自适应步长</h3>
+<ul>
+<li>Adaptive Step Size</li>
+<li>通过估计的方式选择时间步长</li>
+<li>很实用的方法</li>
+<li>可能会导致使用很小的步长</li>
+</ul>
+<h4 id="算法-1">算法</h4>
+<ul>
+<li>定义一个阈值 threshold</li>
+<li>重复以下的步骤，直至误差小于阈值
+<ul>
+<li>Compute <span class="math inline">\(x_T\)</span> an Euler step, size <span class="math inline">\(T\)</span></li>
+<li>Compute <span class="math inline">\(x_{T/2}\)</span> two Euler steps, size <span class="math inline">\(\dfrac{T}{2}\)</span>
+<ul>
+<li>把时间分成两段，使用两次欧拉方法</li>
+</ul></li>
+<li>Compute error <span class="math inline">\(||x_{T}-x_{T/2}||\)</span></li>
+<li>If (error &gt; threshold) reduce step size and try again
+<ul>
+<li>重复减半 <span class="math inline">\(\Delta T\)</span>，直至错误小于阈值</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="隐式欧拉方法">隐式欧拉方法</h3>
+<ul>
+<li>Implicit methods</li>
+<li>后向欧拉方法</li>
+<li>使用下一帧的数据来估计这一个时刻的数据
+<ul>
+<li>解方程组</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\boldsymbol{x}^{t+\Delta t}=\boldsymbol{x}^{t}+\Delta t\ \dot{\boldsymbol{x}}^{t+\Delta t} \\
+\dot{\boldsymbol{x}}^{t+\Delta t}=\dot{\boldsymbol{x}}^{t}+\Delta t\  \ddot{\boldsymbol{x}}^{t+\Delta t}
+\end{aligned}
+\]</span></p>
+<ul>
+<li>如果变量描述关系没有这么简单，解方程是一个很难的问题
+<ul>
+<li>非线性方程组</li>
+</ul></li>
+<li>一般情况下会利用优化方法来解
+<ul>
+<li>牛顿法求根公式</li>
+</ul></li>
+<li>结果稳定性非常好</li>
+<li>怎么定义一个算法的稳定性
+<ul>
+<li>局部每一步的误差：local truncation error (every step)</li>
+<li>总的误差：total accumulated error (overall)</li>
+</ul></li>
+<li>评价的时候看误差的阶</li>
+<li>隐式欧拉方法误差的阶是 <span class="math inline">\(1\)</span>
+<ul>
+<li>局部误差：<span class="math inline">\(O(h^2)\)</span></li>
+<li>全局误差：<span class="math inline">\(O(h)\)</span></li>
+<li><span class="math inline">\(h\)</span> 表示步长，在这里是 <span class="math inline">\(\Delta t\)</span></li>
+</ul></li>
+<li>阶越高越好
+<ul>
+<li>越高的话，我们可以通过减小步长的方法很快的把误差减小下来</li>
+</ul></li>
+</ul>
+<h3 id="龙格库塔方法">龙格库塔方法</h3>
+<ul>
+<li>Runge-Kutta</li>
+<li>一类方法</li>
+<li>擅长求解 ODE</li>
+<li>一个用的比较多的方法：RK4（4阶）</li>
+</ul>
+<h4 id="rk4">RK4</h4>
+<ul>
+<li>初始化
+<ul>
+<li>初始状态、场</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\dfrac{dy}{dt}=f(t,y),y(t_0)=y_)
+\]</span></p>
+<ul>
+<li>更新方式</li>
+</ul>
+<p><span class="math display">\[
+y_{n+1}=y_n+\dfrac{1}{6}h(k_1+2k_2+2k_3+k_4)
+\]</span></p>
+<p><span class="math display">\[
+t_{n+1}=t_n+h
+\]</span></p>
+<ul>
+<li>其中</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+k_1&amp;=f(t_n,y_n)\\
+k_2&amp;=f(t_n+\dfrac{h}{2},y_n+h\dfrac{k_1}2)\\
+k_3&amp;=f(t_n+\dfrac{h}{2},y_n+h\dfrac{k_2}2)\\
+k_4&amp;=f(t_n+h,y_n+hk_3)\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>可以理解为中点法的扩展，精确设计</li>
+</ul>
+<h3 id="非物理的方法">非物理的方法</h3>
+<ul>
+<li>Position-Based / Verlet Integration
+<ul>
+<li>只通过调整位置，使其最后满足某种性质</li>
+</ul></li>
+<li>在渲染上很好用</li>
+<li>不是基于物理的，会不满足物理现象（）能量损失极快</li>
+</ul>
+<h2 id="刚体的模拟">刚体的模拟</h2>
+<ul>
+<li>不会形变</li>
+<li>类似粒子，但是需要考虑更多的物理量
+<ul>
+<li>位置、角度、速度、角速度</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/13/image-20210402114539986.png" style="zoom:60%;"></p>
+<h2 id="流体的模拟">流体的模拟</h2>
+<ul>
+<li>A Simple <strong>Position-Based</strong> Method</li>
+<li>通过模拟整个形成水的体积的小球的位置来模拟整个谁的运动</li>
+</ul>
+<h3 id="key-idea">key idea</h3>
+<ul>
+<li>水体是由很多的不可压缩的刚体小球组成的</li>
+<li>水是不可压缩的（水的密度是一样的）</li>
+<li>从密度的角度出发，如果某个位置的密度发生了改变（和原来不一样），通过改变小球的运动将密度进行修正
+<ul>
+<li>模拟水的运动</li>
+</ul></li>
+<li>需要知道密度对所有小球位置（粒子）的梯度
+<ul>
+<li>很远的小球不影响，梯度为 0</li>
+<li>比较近的小球的会影响</li>
+</ul></li>
+<li>怎么更新（调整小球位置）
+<ul>
+<li>梯度下降方法</li>
+<li>可能出来停不下来的现象
+<ul>
+<li>可以人为加上运动损失</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="两大流派">两大流派</h2>
+<ul>
+<li>Eulerian vs. Lagrangian</li>
+<li>https://www.youtube.com/watch?v=iDIzLkic1pY</li>
+</ul>
+<p><img src="/2021/04/01/CG/YLQ-GAMES101/13/image-20210402140922051.png" style="zoom:73%;"></p>
+<h3 id="拉格朗日方法">拉格朗日方法</h3>
+<ul>
+<li>质点法</li>
+<li>跟踪每一个<strong>质点</strong>的信息</li>
+</ul>
+<h3 id="欧拉方法-1">欧拉方法</h3>
+<ul>
+<li>网格法</li>
+<li>将场景划分为若干网格</li>
+<li>跟踪每个<strong>网格</strong>的信息变化</li>
+</ul>
+<h3 id="物质点方法">物质点方法</h3>
+<ul>
+<li>Material Point Method (MPM)</li>
+<li>两种方法的混合</li>
+</ul>
+<h4 id="思路">思路</h4>
+<ul>
+<li>Lagrangian: consider particles carrying material properties
+<ul>
+<li>每一个点都带有一些属性</li>
+</ul></li>
+<li>Eulerian: use a grid to do numerical integration
+<ul>
+<li>属性的计算是以网格为单位的计算</li>
+</ul></li>
+<li>Interaction: particles transfer properties to the grid, grid performs update, then interpolate back to particles
+<ul>
+<li>网格计算完之后把这些信息写回每个点</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/01/CG/YLQ-GAMES101/12/" rel="prev" title="GAMES101.闫令琪.12.动画与模拟(Lecture 21)">
+                  <i class="fa fa-chevron-left"></i> GAMES101.闫令琪.12.动画与模拟(Lecture 21)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/02/CG/YLQ-GAMES202/03/" rel="next" title="GAMES202.闫令琪.03.实时阴影(1)">
+                  GAMES202.闫令琪.03.实时阴影(1) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

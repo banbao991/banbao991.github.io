@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="数据库设计过程（三阶段、四阶段）、ER模型基本概念（实体、联系、码、ER图）、属性类型（简单与复合、单值与多值、派生与基属性、NULL）、联系的基数（一对一、一对多、多对多）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.02.ER 模型(1)">
+<meta property="og:url" content="http://example.com/2021/03/30/DB/CLJ/02/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="数据库设计过程（三阶段、四阶段）、ER模型基本概念（实体、联系、码、ER图）、属性类型（简单与复合、单值与多值、派生与基属性、NULL）、联系的基数（一对一、一对多、多对多）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330170242822.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330170654534.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330171253835.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330171925043.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330172659994.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330173111443.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330173317919.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330173936528.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330174008276.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330174728017.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330175030298.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330175427506.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330175742026.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330232018728.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330232156769.png">
+<meta property="og:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210331095818361.png">
+<meta property="article:published_time" content="2021-03-30T08:04:34.000Z">
+<meta property="article:modified_time" content="2021-03-31T02:55:58.780Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/03/30/DB/CLJ/02/image-20210330170242822.png">
+
+
+<link rel="canonical" href="http://example.com/2021/03/30/DB/CLJ/02/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.02.ER 模型(1) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#er-%E6%A8%A1%E5%9E%8B"><span class="nav-text">ER 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B"><span class="nav-text">数据库设计过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E9%98%B6%E6%AE%B5%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B"><span class="nav-text">三阶段数据库设计过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E9%98%B6%E6%AE%B5%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B"><span class="nav-text">四阶段数据库设计过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E5%90%8C%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1%E9%98%B6%E6%AE%B5%E4%B8%AD%E7%9A%84%E6%9C%AF%E8%AF%AD%E7%A7%B0%E8%B0%93"><span class="nav-text">不同数据库设计阶段中的术语称谓</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#er%E6%A8%A1%E5%9E%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text">ER模型基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#er-%E6%A8%A1%E5%9E%8B%E7%9A%84%E9%87%8D%E8%A6%81%E6%80%A7"><span class="nav-text">ER 模型的重要性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#er-%E6%A8%A1%E5%9E%8B%E7%9A%84%E8%AF%9E%E7%94%9F"><span class="nav-text">ER 模型的诞生</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#er-%E6%A8%A1%E5%9E%8B%E4%B8%AD%E7%9A%84%E5%AE%9E%E4%BD%93"><span class="nav-text">ER 模型中的实体</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93%E5%9E%8B%E4%B8%8E%E5%AE%9E%E4%BD%93%E9%9B%86"><span class="nav-text">实体型与实体集</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#er-%E6%A8%A1%E5%9E%8B%E4%B8%AD%E7%9A%84%E8%81%94%E7%B3%BB"><span class="nav-text">ER 模型中的联系</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93%E7%9A%84%E7%A0%81key"><span class="nav-text">实体的码（Key）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="nav-text">一个例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E7%A1%AE%E5%AE%9A%E8%81%94%E7%B3%BB%E7%9A%84%E7%A0%81"><span class="nav-text">如何确定联系的码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A0%81%E5%9C%A8-er-%E5%9B%BE%E4%B8%AD%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="nav-text">码在 ER 图中的表示</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%9A%84%E7%A0%81"><span class="nav-text">其他的码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC-er-%E5%9B%BE%E8%A6%81%E7%82%B9"><span class="nav-text">基本 ER 图要点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B-er-%E5%9B%BE%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-text">一些 ER 图的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E4%B8%8E"><span class="nav-text">参与</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%9C%A8%E4%BE%9D%E8%B5%96"><span class="nav-text">存在依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%92%E8%89%B2"><span class="nav-text">角色</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%92%E8%89%B2%E5%9C%A8-er-%E5%9B%BE%E4%B8%AD%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="nav-text">角色在 ER 图中的表示</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B1%9E%E6%80%A7%E7%B1%BB%E5%9E%8B"><span class="nav-text">属性类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%B1%9E%E6%80%A7%E4%B8%8E%E5%A4%8D%E5%90%88%E5%B1%9E%E6%80%A7"><span class="nav-text">简单属性与复合属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E5%80%BC%E5%B1%9E%E6%80%A7%E4%B8%8E%E5%A4%9A%E5%80%BC%E5%B1%9E%E6%80%A7"><span class="nav-text">单值属性与多值属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B4%BE%E7%94%9F%E5%B1%9E%E6%80%A7%E4%B8%8E%E5%9F%BA%E5%B1%9E%E6%80%A7"><span class="nav-text">派生属性与基属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%9E%E6%80%A7%E5%9C%A8-er-%E5%9B%BE%E4%B8%AD%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="nav-text">属性在 ER 图中的表示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#null-%E5%B1%9E%E6%80%A7"><span class="nav-text">NULL 属性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%94%E7%B3%BB%E7%9A%84%E5%9F%BA%E6%95%B0"><span class="nav-text">联系的基数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%81%94%E7%B3%BB%E7%9A%84%E7%A7%8D%E7%B1%BB"><span class="nav-text">联系的种类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%81%94%E7%B3%BB%E7%A7%8D%E7%B1%BB%E5%9C%A8-er-%E5%9B%BE%E4%B8%AD%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="nav-text">联系种类在 ER 图中的表示</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A8%E7%A4%BA-1"><span class="nav-text">表示 1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A8%E7%A4%BA-2"><span class="nav-text">表示 2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A8%E7%A4%BA-3"><span class="nav-text">表示 3</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E5%85%83%E8%81%94%E7%B3%BB%E7%9A%84%E7%A7%8D%E7%B1%BB"><span class="nav-text">二元联系的种类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E5%AF%B9%E4%B8%80"><span class="nav-text">一对一</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E5%AF%B9%E5%A4%9A"><span class="nav-text">一对多</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E5%AF%B9%E5%A4%9A"><span class="nav-text">多对多</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E5%AE%9E%E4%BD%93%E9%9B%86%E5%86%85%E7%9A%84%E9%80%92%E5%BD%92%E8%81%94%E7%B3%BB"><span class="nav-text">一个实体集内的递归联系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%85%83%E8%81%94%E7%B3%BB"><span class="nav-text">多元联系</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A7%E4%B9%89"><span class="nav-text">歧义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E5%85%83%E8%81%94%E7%B3%BB%E4%B8%AD%E6%9C%80%E5%A4%9A%E5%85%81%E8%AE%B8%E5%87%BA%E7%8E%B0%E4%B8%80%E4%B8%AA%E7%AE%AD%E5%A4%B4"><span class="nav-text">多元联系中最多允许出现一个箭头</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%81%94%E7%B3%BB%E7%9A%84%E5%8A%BF"><span class="nav-text">联系的势</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%8D%E5%90%88%E5%AE%9E%E4%BD%93"><span class="nav-text">复合实体</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/30/DB/CLJ/02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.02.ER 模型(1)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-03-30 16:04:34" itemprop="dateCreated datePublished" datetime="2021-03-30T16:04:34+08:00">2021-03-30</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-03-31 10:55:58" itemprop="dateModified" datetime="2021-03-31T10:55:58+08:00">2021-03-31</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">数据库设计过程（三阶段、四阶段）、ER模型基本概念（实体、联系、码、ER图）、属性类型（简单与复合、单值与多值、派生与基属性、NULL）、联系的基数（一对一、一对多、多对多）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="er-模型">ER 模型</h1>
+<ul>
+<li>实体联系模型</li>
+</ul>
+<h2 id="数据库设计过程">数据库设计过程</h2>
+<h3 id="三阶段数据库设计过程">三阶段数据库设计过程</h3>
+<ul>
+<li>三阶段：<strong>概念结构设计</strong>、<strong>逻辑结构设计</strong>、<strong>物理结构设计</strong>
+<ul>
+<li>出发点是基于需求分析</li>
+</ul></li>
+<li><strong>需求分析</strong>
+<ul>
+<li>确定存储哪些数据，建立哪些应用，常用的操作及对象有哪些等</li>
+</ul></li>
+<li><strong>概念数据库设计</strong>
+<ul>
+<li>对需求分析所得到数据的更高层的抽象描述</li>
+<li><strong>ER 模型</strong>、<strong>UML</strong></li>
+</ul></li>
+<li><strong>逻辑数据库设计</strong>
+<ul>
+<li>将概念模型所描述的数据映射为某个特定的 DBMS 模式数据</li>
+</ul></li>
+<li><strong>物理数据库设计</strong></li>
+</ul>
+<h3 id="四阶段数据库设计过程">四阶段数据库设计过程</h3>
+<ul>
+<li>把逻辑结构设计进行<strong>细分</strong></li>
+<li><strong>概念阶段</strong>
+<ul>
+<li>发掘实体及其联系</li>
+<li>发掘业务规则</li>
+</ul></li>
+<li><strong>逻辑阶段</strong>
+<ul>
+<li>规范化设计</li>
+</ul></li>
+<li><strong>实现阶段</strong>
+<ul>
+<li>选择数据类型、定义表、约束、触发器</li>
+</ul></li>
+<li><strong>物理阶段</strong>
+<ul>
+<li>索引、磁盘组织</li>
+</ul></li>
+</ul>
+<h3 id="不同数据库设计阶段中的术语称谓">不同数据库设计阶段中的术语称谓</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">阶段</th>
+<th style="text-align: center;">表术语</th>
+<th style="text-align: center;">列术语</th>
+<th style="text-align: center;">列术语</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">关系理论</td>
+<td style="text-align: center;">关系</td>
+<td style="text-align: center;">--</td>
+<td style="text-align: center;">元组</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">概念/逻辑</td>
+<td style="text-align: center;">实体</td>
+<td style="text-align: center;">属性</td>
+<td style="text-align: center;">实例</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">实现</td>
+<td style="text-align: center;">行集、表</td>
+<td style="text-align: center;">列</td>
+<td style="text-align: center;">行</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">物理</td>
+<td style="text-align: center;">文件</td>
+<td style="text-align: center;">字段</td>
+<td style="text-align: center;">记录</td>
+</tr>
+</tbody>
+</table>
+<h2 id="er模型基本概念">ER模型基本概念</h2>
+<h3 id="er-模型的重要性">ER 模型的重要性</h3>
+<ul>
+<li>ER：<strong>最佳信息模型</strong>
+<ul>
+<li>能够很快速的向用户展示内部事务的逻辑</li>
+</ul></li>
+<li>启示：<strong>把 ER 设计作为数据库设计的第一步</strong></li>
+</ul>
+<h3 id="er-模型的诞生">ER 模型的诞生</h3>
+<ul>
+<li>Entity-Relationship Model</li>
+<li>1976年，P.P.S.Chen提出 ER 模型，用 ER 图来描述概念模型</li>
+<li>ER 模型眼中的世界
+<ul>
+<li>世界是有一组称作实体的<strong>基本对象</strong>和这些对象之间的<strong>联系</strong>构成的</li>
+</ul></li>
+</ul>
+<h3 id="er-模型中的实体">ER 模型中的实体</h3>
+<ul>
+<li><strong>实体</strong>（Entity）
+<ul>
+<li><strong>客观存在</strong>并可<strong>相互区分</strong>的事物叫实体</li>
+</ul></li>
+<li><strong>属性</strong>（Attribute）
+<ul>
+<li>实体所具有的某一<strong>特性</strong></li>
+<li>一个实体可以由若干个属性来刻画</li>
+</ul></li>
+<li><strong>域</strong>（Domain）
+<ul>
+<li>属性的<strong>取值范围</strong></li>
+</ul></li>
+</ul>
+<h4 id="实体型与实体集">实体型与实体集</h4>
+<ul>
+<li>实体型（Entity Type)
+<ul>
+<li><strong>实体名</strong> + <strong>属性名</strong>集合</li>
+<li>实体（值）是实体型的一个特例</li>
+<li>抽象的概念</li>
+</ul></li>
+<li>实体集（Entity Set）
+<ul>
+<li>同型实体的集合</li>
+</ul></li>
+<li>例子
+<ul>
+<li>实体型：学生（姓名、性别）</li>
+<li>实体：（张三，男）</li>
+<li>实体集：全体学生</li>
+</ul></li>
+</ul>
+<h3 id="er-模型中的联系">ER 模型中的联系</h3>
+<ul>
+<li><strong>联系</strong>（Relationship）
+<ul>
+<li>实体之间的相互关联</li>
+</ul></li>
+<li><strong>联系也可以有属性</strong></li>
+<li>联系的<strong>元</strong>（Degree）
+<ul>
+<li>参与联系的<strong>实体集</strong>的个数</li>
+<li><strong>一元联系</strong>又被称为<strong>递归联系</strong></li>
+</ul></li>
+<li>联系是发生在<strong>实体集</strong>之间的</li>
+</ul>
+<h4 id="例子">例子</h4>
+<ul>
+<li>联系与联系的元
+<ul>
+<li><strong>学生</strong>与<strong>老师</strong>间的授课联系
+<ul>
+<li>二元联系</li>
+</ul></li>
+<li><strong>学生</strong>与<strong>学生</strong>间有班长联系
+<ul>
+<li>可以是实体集内部的联系</li>
+<li><strong>一元联系</strong>，只有一个实体集</li>
+</ul></li>
+</ul></li>
+<li>联系的属性
+<ul>
+<li>如学生与课程之间有选课联系，每个选课联系都有一个成绩作为其属性</li>
+</ul></li>
+</ul>
+<h3 id="实体的码key">实体的码（Key）</h3>
+<ul>
+<li><strong>超码</strong>（superkey）
+<ul>
+<li>能<strong>唯一标识</strong>实体的属性或属性组</li>
+<li>超码的任意超集也是超码</li>
+</ul></li>
+<li><strong>候选码</strong>（candidate key）
+<ul>
+<li>其任意真子集都不能成为超码的<strong>最小超码</strong></li>
+</ul></li>
+<li><strong>主码</strong>（primary key）
+<ul>
+<li>从所有候选码中<strong>选定一个</strong>用来区别同一实体集中的不同实体</li>
+<li>一个实体集中任意两个实体在主码上的取值不能相同</li>
+<li>选择上一般越简单越好</li>
+</ul></li>
+</ul>
+<h4 id="一个例子">一个例子</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">A</th>
+<th style="text-align: center;">B</th>
+<th style="text-align: center;">C</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">5</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">6</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>超码
+<ul>
+<li>C、AC、BC、ABC、AB</li>
+</ul></li>
+<li>候选码
+<ul>
+<li>C、AB</li>
+</ul></li>
+</ul>
+<h4 id="如何确定联系的码">如何确定联系的码</h4>
+<ul>
+<li>联系的种类不一样的时候，联系的码也不一样</li>
+<li>例子：实体集 A，实体集 B，AB 之间存在联系 C
+<ul>
+<li>如果每个 A 只能和一个 B 发生联系 C
+<ul>
+<li>联系的码：实体集 B 中的一个候选码即可</li>
+</ul></li>
+<li>如果每个 A 可以和多个 B 发生联系 C，多个 A 可以与一个相同的 B 发生联系
+<ul>
+<li>联系的码：实体集 A 和实体集 B 中的各选一个候选码进行组合</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="码在-er-图中的表示">码在 ER 图中的表示</h4>
+<ul>
+<li>实体集属性中<strong>作为主码的一部分的属性</strong>用<strong>下划线</strong>来标明</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330170242822.png" style="zoom:67%;"></p>
+<h4 id="其他的码">其他的码</h4>
+<ul>
+<li><strong>替代码</strong>
+<ul>
+<li>除去主码之外的候选码</li>
+</ul></li>
+<li><strong>自然码</strong>
+<ul>
+<li>一个与行中属性有逻辑联系的候选码，它是实体的 <strong>“真正的” 属性</strong></li>
+</ul></li>
+<li><strong>代理码</strong>
+<ul>
+<li><strong>人工码</strong>，<strong>只起唯一标识作用的序列号</strong>，不是实体本身的属性</li>
+</ul></li>
+<li><strong>智能码</strong>
+<ul>
+<li>经过编码的标识符</li>
+<li>例如：身份证</li>
+</ul></li>
+</ul>
+<h3 id="基本-er-图要点">基本 ER 图要点</h3>
+<ul>
+<li>一个例子：学生选修课程</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330170654534.png" style="zoom:67%;"></p>
+<ul>
+<li>实体集
+<ul>
+<li>用<strong>矩形</strong>表示实体集，在框内写上实体名</li>
+</ul></li>
+<li>实体的属性
+<ul>
+<li>用<strong>椭圆</strong>表示实体的属性</li>
+<li>用<strong>无向边</strong>把实体与其属性连接起来</li>
+</ul></li>
+<li>联系
+<ul>
+<li>用<strong>菱形</strong>表示实体间的联系</li>
+<li>将参与联系的实体用线段连接
+<ul>
+<li>联系的数量</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="一些-er-图的例子">一些 ER 图的例子</h3>
+<ul>
+<li><strong>一个实体集只能出现一次</strong></li>
+<li>因此实体集内部的联系应该这么表示</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330171253835.png" style="zoom:50%;"></p>
+<ul>
+<li>ER 图的连通性
+<ul>
+<li>连通：可以进行一些探索性的查询</li>
+<li>不连通：可以放在独立的数据库里</li>
+</ul></li>
+<li>联系是<strong>实体集</strong>之间的联系，而不是<strong>实体</strong>之间的联系</li>
+</ul>
+<h3 id="参与">参与</h3>
+<ul>
+<li>参与（Participation）</li>
+<li>实体集之间的关联称为参与，即<strong>实体参与联系</strong></li>
+<li>例子
+<ul>
+<li>王军选修 “数据库基础”</li>
+<li>表示实体 “王军” 与 “数据库基础” 参与了联系 “选修”</li>
+</ul></li>
+<li>类型
+<ul>
+<li>E <strong>全部参与</strong> R
+<ul>
+<li>实体集 E 中的每个实体都参与到联系集 R 中的至少一个联系</li>
+</ul></li>
+<li>E <strong>部分参与</strong> R
+<ul>
+<li>实体集 E 中只有部分实体参与参与到联系集 R 的联系中</li>
+</ul></li>
+</ul></li>
+<li>一个联系的两个实体集可能一个完全参与，一个部分参与</li>
+<li>参与在 ER 图中的表示
+<ul>
+<li>用<strong>双线连接</strong>联系与完全参与的实体</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330171925043.png" style="zoom:60%;"></p>
+<ul>
+<li>识别联系的参与度有何作用？
+<ul>
+<li>在设计关系表时可以确定更优的设计方式</li>
+<li>例子：上面的职工、部门之间的管理联系
+<ul>
+<li>设计的时候会把管理这个联系放在部门的表里，而不是放在职工的表里</li>
+<li>放在职工的表里，空的地方太多</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="存在依赖">存在依赖</h3>
+<ul>
+<li>存在依赖（Existence Dependency）</li>
+<li>x 存在依赖于 y
+<ul>
+<li>实体 x 的存在依赖于实体 y 的存在</li>
+<li>y 称作<strong>支配实体</strong></li>
+<li>x 称作<strong>从属实体</strong></li>
+<li>如果 y 被删除，则 x 也要被删除</li>
+</ul></li>
+<li>例子</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330172659994.png" style="zoom:60%;"></p>
+<ul>
+<li>存在依赖必是<strong>完全参与</strong>
+<ul>
+<li>还款存在依赖于贷款，则<strong>还款</strong>全部参与和贷款之间的属于联系</li>
+</ul></li>
+</ul>
+<h3 id="角色">角色</h3>
+<ul>
+<li>角色（Role）</li>
+<li>实体在联系中的作用称为实体的角色</li>
+<li>多元联系中的角色是相对清晰的，一元联系需要显式注明</li>
+<li>对于一元联系，为区别各实体参与联系的方式，需要显式指明其角色</li>
+</ul>
+<h4 id="角色在-er-图中的表示">角色在 ER 图中的表示</h4>
+<ul>
+<li>当需要显式区分角色时，在连接菱形和矩形的线上加上说明性标注以区别不同的角色</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330173111443.png" style="zoom:50%;"></p>
+<h2 id="属性类型">属性类型</h2>
+<h3 id="简单属性与复合属性">简单属性与复合属性</h3>
+<ul>
+<li><strong>简单属性</strong>
+<ul>
+<li>不可再分的属性</li>
+</ul></li>
+<li><strong>复合属性</strong>（Composite）
+<ul>
+<li>可以划分为更小的属性</li>
+</ul></li>
+<li>为什么使用复合属性？
+<ul>
+<li>把相关属性聚集起来以反映更高层次的概念，可以使<strong>模型更清晰</strong></li>
+</ul></li>
+<li>例子</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330173317919.png" style="zoom:70%;"></p>
+<h3 id="单值属性与多值属性">单值属性与多值属性</h3>
+<ul>
+<li><strong>单值属性</strong>
+<ul>
+<li>每一个特定的实体在该属性上的取值唯一</li>
+</ul></li>
+<li><strong>多值属性</strong>
+<ul>
+<li>某个特定实体在该属性上有多于一个的取值</li>
+</ul></li>
+<li>多值属性的问题
+<ul>
+<li>拆开成表的时候，会产生<strong>冗余</strong>（其他的单值属性由于这个多值属性的展开而被多次存储）</li>
+<li>一般会单独来存</li>
+</ul></li>
+</ul>
+<h3 id="派生属性与基属性">派生属性与基属性</h3>
+<ul>
+<li><strong>派生属性</strong>（Derived）
+<ul>
+<li>可以从其他相关的属性或实体派生出来的属性值</li>
+</ul></li>
+<li>例子：学生的绩点可以由器所选课程的成绩计算出来
+<ul>
+<li>绩点为<strong>派生属性</strong></li>
+<li>成绩为<strong>基属性</strong>，或<strong>存储属性</strong></li>
+</ul></li>
+<li>数据库设计的时候，一般把基属性放在实际的表里，派生属性用<strong>视图</strong>
+<ul>
+<li>只存基属性值，而派生属性只存其定义或依赖关系，用时再从基属性中计算出来</li>
+</ul></li>
+</ul>
+<h3 id="属性在-er-图中的表示">属性在 ER 图中的表示</h3>
+<ul>
+<li><strong>多值属性</strong>用<strong>双椭圆</strong>表示</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330173936528.png" style="zoom:60%;"></p>
+<ul>
+<li><strong>派生属性</strong>用<strong>虚椭圆</strong>表示</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330174008276.png" style="zoom:50%;"></p>
+<h3 id="null-属性">NULL 属性</h3>
+<ul>
+<li>null 表示 ”无意义“
+<ul>
+<li>当实体在某个属性上没有值时设为 null</li>
+<li>表示对于这个实体而言，这个属性是不合适的（不存在这个属性）</li>
+</ul></li>
+<li>null 表示 “值未知”
+<ul>
+<li>值存在，但目前没有获得该信息</li>
+</ul></li>
+<li>三值逻辑：true、false、unkown</li>
+<li><strong>实体完整性要求主码取值不能为 null</strong></li>
+</ul>
+<h2 id="联系的基数">联系的基数</h2>
+<h3 id="联系的种类">联系的种类</h3>
+<ul>
+<li>实体之间的<strong>联系的数量</strong>，即<strong>一个实体</strong>通过<strong>一个联系集</strong>能与<strong>另一实体集相关联的实体</strong>的<strong>数目</strong></li>
+<li>一对一（1：1）</li>
+<li>一对多（1：m）</li>
+<li>多对多（m：n）</li>
+</ul>
+<h3 id="联系种类在-er-图中的表示">联系种类在 ER 图中的表示</h3>
+<h4 id="表示-1">表示 1</h4>
+<ul>
+<li>用<strong>箭头</strong>或<strong>线段</strong>来表示联系的种类，<strong>箭头指向单方实体集</strong></li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330174728017.png" style="zoom:50%;"></p>
+<ul>
+<li>一个解释：A 同学，B 导师
+<ul>
+<li>一个学生只能有一个导师</li>
+<li>一个导师可以有多个学生</li>
+</ul></li>
+</ul>
+<h4 id="表示-2">表示 2</h4>
+<ul>
+<li><strong>多方实体的箭头指向联系集</strong></li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330175030298.png" style="zoom: 60%;"></p>
+<ul>
+<li>同样的理解
+<ul>
+<li>一个同学只能参与到一个联系里面，一个老师可以参与到多个联系里面</li>
+</ul></li>
+</ul>
+<h4 id="表示-3">表示 3</h4>
+<ul>
+<li>在多方实体和联系之间的线段上标注字母</li>
+<li>在单方实体和联系之间的线段上标注数字 1</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330175427506.png" style="zoom:67%;"></p>
+<h3 id="二元联系的种类">二元联系的种类</h3>
+<h4 id="一对一">一对一</h4>
+<ul>
+<li>两个实体集 <span class="math inline">\(E_1\)</span>、<span class="math inline">\(E_2\)</span> 之间的<strong>一对一</strong>联系</li>
+<li><span class="math inline">\(E_1\)</span> 中的一个实体与 <span class="math inline">\(E_2\)</span> 中<strong>至多一个</strong>实体相联系，并且 <span class="math inline">\(E_2\)</span> 中的一个实体与 <span class="math inline">\(E_1\)</span> 中<strong>至多一个</strong>实体相联系</li>
+<li><strong>一对一不是一一对应</strong>
+<ul>
+<li>可能有实体集中的实体不参与联系（如下图右边）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330175742026.png" style="zoom:67%;"></p>
+<h4 id="一对多">一对多</h4>
+<ul>
+<li>两个实体集 <span class="math inline">\(E_1\)</span>、<span class="math inline">\(E_2\)</span> 之间的<strong>一对多</strong>联系</li>
+<li><span class="math inline">\(E_1\)</span> 中的一个实体与 <span class="math inline">\(E_2\)</span> 中 <span class="math inline">\(n(n\ge0)\)</span> 个实体相联系，并且 <span class="math inline">\(E_2\)</span> 中的一个实体与 <span class="math inline">\(E_1\)</span> 中<strong>至多一个</strong>实体相联系</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330232018728.png" style="zoom: 67%;"></p>
+<h4 id="多对多">多对多</h4>
+<ul>
+<li>两个实体集 <span class="math inline">\(E_1\)</span>、<span class="math inline">\(E_2\)</span> 之间的<strong>多对多</strong>联系</li>
+<li><span class="math inline">\(E_1\)</span> 中的一个实体与 <span class="math inline">\(E_2\)</span> 中 <span class="math inline">\(n(n\ge0)\)</span> 个实体相联系，并且 <span class="math inline">\(E_2\)</span> 中的一个实体与 <span class="math inline">\(E_1\)</span> 中 <span class="math inline">\(m(m\ge0)\)</span> 个实体相联系</li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210330232156769.png" style="zoom:67%;"></p>
+<h3 id="一个实体集内的递归联系">一个实体集内的递归联系</h3>
+<ul>
+<li>一对一</li>
+</ul>
+<pre class="mermaid">graph RL;
+B{配偶};
+A[职工];
+B --->|妻子| A
+B --->|丈夫| A</pre>
+<ul>
+<li>一对多</li>
+</ul>
+<pre class="mermaid">graph RL;
+B{领导};
+A[职工];
+B ---|属下| A
+B --->|上级| A</pre>
+<ul>
+<li>多对多</li>
+</ul>
+<pre class="mermaid">graph RL;
+B{构成};
+A[零件];
+B ---|母零件| A
+B ---|子零件| A</pre>
+<h3 id="多元联系">多元联系</h3>
+<h4 id="歧义">歧义</h4>
+<ul>
+<li>如下的 ER 图可能会出现歧义
+<ul>
+<li>每个职工只有一个工种</li>
+<li>每个职工在每个部门只有一个工种</li>
+</ul></li>
+</ul>
+<pre class="mermaid">graph LR;
+A[工种];
+B[职工];
+C{工作};
+D[部门];
+B --- C;
+D --- C;
+C ---> A;</pre>
+<ul>
+<li>修改为二元联系
+<ul>
+<li>每个职工只有一个工种</li>
+</ul></li>
+</ul>
+<pre class="mermaid">graph LR;
+A[工种];
+B[职工];
+C{工作};
+E{分配};
+D[部门];
+B --- C;
+C --- D;
+B --- E;
+E ---> A;</pre>
+<h4 id="多元联系中最多允许出现一个箭头">多元联系中最多允许出现一个箭头</h4>
+<ul>
+<li>否则可能会有歧义
+<ul>
+<li>（学生，评估报告），老师</li>
+<li>（学生，评估报告，项目），老师</li>
+</ul></li>
+</ul>
+<pre class="mermaid">graph LR;
+A[学生] --- B{指导} ---> C[老师];
+D[评估报告] --- B ---> E[项目];</pre>
+<h4 id="联系的势">联系的势</h4>
+<ul>
+<li>势表达了一个实体出现在联系中的次数
+<ul>
+<li>应该是 (0,2)，括号打不出来</li>
+</ul></li>
+</ul>
+<pre class="mermaid">graph LR;
+A[教师];
+B{教授};
+C[课程];
+A ---|0,2| B;
+B ---|1,4| C;</pre>
+<ul>
+<li>0 表示教师可以不教授课程</li>
+<li>区分<strong>强制性</strong>和<strong>可选性</strong>联系</li>
+</ul>
+<h3 id="复合实体">复合实体</h3>
+<ul>
+<li><strong>过时了</strong>
+<ul>
+<li>早期由于图模型不能表示多对多的联系而产生的</li>
+</ul></li>
+<li>复合实体
+<ul>
+<li>一个 M：N 联系分解成两个 1：M</li>
+</ul></li>
+<li>原来的联系</li>
+</ul>
+<pre class="mermaid">graph LR;
+A[学生]---B{选修}---C[课程];</pre>
+<ul>
+<li>复合实体
+<ul>
+<li>由选修这个实体有关系衍生而来</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/30/DB/CLJ/02/image-20210331095818361.png" style="zoom:67%;"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/27/CG/YLQ-GAMES202/02/" rel="prev" title="GAMES202.闫令琪.02.基础知识">
+                  <i class="fa fa-chevron-left"></i> GAMES202.闫令琪.02.基础知识
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/31/DB/CLJ/02-1/" rel="next" title="数据库概论.陈立军.02.ER 模型(2)">
+                  数据库概论.陈立军.02.ER 模型(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="数据模型（线框、表面、实体）、过程模型、粒子系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.07.三维实体的表示">
+<meta property="og:url" content="http://example.com/2021/02/03/CG/LS/07/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="数据模型（线框、表面、实体）、过程模型、粒子系统">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/r.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/r-not-real.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/core-tracing.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/multi-voxel.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/kd-tree.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/Euler.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/Euler-not-real.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/Euler-general.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/half-edge.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/CSG-Tree.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/koch.png">
+<meta property="og:image" content="http://example.com/2021/02/03/CG/LS/07/bracketed-L.png">
+<meta property="article:published_time" content="2021-02-03T12:39:30.000Z">
+<meta property="article:modified_time" content="2021-02-06T09:16:04.345Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/02/03/CG/LS/07/r.png">
+
+
+<link rel="canonical" href="http://example.com/2021/02/03/CG/LS/07/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>计算机图形学.李胜.07.三维实体的表示 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A1%A8%E7%A4%BA%E5%BD%A2%E4%BD%93%E7%9A%84%E4%B8%A4%E7%A7%8D%E6%A8%A1%E5%9E%8B"><span class="nav-text">表示形体的两种模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="nav-text">数据模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E6%A1%86%E6%A8%A1%E5%9E%8B"><span class="nav-text">(1) 线框模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A8%E9%9D%A2%E6%A8%A1%E5%9E%8B"><span class="nav-text">(2) 表面模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93%E6%A8%A1%E5%9E%8B"><span class="nav-text">(3) 实体模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%87%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-text">过程模型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">实体的定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E9%9B%86%E5%90%88%E8%BF%90%E7%AE%97"><span class="nav-text">正则集合运算</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%AD%A3%E5%88%99%E9%9B%86%E5%90%88%E8%BF%90%E7%AE%97"><span class="nav-text">为什么需要正则集合运算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E5%B9%B6%E4%BA%A4%E5%B7%AE"><span class="nav-text">正则并&#x2F;交&#x2F;差</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E8%BF%90%E7%AE%97%E5%AE%9A%E4%B9%89"><span class="nav-text">正则运算定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%B9%E7%95%8C-bs"><span class="nav-text">边界 bS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B1%82%E8%BE%B9%E7%95%8C%E7%A1%AE%E5%AE%9A%E5%AE%9E%E4%BD%93"><span class="nav-text">求边界确定实体</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E8%A1%A8%E7%A4%BA"><span class="nav-text">特征表示</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E5%88%86%E5%89%B2%E8%A1%A8%E7%A4%BA"><span class="nav-text">空间分割表示</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E6%9E%9A%E4%B8%BE%E8%A1%A8%E7%A4%BA"><span class="nav-text">(1) 空间枚举表示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E5%8F%89%E6%A0%91"><span class="nav-text">(2) 八叉树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AB%E5%8F%89%E6%A0%91%E7%9A%84%E5%BB%BA%E7%AB%8B"><span class="nav-text">八叉树的建立</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AB%E5%8F%89%E6%A0%91%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-text">八叉树的应用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cone-tracing"><span class="nav-text">cone tracing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AB%E5%8F%89%E6%A0%91%E8%AF%84%E4%BB%B7"><span class="nav-text">八叉树评价</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E5%85%83%E5%88%86%E8%A7%A3%E8%A1%A8%E7%A4%BA"><span class="nav-text">(3) 单元分解表示</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E5%B1%82%E6%AC%A1%E5%88%92%E5%88%86"><span class="nav-text">空间层次划分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#kd-tree"><span class="nav-text">KD-Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bvh-%E5%B1%82%E6%AC%A1%E5%8C%85%E5%9B%B4%E7%9B%92"><span class="nav-text">BVH 层次包围盒</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8E%A8%E7%A7%BB%E8%A1%A8%E7%A4%BA"><span class="nav-text">推移表示</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BE%B9%E7%95%8C%E8%A1%A8%E7%A4%BA"><span class="nav-text">边界表示</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9E%84%E9%80%A0%E5%AE%9E%E4%BD%93%E7%9A%84%E5%87%A0%E4%BD%95%E8%A1%A8%E7%A4%BA"><span class="nav-text">构造实体的几何表示</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%8D%E8%A7%84%E5%88%99%E5%BD%A2%E4%BD%93%E7%9A%84%E5%BB%BA%E6%A8%A1%E6%96%B9%E6%B3%95"><span class="nav-text">不规则形体的建模方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%AD%E4%BB%A3%E5%87%BD%E6%95%B0%E7%B3%BB%E7%BB%9F"><span class="nav-text">迭代函数系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#l-%E7%B3%BB%E7%BB%9F"><span class="nav-text">L 系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#koch-%E9%9B%AA%E8%8A%B1"><span class="nav-text">Koch 雪花</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bracketed-l%E7%B3%BB%E7%BB%9F"><span class="nav-text">Bracketed L系统</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B2%92%E5%AD%90%E7%B3%BB%E7%BB%9F"><span class="nav-text">粒子系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#particle-systems"><span class="nav-text">Particle Systems</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E7%89%B9%E7%82%B9"><span class="nav-text">一些特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B2%92%E5%AD%90%E7%9A%84%E5%B1%9E%E6%80%A7"><span class="nav-text">粒子的属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B2%92%E5%AD%90%E7%9A%84%E9%9B%86%E7%BE%A4%E6%8E%A7%E5%88%B6"><span class="nav-text">粒子的集群控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-text">其他</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/03/CG/LS/07/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机图形学.李胜.07.三维实体的表示
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-02-03 20:39:30" itemprop="dateCreated datePublished" datetime="2021-02-03T20:39:30+08:00">2021-02-03</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-06 17:16:04" itemprop="dateModified" datetime="2021-02-06T17:16:04+08:00">2021-02-06</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-LS/" itemprop="url" rel="index"><span itemprop="name">CG.LS</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">数据模型（线框、表面、实体）、过程模型、粒子系统</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="表示形体的两种模型">表示形体的两种模型</h1>
+<h2 id="数据模型">数据模型</h2>
+<ul>
+<li>完全以数据表示
+<ul>
+<li>例如：以 8 个顶点表示的立方体，以半径和中心表示的球体</li>
+<li>以数据文件的形式存在</li>
+<li>包括
+<ul>
+<li>特征表示、空间分割表示、推移表示、边界表示、构造实体集合表示等</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="线框模型">(1) 线框模型</h3>
+<ul>
+<li>将形体表示成一组<strong>轮廓线</strong>的集合</li>
+<li>简单、处理速度快</li>
+<li>与形体之间不存在一一对应关系，是真实物体的高度抽象、不适合真实感显示</li>
+</ul>
+<h3 id="表面模型">(2) 表面模型</h3>
+<ul>
+<li>将形体表示成一组<strong>表面</strong>的集合</li>
+<li>形体与其表面一一对应，适合真实感显示</li>
+</ul>
+<h3 id="实体模型">(3) 实体模型</h3>
+<ul>
+<li>用来描述<strong>实体</strong>，主要用于 CAD/CAM</li>
+<li>包含了描述一个实体所需要的较多信息（几何信息、拓扑信息等）</li>
+</ul>
+<h2 id="过程模型">过程模型</h2>
+<ul>
+<li>以一个过程和相应的控制参数描述</li>
+<li>例如：用一些控制参数和一个生成规则描述的植物</li>
+<li>以一个数据文件和一段代码的形式存在</li>
+<li>包括
+<ul>
+<li>粒子系统、L系统、迭代函数系统</li>
+</ul></li>
+</ul>
+<h1 id="实体的定义">实体的定义</h1>
+<ul>
+<li><p>抽象带来的问题</p>
+<ul>
+<li>计算机中的数学方法表示的物体可能无效</li>
+<li>不能够客观存在
+<ul>
+<li>CAD / CAM 需要客观存在</li>
+</ul></li>
+</ul></li>
+<li><p>客观存在（有效）—— <strong>实体的定义</strong></p>
+<ul>
+<li>具有一定的形状</li>
+<li>具有封闭的边界（表面）</li>
+<li>内部连通</li>
+<li>占据有限的空间</li>
+<li>经过运算之后仍是有效的实体</li>
+</ul></li>
+<li><p>实体看作点集（使用集合论的方法描述）</p>
+<ul>
+<li>内点：具有完全包含于该点集的充分小的领域的点</li>
+<li>边界点：物体上除了内点之外的点</li>
+<li>取内点运算：<span class="math inline">\(i\)</span></li>
+<li>取闭包运算：<span class="math inline">\(c\)</span></li>
+<li>正则运算：<span class="math inline">\(r\)</span>
+<ul>
+<li>先取内点，再取闭包</li>
+<li><span class="math inline">\(r\cdot A=c\cdot i\cdot A\)</span></li>
+<li>一个例子</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/r.png"></p>
+<ul>
+<li>正则点集 <span class="math inline">\(A\)</span> 满足 <span class="math inline">\(r\cdot A=A\)</span></li>
+</ul></li>
+<li><p>正则点集一定是实体吗？<span style="color:red;font-weight:bold">不一定</span></p>
+<ul>
+<li>内部不连通</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/r-not-real.png"></p>
+<ul>
+<li>实体可计算的条件
+<ul>
+<li>正则点集</li>
+<li>表面是二维流形
+<ul>
+<li>二维流形：其上任意一点存在充分小的领域与平面圆盘同构（存在连续的一一映射）</li>
+</ul></li>
+<li>同构
+<ul>
+<li>内点 <span class="math inline">\(\cong\)</span> 圆盘</li>
+<li>边界点 <span class="math inline">\(\cong\)</span> 半圆盘</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="正则集合运算">正则集合运算</h1>
+<h2 id="为什么需要正则集合运算">为什么需要正则集合运算</h2>
+<ul>
+<li>集合运算式构造物体的有效方法</li>
+<li>普通的集合运算会产生无效物体</li>
+</ul>
+<h2 id="正则并交差">正则并/交/差</h2>
+<h3 id="正则运算定义">正则运算定义</h3>
+<ul>
+<li><span class="math inline">\(A\ op^\star\ B=r\cdot(A\ op\ B)\)</span></li>
+<li>正则并：<span class="math inline">\(A\cup^\star B=r\cdot(A\cup B)\)</span></li>
+<li>正则交：<span class="math inline">\(A\cap^\star\ B=r\cdot(A\cap B)\)</span></li>
+<li>正则差：<span class="math inline">\(A-^\star\ B=r\cdot(A-B)\)</span></li>
+</ul>
+<h3 id="边界-bs">边界 bS</h3>
+<ul>
+<li>内部 <span class="math inline">\(iS\)</span>，边界 <span class="math inline">\(bS\)</span>，外部 <span class="math inline">\(eS\)</span></li>
+<li><span class="math inline">\(S=bS\cup iS\)</span></li>
+</ul>
+<h4 id="求边界确定实体">求边界确定实体</h4>
+<ul>
+<li><span class="math inline">\(bA=(bA\cap iB)\cup(bA\cap bB)\cup(bA\cap eB)\)</span></li>
+<li><span class="math inline">\(bB=(bB\cap iA)\cup(bB\cap bA)\cup(bB\cap eA)\)</span></li>
+<li>公共边界 <span class="math inline">\(bA\cap bB=bB\cap bA\)</span> 可以分为两个部分
+<ul>
+<li>同侧：实体 A 和 B 位于边界的同侧</li>
+<li>异侧：实体 A 和 B 位于边界的异侧</li>
+<li><span class="math inline">\(bA\cap bB=(bA\cap bB)_{同侧}\cup(bA\cap bB)_{异侧}\)</span></li>
+</ul></li>
+<li>通过讨论边界的组成得到以下结论
+<ul>
+<li>正则并
+<ul>
+<li><span class="math inline">\(b(A\cup^\star B)=(bA\cap eB)\cup(bB\cap eA)\cup(bA\cap bB)_{同侧}\)</span></li>
+</ul></li>
+<li>正则交
+<ul>
+<li><span class="math inline">\(b(A\cap^\star B)=(bA\cap iB)\cup(bB\cap iA)\cup(bA\cap bB)_{同侧}\)</span></li>
+</ul></li>
+<li>正则差
+<ul>
+<li><span class="math inline">\(b(A-^\star B)=(bA\cap eB)\cup(bB\cap iA)\cup(bA\cap bB)_{异侧}\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="特征表示">特征表示</h1>
+<ul>
+<li>用一组特征参数表示一组类似的物体</li>
+<li>特征包括<strong>形状特征</strong>、<strong>材料特征</strong>等</li>
+<li>适用于工业上标准件的表示</li>
+<li>例子
+<ul>
+<li>圆柱体：R，H</li>
+<li>立方体：边长a</li>
+</ul></li>
+</ul>
+<h1 id="空间分割表示">空间分割表示</h1>
+<h2 id="空间枚举表示">(1) 空间枚举表示</h2>
+<ul>
+<li>选择一个立方体空间，将其均匀划分</li>
+<li>使用三维数组表示物体，数组中的元素与单位小立方体一一对应
+<ul>
+<li>1/0：是否被物体占据</li>
+</ul></li>
+<li>优点
+<ul>
+<li>可以表示任何物体</li>
+<li>容易实现物体间的集合运算</li>
+<li>容易计算物体的整体性质，如体积等</li>
+</ul></li>
+<li>缺点
+<ul>
+<li>占据大量的存储空间</li>
+<li>没有边界信息，不适于图形显示</li>
+<li>对物体进行几何变换困难，例如非90度的旋转</li>
+<li>是物体的非精确表示
+<ul>
+<li>量化走样</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="八叉树">(2) 八叉树</h2>
+<ul>
+<li>对空间位置枚举表示的空间分割方法做了改进
+<ul>
+<li>均匀分割 <span class="math inline">\(\rightarrow\)</span> 自适应分割</li>
+</ul></li>
+<li>对绘制有好处</li>
+</ul>
+<h3 id="八叉树的建立">八叉树的建立</h3>
+<ul>
+<li>根结点对应整个物体空间</li>
+<li>从根结点开始，对于一个结点
+<ul>
+<li>如果该结点完全被物体占据则记为 <span class="math inline">\(F\)</span>（Full）</li>
+<li>如果该结点内部没有物体则记为 <span class="math inline">\(E\)</span>（Empty）</li>
+<li>如果被物体部分占据则记作 <span class="math inline">\(P\)</span>（Partitial）
+<ul>
+<li>同时将其分割为 8 个立方体，每个立方体作为一个新的结点，进行同样的操作</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="八叉树的应用">八叉树的应用</h3>
+<ul>
+<li>Voxel based GI：基于八叉树的全局光照明</li>
+<li>SVOGI：Sparse Voxel Octree Global Illumination
+<ul>
+<li>全局光渲染</li>
+</ul></li>
+<li>Voxelization（体素化）
+<ul>
+<li>将物体的几何形式表示转换成最接近该物体的体素表示形式，产生体数据集</li>
+<li>不透明度属性/法向/发光向/材质/······</li>
+</ul></li>
+<li>待渲染场景 <span class="math inline">\(\rightarrow\)</span> 体素化 <span class="math inline">\(\rightarrow\)</span> 八叉树构造</li>
+</ul>
+<h3 id="cone-tracing">cone tracing</h3>
+<ul>
+<li>结合八叉树</li>
+<li>点向周围展开圆锥（立体角）</li>
+<li>全局光照明：计算间接光照的时候，使用圆锥内的光照进行近似
+<ul>
+<li>在圆锥中，根据大小找到对应的不同粒度的八叉树，使用保存的属性</li>
+<li>不同粒度，八叉树最小结点的大小不同（层次）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/core-tracing.png" style="zoom:100%;"></p>
+<ul>
+<li>求光照
+<ul>
+<li>蒙特卡洛采样积分：复杂度高</li>
+<li>core tracing：复杂度相对较低</li>
+</ul></li>
+</ul>
+<h3 id="八叉树评价">八叉树评价</h3>
+<ul>
+<li>优点
+<ul>
+<li>可以表示任何物体</li>
+<li>容易实现物体间的集合运算</li>
+<li>容易计算物体的整体性质，如体积等</li>
+<li>相较于空间位置枚举表示占用的存贮空间少</li>
+</ul></li>
+<li>缺点
+<ul>
+<li>没有边界信息，不适于图形显示</li>
+<li>对物体进行几何变换困难，例如非90度的旋转</li>
+<li>是物体的非精确表示</li>
+</ul></li>
+</ul>
+<h2 id="单元分解表示">(3) 单元分解表示</h2>
+<ul>
+<li>对空间位置枚举表示的空间分割方法做了改进
+<ul>
+<li>单一体素 <span class="math inline">\(\rightarrow\)</span> 多种体素</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/multi-voxel.png"></p>
+<ul>
+<li>优点
+<ul>
+<li>表示简单</li>
+<li>容易实现几何变换</li>
+<li>基本提速可以按需选择，表示范围较广</li>
+<li>可以精确表示物体</li>
+</ul></li>
+<li>缺点
+<ul>
+<li>物体表示不唯一</li>
+<li>物体有效性难以保证</li>
+</ul></li>
+</ul>
+<h1 id="空间层次划分">空间层次划分</h1>
+<h2 id="kd-tree">KD-Tree</h2>
+<ul>
+<li>适合静态场景的光线追踪</li>
+<li>降低算法查找的复杂度
+<ul>
+<li>静态：一次建立，多次查找</li>
+<li><span class="math inline">\(\log n\)</span></li>
+</ul></li>
+<li>只进行横向和纵向的划分
+<ul>
+<li>分割线只有水平和竖直</li>
+</ul></li>
+<li>KD-Tree 降低了每一步判断在哪一个区域的复杂度
+<ul>
+<li>只需要和某几个维度比较（降维）</li>
+</ul></li>
+<li>判断点在分割线的哪个部分（2D）
+<ul>
+<li>任意直线：<span class="math inline">\(ax+by+c\)</span> 和 <span class="math inline">\(0\)</span> 作比较</li>
+<li>KD-Tree：
+<ul>
+<li>水平：<span class="math inline">\(x\)</span> 和 <span class="math inline">\(0\)</span> 作比较</li>
+<li>竖直：<span class="math inline">\(y\)</span> 和 <span class="math inline">\(0\)</span> 作比较</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/kd-tree.png"></p>
+<ul>
+<li>基于 kd-tree 的光子映射算法 photon mapping
+<ul>
+<li>给定一个点（位置），搜索在某个邻域之内散落的光子</li>
+<li>KNN 的方法</li>
+<li>KD-Tree 能够很好支持</li>
+</ul></li>
+</ul>
+<h2 id="bvh-层次包围盒">BVH 层次包围盒</h2>
+<ul>
+<li>Bounding Volumn Hierarchy</li>
+<li>适合动态场景的表示以及碰撞检测</li>
+</ul>
+<h1 id="推移表示">推移表示</h1>
+<ul>
+<li>sweep 体（扫掠）
+<ul>
+<li>将物体 A 沿着轨迹 P 推移得到物体 B，称 B 为 sweep 体</li>
+</ul></li>
+<li>平移 sweep
+<ul>
+<li>将一个二维区域沿着一个矢量方向推移</li>
+</ul></li>
+<li>旋转 sweep
+<ul>
+<li>将一个二维区域绕旋转轴旋转一周</li>
+</ul></li>
+<li>广义 sweep
+<ul>
+<li>任意物体沿着任意轨迹推移</li>
+<li>推移过程中物体可以变形</li>
+</ul></li>
+<li>优点
+<ul>
+<li>表示简单、直观</li>
+<li>适合做图形输入手段</li>
+</ul></li>
+<li>缺点
+<ul>
+<li>做集合运算困难，正则集合运算下非封闭</li>
+</ul></li>
+<li>应用
+<ul>
+<li>CAD 中工件的表示</li>
+</ul></li>
+</ul>
+<h1 id="边界表示">边界表示</h1>
+<ul>
+<li>思想：物体的边界与物体一一对应，确定了物体的边界也就确定了物体本身</li>
+<li>用于表示物体边界的有平面多边形、曲面片</li>
+<li><strong>平面多边体</strong>
+<ul>
+<li>表面由平面多边形组成的多面体</li>
+<li>严格要求每条边只属于两个多边形</li>
+</ul></li>
+<li>简单多面体
+<ul>
+<li>与球拓扑同构</li>
+</ul></li>
+<li><strong>欧拉公式</strong>：<span class="math inline">\(V-E+F=2\)</span>
+<ul>
+<li>顶点数 - 边数 + 面数 = 2</li>
+<li>图论角度，从<strong>树</strong>开始推导</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/Euler.png"></p>
+<ul>
+<li>欧拉公式是实体的<strong>必要条件</strong>
+<ul>
+<li>其他条件：边共享，顶点共享</li>
+<li>一条边只能被两个面共享（<span class="math inline">\({\color{red}2}\)</span>）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/Euler-not-real.png"></p>
+<ul>
+<li><strong>广义欧拉公式</strong>：<span class="math inline">\(V-E+F-R=2(S-H)\)</span>
+<ul>
+<li>顶点数 - 边数 + 面数 - 孔的个数 = 2(体的个数 - 洞的个数)</li>
+<li>孔和洞的区别在于洞是<strong>贯穿</strong>的</li>
+<li>非简单多面体</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/Euler-general.png"></p>
+<ul>
+<li>torus：亏格
+<ul>
+<li>面包圈形态：亏格为1（<span class="math inline">\(H=1\)</span>）</li>
+<li>亏格为0的实体可以和<strong>球</strong>同构</li>
+</ul></li>
+<li>多边形的顶点顺序与法向量
+<ul>
+<li>规定一个顶点顺序，确定法向量</li>
+<li>法向量：正反面，光照，几何计算等</li>
+</ul></li>
+<li>空间多边形的平面方程计算
+<ul>
+<li>顶点可能不共面：<strong>最小二乘法</strong> 拟合出一个平面，使其到所有顶点的距离之和最小</li>
+</ul></li>
+<li>边界表示的<strong>数据结构</strong>
+<ul>
+<li><strong>半边结构</strong>
+<ul>
+<li>一条边当作两条半边</li>
+<li>好处
+<ul>
+<li>确定边的方向</li>
+<li>确定一个边的搜索顺序</li>
+<li>确定边被哪些平面共享
+<ul>
+<li>在几何造型时有用，单纯显示没有必要</li>
+<li>例如删除某个平面，此时相关联的边也需要修改（修改拓扑结构）</li>
+</ul></li>
+</ul></li>
+<li>下图：方向为规定的正方向，红色为半边的方向</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/half-edge.png"></p>
+<ul>
+<li>边界表示优点
+<ul>
+<li>精确表示物体</li>
+<li>表示能力强</li>
+<li>几何变换容易</li>
+<li>适于显示处理</li>
+</ul></li>
+<li>边界表示缺点
+<ul>
+<li>表示复杂</li>
+<li>有效性难以保证</li>
+<li>集合运算复杂</li>
+</ul></li>
+</ul>
+<h1 id="构造实体的几何表示">构造实体的几何表示</h1>
+<ul>
+<li>将物体表示成一棵二叉树，<strong>CSG树</strong></li>
+<li>叶节点：基本体素
+<ul>
+<li>立方体，圆柱体等</li>
+</ul></li>
+<li>中间节点：正则运算集合
+<ul>
+<li>并交差</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/CSG-Tree.png"></p>
+<ul>
+<li>面
+<ul>
+<li>环</li>
+<li>边
+<ul>
+<li>半边（1，2）</li>
+</ul></li>
+</ul></li>
+<li>优点
+<ul>
+<li>表示简单、直观</li>
+<li>是物体的构造方法，可用作图形输入手段</li>
+<li>容易计算物体的整体性质</li>
+<li>物体的有效性自动得到保证</li>
+</ul></li>
+<li>缺点
+<ul>
+<li>表示不唯一</li>
+<li>不能直接用于显示</li>
+<li>求交计算麻烦</li>
+</ul></li>
+</ul>
+<h1 id="不规则形体的建模方法">不规则形体的建模方法</h1>
+<ul>
+<li>迭代函数系统</li>
+<li>基于文法的模型</li>
+<li>粒子系统</li>
+</ul>
+<h2 id="迭代函数系统">迭代函数系统</h2>
+<ul>
+<li>IFS：Iterated Function System</li>
+<li>分形</li>
+<li>具有 5 个基本特征
+<ul>
+<li>形态的不规则性</li>
+<li>结构的精细性</li>
+<li>局部与整体的自相似性</li>
+<li>为数的非整数性</li>
+<li>生成的迭代性</li>
+</ul></li>
+</ul>
+<h2 id="l-系统">L 系统</h2>
+<ul>
+<li>由生物学家 <strong>Lindenmayer</strong> 创立</li>
+<li>基本思想
+<ul>
+<li>用文法表示植物的拓扑结构
+<ul>
+<li>BNF</li>
+</ul></li>
+<li>通过图形学的方法生成逼真的画面</li>
+</ul></li>
+<li>DOL系统（确定的上下文无关的L系统）
+<ul>
+<li>定义为三元组 <span class="math inline">\(&lt;V,w,P&gt;\)</span>
+<ul>
+<li><span class="math inline">\(V\)</span> 表示字母集合，<strong>字母表</strong></li>
+<li><span class="math inline">\(Y^\star\)</span> 表示 <span class="math inline">\(V\)</span> 上的<strong>所有单词</strong>的集合</li>
+<li><span class="math inline">\(w\)</span> 是一个非空单词（<span class="math inline">\(V\)</span> 中元素的非空排列，称为公理）</li>
+<li><span class="math inline">\(P\)</span> <strong>产生式</strong>集合
+<ul>
+<li><span class="math inline">\(\forall a\in V,\exists x\in V^\star\)</span> 使得 <span class="math inline">\(a\to x\)</span>
+<ul>
+<li>有且只有（唯一）的 <span class="math inline">\(x\)</span></li>
+</ul></li>
+<li>若无明显的产生式，则令 <span class="math inline">\(a\to a\)</span></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="koch-雪花">Koch 雪花</h3>
+<ul>
+<li><span class="math inline">\(V:\{F,+,-\}\)</span></li>
+<li><span class="math inline">\(w:F\)</span></li>
+<li><span class="math inline">\(P:F\to F-F++F-F\)</span></li>
+<li>几何解释：
+<ul>
+<li><span class="math inline">\(F\)</span>：向前画一条直线</li>
+<li><span class="math inline">\(+\)</span>：右转 <span class="math inline">\(\alpha\)</span></li>
+<li><span class="math inline">\(-\)</span>：左转 <span class="math inline">\(\beta\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/koch.png"></p>
+<h3 id="bracketed-l系统">Bracketed L系统</h3>
+<ul>
+<li><span class="math inline">\(V:\{F,+,-,[,]\}\)</span></li>
+<li><span class="math inline">\(w:F\)</span></li>
+<li><span class="math inline">\(P:F\to F[+F]F[-F]F\)</span></li>
+<li>几何解释：
+<ul>
+<li><span class="math inline">\(F\)</span>：向前画一条直线</li>
+<li><span class="math inline">\(+\)</span>：右转 <span class="math inline">\(\alpha\)</span></li>
+<li><span class="math inline">\(-\)</span>：左转 <span class="math inline">\(\beta\)</span></li>
+<li><span class="math inline">\([\)</span>：压栈</li>
+<li><span class="math inline">\([\)</span>：出栈</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/03/CG/LS/07/bracketed-L.png"></p>
+<h1 id="粒子系统">粒子系统</h1>
+<h2 id="particle-systems">Particle Systems</h2>
+<ul>
+<li>simulate and render objects / phenomena that do not have clear surface definitions
+<ul>
+<li>fire, water, snow, explosion, smoke, swarm, fountain ...
+<ul>
+<li>火焰、水、雪、爆炸、烟雾、群、喷泉</li>
+</ul></li>
+</ul></li>
+<li>Particles are entities (e.g.points) with attributes acting independently and collectively
+<ul>
+<li>带有属性的实体，实体之间的属性相互独立或联系</li>
+</ul></li>
+<li>Typical attributes: position, velocity, color, life span, etc.
+<ul>
+<li>位置、速度、颜色、生命周期</li>
+</ul></li>
+</ul>
+<h2 id="一些特点">一些特点</h2>
+<ul>
+<li>An object is represented as clouds of primitive particles that define its volume.
+<ul>
+<li>单个粒子很简单，物体的形态由集群的粒子表现</li>
+</ul></li>
+<li>dynamic, changing form and moving with the passage of time.
+<ul>
+<li>动态的、变化的，处于不同生命周期时间段的例子有不一样的状态</li>
+</ul></li>
+<li>Object is not deterministic, its shape and form are not completely specified.
+<ul>
+<li>非确定性的，形状或者样式不是完全规定好的</li>
+</ul></li>
+<li>Different force rules and different renderings give all the different types of behaviors.
+<ul>
+<li>例字在面对不同的条件或者规则会有不一样的行为</li>
+</ul></li>
+</ul>
+<h2 id="粒子的属性">粒子的属性</h2>
+<ul>
+<li>Position：<strong>位置</strong>
+<ul>
+<li>the change of the particle position is affected by its velocity</li>
+</ul></li>
+<li>velocity：<strong>速度</strong>
+<ul>
+<li>affected by force/acceleration</li>
+</ul></li>
+<li>Lifetime：<strong>生命周期</strong>
+<ul>
+<li>the remain life time before the extinction of the particle</li>
+<li>It is decremented every frame.</li>
+<li>It may affect may other attributes</li>
+</ul></li>
+<li>Size：<strong>大小</strong>
+<ul>
+<li>may vary during its life span</li>
+</ul></li>
+<li>Weight：<strong>质量</strong>
+<ul>
+<li>useful to calculate acceleration from force</li>
+</ul></li>
+<li>Visual representation：<strong>可视化形式</strong>
+<ul>
+<li>3D points：3D 的<strong>点</strong>，适用于比较远的点（看不出来差异）
+<ul>
+<li>for remote scene</li>
+</ul></li>
+<li>Lines：<strong>线</strong>（粒子轨迹）
+<ul>
+<li>a trace of particle trajectory</li>
+</ul></li>
+<li>Texture-mapped quads：带纹理的四边形
+<ul>
+<li>very flexible &amp; widely used</li>
+</ul></li>
+</ul></li>
+<li>Color：<strong>颜色</strong>
+<ul>
+<li>may change during its life span</li>
+</ul></li>
+</ul>
+<h2 id="粒子的集群控制">粒子的集群控制</h2>
+<ul>
+<li>Particle list：<strong>粒子的列表</strong></li>
+<li>Particle generation：<strong>粒子的产生</strong>
+<ul>
+<li>Position：<strong>位置信息</strong>
+<ul>
+<li>default, Random or fixed.</li>
+</ul></li>
+<li>Emission rate：<strong>生成速率</strong>
+<ul>
+<li>how often particles are created.</li>
+</ul></li>
+<li>Default particle attributes：<strong>初始属性</strong>
+<ul>
+<li>Random or fixed.</li>
+</ul></li>
+</ul></li>
+<li>Particle kill：<strong>粒子的湮灭</strong>（生命周期）
+<ul>
+<li>kill particles if their lifetimes become <strong>0</strong> or <strong>certain conditions</strong> happen</li>
+</ul></li>
+<li>Particle Animation：<strong>粒子的动画</strong>（每一帧的动画）
+<ul>
+<li>The remaining particles are moved and transformed according to their dynamic attributes.</li>
+</ul></li>
+<li>Rendering：<strong>渲染器</strong>
+<ul>
+<li>An image of the particles is rendered in the frame buffer, often using special purpose algorithms.</li>
+</ul></li>
+<li>Force field：<strong>交互，外界的影响</strong> affector
+<ul>
+<li>assign a force (can be different) to each particles to produce acceleration</li>
+</ul></li>
+</ul>
+<h2 id="其他">其他</h2>
+<ul>
+<li>与环境交互
+<ul>
+<li>火焰吹风，得动起来</li>
+<li>小球沿着坡滚下来</li>
+</ul></li>
+<li>粒子的行为
+<ul>
+<li>行为规则（内在）</li>
+<li>环境（外在，交互）</li>
+</ul></li>
+<li>粒子湮灭
+<ul>
+<li>Lifetime decremented each frame, particle is killed when it reaches zero</li>
+<li>Kill particles that no longer contribute to image (<strong>transparency below a certain threshold</strong>, etc.).</li>
+</ul></li>
+<li>粒子系统很好玩，但是很难做
+<ul>
+<li>粒子系统引擎</li>
+<li>交互式编辑（灵活、泛化）</li>
+<li>给定一个任意场景（环境因素）
+<ul>
+<li>给定一个山形，构建一个符合这个山形的瀑布（很难）</li>
+</ul></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/02/CG/LS/06/" rel="prev" title="计算机图形学.李胜.06.隐藏面的消除">
+                  <i class="fa fa-chevron-left"></i> 计算机图形学.李胜.06.隐藏面的消除
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/05/CG/LS/08/" rel="next" title="计算机图形学.李胜.08.真实感绘制之光照明(1)">
+                  计算机图形学.李胜.08.真实感绘制之光照明(1) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

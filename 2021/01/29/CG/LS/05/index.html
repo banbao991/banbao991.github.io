@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="平面几何投影、观察坐标系中的投影变换、世界坐标系到观察坐标系的变换">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.05.投影(1)">
+<meta property="og:url" content="http://example.com/2021/01/29/CG/LS/05/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="平面几何投影、观察坐标系中的投影变换、世界坐标系到观察坐标系的变换">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/01/29/CG/LS/05/001.jpg">
+<meta property="article:published_time" content="2021-01-29T02:41:44.000Z">
+<meta property="article:modified_time" content="2021-02-06T09:16:04.295Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/01/29/CG/LS/05/001.jpg">
+
+
+<link rel="canonical" href="http://example.com/2021/01/29/CG/LS/05/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>计算机图形学.李胜.05.投影(1) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E7%BB%B4%E5%9B%BE%E5%BD%A2%E7%9A%84%E5%9F%BA%E6%9C%AC%E9%97%AE%E9%A2%98"><span class="nav-text">三维图形的基本问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B9%B3%E9%9D%A2%E5%87%A0%E4%BD%95%E6%8A%95%E5%BD%B1"><span class="nav-text">平面几何投影</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A7%82%E5%AF%9F%E5%9D%90%E6%A0%87%E7%B3%BB%E4%B8%AD%E7%9A%84%E6%8A%95%E5%BD%B1%E5%8F%98%E6%8D%A2"><span class="nav-text">观察坐标系中的投影变换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E7%BB%B4%E7%A9%BA%E9%97%B4%E7%9B%B4%E7%BA%BF%E5%8F%82%E6%95%B0%E6%96%B9%E7%A8%8B"><span class="nav-text">三维空间直线参数方程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E5%8F%98%E6%8D%A2%E6%B1%82%E8%A7%A3"><span class="nav-text">透视投影变换求解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B3%E8%A1%8C%E6%8A%95%E5%BD%B1%E5%8F%98%E6%8D%A2%E6%B1%82%E8%A7%A3"><span class="nav-text">平行投影变换求解</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%96%E7%95%8C%E5%9D%90%E6%A0%87%E7%B3%BBwc%E5%88%B0%E8%A7%82%E5%AF%9F%E5%9D%90%E6%A0%87%E7%B3%BBvrc%E7%9A%84%E5%8F%98%E6%8D%A2"><span class="nav-text">世界坐标系WC到观察坐标系VRC的变换</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/CG/LS/05/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机图形学.李胜.05.投影(1)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-29 10:41:44" itemprop="dateCreated datePublished" datetime="2021-01-29T10:41:44+08:00">2021-01-29</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-06 17:16:04" itemprop="dateModified" datetime="2021-02-06T17:16:04+08:00">2021-02-06</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-LS/" itemprop="url" rel="index"><span itemprop="name">CG.LS</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">平面几何投影、观察坐标系中的投影变换、世界坐标系到观察坐标系的变换</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="三维图形的基本问题">三维图形的基本问题</h1>
+<ul>
+<li>在二维屏幕上显示三维物体
+<ul>
+<li><strong>投影</strong></li>
+</ul></li>
+<li>三维形体的表示
+<ul>
+<li><strong>各种用于形体表示的理论、模型、方法</strong></li>
+</ul></li>
+<li>反映遮挡关系
+<ul>
+<li><strong>消除隐藏面与隐藏线</strong></li>
+</ul></li>
+<li>产生真实感图形
+<ul>
+<li><strong>建立光照明模型、开发真实感图形绘制方法</strong></li>
+</ul></li>
+</ul>
+<h1 id="平面几何投影">平面几何投影</h1>
+<ul>
+<li>投影
+<ul>
+<li>将 n 维的店变换成小于 n 维的点</li>
+<li>3 =&gt; 2</li>
+</ul></li>
+<li>投影中心
+<ul>
+<li><strong>COP</strong>：Center Of Projection</li>
+<li>视觉系统：观察点、视点</li>
+<li>电影放映机：光源</li>
+</ul></li>
+<li>投影平面
+<ul>
+<li>又称为观察平面 VP（View Plane）</li>
+<li><strong>不经过投影中心</strong></li>
+<li>平面（照相机底片），曲面（球幕电影、视网膜）</li>
+</ul></li>
+<li>投影线
+<ul>
+<li>从投影中心向物体上各点发出的射线</li>
+<li>直线：光线</li>
+<li>曲线：光线跟踪</li>
+</ul></li>
+<li>平面几何投影
+<ul>
+<li>投影面为平面</li>
+<li>投影线为直线</li>
+<li>包括透视投影和平行投影
+<ul>
+<li><strong>透视投影</strong>：投影中心与投影平面之间的距离<strong>有限</strong></li>
+<li><strong>平行投影</strong>：投影中心与投影平面之间的距离<strong>无限</strong></li>
+</ul></li>
+</ul></li>
+<li>透视投影
+<ul>
+<li><strong>灭点</strong>：不平行于投影平面的平行线，经过透视投影之后收敛于一点，称为灭点</li>
+<li><strong>主灭点</strong>：平行于坐标轴的平行线的灭点</li>
+<li>按照主灭点个数分类
+<ul>
+<li>一点透视：投影平面平行于 xOy 平面</li>
+<li>两点透视：投影平面平行于 y 轴，与 x、z 轴都有交点</li>
+<li>三点透视：投影平面与 x、y、z 轴都有交点</li>
+</ul></li>
+<li>产生<strong>近大远小</strong>的视觉效果，由它产生的<strong>图形深度感强</strong>，看起来更加真实</li>
+</ul></li>
+<li>《最后的晚餐》：只有一个主灭点，耶稣的头部</li>
+<li>平行投影</li>
+<li>正投影与斜投影
+<ul>
+<li>正投影：投影方向<strong>垂直</strong>于投影平面</li>
+<li>斜投影：投影方向<strong>不垂直</strong>投影平面</li>
+</ul></li>
+<li>三视图
+<ul>
+<li>正视图、侧视图、俯视图</li>
+<li><span style="color:red;font-weight:bold">不能无误的重现原模型</span></li>
+</ul></li>
+</ul>
+<h1 id="观察坐标系中的投影变换">观察坐标系中的投影变换</h1>
+<ul>
+<li><p>观察坐标系：</p>
+<ul>
+<li><strong>VRC</strong>：View Reference Coordinate</li>
+<li>照相机所在坐标系</li>
+</ul></li>
+<li><p>建立观察坐标系</p>
+<ul>
+<li><p>坐标原点：<strong>VRP</strong>（View Reference Point）</p>
+<ul>
+<li>聚焦参考点与投影平面上的投影</li>
+</ul></li>
+<li><p>n 轴</p>
+<ul>
+<li>照相机的镜头方向（<strong>投影平面的法向</strong>）</li>
+</ul></li>
+<li><p>v 轴</p>
+<ul>
+<li>照相机向上的方向（<strong>观察正向 VUP 在投影平面的投影</strong>）</li>
+</ul></li>
+<li><p>u 轴</p>
+<ul>
+<li><p><span class="math inline">\(u=v\times n\)</span></p></li>
+<li><p>叉乘转化为矩阵</p>
+<ul>
+<li><p><span class="math inline">\(\vec{a}\times\vec{b}=(a_2b_3-b_2a_3,a_3b_1-b_3a_1,a_1b_2-b_1a_2)\)</span></p>
+<ul>
+<li><span class="math inline">\((a_1\vec{i}+a_2\vec{j}+a_3\vec{k})\times(b_1\vec{i}+b_2\vec{j}+b_3\vec{k})\)</span> 展开即可</li>
+</ul></li>
+<li><p><span class="math display">\[
+  \begin{bmatrix}
+  0 &amp; -a_3 &amp; a_2 \\
+  a_3 &amp; 0 &amp; -a_1 \\
+  -a_2 &amp; a_1 &amp; 0
+  \end{bmatrix}
+  \begin{bmatrix}
+  b_1 \\
+  b_2 \\
+  b_3
+  \end{bmatrix}
+  \]</span></p></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><p><span class="math inline">\((u,v,n)\)</span></p></li>
+<li><p>投影平面：<span class="math inline">\(n=0\)</span></p></li>
+<li><p>投影中心：<span class="math inline">\((0,0,d)\)</span></p></li>
+<li><p>视见体：三维裁剪窗口</p>
+<ul>
+<li>6 个裁剪面</li>
+</ul></li>
+<li><p>投影参考点：<strong>PRP</strong>（Projection Reference Point）</p>
+<ul>
+<li>透视投影：COP = PRP</li>
+<li>平行投影：投影方向（DOP）= 窗口中心 CW 和 PRP 的连线</li>
+</ul></li>
+<li><p>投影参数表</p></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">参数</th>
+<th style="text-align: center;">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">投影类型</td>
+<td style="text-align: center;">定义投影是平行投影还是透视投影</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">观察参考点 <span class="math inline">\(VRP\)</span></td>
+<td style="text-align: center;">在世界坐标系中指定，为观察坐标系原点</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">观察平面法向 <span class="math inline">\(VPN\)</span></td>
+<td style="text-align: center;">在世界坐标系中指定，为观察坐标的 <span class="math inline">\(n\)</span> 轴</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">观察正向 <span class="math inline">\(VUP\)</span></td>
+<td style="text-align: center;">在世界坐标系中指定，确定观察坐标系的 <span class="math inline">\(v\)</span> 轴</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">投影参考点 <span class="math inline">\(PRP\)</span></td>
+<td style="text-align: center;">在观察坐标系中指定确定投影中心或投影方向</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">前裁剪面裁距 <span class="math inline">\(F\)</span></td>
+<td style="text-align: center;">在观察坐标系中指定，<span class="math inline">\(n=F\)</span> 为前裁剪面</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">后裁剪面裁距 <span class="math inline">\(B\)</span></td>
+<td style="text-align: center;">在观察坐标系中指定，<span class="math inline">\(n=B\)</span> 为后裁剪面</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">窗口 <span class="math inline">\(u_{min},u_{max},v_{min},v_{max}\)</span></td>
+<td style="text-align: center;">在观察坐标系的uv平面上指定，确定窗口与视见体</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>窗口不一定关于原点对称</strong></li>
+</ul>
+<h2 id="三维空间直线参数方程">三维空间直线参数方程</h2>
+<ul>
+<li>过顶点 <span class="math inline">\(A(x_0,y_0,z_0)\)</span>，方向向量 <span class="math inline">\((m,n,p)\)</span>，直线参数方程如下</li>
+</ul>
+<p><span class="math display">\[
+\left\{
+\begin{array}{**lr**}
+x=t(m-x_0)+x_0\\
+y=t(n-y_0)+y_0\\
+z=t(p-z_0)+z_0
+\end{array}
+\right.or
+\left\{
+\begin{array}{**lr**}
+x=tm+x_0\\
+y=tn+y_0\\
+z=tp+z_0
+\end{array}
+\right.
+\]</span></p>
+<h2 id="透视投影变换求解">透视投影变换求解</h2>
+<ul>
+<li><p>投影中心<span class="math inline">\((0,0,d)\)</span>，待投影点 <span class="math inline">\(P(u_p,v_p,n_p)\)</span>，求解在投影平面 <span class="math inline">\(n=0\)</span> 的投影点 <span class="math inline">\(Q(u_q,v_q,n_q)\)</span></p></li>
+<li><p>投影线的参数方程（经过投影中心<span class="math inline">\((0,0,d)\)</span>） <span class="math display">\[
+  \left\{
+  \begin{array}{**lr**}
+  u=tu_p &amp;  \\
+  v=tv_p &amp; t\ge 0\\
+  n=t(n_p-d)+d &amp;
+  \end{array}
+  \right.
+  \]</span></p></li>
+<li><p>求解，令 <span class="math inline">\(n=0\)</span></p></li>
+</ul>
+<p><span class="math display">\[
+\left\{
+\begin{array}{**lr**}
+u_q=\dfrac{u_p}{1-\dfrac{n_p}{d}} \\
+v_q=\dfrac{v_p}{1-\dfrac{n_p}{d}} \\
+n_q=0
+\end{array}
+\right.
+\]</span></p>
+<ul>
+<li>将其写作矩阵形式 <span class="math inline">\(Q=M_{per}P\)</span>
+<ul>
+<li>注意得到的结果需要进行标准化 <span class="math inline">\(h\ne 1\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; -\dfrac{1}{d} &amp;1\\
+\end{bmatrix}
+\]</span></p>
+<h2 id="平行投影变换求解">平行投影变换求解</h2>
+<ul>
+<li>投影平面 <span class="math inline">\(n=0\)</span>，投影方向 <span class="math inline">\((0,0,-1)\)</span>，待投影点为 <span class="math inline">\(P(u_p,v_p,n_p)\)</span>，求投影点 <span class="math inline">\(Q(u_q,v_q,n_q)\)</span></li>
+<li><span class="math inline">\(Q(u_p,v_p,0)\)</span></li>
+<li>将其写作矩阵形式 <span class="math inline">\(Q=M_{ori}P\)</span></li>
+</ul>
+<p><span class="math display">\[
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 1\\
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\lim_\limits{d\to\infty}M_{per}=M_{ori}\)</span></li>
+</ul>
+<h1 id="世界坐标系wc到观察坐标系vrc的变换">世界坐标系WC到观察坐标系VRC的变换</h1>
+<ul>
+<li>条件
+<ul>
+<li>WC：xyz，VRC：uvn</li>
+<li><strong>VRC</strong> 的坐标原点 <strong>VRP</strong> <span class="math inline">\((VRP_x,VRP_y,VRP_z)\)</span></li>
+<li>投影平面法向 <span class="math inline">\(\vec{VPN}\)</span></li>
+<li>观察正向 <span class="math inline">\(\vec{VUP}\)</span></li>
+</ul></li>
+<li>做如下记号</li>
+</ul>
+<p><span class="math display">\[
+\left\{
+\begin{array}{**lr**}
+\vec{n}=\dfrac{\vec{VPN}}{|\vec{VPN}|}=[n_x,n_y,n_z]\\
+\vec{u}=\dfrac{\vec{VUP}\times\vec{VPN}}{|\vec{VUP}\times\vec{VPN}|}=[u_x,u_y,u_z] \\
+\vec{v}=\vec{n}\times\vec{u}
+\end{array}
+\right.
+\]</span></p>
+<ul>
+<li>先平移后旋转</li>
+</ul>
+<p><span class="math display">\[
+M_{WC\to VRC}=
+\begin{bmatrix}
+u_x &amp; u_y &amp; u_z &amp; 0\\
+v_x &amp; v_y &amp; v_z &amp; 0\\
+n_x &amp; n_y &amp; n_z &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 1\\
+\end{bmatrix}
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; -VRP_x\\
+0 &amp; 1 &amp; 0 &amp; -VRP_y\\
+0 &amp; 0 &amp; 1 &amp; -VRP_z\\
+0 &amp; 0 &amp; 0 &amp; 1\\
+\end{bmatrix}
+=RT
+\]</span></p>
+<ul>
+<li><p>证明1：直接通过线性代数的知识，两个空间的正交变换为 <span class="math inline">\(R\)</span></p>
+<ul>
+<li>直接验证结果也是显然正确的</li>
+</ul></li>
+<li><p>证明2：参考《计算机图形学 倪眀田 吴良芝》P143-145</p>
+<ul>
+<li><p>平移变换显然，我们只考虑两个坐标系的原点相同旋转部分</p></li>
+<li><p>通过解构的方法证明</p></li>
+<li><p>步骤如下</p>
+<p><img src="/2021/01/29/CG/LS/05/001.jpg" style="zoom:Infinity%;"></p>
+<ul>
+<li><p>绕 x 轴旋转角度 <span class="math inline">\(\theta_x\)</span> 使得 n 轴落于 xOz 平面 <span class="math display">\[
+  \cos\theta_x=\dfrac{n_z}{\sqrt{n_y^2+n_z^2}},\qquad
+  \sin\theta_x=\dfrac{n_y}{\sqrt{n_y^2+n_z^2}}
+  \]</span></p></li>
+<li><p>绕 y 轴旋转角度 <span class="math inline">\(\theta_y\)</span> 使得 n 轴和 z 轴同向且重合 <span class="math display">\[
+  \cos\theta_y=\sqrt{n_y^2+n_z^2},\qquad
+      \sin\theta_y=n_x
+  \]</span></p></li>
+<li><p>绕 z 轴旋转角度 <span class="math inline">\(\theta_z\)</span> 使得 u 轴和 x 轴同向且重合</p>
+<ul>
+<li><p>这一部分比较麻烦，可以先用上面的变换得到在世界坐标系中单位向量对应的点 <span class="math inline">\(\vec{u}\)</span> 的位置</p></li>
+<li><p>注意有</p>
+<ul>
+<li><span class="math inline">\(\vec{u}\cdot\vec{n}=u_xn_x+u_yn_y+u_zn_z=0\)</span></li>
+<li><span class="math inline">\(\vec{n}\times\vec{u}=(n_yu_z-u_yn_z,n_zu_x-u_zn_x,n_xu_y-u_xn_y)=(v_x,v_y,v_z)\)</span></li>
+</ul></li>
+<li><p><span class="math display">\[
+  R_y(\theta_y)=
+    \begin{bmatrix}
+    \sqrt{n_y^2+n_z^2} &amp; 0 &amp; -n_x &amp; 0\\
+    0 &amp; 1 &amp; 0 &amp; 0\\
+    n_x &amp; 0 &amp; \sqrt{n_y^2+n_z^2} &amp; 0\\
+    0 &amp; 0 &amp; 0 &amp; 1\\
+    \end{bmatrix}\\
+  \]</span></p></li>
+<li><p><span class="math display">\[
+  R_x(\theta_x)=
+    \begin{bmatrix}
+    1 &amp; 0 &amp; 0 &amp; 0\\
+    0 &amp; \dfrac{n_z}{\sqrt{n_y^2+n_z^2}} &amp; -\dfrac{n_y}{\sqrt{n_y^2+n_z^2}} &amp; 0\\
+    0 &amp; \dfrac{n_y}{\sqrt{n_y^2+n_z^2}} &amp; \dfrac{n_z}{\sqrt{n_y^2+n_z^2}} &amp; 0\\
+    0 &amp; 0 &amp; 0 &amp; 1\\
+    \end{bmatrix}\\
+  \]</span></p></li>
+<li><p><span class="math display">\[
+  R_y(\theta_y)R_x(\theta_x)=
+    \begin{bmatrix}
+    \sqrt{n_y^2+n_z^2} &amp; -\dfrac{n_xn_y}{\sqrt{n_y^2+n_z^2}} &amp; -\dfrac{n_xn_z}{\sqrt{n_y^2+n_z^2}} &amp; 0\\
+    0 &amp; \dfrac{n_z}{\sqrt{n_y^2+n_z^2}} &amp; -\dfrac{n_y}{\sqrt{n_y^2+n_z^2}} &amp; 0\\
+    n_x &amp; n_y &amp; n_z &amp; 0\\
+    0 &amp; 0 &amp; 0 &amp; 1\\
+    \end{bmatrix}
+  \]</span></p></li>
+<li><p><span class="math display">\[
+ \vec{u}=R_y(\theta_y)R_x(\theta_x)\begin{bmatrix}
+       u_x\\ u_y\\ u_z\\ 1
+       \end{bmatrix}
+       =
+       \begin{bmatrix}
+       \dfrac{u_x}{\sqrt{n_y^2+n_z^2}}\\
+       \dfrac{u_yn_z-u_zn_y}{\sqrt{n_y^2+n_z^2}}\\
+       0\\
+       1\\
+       \end{bmatrix}
+ \]</span></p></li>
+<li><p>此时的 <span class="math inline">\(|\vec{u}|=1\)</span>，旋转不改变长度</p>
+<ul>
+<li>那么同时就会有 <span class="math inline">\(u_x^2+v_x^2+n_x^2=1\)</span></li>
+</ul></li>
+<li><p>或者直接计算</p>
+<ul>
+<li><p><span class="math display">\[
+  \begin{aligned}
+  &amp;u_x^2+(u_yn_z-u_zn_y)^2 \\
+  =\ &amp;u_x^2+v_x^2\\
+  &amp; u_x^2+(u_yn_z-u_zn_y)^2 \\
+  =\ &amp;u_x^2+u_y^2n_z^2+u_z^2n_y^2-2n_yu_yn_zu_z\\
+  =\ &amp;u_x^2+u_y^2(1-n_x^2-n_y^2)+u_z^2(1-n_x^2-n_z^2)-2n_yu_yn_zu_z\\
+  =\ &amp;1-u_y^2n_x^2-u_y^2n_y^2-u_z^2n_x^2-u_z^2n_z^2-2n_yu_yn_zu_z\\
+  =\ &amp;1-u_y^2n_x^2-u_z^2n_x^2-(u_yn_y+u_zn_z)^2\\
+  =\ &amp;1-u_y^2n_x^2-u_z^2n_x^2-(u_xn_x)^2\\
+  =\ &amp;1-n_x^2\\
+  \end{aligned}
+  \]</span></p></li>
+<li><p><span class="math inline">\(\Rightarrow u_x^2+v_x^2+n_x^2=1\)</span></p></li>
+</ul></li>
+<li><p>此时可以推导出 <span class="math inline">\(\theta_z\)</span></p></li>
+<li><p><span class="math display">\[
+\cos(-\theta_z)=\dfrac{u_x}{\sqrt{n_y^2+n_z^2}}
+\]</span></p></li>
+<li><p><span class="math display">\[
+\sin(-\theta_z)=\dfrac{u_yn_z-u_zn_y}{\sqrt{n_y^2+n_z^2}}
+\]</span></p></li>
+<li><p><span class="math display">\[
+\cos(\theta_z)=\dfrac{u_x}{\sqrt{n_y^2+n_z^2}}=\dfrac{v_yn_z-n_yv_z}{\sqrt{n_y^2+n_z^2}}
+\]</span></p></li>
+<li><p><span class="math display">\[
+\sin(\theta_z)=-\dfrac{u_yn_z-u_zn_y}{\sqrt{n_y^2+n_z^2}}=\dfrac{v_x}{\sqrt{n_y^2+n_z^2}}
+\]</span></p></li>
+<li><p>乘法时根据次数把 <span class="math inline">\(\sin\theta_x,\cos\theta_z\)</span> 展开为不同形式 <span class="math display">\[
+R_z(\theta_z)=
+  \begin{bmatrix}
+  \cos\theta_z &amp; -\sin\theta_z &amp; 0 &amp; 0\\
+  \sin\theta_z  &amp; \cos\theta_z &amp; 0 &amp; 0\\
+  0 &amp; 0 &amp; 1 &amp; 0\\
+  0 &amp; 0 &amp; 0 &amp; 1\\
+  \end{bmatrix}\\
+\]</span></p></li>
+<li><p><span class="math display">\[
+R_z(\theta_z)R_y(\theta_y)R_x(\theta_x)=
+\begin{bmatrix}
+u_x &amp; u_y &amp; u_z &amp; 0\\
+v_x &amp; v_y &amp; v_z &amp; 0\\
+n_x &amp; n_y &amp; n_z &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 1\\
+\end{bmatrix}
+\]</span></p></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/01/28/CG/LS/04/" rel="prev" title="计算机图形学.李胜.04.几何变换">
+                  <i class="fa fa-chevron-left"></i> 计算机图形学.李胜.04.几何变换
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/01/31/CG/LS/05-1/" rel="next" title="计算机图形学.李胜.05.投影(2)">
+                  计算机图形学.李胜.05.投影(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

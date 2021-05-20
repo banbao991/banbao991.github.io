@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="分组(group by, group_concat, cube, rollup)、子查询(in&#x2F;all&#x2F;some&#x2F;exists)、SQL 减法、SQL 除法(双重否定)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.04.SQL 数据查询(2)">
+<meta property="og:url" content="http://example.com/2021/04/24/DB/CLJ/04-3/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="分组(group by, group_concat, cube, rollup)、子查询(in&#x2F;all&#x2F;some&#x2F;exists)、SQL 减法、SQL 除法(双重否定)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/24/DB/CLJ/04-3/image-20210425233923278.png">
+<meta property="og:image" content="http://example.com/2021/04/24/DB/CLJ/04-3/image-20210427140108269.png">
+<meta property="og:image" content="http://example.com/2021/04/24/DB/CLJ/04-3/image-20210427140905325.png">
+<meta property="og:image" content="http://example.com/2021/04/24/DB/CLJ/04-3/image-20210427151820962.png">
+<meta property="og:image" content="http://example.com/2021/04/24/DB/CLJ/04-3/image-20210427152445309.png">
+<meta property="article:published_time" content="2021-04-24T01:43:14.000Z">
+<meta property="article:modified_time" content="2021-05-04T09:40:51.570Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/24/DB/CLJ/04-3/image-20210425233923278.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/24/DB/CLJ/04-3/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.04.SQL 数据查询(2) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#sql-%E6%95%B0%E6%8D%AE%E6%9F%A5%E8%AF%A2"><span class="nav-text">SQL 数据查询</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E8%B5%84%E6%BA%90"><span class="nav-text">在线资源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E7%BB%84"><span class="nav-text">分组</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9C%80%E6%B1%82"><span class="nav-text">需求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-text">使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E7%BB%84%E6%9F%A5%E8%AF%A2%E4%B8%AD%E5%90%84%E5%AD%90%E5%8F%A5%E7%9A%84%E9%A1%BA%E5%BA%8F"><span class="nav-text">分组查询中各子句的顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#group_concat"><span class="nav-text">group_concat</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cube"><span class="nav-text">cube</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#grouping"><span class="nav-text">grouping</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rollup"><span class="nav-text">rollup</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%8C%E6%95%B0%E8%AE%A1%E7%AE%97"><span class="nav-text">行数计算</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90%E5%A4%9A%E4%B8%AA%E5%88%86%E7%BB%84%E8%AF%AD%E5%8F%A5%E7%9A%84%E5%90%88%E5%B9%B6%E6%8A%A5%E8%A1%A8"><span class="nav-text">如何生成多个分组语句的合并报表</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E7%BB%84%E5%B1%9E%E6%80%A7%E9%9B%86"><span class="nav-text">分组属性集</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%A7%E7%94%9F%E5%88%86%E7%BB%84%E5%B1%9E%E6%80%A7%E9%9B%86%E7%9A%84%E4%BB%A3%E6%95%B0%E6%93%8D%E4%BD%9C"><span class="nav-text">产生分组属性集的代数操作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%A0%87%E8%AF%86%E5%90%88%E5%B9%B6%E6%8A%A5%E8%A1%A8%E4%B8%AD%E8%A1%8C%E7%9A%84%E5%88%86%E7%BB%84%E5%BD%92%E5%B1%9E"><span class="nav-text">如何标识合并报表中行的分组归属</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B5%8C%E5%A5%97%E5%AD%90%E6%9F%A5%E8%AF%A2"><span class="nav-text">嵌套子查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9B%86%E5%90%88%E6%88%90%E5%91%98%E8%B5%84%E6%A0%BCin%E5%AD%90%E6%9F%A5%E8%AF%A2"><span class="nav-text">集合成员资格（in子查询）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8"><span class="nav-text">应用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9B%86%E5%90%88%E4%B9%8B%E9%97%B4%E7%9A%84%E6%AF%94%E8%BE%83someall%E5%AD%90%E6%9F%A5%E8%AF%A2"><span class="nav-text">集合之间的比较（some&#x2F;all子查询）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%92%8C-in-%E5%AD%90%E6%9F%A5%E8%AF%A2%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-text">和 in 子查询的比较</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8-1"><span class="nav-text">应用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9B%86%E5%90%88%E5%9F%BA%E6%95%B0%E7%9A%84%E6%B5%8B%E8%AF%95exists%E5%AD%90%E6%9F%A5%E8%AF%A2"><span class="nav-text">集合基数的测试（exists子查询）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#in-%E5%92%8C-exists"><span class="nav-text">in 和 exists</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8-2"><span class="nav-text">应用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8D%E5%8D%8A%E8%BF%9E%E6%8E%A5not-in-not-exists"><span class="nav-text">反半连接：not in, not exists</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#except"><span class="nav-text">except</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#left-join"><span class="nav-text">left join</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%B8%AD%E7%9A%84%E5%B1%9E%E6%80%A7%E8%A7%A3%E6%9E%90%E5%8C%B9%E9%85%8D"><span class="nav-text">子查询中的属性解析匹配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#not-inexists-%E4%B8%8E%E7%A9%BA%E5%80%BC"><span class="nav-text">not in&#x2F;exists 与空值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%A4%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="nav-text">除法实现</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/24/DB/CLJ/04-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.04.SQL 数据查询(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-24 09:43:14" itemprop="dateCreated datePublished" datetime="2021-04-24T09:43:14+08:00">2021-04-24</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-05-04 17:40:51" itemprop="dateModified" datetime="2021-05-04T17:40:51+08:00">2021-05-04</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">分组(group by, group_concat, cube, rollup)、子查询(in/all/some/exists)、SQL 减法、SQL 除法(双重否定)</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="sql-数据查询">SQL 数据查询</h1>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Select</span> ...</span><br><span class="line"><span class="keyword">From</span> ...</span><br><span class="line"><span class="keyword">Where</span> ...</span><br><span class="line"><span class="keyword">Group</span> <span class="keyword">by</span> ...</span><br><span class="line"><span class="keyword">Having</span> ...</span><br><span class="line"><span class="keyword">Union</span> ...</span><br><span class="line"><span class="keyword">Order</span> <span class="keyword">by</span> ...</span><br><span class="line">Limit ...</span><br></pre></td></tr></table></figure>
+<h2 id="在线资源">在线资源</h2>
+<ul>
+<li>http://sqlfiddle.com</li>
+</ul>
+<h2 id="分组">分组</h2>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> 列名 [ <span class="keyword">having</span> 条件表达式 ]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>group by 将表中行按指定列上值相等的原则分组，然后在每一分组上使用聚集函数，得到单一值</li>
+<li>having 对<strong>分组</strong>进行选择，只将聚集函数作用到<strong>满足条件的分组</strong>上</li>
+</ul>
+<h3 id="需求">需求</h3>
+<ul>
+<li>统计每个同学的平均成绩</li>
+<li>统计每个课程的平均成绩</li>
+</ul>
+<h3 id="使用">使用</h3>
+<ul>
+<li><strong>目标列必须是分组属性</strong></li>
+<li>select 语句后面的列必须是 group by 后面的列
+<ul>
+<li>因为在 group by 之后，对每一个 group 会输出一条记录，使用其他的属性会导致每一个属性有多个值，不满足原子性
+<ul>
+<li>MySQL 测试好像是可以的，不过只输出第一条记录</li>
+</ul></li>
+</ul></li>
+<li><strong>如果其他属性使用的是聚集函数，那么是可以的</strong></li>
+<li>列出每个学生的最高、最低、平均成绩</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sno, <span class="built_in">max</span>(grade), <span class="built_in">min</span>(grade), <span class="built_in">avg</span>(grade)</span><br><span class="line"><span class="keyword">from</span> SC</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> sno</span><br></pre></td></tr></table></figure>
+<ul>
+<li>having 是对分组进行过滤</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 列出没有挂科经历同学的平均成绩 */</span></span><br><span class="line"><span class="keyword">select</span> sno, <span class="built_in">avg</span>(grade)</span><br><span class="line"><span class="keyword">from</span> SC</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> sno</span><br><span class="line"><span class="keyword">having</span> <span class="built_in">min</span>(grade)<span class="operator">&gt;=</span><span class="number">60</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 列出所有同学及格课程的平均成绩 */</span></span><br><span class="line"><span class="keyword">select</span> sno, <span class="built_in">avg</span>(grade)</span><br><span class="line"><span class="keyword">from</span> SC</span><br><span class="line"><span class="keyword">where</span> grade<span class="operator">&gt;=</span><span class="number">60</span></span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> sno</span><br></pre></td></tr></table></figure>
+<h3 id="分组查询中各子句的顺序">分组查询中各子句的顺序</h3>
+<ul>
+<li>列出每一年龄组中男学生（超过50人）的人数</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> age, <span class="built_in">count</span>(sno)</span><br><span class="line"><span class="keyword">from</span> S</span><br><span class="line"><span class="keyword">where</span> sex<span class="operator">=</span><span class="string">&#x27;M&#x27;</span></span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> age</span><br><span class="line"><span class="keyword">having</span> <span class="built_in">count</span>(<span class="operator">*</span>)<span class="operator">&gt;</span><span class="number">50</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>执行顺序
+<ul>
+<li>where、group by、having</li>
+<li>先过滤、再分组、在对分组进行选择</li>
+</ul></li>
+</ul>
+<h3 id="group_concat">group_concat</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> dname,</span><br><span class="line">group_concat(sname)</span><br><span class="line"><span class="keyword">from</span> ds</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> dname</span><br></pre></td></tr></table></figure>
+<ul>
+<li>串接字符串的功能</li>
+<li>例如上面的 select 之中的列如果不是 group by 中的属性列，把 group_concat 当作一个聚集函数，作用是把这一组内的所有数据用 <code>,</code> 拼接成字符串</li>
+</ul>
+<h3 id="cube">cube</h3>
+<ul>
+<li>对 group by 的扩展</li>
+<li>所有的 group by 进行一个预先计算，把结果保存起来，这样在之后机型 group by 的操作的时候，很快就可以得到结果</li>
+</ul>
+<p><span class="math display">\[
+\mathrm{Cube}=\bigcup_{A_i\in A}\mathrm{group\ by} A_{i}
+\]</span></p>
+<ul>
+<li>n 个属性的 group by，一共有 <span class="math inline">\(2^n\)</span> 个</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> Model,<span class="keyword">Year</span>,Color,<span class="built_in">sum</span>(Sales)</span><br><span class="line"><span class="keyword">from</span> car_sales</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> Model,<span class="keyword">Year</span>,Color <span class="keyword">with</span> <span class="keyword">cube</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>行数计算</strong>
+<ul>
+<li>(model值个数+1) x (year值个数+1) x (color值个数+1)</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/24/DB/CLJ/04-3/image-20210425233923278.png" style="zoom:50%;"></p>
+<ul>
+<li>cube 在实际过程中并不是生成 All，而是为每条记录生成一个 null
+<ul>
+<li>问题来了，怎么区分原来的 null 和生成的 null（我们需要处理成 All）</li>
+<li><strong>grouping</strong></li>
+</ul></li>
+</ul>
+<h4 id="grouping">grouping</h4>
+<ul>
+<li>grouping 是一个聚合函数</li>
+<li>它产生一个附加的列，当用 cube 或 rollup 运算符添加行时，附加的列输出值为 1，否则为 0</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="string">&#x27;TotleSold&#x27;</span> <span class="operator">=</span> <span class="built_in">sum</span>(sales),</span><br><span class="line">    <span class="keyword">case</span> <span class="keyword">when</span>(<span class="keyword">grouping</span>(model)<span class="operator">=</span><span class="number">1</span>) <span class="keyword">then</span> <span class="string">&#x27;ALL&#x27;</span></span><br><span class="line">        <span class="keyword">else</span> isnull(model, <span class="string">&#x27;????&#x27;</span>)</span><br><span class="line">    <span class="keyword">end</span> model,</span><br><span class="line">    <span class="keyword">case</span> <span class="keyword">when</span>(<span class="keyword">grouping</span>(<span class="keyword">year</span>)<span class="operator">=</span><span class="number">1</span>) <span class="keyword">then</span> <span class="string">&#x27;ALL&#x27;</span></span><br><span class="line">        <span class="keyword">else</span> isnull(<span class="keyword">year</span>, <span class="string">&#x27;????&#x27;</span>)</span><br><span class="line">    <span class="keyword">end</span> <span class="keyword">year</span>,</span><br><span class="line">    <span class="keyword">case</span> <span class="keyword">when</span>(<span class="keyword">grouping</span>(color)<span class="operator">=</span><span class="number">1</span>) <span class="keyword">then</span> <span class="string">&#x27;ALL&#x27;</span></span><br><span class="line">        <span class="keyword">else</span> isnull(color, <span class="string">&#x27;????&#x27;</span>)</span><br><span class="line">    <span class="keyword">end</span> color</span><br><span class="line"><span class="keyword">from</span> my_cube</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> model, theyear, color <span class="keyword">with</span> <span class="keyword">cube</span></span><br></pre></td></tr></table></figure>
+<h3 id="rollup">rollup</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> Model,<span class="keyword">Year</span>,Color <span class="keyword">with</span> <span class="keyword">rollup</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/24/DB/CLJ/04-3/image-20210427140108269.png" style="zoom:50%;"></p>
+<ul>
+<li>顺序不一样，结果就不一样</li>
+</ul>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> A, B, C <span class="keyword">with</span> <span class="keyword">rollup</span></span><br><span class="line"><span class="comment">/* 效果上等价于 */</span></span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> A,B,C</span><br><span class="line"><span class="keyword">union</span></span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> A,B</span><br><span class="line"><span class="keyword">union</span></span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> A</span><br><span class="line"><span class="keyword">union</span></span><br><span class="line">group by &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="行数计算">行数计算</h4>
+<ul>
+<li><span class="math inline">\(|colA|=a,|colB|=b,|colC|=c\)</span></li>
+<li>求 <code>group by colA, colB, colC with rollup</code> 的行数是多少</li>
+<li><span class="math inline">\(a*(b*(c+1)+1)+1\)</span></li>
+<li><strong>相当于每一个属性增加了一个 All</strong></li>
+<li>一个例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> color,model, <span class="built_in">sum</span>(amount)</span><br><span class="line"><span class="keyword">from</span> sales</span><br><span class="line"><span class="keyword">group</span> bycolor, model <span class="keyword">with</span> <span class="keyword">rollup</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/24/DB/CLJ/04-3/image-20210427140905325.png"></p>
+<h3 id="如何生成多个分组语句的合并报表">如何生成多个分组语句的合并报表</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> model, <span class="keyword">year</span>, <span class="keyword">null</span> <span class="keyword">as</span> color, <span class="built_in">sum</span>( sales)</span><br><span class="line"><span class="keyword">from</span> car_sales</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> model, <span class="keyword">year</span></span><br><span class="line"><span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line"><span class="keyword">select</span> model, <span class="keyword">null</span> <span class="keyword">as</span> <span class="keyword">year</span>, color, <span class="built_in">sum</span>(sales)</span><br><span class="line"><span class="keyword">from</span> car_sales</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> model, color</span><br><span class="line"><span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">null</span> <span class="keyword">as</span> model, <span class="keyword">year</span>, color, <span class="built_in">sum</span>(sales)</span><br><span class="line"><span class="keyword">from</span> car_sales</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">year</span>, color</span><br><span class="line"><span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">null</span> <span class="keyword">as</span> model, <span class="keyword">null</span> <span class="keyword">as</span> <span class="keyword">year</span>, <span class="keyword">null</span> <span class="keyword">as</span> color, <span class="built_in">sum</span>(sales)</span><br><span class="line">fromcar_sales</span><br></pre></td></tr></table></figure>
+<ul>
+<li>繁琐
+<ul>
+<li>代码繁琐</li>
+</ul></li>
+<li>低效
+<ul>
+<li>car_sale 访问 4 遍</li>
+<li>如果 group by 之间有包含关系的话，可以在另外一个基础上进行操作
+<ul>
+<li>例如 <code>group by A</code> 在 <code>group by A, B</code> 的基础上进行</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="分组属性集">分组属性集</h4>
+<ul>
+<li>grouping sets</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">grouping</span> <span class="keyword">sets</span> ((分组属性集<span class="number">1</span>), (分组属性集<span class="number">2</span>), ..., (分组属性集n))</span><br></pre></td></tr></table></figure>
+<ul>
+<li>系统可以只扫描一次，如果包含包含关系的话系统可以更加高效的执行</li>
+<li>例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> model,<span class="keyword">year</span>,color,<span class="built_in">sum</span>(sales)</span><br><span class="line"><span class="keyword">from</span> car_sales</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">grouping</span> <span class="keyword">sets</span> (</span><br><span class="line">    (model,theyear),</span><br><span class="line">    (model,color),</span><br><span class="line">    (theyear,color),</span><br><span class="line">    ()</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h4 id="产生分组属性集的代数操作">产生分组属性集的代数操作</h4>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cube</span>(a,b) <span class="operator">=</span> <span class="keyword">grouping</span> <span class="keyword">sets</span>(</span><br><span class="line">    (a,b),</span><br><span class="line">    (a),</span><br><span class="line">    (b),</span><br><span class="line">    ()</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">rollup</span>(x, y, z) <span class="operator">=</span> <span class="keyword">grouping</span> <span class="keyword">sets</span>(</span><br><span class="line">    (x, y, z),</span><br><span class="line">    (x, y),</span><br><span class="line">    (x),</span><br><span class="line">    ()</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">cube</span>(a,b),<span class="keyword">rollup</span>(x,y,z)</span><br><span class="line"><span class="operator">=</span> <span class="keyword">group</span> <span class="keyword">by</span> groupingsets((a,b),(a),(b),()), groupingsets((x,y,z),(x,y),(x),())</span><br><span class="line"><span class="operator">=</span> <span class="keyword">group</span> <span class="keyword">by</span> groupingsets(</span><br><span class="line">    (a,b,x,y,z),(a,b,x,y),(a,b,x),(a,b),</span><br><span class="line">    (a,x,y,z),(a,x,y),(a,x),(a),</span><br><span class="line">    (b,x,y,z),(b,x,y),(b,x),(b),</span><br><span class="line">    (x,y,z),(x,y),(x),()</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="如何标识合并报表中行的分组归属">如何标识合并报表中行的分组归属</h3>
+<ul>
+<li>grouping_id() 函数可以标示每一行到底和哪个 group by 相关联</li>
+<li>这是通过为不同的分组分配不同的整数来做到的（<strong>二进制位表示</strong>）</li>
+<li>例子</li>
+<li>对于grouping_id(A, B, C, D)
+<ul>
+<li>分组 (A,B,C,D) 的标识为 <span class="math inline">\(8\ast0+4\ast0+2\ast0+1\ast0＝0\)</span></li>
+<li>分组 (C) 的标识为 <span class="math inline">\(8\ast1+4\ast1+2\ast0+1\ast1＝13\)</span></li>
+</ul></li>
+</ul>
+<h2 id="嵌套子查询">嵌套子查询</h2>
+<ul>
+<li>集合成员资格（in子查询）</li>
+<li>集合之间的比较（some/all子查询）</li>
+<li>集合基数的测试（exists子查询）</li>
+</ul>
+<h3 id="集合成员资格in子查询">集合成员资格（in子查询）</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">表达式 [<span class="keyword">not</span>] <span class="keyword">in</span> (子查询)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>判断表达式的值是否在子查询的结果中</li>
+</ul>
+<h4 id="应用">应用</h4>
+<ul>
+<li>列出张军和王红同学的所有信息</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> S</span><br><span class="line"><span class="keyword">where</span> sname <span class="keyword">in</span> (<span class="string">&#x27;张军&#x27;</span>, <span class="string">&#x27;王红&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>列出选修了c1号课程的学生的姓名
+<ul>
+<li>效果上是等价的</li>
+<li>连接操作一定不会比 in 子查询差
+<ul>
+<li>一般的数据库会试图将 in 子查询转换为连接操作</li>
+</ul></li>
+<li>in 子查询效率不高
+<ul>
+<li>在执行完 in 之后的操作之后，会进行一个排序的工作实现高效的查找</li>
+<li>排序是个比较大的开销</li>
+</ul></li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 连接操作 */</span></span><br><span class="line"><span class="keyword">select</span> sname</span><br><span class="line">fromS, SC</span><br><span class="line"><span class="keyword">where</span> S.sno<span class="operator">=</span> SC.sno <span class="keyword">and</span> cno<span class="operator">=</span>c1</span><br><span class="line"></span><br><span class="line"><span class="comment">/* in 子查询 */</span></span><br><span class="line"><span class="keyword">select</span> sname</span><br><span class="line"><span class="keyword">from</span> S</span><br><span class="line"><span class="keyword">where</span> sno <span class="keyword">in</span> (</span><br><span class="line">    <span class="keyword">select</span> sno</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">where</span> cno<span class="operator">=</span>c1</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>列出选修了 c1 号和 c2 号课程的学生的学号</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sno</span><br><span class="line"><span class="keyword">from</span> SC</span><br><span class="line"><span class="keyword">where</span> SC.cno<span class="operator">=</span>c1</span><br><span class="line"><span class="keyword">and</span> sno <span class="keyword">in</span> (</span><br><span class="line">    <span class="keyword">select</span> sno</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">where</span> cno<span class="operator">=</span>c2</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="集合之间的比较someall子查询">集合之间的比较（some/all子查询）</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">表达式 比较运算符θ <span class="keyword">some</span>(子查询)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>表达式的值至少与子查询结果中的一个值相比，满足比较运算符 θ</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">表达式 比较运算符θ <span class="keyword">all</span>(子查询)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>表达式的值与子查询结果中的所有的值相比，都满足比较运算符θ</li>
+</ul>
+<h4 id="和-in-子查询的比较">和 in 子查询的比较</h4>
+<ul>
+<li>(<span class="math inline">\(\ne\)</span>all)
+<ul>
+<li>not in</li>
+</ul></li>
+<li>(=all)
+<ul>
+<li>in</li>
+</ul></li>
+<li>(=some)
+<ul>
+<li>in</li>
+</ul></li>
+<li>(<span class="math inline">\(\ne\)</span>some)
+<ul>
+<li>not in</li>
+</ul></li>
+</ul>
+<h4 id="应用-1">应用</h4>
+<ul>
+<li>找出平均成绩最高的学生号</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sno</span><br><span class="line"><span class="keyword">from</span> SC</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> sno</span><br><span class="line"><span class="keyword">having</span> <span class="built_in">avg</span>(grade)<span class="operator">&gt;=</span><span class="keyword">all</span> (</span><br><span class="line">    <span class="comment">/* 分组属性 sno 可以不出现在 select 后面 */</span></span><br><span class="line">    <span class="keyword">select</span> <span class="built_in">avg</span>(grade)</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">group</span> <span class="keyword">by</span> sno</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>求每个系平均成绩最高的同学</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> dno, X.sno</span><br><span class="line"><span class="keyword">from</span> S X,SC</span><br><span class="line"><span class="keyword">where</span> X.sno<span class="operator">=</span>SC.sno</span><br><span class="line"><span class="comment">/* select 后面的属性必须是分组属性(或者聚集函数) */</span></span><br><span class="line"><span class="comment">/* 单从分组而言, dno 无用 */</span></span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> dno, X.sno</span><br><span class="line"><span class="keyword">having</span> <span class="built_in">avg</span>(grade)<span class="operator">&gt;=</span><span class="keyword">all</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="built_in">avg</span>(grade)</span><br><span class="line">    <span class="keyword">from</span> S,SC</span><br><span class="line">    <span class="keyword">where</span> S.sno<span class="operator">=</span>SC.sno <span class="keyword">and</span> S.dno<span class="operator">=</span>X.dno</span><br><span class="line">    <span class="keyword">group</span> <span class="keyword">by</span> S.sno</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="集合基数的测试exists子查询">集合基数的测试（exists子查询）</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[<span class="keyword">not</span>] <span class="keyword">exists</span> (子查询)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>判断子查询的结果集合中<strong>是否有任何元组存在</strong></li>
+</ul>
+<h4 id="in-和-exists">in 和 exists</h4>
+<ul>
+<li>in 后的子查询与外层查询无关，每个子查询<strong>执行一次</strong></li>
+<li>而 exists 后的子查询与外层查询有关，需要<strong>执行多次</strong>，称之为<strong>相关子查询</strong>
+<ul>
+<li>实际查询数据库可能会做优化</li>
+<li>如果有索引，并不慢</li>
+</ul></li>
+</ul>
+<h4 id="应用-2">应用</h4>
+<ul>
+<li>列出选修了 c1 号课程的学生姓名
+<ul>
+<li>对每位同学<strong>探测</strong>他是否选修了 c1 课程</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sname</span><br><span class="line"><span class="keyword">from</span> S</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="comment">/* 不加表名的 sno 是指子查询的 sno */</span></span><br><span class="line">    <span class="keyword">where</span> cno<span class="operator">=</span>c1 <span class="keyword">and</span> sno<span class="operator">=</span>S.sno</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>列出选修了 c1 号和 c2 号课程的学生的学号
+<ul>
+<li>先找到选修了 c1 的同学，然后再探测他是否也选修了 c2</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sno</span><br><span class="line"><span class="keyword">from</span> SC SC1</span><br><span class="line"><span class="keyword">where</span> SC1.cno <span class="operator">=</span> c1</span><br><span class="line"><span class="keyword">and</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> sno</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">where</span> cno <span class="operator">=</span> c2 <span class="keyword">and</span> sno <span class="operator">=</span> SC1.sno</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h4 id="反半连接not-in-not-exists">反半连接：not in, not exists</h4>
+<ul>
+<li><strong>集合减法</strong></li>
+<li>列出没有选修课程的学生的姓名</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* not in */</span></span><br><span class="line"><span class="keyword">select</span> sname</span><br><span class="line"><span class="keyword">from</span> S</span><br><span class="line"><span class="keyword">where</span> sno <span class="keyword">not</span> <span class="keyword">in</span> (</span><br><span class="line">    <span class="keyword">select</span> sno</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* not exsits */</span></span><br><span class="line"><span class="keyword">select</span> sname</span><br><span class="line"><span class="keyword">from</span> S</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> sno</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">where</span> sno <span class="operator">=</span> S.sno</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h5 id="except">except</h5>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sname</span><br><span class="line"><span class="keyword">from</span> S</span><br><span class="line"><span class="keyword">where</span> sno <span class="keyword">in</span> (</span><br><span class="line">    ( <span class="keyword">select</span> sno <span class="keyword">from</span> S )</span><br><span class="line">    <span class="keyword">except</span> <span class="comment">/* MySQL 不支持 except */</span></span><br><span class="line">    ( <span class="keyword">select</span> sno <span class="keyword">from</span> SC )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h5 id="left-join">left join</h5>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sname</span><br><span class="line"><span class="keyword">from</span>(S <span class="keyword">left</span> <span class="keyword">outer</span> <span class="keyword">join</span> SC <span class="keyword">on</span> S.sno<span class="operator">=</span>SC.sno)</span><br><span class="line"><span class="keyword">where</span> cno <span class="keyword">is</span> <span class="keyword">null</span></span><br></pre></td></tr></table></figure>
+<h3 id="子查询中的属性解析匹配">子查询中的属性解析匹配</h3>
+<ul>
+<li><strong>就近匹配</strong></li>
+<li>两个表中表达相同含义的列，具有不同的名称</li>
+</ul>
+<p><img src="/2021/04/24/DB/CLJ/04-3/image-20210427151820962.png" style="zoom:50%;"></p>
+<ul>
+<li>输出没有选 c01 课程的同学
+<ul>
+<li><strong>错误解法</strong></li>
+<li>输出 null</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sno</span><br><span class="line"><span class="keyword">from</span> MyS</span><br><span class="line"><span class="keyword">where</span> sno <span class="keyword">not</span> <span class="keyword">in</span>(</span><br><span class="line">    <span class="keyword">select</span> sno</span><br><span class="line">    <span class="comment">/* SC 中没有找到 sno 属性列, 此时数据库向外层继续查找</span></span><br><span class="line"><span class="comment">     * 发现 MyS 中含有这个属性, 于是把 sno 解析为 MyS.sno</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">where</span> cno<span class="operator">=</span><span class="string">&#x27;c01&#x27;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 实际执行的代码如下 */</span></span><br><span class="line"><span class="keyword">select</span> sno</span><br><span class="line"><span class="keyword">from</span> MyS</span><br><span class="line"><span class="keyword">where</span> sno <span class="keyword">not</span> <span class="keyword">in</span>(</span><br><span class="line">    <span class="keyword">select</span> MyS.sno</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">where</span> cno<span class="operator">=</span><span class="string">&#x27;c01&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="not-inexists-与空值">not in/exists 与空值</h3>
+<p><img src="/2021/04/24/DB/CLJ/04-3/image-20210427152445309.png" style="zoom:50%;"></p>
+<ul>
+<li>如下查询返回<strong>空集</strong>（<strong>非真即假</strong>）
+<ul>
+<li>in 做的是一个相等的判断</li>
+<li>t1 中的某个 a 元素和 null 做相等的判断，返回 null</li>
+<li>null 做 not 的判断，返回 null</li>
+<li>where 只会返回结果为 true 的值</li>
+<li>因此最后返回空集</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> t1</span><br><span class="line"><span class="keyword">where</span> a <span class="keyword">not</span> <span class="keyword">in</span>(<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> t2)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如下查询返回 <strong>1,2</strong>（<strong>非假即真</strong>）
+<ul>
+<li><code>select * from t2 where a=b</code> 返回空</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> t1</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span> (<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> t2 <span class="keyword">where</span> a<span class="operator">=</span>b)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>用于实际数据库测试</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 建表 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> T_1(A <span class="type">int</span>);</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> T_2(B <span class="type">int</span>);</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> T_3(C <span class="type">int</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> T_1 <span class="keyword">values</span>(<span class="number">1</span>), (<span class="number">2</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> T_2 <span class="keyword">values</span>(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 查询 */</span></span><br><span class="line"><span class="comment">/* 空 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> T_1 <span class="keyword">where</span> A <span class="keyword">not</span> <span class="keyword">in</span>(<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> T_2);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 1,2 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> T_1 <span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span>(<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> T_2 <span class="keyword">where</span> T_1.A<span class="operator">=</span>T_2.B);</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> T_1 <span class="keyword">where</span> A <span class="keyword">not</span> <span class="keyword">in</span>(<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> T_3);</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> T_1 <span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span>(<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> T_3 <span class="keyword">where</span> T_1.A<span class="operator">=</span>T_3.C);</span><br></pre></td></tr></table></figure>
+<h3 id="除法实现">除法实现</h3>
+<ul>
+<li><span class="math inline">\(\forall \Leftrightarrow\)</span> not exists ... not exists
+<ul>
+<li><strong>双重否定的形式</strong></li>
+</ul></li>
+<li>列出选修了全部课程的学生姓名
+<ul>
+<li>学生 s1 选修了所有课程</li>
+<li>不存在任何一门课程 c1 所求学生 s1 没有选 c1</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sname</span><br><span class="line"><span class="keyword">from</span> S S1</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> cno</span><br><span class="line">    <span class="keyword">from</span> C C1</span><br><span class="line">    <span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span> (</span><br><span class="line">        <span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line">        <span class="keyword">from</span> SC</span><br><span class="line">        <span class="keyword">where</span> cno<span class="operator">=</span>C1.cno</span><br><span class="line">        <span class="keyword">and</span> sno<span class="operator">=</span>S1.sno</span><br><span class="line">    )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>列出至少选修了 s1 号学生选修的所有课程的学生名
+<ul>
+<li>s2 选修了 s1 选修的所有课程</li>
+<li>不存在任何一门课程，s1 选修了但是 s2 没有选修</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sname</span><br><span class="line"><span class="keyword">from</span> S S2</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> cno</span><br><span class="line">    <span class="keyword">from</span> C C1</span><br><span class="line">    <span class="keyword">where</span> <span class="keyword">exists</span> (</span><br><span class="line">        <span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line">        <span class="keyword">from</span> SC</span><br><span class="line">        <span class="keyword">where</span> cno<span class="operator">=</span>C1.cno <span class="keyword">and</span> sno<span class="operator">=</span>s1</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">and</span></span><br><span class="line">    <span class="keyword">not</span> <span class="keyword">exists</span>(</span><br><span class="line">        <span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line">        <span class="keyword">from</span> SC</span><br><span class="line">        <span class="keyword">where</span> cno<span class="operator">=</span> C1.cno <span class="keyword">and</span> sno<span class="operator">=</span>S2.sno</span><br><span class="line">    )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/20/DB/CLJ/04-2/" rel="prev" title="数据库概论.陈立军.04.SQL 数据查询(1)">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.04.SQL 数据查询(1)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/24/CG/YLQ-GAMES202/07/" rel="next" title="GAMES202.闫令琪.07.实时全局光照(3D空间)">
+                  GAMES202.闫令琪.07.实时全局光照(3D空间) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="包、作为约束语言的关系代数、全关系系统、关系数据库12条准则、元组关系演算、域关系演算">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.03.关系模型(3)">
+<meta property="og:url" content="http://example.com/2021/04/11/DB/CLJ/03-2/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="包、作为约束语言的关系代数、全关系系统、关系数据库12条准则、元组关系演算、域关系演算">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210411211358339.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210411221216654.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210411221514781.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210414101835852.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210411223607384.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210411223924994.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210411224956871.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210411225250003.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210411225347128.png">
+<meta property="article:published_time" content="2021-04-11T12:03:27.000Z">
+<meta property="article:modified_time" content="2021-04-14T02:30:32.678Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/11/DB/CLJ/03-2/image-20210411211358339.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/11/DB/CLJ/03-2/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.03.关系模型(3) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B"><span class="nav-text">关系模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%85"><span class="nav-text">包</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%85%E7%9A%84%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E8%BF%90%E7%AE%97"><span class="nav-text">包的关系代数运算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8C%85%E7%9A%84%E9%80%89%E6%8B%A9%E6%8A%95%E5%BD%B1%E7%AC%9B%E5%8D%A1%E5%B0%94%E7%A7%AF"><span class="nav-text">包的选择、投影、笛卡尔积</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8C%85%E7%9A%84%E5%B9%B6%E4%BA%A4%E5%B7%AE"><span class="nav-text">包的并、交、差</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8C%85%E7%9A%84%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E8%BF%90%E7%AE%97%E5%BE%8B"><span class="nav-text">包的关系代数运算律</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%9C%E4%B8%BA%E7%BA%A6%E6%9D%9F%E8%AF%AD%E8%A8%80%E7%9A%84%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0"><span class="nav-text">作为约束语言的关系代数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%A6%E6%9D%9F"><span class="nav-text">约束</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96"><span class="nav-text">函数依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%9D%E8%80%83"><span class="nav-text">思考</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%85%B3%E7%B3%BB%E7%B3%BB%E7%BB%9F"><span class="nav-text">全关系系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%AF%B9%E5%85%B3%E7%B3%BB%E7%9A%84%E6%94%AF%E6%8C%81%E8%83%BD%E5%8A%9B"><span class="nav-text">系统对关系的支持能力</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A8%E7%A4%BA%E7%B2%97%E7%95%A5%E8%A1%A8%E7%A4%BA"><span class="nav-text">表示（粗略表示）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E5%85%B3%E7%B3%BB%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%8D%81%E4%BA%8C%E6%9D%A1%E5%87%86%E5%88%99"><span class="nav-text">全关系系统的十二条准则</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-0"><span class="nav-text">准则 0</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-1%E4%BF%A1%E6%81%AF%E5%87%86%E5%88%99"><span class="nav-text">准则 1：信息准则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-2%E4%BF%9D%E8%AF%81%E8%AE%BF%E9%97%AE%E5%87%86%E5%88%99"><span class="nav-text">准则 2：保证访问准则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-3%E7%A9%BA%E5%80%BC%E7%9A%84%E7%B3%BB%E7%BB%9F%E5%8C%96%E5%A4%84%E7%90%86"><span class="nav-text">准则 3：空值的系统化处理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-4%E5%9F%BA%E4%BA%8E%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%8A%A8%E6%80%81%E7%9A%84%E8%81%94%E6%9C%BA%E6%95%B0%E6%8D%AE%E5%AD%97%E5%85%B8"><span class="nav-text">准则 4：基于关系模型的动态的联机数据字典</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-5%E7%BB%9F%E4%B8%80%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%90%E8%AF%AD%E8%A8%80"><span class="nav-text">准则 5：统一的数据子语言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-6%E8%A7%86%E5%9B%BE%E6%9B%B4%E6%96%B0%E5%87%86%E5%88%99"><span class="nav-text">准则 6：视图更新准则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-7%E9%AB%98%E7%BA%A7%E7%9A%84%E6%8F%92%E5%85%A5%E5%88%A0%E9%99%A4%E5%92%8C%E4%BF%AE%E6%94%B9%E6%93%8D%E4%BD%9C"><span class="nav-text">准则 7：高级的插入、删除和修改操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-8%E6%95%B0%E6%8D%AE%E7%89%A9%E7%90%86%E7%8B%AC%E7%AB%8B%E6%80%A7"><span class="nav-text">准则 8：数据物理独立性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-9%E6%95%B0%E6%8D%AE%E9%80%BB%E8%BE%91%E7%8B%AC%E7%AB%8B%E6%80%A7"><span class="nav-text">准则 9：数据逻辑独立性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-10%E6%95%B0%E6%8D%AE%E5%AE%8C%E6%95%B4%E6%80%A7%E7%9A%84%E7%8B%AC%E7%AB%8B%E6%80%A7"><span class="nav-text">准则 10：数据完整性的独立性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-11%E5%88%86%E5%B8%83%E7%8B%AC%E7%AB%8B%E6%80%A7"><span class="nav-text">准则 11：分布独立性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E5%88%99-12%E6%97%A0%E7%A0%B4%E5%9D%8F%E5%87%86%E5%88%99"><span class="nav-text">准则 12：无破坏准则</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%83%E7%BB%84%E5%85%B3%E7%B3%BB%E6%BC%94%E7%AE%97"><span class="nav-text">元组关系演算</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E5%AD%90%E5%85%AC%E5%BC%8F"><span class="nav-text">原子公式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AC%E5%BC%8F%E7%9A%84%E9%80%92%E5%BD%92%E5%AE%9A%E4%B9%89"><span class="nav-text">公式的递归定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%83%E7%BB%84%E5%85%B3%E7%B3%BB%E6%BC%94%E7%AE%97%E7%A4%BA%E4%BE%8B"><span class="nav-text">元组关系演算示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AC%E5%BC%8F%E7%9A%84%E7%AD%89%E4%BB%B7%E6%80%A7"><span class="nav-text">公式的等价性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%BC%94%E7%AE%97%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7"><span class="nav-text">关系演算表达式的安全性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%83%E7%BB%84%E5%85%B3%E7%B3%BB%E6%BC%94%E7%AE%97%E6%9F%A5%E8%AF%A2%E7%A4%BA%E4%BE%8B"><span class="nav-text">元组关系演算查询示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%83%E7%BB%84%E5%85%B3%E7%B3%BB%E6%BC%94%E7%AE%97%E4%B8%8E%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E7%9A%84%E7%AD%89%E4%BB%B7%E6%80%A7"><span class="nav-text">元组关系演算与关系代数的等价性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%9F%E5%85%B3%E7%B3%BB%E6%BC%94%E7%AE%97"><span class="nav-text">域关系演算</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%9F%E5%85%B3%E7%B3%BB%E6%BC%94%E7%AE%97%E4%BE%8B%E5%AD%90"><span class="nav-text">域关系演算例子</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/11/DB/CLJ/03-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.03.关系模型(3)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-11 20:03:27" itemprop="dateCreated datePublished" datetime="2021-04-11T20:03:27+08:00">2021-04-11</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-14 10:30:32" itemprop="dateModified" datetime="2021-04-14T10:30:32+08:00">2021-04-14</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">包、作为约束语言的关系代数、全关系系统、关系数据库12条准则、元组关系演算、域关系演算</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="关系模型">关系模型</h1>
+<h2 id="包">包</h2>
+<ul>
+<li>bag</li>
+<li>允许重复的集合，或者称为<strong>多集</strong>（multi-set）</li>
+<li>引入包的原因
+<ul>
+<li>效率，不用去重</li>
+<li>合理地计算聚集函数的值</li>
+</ul></li>
+</ul>
+<h3 id="包的关系代数运算">包的关系代数运算</h3>
+<h4 id="包的选择投影笛卡尔积">包的选择、投影、笛卡尔积</h4>
+<ul>
+<li>和集合上定义是一样的，只需保留重复即可</li>
+</ul>
+<h4 id="包的并交差">包的并、交、差</h4>
+<ul>
+<li>假定一个元组 <span class="math inline">\(t\)</span> 在包 <span class="math inline">\(R\)</span> 中重复出现了 <span class="math inline">\(n\)</span> 次，在包 <span class="math inline">\(S\)</span> 中重复出现了 <span class="math inline">\(m\)</span> 次
+<ul>
+<li>在 <span class="math inline">\(R\cup S\)</span> 中，<span class="math inline">\(t\)</span> 出现 <span class="math inline">\(n+m\)</span> 次</li>
+<li>在 <span class="math inline">\(R-S\)</span> 中，<span class="math inline">\(t\)</span> 出现 <span class="math inline">\(\max\{n-m,0\}\)</span> 次</li>
+<li>在 <span class="math inline">\(R\cap S\)</span> 中，<span class="math inline">\(t\)</span> 出现 <span class="math inline">\(\min\{n,m\}\)</span> 次</li>
+</ul></li>
+</ul>
+<h4 id="包的关系代数运算律">包的关系代数运算律</h4>
+<ul>
+<li>以下的运算律集合运算都满足，但是<span style="color:red;font-weight:bold">包运算只满足前4条</span>
+<ul>
+<li><p><span class="math inline">\((R\cup S)\cup T=R\cup(S\cup T)\)</span></p></li>
+<li><p><span class="math inline">\((R\cap S)\cap T=R\cap(S\cap T)\)</span></p></li>
+<li><p><span class="math inline">\(R\cup(S\cap T)=(R\cup S)\cap(R\cup T)\)</span></p></li>
+<li><p><span class="math inline">\(\sigma_{A\land B}(R)=\sigma_{A}(R)\cap \sigma_{B}(R)\)</span></p>
+<ul>
+<li>选择</li>
+</ul></li>
+<li><p><span class="math inline">\((R\cap S)-T=R\cap(S-T)\)</span></p>
+<ul>
+<li>反例：<span class="math inline">\(R=\{1,1\},S=\{1,1,1\},T=\{1\}\)</span></li>
+<li><span class="math inline">\(\{1\}\ne\{1,1\}\)</span></li>
+</ul></li>
+<li><p><span class="math inline">\(R\cap(S\cup T)=(R\cap S)\cup(R\cap T)\)</span></p>
+<ul>
+<li>反例：<span class="math inline">\(R=\{1\},S=\{1\},T=\{1\}\)</span></li>
+<li><span class="math inline">\(\{1\}\ne\{1,1\}\)</span></li>
+</ul></li>
+<li><p><span class="math inline">\(\sigma_{A\lor B}(R)=\sigma_{A}(R)\cup \sigma_{B}(R)\)</span></p>
+<ul>
+<li>反例：<span class="math inline">\(A=\{t|t.a=1\},B\{t|t.b=1\}\)</span>，下图</li>
+<li><span class="math inline">\(\{x,y,z\}\ne\{x,y,y,z\}\)</span></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">ID</th>
+<th style="text-align: center;">a</th>
+<th style="text-align: center;">b</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">x</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">y</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">z</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
+</tr>
+</tbody>
+</table></li>
+</ul></li>
+</ul>
+<h2 id="作为约束语言的关系代数">作为约束语言的关系代数</h2>
+<h3 id="约束">约束</h3>
+<ul>
+<li>关系代数表达<strong>约束</strong>的形式
+<ul>
+<li><span class="math inline">\(R=\phi\)</span> 或者 <span class="math inline">\(R\subseteq S\)</span></li>
+</ul></li>
+<li><span class="math inline">\(R=\phi\)</span>：声明不满足条件的关系代数为 <span class="math inline">\(R\)</span> ，令 <span class="math inline">\(R\)</span> 为空集</li>
+<li><span class="math inline">\(R\subseteq S\)</span></li>
+</ul>
+<h4 id="例子">例子</h4>
+<ul>
+<li>参照完整性</li>
+<li><span class="math inline">\(R(A,B),S(B,C),S\)</span> 中的 <span class="math inline">\(B\)</span> 是参照 <span class="math inline">\(R\)</span> 的 <span class="math inline">\(B\)</span> 的外码</li>
+<li><span class="math inline">\(\prod_{B}(S)\subseteq\prod_{B}(A)\)</span></li>
+</ul>
+<h3 id="函数依赖">函数依赖</h3>
+<ul>
+<li><span class="math inline">\(R(A,B)\)</span> 要求在 <span class="math inline">\(A\)</span>上相等的在 <span class="math inline">\(B\)</span> 上也相等</li>
+<li>通过反面来表达</li>
+<li><span class="math inline">\(\sigma_{R.A=S.A\land R.B\ne S.B}\left(R\times \rho_S(R)\right)=\phi\)</span></li>
+</ul>
+<h4 id="思考">思考</h4>
+<ul>
+<li><span class="math inline">\(R(A,B)\)</span> 如何确定 <span class="math inline">\(A\)</span> 的唯一性（列 <span class="math inline">\(A\)</span> 上的取值都不相同）
+<ul>
+<li>只有两个属性 <span class="math inline">\(A,B\)</span>，而且是对<strong>集合</strong>而言</li>
+<li>表达式和上面函数依赖的结果是相同的</li>
+</ul></li>
+<li><span class="math inline">\(R(A,B,C)\)</span> 如何确定 <span class="math inline">\(A\)</span> 的唯一性（列 <span class="math inline">\(A\)</span> 上的取值都不相同）
+<ul>
+<li>有三个属性 <span class="math inline">\(A,B,C\)</span>，而且是对<strong>集合</strong>而言</li>
+<li><span class="math inline">\(\sigma_{R.A=S.A\land (R.B\ne S.B\lor R.C\ne S.C)}\left(R\times \rho_S(R)\right)=\phi\)</span></li>
+</ul></li>
+</ul>
+<h2 id="全关系系统">全关系系统</h2>
+<h3 id="系统对关系的支持能力">系统对关系的支持能力</h3>
+<ul>
+<li><strong>表式系统</strong>
+<ul>
+<li>仅支持<strong>关系（即表）数据结构</strong>，<span style="color:red;font-weight:bold">不支持集合级操作</span></li>
+<li>表式系统不能算关系系统</li>
+</ul></li>
+<li><strong>最小关系系统</strong>
+<ul>
+<li>仅<strong>支持关系数据结构</strong>和<strong>三种关系</strong>搡作（选择、投影、链接）
+<ul>
+<li>三种关系操作可以支持大部分的操作</li>
+</ul></li>
+<li>许多微机关系数据库系统如 FoxPro 属于此类</li>
+</ul></li>
+<li><strong>完备关系系统</strong>
+<ul>
+<li>支持<strong>关系数据结构</strong>和<strong>所有的关系代数操作</strong></li>
+<li>90年代初的许多关系数据库管理系统属于这一类</li>
+</ul></li>
+<li><strong>全关系系统</strong>
+<ul>
+<li>这类系统支持关系模型的所有特征</li>
+</ul></li>
+</ul>
+<h4 id="表示粗略表示">表示（粗略表示）</h4>
+<ul>
+<li>S：数据模型</li>
+<li>M：数据操作</li>
+<li>I：数据完整性</li>
+</ul>
+<p><img src="/2021/04/11/DB/CLJ/03-2/image-20210411211358339.png" style="zoom:50%;"></p>
+<h3 id="全关系系统的十二条准则">全关系系统的十二条准则</h3>
+<h4 id="准则-0">准则 0</h4>
+<ul>
+<li>一个关系型的 DBMS 必须能完全通过它的关系能力来管理数据库
+<ul>
+<li>所有功能的实现必须在关系的层面来体现</li>
+</ul></li>
+</ul>
+<h4 id="准则-1信息准则">准则 1：信息准则</h4>
+<ul>
+<li>关系型 DBMS 的<strong>所有信息</strong>都应在逻辑一级上用一种方法即表中的值显式地表示
+<ul>
+<li>所有的信息都必须保存在关系表里面
+<ul>
+<li>业务表</li>
+<li>数据字典/元数据（表结构的定义）</li>
+<li>安全性、完整性条件的声明</li>
+</ul></li>
+<li><strong>所有信息都得用关系表达</strong></li>
+</ul></li>
+</ul>
+<h4 id="准则-2保证访问准则">准则 2：保证访问准则</h4>
+<ul>
+<li>依靠表名、主码和列名的组合，保证能以逻辑方式访问关系数据库中的每个数据项（分量值） 以关联寻址代替面向机器的访问方式</li>
+<li><strong>所有的操作都必须是集合层面的</strong></li>
+</ul>
+<h4 id="准则-3空值的系统化处理">准则 3：空值的系统化处理</h4>
+<ul>
+<li>全关系型 DBMS 应支持空值概念，并用系统化的方式处理空值
+<ul>
+<li>空值的定义和检测都在系统层面实现</li>
+<li>如果系统不支持控制，都需要应用检测
+<ul>
+<li>例如特殊字符（问题：特殊字符不够特殊）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="准则-4基于关系模型的动态的联机数据字典">准则 4：基于关系模型的动态的联机数据字典</h4>
+<ul>
+<li>数据库的描述在逻辑级上应该和普通数据采用同样的表示方式，使得授权用户可以使用查询一般数据所用的关系语言来查询数据库的描述信息
+<ul>
+<li>数据字典（元数据）也应该一关系表的形式存储在数据库中</li>
+<li>自描述、自复制代码</li>
+</ul></li>
+</ul>
+<h4 id="准则-5统一的数据子语言">准则 5：统一的数据子语言</h4>
+<ul>
+<li>一个关系系统可以有几种语言和多种终端使用方式（如QBE、嵌入式SQL），但必须有一种语言，它的语句可以表示为具有严格语法规定的字符串
+<ul>
+<li>前端界面可以是各种操作，但是在系统内部必须有一种严格的关于数据操作的语言</li>
+</ul></li>
+</ul>
+<h4 id="准则-6视图更新准则">准则 6：视图更新准则</h4>
+<ul>
+<li>所有理论上可更新的视图也应该由系统更新，即对视图的更新要求，存在一个算法可以无二义地把更新要求转换为对基本表的更新序列
+<ul>
+<li>视图，在关系表的基础上生成的虚拟表</li>
+</ul></li>
+<li>一个例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 原始关系表 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> student(</span><br><span class="line">    snochar(<span class="number">10</span>) <span class="keyword">primary</span> <span class="keyword">key</span>,</span><br><span class="line">    name <span class="type">char</span>(<span class="number">10</span>) <span class="keyword">unique</span>,</span><br><span class="line">    age <span class="type">int</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 创建视图 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">view</span> student_info <span class="keyword">as</span> (</span><br><span class="line">    <span class="keyword">select</span> name, age <span class="keyword">from</span> student</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 不是理论上可更新的视图, 因为不包含主键, 而主键不能为空</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> student_infovalues (‘tom’, <span class="number">20</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 是理论上可更新的视图</span></span><br><span class="line"><span class="comment"> * 因为 name 加了 unique 关键字</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">update</span> student_info <span class="keyword">set</span> age <span class="operator">=</span> <span class="number">20</span> <span class="keyword">where</span> name<span class="operator">=</span><span class="string">&#x27;jerry&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>具体分析是否语义上可更新很难</li>
+<li>现在实际的数据库在这点上做了权衡
+<ul>
+<li>仅支持部分的更新（符合某种定义形式的视图）</li>
+<li>例如要求视图必须是行列子集的（通过选择、投影得到的结果）、还要包括原表的主码、不能包括聚集函数（min/max）</li>
+</ul></li>
+</ul>
+<h4 id="准则-7高级的插入删除和修改操作">准则 7：高级的插入、删除和修改操作</h4>
+<ul>
+<li>关系系统的操作对象是单一的关系
+<ul>
+<li>都应该在关系层面上定义</li>
+</ul></li>
+</ul>
+<h4 id="准则-8数据物理独立性">准则 8：数据物理独立性</h4>
+<ul>
+<li>无论数据库的数据在存储表示和存取方法上作任何变化，应用程序和终端活动都保持逻辑上的不变性</li>
+</ul>
+<h4 id="准则-9数据逻辑独立性">准则 9：数据逻辑独立性</h4>
+<ul>
+<li>当对基本关系进行理论上信息不受损害的任何改变时，应用程序和终端活动都保持逻辑上的不变性</li>
+</ul>
+<h4 id="准则-10数据完整性的独立性">准则 10：数据完整性的独立性</h4>
+<ul>
+<li>关系数据库的完整性约束条件必须是用数据库语言定义并存储在数据字典中的，而不是由应用程序加以定义
+<ul>
+<li>系统支持数据完整性的检查，用户不需要自己做数据完整性的检查</li>
+</ul></li>
+</ul>
+<h4 id="准则-11分布独立性">准则 11：分布独立性</h4>
+<ul>
+<li>分布独立性是指 DBMS 具有这样的数据库语言，使得应用程序和终端活动在下列情况下都保持逻辑上的不变性：
+<ul>
+<li>在第一次引入分布式数据时，即如果原来的DBMS只管理非分布式的数据，而现在引入了分布式数据</li>
+<li>当数据重新分布时，即如果原来DBMS能管理分布式数据，现在要改变原来的数据分布</li>
+</ul></li>
+<li>分布的透明性，用户感觉不到分布式系统</li>
+</ul>
+<h4 id="准则-12无破坏准则">准则 12：无破坏准则</h4>
+<ul>
+<li>如果一个关系系统具有一个低级（一次一记录）语言，则这个低级语言不能违背或绕过完整性准则
+<ul>
+<li>为获得完整性的独立性，需要让完整性约束条件和数据的逻辑结构相独立</li>
+<li>不能旁路（bypass）或者关闭约束检查子系统</li>
+</ul></li>
+</ul>
+<h2 id="元组关系演算">元组关系演算</h2>
+<ul>
+<li>形式化定义：<span class="math inline">\(\{t|P(t)\}\)</span>
+<ul>
+<li>表示所有使谓词 <span class="math inline">\(P\)</span> 为真的元组集合</li>
+</ul></li>
+<li><span class="math inline">\(t\)</span> 为<strong>元组变量</strong>
+<ul>
+<li>如果元组变量前有“全称”（<span class="math inline">\(\forall\)</span>）或“存在”（<span class="math inline">\(\exists\)</span>）量词，则称其为<strong>约束变量</strong>，否则称为<strong>自由变量</strong></li>
+</ul></li>
+<li><span class="math inline">\(P\)</span> 是<strong>公式</strong>，由<strong>原子公式</strong>和<strong>运算符</strong>组成</li>
+</ul>
+<h3 id="原子公式">原子公式</h3>
+<ul>
+<li><span class="math inline">\(s\in R\)</span>
+<ul>
+<li><span class="math inline">\(s\)</span> 是关系 <span class="math inline">\(R\)</span> 中的一个元组</li>
+</ul></li>
+<li><span class="math inline">\(s[X]\ \theta\ u[Y]\)</span>
+<ul>
+<li><span class="math inline">\(s[X]\)</span> 与 <span class="math inline">\(u[Y]\)</span> 为元组分量，它们之间满足比较关系 <span class="math inline">\(\theta\)</span></li>
+</ul></li>
+<li><span class="math inline">\(s[X]\ \theta\ c\)</span>
+<ul>
+<li>分量 <span class="math inline">\(s[X]\)</span> 与常量 <span class="math inline">\(c\)</span> 之间满足比较关系 <span class="math inline">\(\theta\)</span></li>
+</ul></li>
+</ul>
+<h3 id="公式的递归定义">公式的递归定义</h3>
+<ul>
+<li>原子公式是公式</li>
+<li>若 <span class="math inline">\(P\)</span> 是公式，则 <span class="math inline">\(\neg P\)</span> 也是公式</li>
+<li>若 <span class="math inline">\(P_1,P_2\)</span> 是公式，则 <span class="math inline">\(P_1\land P_2,P_1\lor P_2,P_1\Rightarrow P_2\)</span> 也是公式</li>
+<li>若 <span class="math inline">\(P(t)\)</span> 是公式，<span class="math inline">\(R\)</span> 是关系，则 <span class="math inline">\(\forall t\in R\left(P(t)\right),\forall t\in R\left(P(t)\right)\)</span> 也是公式</li>
+</ul>
+<h3 id="元组关系演算示例">元组关系演算示例</h3>
+<p><img src="/2021/04/11/DB/CLJ/03-2/image-20210411221216654.png" style="zoom:70%;"></p>
+<p><img src="/2021/04/11/DB/CLJ/03-2/image-20210411221514781.png" style="zoom:70%;"></p>
+<h3 id="公式的等价性">公式的等价性</h3>
+<ul>
+<li><span class="math inline">\(P_1\land P_2 \Leftrightarrow \neg(\neg P_1\lor\neg P_2)\)</span></li>
+<li><span class="math inline">\(\forall t\in R(P(t)) \Leftrightarrow \neg \exists t\in R(\neg P(t))\)</span></li>
+<li><span class="math inline">\(P_1\Rightarrow P_2 \Leftrightarrow \neg P_1\lor P_2\)</span></li>
+</ul>
+<h3 id="关系演算表达式的安全性">关系演算表达式的安全性</h3>
+<ul>
+<li>元组关系演算有可能会产生<strong>无限关系</strong>，这样的表达式是<strong>不安全的</strong></li>
+<li>如 <span class="math inline">\(\{t| \neg(t\in R)\}\)</span>，求所有不在 <span class="math inline">\(R\)</span> 中的元组</li>
+<li>引入公式 <span class="math inline">\(P\)</span> 的<strong>域</strong>概念，用 <span class="math inline">\(dom(P)\)</span> 表示
+<ul>
+<li><span class="math inline">\(dom(P)=\)</span> 显式出现在 <span class="math inline">\(P\)</span> 中的值 + 在 <span class="math inline">\(P\)</span> 中出现的关系的元组中出现的值（不必是最小集）</li>
+<li>如定义 <span class="math inline">\(dom(\{t| \neg(t\in R)\})\)</span> = <span class="math inline">\(\{R\)</span> 中出现的所有值的集合 <span class="math inline">\(\}\)</span></li>
+</ul></li>
+<li>如果出现在表达式 <span class="math inline">\(\{t|P(t)\}\)</span> 结果中的所有值均来自 <span class="math inline">\(dom(P)\)</span>，则称 <span class="math inline">\(\{t|P(t)\}\)</span> 是安全的</li>
+</ul>
+<h3 id="元组关系演算查询示例">元组关系演算查询示例</h3>
+<ul>
+<li>区分找老师、找老师姓名（加一个投影）</li>
+</ul>
+<p><img src="/2021/04/11/DB/CLJ/03-2/image-20210414101835852.png" style="zoom: 67%;"></p>
+<ul>
+<li>先选择，再投影</li>
+</ul>
+<p><img src="/2021/04/11/DB/CLJ/03-2/image-20210411223607384.png" style="zoom:50%;"></p>
+<h3 id="元组关系演算与关系代数的等价性">元组关系演算与关系代数的等价性</h3>
+<p><img src="/2021/04/11/DB/CLJ/03-2/image-20210411223924994.png" style="zoom:50%;"></p>
+<h2 id="域关系演算">域关系演算</h2>
+<ul>
+<li><strong>形式化定义</strong>
+<ul>
+<li><span class="math inline">\(\left\{&lt;x_1,\cdots,x_n&gt;|P(x_1,\cdots,x_n)\right\}\)</span></li>
+<li><span class="math inline">\(x_i\)</span> 代表域变量，<span class="math inline">\(P\)</span> 为由原子构成的公式</li>
+</ul></li>
+<li><strong>原子公式</strong>
+<ul>
+<li><span class="math inline">\(&lt;x_1,\cdots,x_n&gt;\in R\)</span>：<span class="math inline">\(x_i\)</span> 是<strong>域变量</strong>或<strong>域常量</strong></li>
+<li><span class="math inline">\(x\ \theta\ y\)</span>：域变量 <span class="math inline">\(x\)</span> 与 <span class="math inline">\(y\)</span> 满足比较关系 <span class="math inline">\(\theta\)</span></li>
+<li><span class="math inline">\(x\ \theta\ c\)</span>：域变量 <span class="math inline">\(x\)</span> 与常量 <span class="math inline">\(c\)</span> 满足比较关系 <span class="math inline">\(\theta\)</span></li>
+</ul></li>
+</ul>
+<h3 id="域关系演算例子">域关系演算例子</h3>
+<p><img src="/2021/04/11/DB/CLJ/03-2/image-20210411224956871.png" style="zoom:50%;"></p>
+<p><img src="/2021/04/11/DB/CLJ/03-2/image-20210411225250003.png" style="zoom:67%;"></p>
+<p><img src="/2021/04/11/DB/CLJ/03-2/image-20210411225347128.png" style="zoom:50%;"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/11/CG/YLQ-GAMES202/05/" rel="prev" title="GAMES202.闫令琪.05.实时环境光照(1)">
+                  <i class="fa fa-chevron-left"></i> GAMES202.闫令琪.05.实时环境光照(1)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/11/DB/CLJ/04/" rel="next" title="数据库概论.陈立军.04.SQL 简介">
+                  数据库概论.陈立军.04.SQL 简介 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

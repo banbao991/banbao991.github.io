@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="Rigging and Physical Simulation">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.11.物理模拟">
+<meta property="og:url" content="http://example.com/2021/02/22/CG/LS/11/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Rigging and Physical Simulation">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/11/simulation.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/11/animation.png">
+<meta property="article:published_time" content="2021-02-22T06:39:19.000Z">
+<meta property="article:modified_time" content="2021-02-22T11:29:50.998Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/02/22/CG/LS/11/simulation.png">
+
+
+<link rel="canonical" href="http://example.com/2021/02/22/CG/LS/11/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>计算机图形学.李胜.11.物理模拟 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#rigging"><span class="nav-text">Rigging</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#workflow%E5%88%B6%E4%BD%9C%E7%94%B5%E5%BD%B1%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-text">Workflow（制作电影的工作流程）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#what-is-rigging"><span class="nav-text">What Is Rigging</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#rigging-movie-in-history"><span class="nav-text">Rigging Movie in History</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rigging-types"><span class="nav-text">Rigging Types</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#standard-performance-rig"><span class="nav-text">Standard Performance Rig</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#simulation"><span class="nav-text">Simulation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86-%E7%89%A9%E4%BD%93%E8%BF%90%E5%8A%A8%E6%96%B9%E7%A8%8B"><span class="nav-text">核心原理： 物体运动方程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E4%BD%93"><span class="nav-text">流体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E5%A4%A7%E6%B5%81%E6%B4%BE"><span class="nav-text">两大流派</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9A%E4%BD%93"><span class="nav-text">刚体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%B9%E6%80%A7%E4%BD%93"><span class="nav-text">弹性体</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E7%94%BB%E8%AE%A1%E7%AE%97%E7%9A%84%E4%B8%80%E8%88%AC%E6%B5%81%E7%A8%8B"><span class="nav-text">动画计算的一般流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%E7%BB%B3%E5%AD%90%E5%BC%B9%E7%B0%A7%E6%A8%A1%E5%9E%8B"><span class="nav-text">示例：绳子（弹簧模型）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E6%95%A3%E5%8C%96"><span class="nav-text">(1) 离散化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E7%A8%8B%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">(2) 方程初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%BF%E7%9C%9F%E8%BF%AD%E4%BB%A3%E8%AE%A1%E7%AE%97"><span class="nav-text">(3) 仿真迭代计算</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B8%B2%E6%9F%93"><span class="nav-text">(4) 渲染</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%83%AD%E7%82%B9%E4%B8%8E%E9%9A%BE%E7%82%B9"><span class="nav-text">热点与难点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BA%E4%BD%93"><span class="nav-text">固体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BD%A2%E5%8F%98%E4%BD%93"><span class="nav-text">形变体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A2%8E%E8%A3%82"><span class="nav-text">碎裂</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E4%BD%93-1"><span class="nav-text">流体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E4%BD%93%E7%83%9F%E9%9B%BE%E5%8F%8A%E5%85%B6%E8%80%A6%E5%90%88"><span class="nav-text">流体、烟雾及其耦合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%A7%E7%94%9F%E5%A3%B0%E9%9F%B3"><span class="nav-text">产生声音</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="nav-text">开源代码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B7%A5%E4%B8%9A%E7%95%8C%E4%B8%8E%E7%A0%94%E7%A9%B6"><span class="nav-text">工业界与研究</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#exhaust-the-existing-techniques"><span class="nav-text">exhaust the existing techniques</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#megamind-fluid-simulation"><span class="nav-text">megamind fluid simulation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E7%A0%94%E7%A9%B6%E5%B7%A5%E4%BD%9C"><span class="nav-text">一些研究工作</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/22/CG/LS/11/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机图形学.李胜.11.物理模拟
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2021-02-22 14:39:19 / Modified: 19:29:50" itemprop="dateCreated datePublished" datetime="2021-02-22T14:39:19+08:00">2021-02-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-LS/" itemprop="url" rel="index"><span itemprop="name">CG.LS</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Rigging and Physical Simulation</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>游戏、动画，谋求逼真的效果（指视觉上的逼真效果）</li>
+</ul>
+<h1 id="rigging">Rigging</h1>
+<h2 id="workflow制作电影的工作流程">Workflow（制作电影的工作流程）</h2>
+<ul>
+<li>Story
+<ul>
+<li>故事绘本</li>
+</ul></li>
+<li>Video footage
+<ul>
+<li>小样</li>
+</ul></li>
+<li>Concept drawing
+<ul>
+<li>虚拟生物等草图绘制</li>
+</ul></li>
+<li>Modeling
+<ul>
+<li>建模</li>
+</ul></li>
+<li>Rigging and simulation
+<ul>
+<li>动起来</li>
+</ul></li>
+<li>Rendering
+<ul>
+<li>渲染</li>
+</ul></li>
+<li>Composites
+<ul>
+<li>把以上内容合成在一起</li>
+<li>另外可能还有
+<ul>
+<li>motion blur</li>
+<li>camera shake</li>
+<li>character（角色动画）</li>
+<li>color lighting</li>
+<li>effects（特效）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="what-is-rigging">What Is Rigging</h2>
+<ul>
+<li>Rig come from Puppet（木偶）</li>
+<li>How character’s motion is driven</li>
+<li>rig vs skin
+<ul>
+<li>skin：蒙皮、运动中的变化
+<ul>
+<li>rig 的一个部分</li>
+</ul></li>
+<li>Skinning just solve surface motion for display</li>
+<li>Rig is more general
+<ul>
+<li>加骨骼、运动控制、运动中表皮的变化</li>
+</ul></li>
+<li>Part of rigging process</li>
+</ul></li>
+</ul>
+<h3 id="rigging-movie-in-history">Rigging Movie in History</h3>
+<ul>
+<li>Jurassic Park [1993] , milestone in digital art.</li>
+<li>Rigging + simple secondary muscle motion.</li>
+<li>Use many real models.</li>
+<li>People do composite job on dinosaurs on YOUTUBE</li>
+</ul>
+<h3 id="rigging-types">Rigging Types</h3>
+<ul>
+<li>Performance rig
+<ul>
+<li>a motion and control system providing control of the character to animation artists.</li>
+<li>骨架驱动的对象运动形态</li>
+</ul></li>
+<li>Simulation rig
+<ul>
+<li>物理、基于动力学模拟出来的</li>
+<li>Dynamic behavior(g)</li>
+<li>Collision</li>
+<li>Cloth</li>
+<li>Spring</li>
+<li>soft and rigid‐body</li>
+<li>Bake to animation sequence</li>
+</ul></li>
+<li>Deformation rig
+<ul>
+<li>形变的时候，外表皮如何生成</li>
+<li>character’s skin relative to the motion of the performance rig</li>
+<li>Know as Skinning as we have mentioned</li>
+<li>T pose</li>
+</ul></li>
+<li>Facial rig
+<ul>
+<li>人脸（复杂、逼真很难）
+<ul>
+<li>人对人脸看的很多，很容易判断一张人脸是否是合成的</li>
+</ul></li>
+<li>Blend shapes
+<ul>
+<li>Face can be defined with limited set</li>
+<li>Synthesis, transfer, interpolate</li>
+<li>Recent hot in graphics and vision</li>
+<li>Also need manual rig in production</li>
+</ul></li>
+<li>现在电影的开销：演员、动画师
+<ul>
+<li>演员是否会被替代？逼真人脸的制作</li>
+</ul></li>
+</ul></li>
+<li>Muscle rig
+<ul>
+<li>解剖学：肌肉驱动</li>
+<li>Most complicated rig</li>
+<li>Also is collision object with skin</li>
+<li>Need experience in anatomy, how muscle works</li>
+<li>Generally don’t use it</li>
+</ul></li>
+<li>Clothing and accoutrements rig</li>
+<li>Motion capture/tracking rig
+<ul>
+<li>Usually used as an input to the performance rig.</li>
+<li>Lots of company building tracking hardware</li>
+<li>阿凡达电影</li>
+</ul></li>
+</ul>
+<h3 id="standard-performance-rig">Standard Performance Rig</h3>
+<ul>
+<li>Joint Placement/Orientation(lock some DOF)
+<ul>
+<li>结点的放置/朝向，锁定自由度</li>
+<li>例如人的手有些方向是不能动的</li>
+</ul></li>
+<li>Add Controller (cage select detail hard)
+<ul>
+<li>cage：模型的几何代理、类似于包围盒的粗糙盒子
+<ul>
+<li>通过调整盒子的变化控制模型的形变</li>
+</ul></li>
+</ul></li>
+<li>Attach FK/IK to the controller
+<ul>
+<li>FK：forward kinematics（运动学）
+<ul>
+<li>给定怎么从 A 状态运动到 B 状态</li>
+</ul></li>
+<li>IK：inverse kinematics（逆运动学）
+<ul>
+<li>给定两个状态，通 过计算得到运动方式</li>
+</ul></li>
+</ul></li>
+<li>Paint the skinning weights
+<ul>
+<li>蒙皮刷权重</li>
+<li>可能会出现一些奇异的情况（不符合现实），因此需要蒙皮刷权重</li>
+</ul></li>
+<li>special handling
+<ul>
+<li>一些风格化的渲染</li>
+</ul></li>
+</ul>
+<h1 id="simulation">Simulation</h1>
+<ul>
+<li>更真实展现自然界的现象</li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/11/simulation.png"></p>
+<ul>
+<li>弹性体、弹塑性体
+<ul>
+<li>碰撞
+<ul>
+<li>恢复</li>
+<li>弹塑性材料：部分恢复</li>
+</ul></li>
+<li>应变的计算</li>
+</ul></li>
+<li>多体碰撞、多点接触
+<ul>
+<li>怎么计算力的作用</li>
+<li>离散化大量离散点的碰撞</li>
+</ul></li>
+<li>固体：非穿越条件
+<ul>
+<li><span class="math inline">\(t_0\)</span> 未接触，但是 <span class="math inline">\(t_0+\Delta t\)</span> 就穿越了</li>
+<li>解决：时间片 <span class="math inline">\(\Delta t\)</span> 选择更小（<span class="math inline">\(10^{-5},10^{-6}\)</span>级别）</li>
+</ul></li>
+<li>绳子的模拟
+<ul>
+<li>扭转、剪切</li>
+</ul></li>
+<li>布料的模拟
+<ul>
+<li>褶皱多，且互不穿越</li>
+<li>自碰撞检测</li>
+</ul></li>
+<li>刚体
+<ul>
+<li>碰撞碎裂</li>
+</ul></li>
+<li>流体
+<ul>
+<li>粘性流体：蜂蜜</li>
+<li>沙子：湿 / 干 <span class="math inline">\(\Rightarrow\)</span> 固体 / 流体
+<ul>
+<li>形态转换</li>
+<li>湿沙子，沙子颗粒之间有液桥力</li>
+</ul></li>
+<li>胶体</li>
+</ul></li>
+<li>Collision, Contact, Friction
+<ul>
+<li>碰撞、接触、摩擦</li>
+</ul></li>
+<li>海洋表面的模拟</li>
+</ul>
+<h2 id="核心原理-物体运动方程">核心原理： 物体运动方程</h2>
+<h3 id="流体">流体</h3>
+<ul>
+<li>纳维斯托克斯方程</li>
+</ul>
+<p><span class="math display">\[
+\rho\dfrac{dv}{dt}=\rho g-\triangledown p+\mu\triangledown^2v
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\rho\)</span>：密度</li>
+<li><span class="math inline">\(p\)</span>：压强</li>
+<li><span class="math inline">\(\mu\)</span>：粘滞系数</li>
+</ul>
+<h3 id="两大流派">两大流派</h3>
+<ul>
+<li>拉格朗日流派：粒子
+<ul>
+<li>拉格朗日法着眼于研究各个流体质点的运动，描述的流体质点至始至终的运动过程以及它们的物理量随时间 t 的变化规律</li>
+</ul></li>
+<li>欧拉流派：栅格
+<ul>
+<li>欧拉法着眼于空间点，描述的是各个时刻，各个空间点（场论的概念）中流体质点物理量的变化情况。物理量在空间中的分布称为物理场，如速度场、压力场、密度场等，这些所有的物理量场统称为流场</li>
+</ul></li>
+</ul>
+<h3 id="刚体">刚体</h3>
+<ul>
+<li>平动与转动</li>
+</ul>
+<p><span class="math display">\[
+\dfrac{d}{dt}(X_t)=d\left(
+\begin{array}{ccc}
+x_t\\
+R_t
+\end{array}
+\right)
+=\left(
+\begin{array}{ccc}
+v_t\\
+w_t\times R_t
+\end{array}
+\right)
+\]</span></p>
+<h3 id="弹性体">弹性体</h3>
+<ul>
+<li>有限元方法</li>
+</ul>
+<h2 id="动画计算的一般流程">动画计算的一般流程</h2>
+<ul>
+<li>离散化</li>
+<li>方程初始化</li>
+<li>仿真计算与迭代</li>
+<li>仿真中止</li>
+<li>真实感渲染</li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/11/animation.png"></p>
+<h3 id="示例绳子弹簧模型">示例：绳子（弹簧模型）</h3>
+<h4 id="离散化">(1) 离散化</h4>
+<ul>
+<li>分成一段一段的，弹簧质点模型</li>
+<li>质点 <span class="math inline">\(x_0,x_1,...,x_{n+1}\)</span></li>
+<li>弹簧 <span class="math inline">\(e_0,e_1,...,e_n\)</span></li>
+</ul>
+<h4 id="方程初始化">(2) 方程初始化</h4>
+<ul>
+<li>质量 <span class="math inline">\(m_0,m_1,...,m_{n+1}\)</span></li>
+<li>初速度 <span class="math inline">\(v_0,v_1,...,v_{n+1}\)</span></li>
+<li>弹性系数 <span class="math inline">\(k_0,k_1,...,k_n\)</span></li>
+</ul>
+<h4 id="仿真迭代计算">(3) 仿真迭代计算</h4>
+<ul>
+<li>将连续的运动过程离散到一系列时间点
+<ul>
+<li>时间片划分</li>
+</ul></li>
+<li>在相邻的时间点之间更新运动状态
+<ul>
+<li><span class="math inline">\(v^t\to v^{t+1}\)</span></li>
+<li><span class="math inline">\(x^t\to x^{t+1}\)</span></li>
+</ul></li>
+<li>更新规则：胡克定律 <span class="math inline">\(m\dfrac{d^2x}{dt^2}=k\Delta l\)</span></li>
+</ul>
+<h4 id="渲染">(4) 渲染</h4>
+<h2 id="热点与难点">热点与难点</h2>
+<h3 id="固体">固体</h3>
+<ul>
+<li>非光滑的多体接触碰撞
+<ul>
+<li>扑克牌塔（静摩擦处于稳定状态）
+<ul>
+<li>算法不稳定会导致崩塌</li>
+</ul></li>
+</ul></li>
+<li>大场景快速而稳定的仿真计算
+<ul>
+<li>碰撞摩擦</li>
+</ul></li>
+</ul>
+<h3 id="形变体">形变体</h3>
+<ul>
+<li>大形变不能产生畸变</li>
+<li>复杂拓扑修改</li>
+<li>艺术指导的形变</li>
+</ul>
+<h3 id="碎裂">碎裂</h3>
+<ul>
+<li>断裂面跟踪</li>
+<li>设计碎裂模式
+<ul>
+<li>一碰就裂</li>
+<li>慢慢的产生裂纹，裂开</li>
+</ul></li>
+</ul>
+<h3 id="流体-1">流体</h3>
+<ul>
+<li>精细薄片特征</li>
+<li>表面波纹</li>
+</ul>
+<h3 id="流体烟雾及其耦合">流体、烟雾及其耦合</h3>
+<ul>
+<li>湍流效果</li>
+<li>多种形态耦合作用</li>
+</ul>
+<h3 id="产生声音">产生声音</h3>
+<ul>
+<li>从动力学的角度产生声音</li>
+<li>振动模态可以从动力学产生</li>
+</ul>
+<h3 id="开源代码">开源代码</h3>
+<ul>
+<li>https://github.com/yuanming-hu/difftaichi</li>
+</ul>
+<h1 id="工业界与研究">工业界与研究</h1>
+<ul>
+<li>industry &amp; research</li>
+<li>相辅相成、互相促进</li>
+</ul>
+<h2 id="exhaust-the-existing-techniques">exhaust the existing techniques</h2>
+<ul>
+<li>detailed smoke</li>
+<li>flip particles</li>
+</ul>
+<h2 id="megamind-fluid-simulation">megamind fluid simulation</h2>
+<ul>
+<li>large scale</li>
+<li>serious simulation</li>
+</ul>
+<h1 id="一些研究工作">一些研究工作</h1>
+<ul>
+<li>以固体的仿真为核心，研究固体的运动、碰撞、形变、碎裂现象的物理机理和仿真建模，模拟固体多体之间的相互作用以及液体与固体多体的相互作用的仿真计算
+<ul>
+<li>并行的快速连续碰撞检测</li>
+<li>刚性固体的破碎</li>
+<li>复杂物体表面破碎裂纹的仿真</li>
+<li>弹性固体的仿真</li>
+<li>具有材料属性的固体交互编辑和仿真</li>
+<li>不可压流体的高效模拟
+<ul>
+<li>基于表面张力波的流体细节仿真</li>
+</ul></li>
+<li>固液耦合的交错光滑例子动力学</li>
+<li>精确的摩擦计算的多点接触刚体系统</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/22/CG/LS/10/" rel="prev" title="计算机图形学.李胜.10.高级光照模型与绘制理论">
+                  <i class="fa fa-chevron-left"></i> 计算机图形学.李胜.10.高级光照模型与绘制理论
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/04/CV/HDR/Paper23/" rel="next" title="高动态范围成像">
+                  高动态范围成像 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

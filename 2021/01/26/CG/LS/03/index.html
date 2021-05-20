@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="3D图形绘制流水线、硬件及图形编程的发展">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.03.3D图形绘制流水线基础与图形编程">
+<meta property="og:url" content="http://example.com/2021/01/26/CG/LS/03/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="3D图形绘制流水线、硬件及图形编程的发展">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-01-26T12:27:56.000Z">
+<meta property="article:modified_time" content="2021-02-06T09:16:04.190Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2021/01/26/CG/LS/03/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>计算机图形学.李胜.03.3D图形绘制流水线基础与图形编程 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#programmable-3d-graphics-pipeline"><span class="nav-text">Programmable 3D Graphics Pipeline</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#vertex-assembly"><span class="nav-text">1. Vertex Assembly</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vertex-shader"><span class="nav-text">2. Vertex Shader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#transform"><span class="nav-text">(1) transform</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vertex---modified-vertex"><span class="nav-text">(2) vertex -&gt; modified vertex</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#primitive-assembly"><span class="nav-text">3. Primitive Assembly</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rasterizer"><span class="nav-text">4. Rasterizer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fragment-shader"><span class="nav-text">5. Fragment Shader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#per-fragment-tests"><span class="nav-text">6. Per-Fragment Tests</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#scissor-test"><span class="nav-text">(1) scissor test</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stencil-test"><span class="nav-text">(2) stencil test</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#depth-test"><span class="nav-text">(3) depth test</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#blending"><span class="nav-text">7. Blending</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#framebuffer"><span class="nav-text">8. FrameBuffer</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#evolution-of-the-programmable"><span class="nav-text">Evolution of the Programmable</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#s-%E4%B9%8B%E5%89%8D"><span class="nav-text">1990s 之前</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#s"><span class="nav-text">90s</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#section"><span class="nav-text">1996</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#section-1"><span class="nav-text">1999</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#section-2"><span class="nav-text">2001</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#section-3"><span class="nav-text">2004</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#section-4"><span class="nav-text">2006</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#procedural-geometry"><span class="nav-text">Procedural Geometry</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#patched-control-points"><span class="nav-text">Patched &#x2F; Control Points</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#displacement-mapping"><span class="nav-text">Displacement Mapping</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nivdia-g80"><span class="nav-text">Nivdia G80</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/26/CG/LS/03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机图形学.李胜.03.3D图形绘制流水线基础与图形编程
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-26 20:27:56" itemprop="dateCreated datePublished" datetime="2021-01-26T20:27:56+08:00">2021-01-26</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-06 17:16:04" itemprop="dateModified" datetime="2021-02-06T17:16:04+08:00">2021-02-06</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-LS/" itemprop="url" rel="index"><span itemprop="name">CG.LS</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">3D图形绘制流水线、硬件及图形编程的发展</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="programmable-3d-graphics-pipeline">Programmable 3D Graphics Pipeline</h1>
+<h2 id="vertex-assembly">1. Vertex Assembly</h2>
+<ul>
+<li>顶点装配</li>
+<li><p>position（坐标）</p></li>
+<li>normal（法向）</li>
+<li><p>texture coordinate（纹理坐标）</p></li>
+</ul>
+<h2 id="vertex-shader">2. Vertex Shader</h2>
+<ul>
+<li>顶点着色器</li>
+</ul>
+<h3 id="transform">(1) transform</h3>
+<ul>
+<li>TL：Transform and Lighting
+<ul>
+<li>坐标变换、光照计算</li>
+</ul></li>
+<li><span class="math inline">\(P_{clip} = (M_{model-view-projection})(P_{model})\)</span>
+<ul>
+<li>model to world：<span class="math inline">\(P_{world}=(M_{model})(P_{model})\)</span></li>
+<li>world to eye：<span class="math inline">\(P_{eye}=(M_{view})(P_{world})\)</span></li>
+<li>eye to clip：<span class="math inline">\(P_{clip}=(M_{projection})(P_{eye})\)</span></li>
+</ul></li>
+</ul>
+<h3 id="vertex---modified-vertex">(2) vertex -&gt; modified vertex</h3>
+<ul>
+<li>Perform additional per-vertex computations
+<ul>
+<li>modify, add or remove attributes passed down the pipeline</li>
+</ul></li>
+<li>uniforms：常量</li>
+<li>matrices：矩阵</li>
+<li>texture：几何细节更加丰富</li>
+<li>修改几何属性</li>
+<li>displacement mapping：位移贴图（映射）</li>
+</ul>
+<h2 id="primitive-assembly">3. Primitive Assembly</h2>
+<ul>
+<li><p>图元</p></li>
+<li><strong>group vertex</strong>
+<ul>
+<li>triangle，lines，...</li>
+</ul></li>
+<li>逻辑坐标转化为物理坐标</li>
+<li><p>裁剪</p></li>
+</ul>
+<h2 id="rasterizer">4. Rasterizer</h2>
+<ul>
+<li>光栅化</li>
+<li><p>二维图元转化为<strong>像素点</strong></p></li>
+<li>图元属性与 vertex assembly 中一致</li>
+<li><p>aliasing：走样问题</p></li>
+</ul>
+<h2 id="fragment-shader">5. Fragment Shader</h2>
+<ul>
+<li>又被称为是 pixel shader</li>
+<li>根据光照和物体上色
+<ul>
+<li>线性插值，双线性插值</li>
+<li>输出颜色</li>
+</ul></li>
+<li>光照计算，下述一般不会同时存在
+<ul>
+<li>per-fragment lighting（更好，更精细）</li>
+<li>per-vertex lighting</li>
+</ul></li>
+<li>texture：<strong>贴图</strong></li>
+<li>bump mapping：凹凸贴图
+<ul>
+<li>扰动法向</li>
+</ul></li>
+</ul>
+<h2 id="per-fragment-tests">6. Per-Fragment Tests</h2>
+<h3 id="scissor-test">(1) scissor test</h3>
+<ul>
+<li><p>裁剪：裁剪掉窗口之外的部分</p></li>
+<li><p>原因：</p>
+<ul>
+<li>For performance</li>
+<li>Post-processing effects</li>
+<li>Multipass rendering</li>
+</ul></li>
+</ul>
+<h3 id="stencil-test">(2) stencil test</h3>
+<ul>
+<li>模板（ 蒙板 ）测试：
+<ul>
+<li>可以丢弃窗口中任意区域（以fragment 为单位）</li>
+<li>根据 stencil buffer 的内容，来丢弃不需要的 fragments</li>
+</ul></li>
+<li><strong>位运算操作</strong></li>
+<li>实现：将模板写入模板缓冲区（stencil buffer），之后在测试中可以使用</li>
+</ul>
+<h3 id="depth-test">(3) depth test</h3>
+<ul>
+<li>又被称为 <strong>z-test</strong></li>
+<li>深度测试
+<ul>
+<li>例子：等高线，小偏移</li>
+<li>如果没有深度测试，那么由于深度相同/浮点精度问题，线时隐时现</li>
+</ul></li>
+</ul>
+<h2 id="blending">7. Blending</h2>
+<ul>
+<li>混合</li>
+<li>Combine fragment color with framebuffer color
+<ul>
+<li>Can weight each color</li>
+<li>Can use different operations: +, -, etc.</li>
+</ul></li>
+<li>实现半透明（Translucency）的效果</li>
+</ul>
+<h2 id="framebuffer">8. FrameBuffer</h2>
+<ul>
+<li>输出到 FrameBuffer</li>
+</ul>
+<h1 id="evolution-of-the-programmable">Evolution of the Programmable</h1>
+<h2 id="s-之前">1990s 之前</h2>
+<ul>
+<li>显卡</li>
+<li>无 GPU 的概念，处理能力很弱</li>
+<li>图形工作站</li>
+</ul>
+<h2 id="s">90s</h2>
+<ul>
+<li>Pre GPU</li>
+<li><p>software rendering：软件渲染</p></li>
+<li>为什么选择 GPU
+<ul>
+<li><strong>并行</strong>
+<ul>
+<li>Pipeline parallel</li>
+<li>Data parallel</li>
+<li>CPU and GPU executing in parallel</li>
+</ul></li>
+<li><strong>硬件支持</strong>
+<ul>
+<li>texture filtering</li>
+<li>rasterization</li>
+<li>sqrt</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="section">1996</h2>
+<ul>
+<li>3dfx Voodoo</li>
+<li>软件：
+<ul>
+<li>vertex assembly，vertex shader，primitive assembly</li>
+</ul></li>
+<li>硬件：
+<ul>
+<li>rasterizer，fragment shader，pre-fragment tests，blend，framebuffer</li>
+<li><strong>Fixed-function</strong> rasterization, texture mapping, depth testing, etc</li>
+<li><strong>4-6MB</strong> memory</li>
+<li><strong>PCI bus</strong>
+<ul>
+<li>Peripheral Component Interconnect</li>
+<li>外围组件互连</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="section-1">1999</h2>
+<ul>
+<li>Nvidia Geforce 256</li>
+<li><span style="color:red">全硬件实现</span></li>
+<li><strong>Fixed-function</strong> vertex shading（T&amp;L）</li>
+<li>Multi-texturing：bump maps, light maps, etc.</li>
+<li><span style="color:red">Direct3D</span> 7</li>
+<li><strong>AGP bus</strong>
+<ul>
+<li>Accelerated Graphics Port</li>
+<li>加速图形端口</li>
+</ul></li>
+</ul>
+<h2 id="section-2">2001</h2>
+<ul>
+<li>Nvidia Geforce 3</li>
+<li>全硬件实现，但是 vertex shader 可以支持编程</li>
+<li>fragment shader 支持的不太好</li>
+<li>Direct3D 8</li>
+</ul>
+<h2 id="section-3">2004</h2>
+<ul>
+<li>Nvidia Geforce 6</li>
+<li>支持很好的 vertex shader，fragment shader 编程</li>
+<li>vertex shader 可以支持读取 texture</li>
+<li>Multiple render targets
+<ul>
+<li>执行一遍就能输出多个渲染目标</li>
+</ul></li>
+<li><strong>PCIe bus</strong>
+<ul>
+<li>peripheral component interconnect express</li>
+<li>一种高速串行计算机扩展总线标准，2001年提出，旨在代替 PCI，PCI-X 和 AGP 总线标准</li>
+</ul></li>
+<li><span style="color:red">OpenGL</span> 2 / Direct3D 9</li>
+<li>架构：某一部分的架构是固定的，负载不均衡
+<ul>
+<li>6 vertex shader processors</li>
+<li>16 fragment shader processors</li>
+</ul></li>
+</ul>
+<h2 id="section-4">2006</h2>
+<ul>
+<li>Nvidia Geforce 8</li>
+<li>在渲染管线 Vertex Shader 之后加入了 <span style="color:red;font-weight:bold">Geometry Shader</span>
+<ul>
+<li>Geometry Shader：1-&gt;n，一个几何图元生成多个几何图元</li>
+<li>Vertex Shader：1-&gt;1</li>
+</ul></li>
+<li><span style="color:red">Unified shader processors</span>：统一着色器处理器</li>
+<li>OpenGL 3 / Direct3D 10</li>
+<li>Support for GPU Compute</li>
+<li>Geometry Shader
+<ul>
+<li>可以读取 texture</li>
+<li><strong>粒子系统</strong>：Partical System
+<ul>
+<li>All-GPU Particle Systems</li>
+</ul></li>
+<li>实例化：Instance
+<ul>
+<li>可以对原先数据作微小的变化，从而生成很多图案</li>
+</ul></li>
+</ul></li>
+<li>任意点 O，三角形顶点 A，B，C，三角形 ABC 中任意一点 P</li>
+</ul>
+<p><span class="math display">\[
+\vec{OP}=\frac{S_{\Delta_{PBC}}\cdot\vec{OA}+S_{\Delta_{PCA}}\cdot\vec{OB}+S_{\Delta_{PAB}}\cdot\vec{OC}}{S_{\Delta_{PBC}}+S_{\Delta_{PCA}}+S_{\Delta_{PAB}}}
+\]</span></p>
+<ul>
+<li><p>证明方法：延长 AP 交 BC 于 D，之后反复利用如下定理即可</p>
+<ul>
+<li>线段 AB 上一点 C</li>
+</ul>
+<p><span class="math display">\[
+  \vec{OC}=\frac{|\vec{CB}|\cdot\vec{OA}}{|\vec{AB}|}+\frac{|\vec{CA}|\cdot\vec{OB}}{|\vec{AB}|}
+  \]</span></p></li>
+<li><p>如果 P 为重心 G，那么有</p></li>
+</ul>
+<p><span class="math display">\[
+S_{\Delta_{GBC}}=S_{\Delta_{GCA}}=S_{\Delta_{GAB}} \\
+\vec{OG}=\frac{\vec{OA}+\vec{OB}+\vec{OC}}{3}
+\]</span></p>
+<ul>
+<li>做细分：subdivision</li>
+<li>勾边</li>
+<li>1 -&gt; n</li>
+</ul>
+<h3 id="procedural-geometry">Procedural Geometry</h3>
+<ul>
+<li>Procedural Geometry Dynamic Vine Growth on the GPU</li>
+<li>藤蔓生长</li>
+<li>提供更多细分模板</li>
+</ul>
+<h3 id="patched-control-points">Patched / Control Points</h3>
+<ul>
+<li>Hull shader：参数</li>
+<li>Tessellation：镶嵌</li>
+<li>Domain Shader：实际生成的顶点位置</li>
+</ul>
+<h3 id="displacement-mapping">Displacement Mapping</h3>
+<h2 id="nivdia-g80">Nivdia G80</h2>
+<ul>
+<li><strong>unify</strong></li>
+<li>统一了，没有物理上区分处理器处理哪一个部分（线程分配）</li>
+<li>发展趋势
+<ul>
+<li>全部可编程</li>
+<li>流程可以修改</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/01/26/CG/LS/02/" rel="prev" title="计算机图形学.李胜.02.图形硬件设备与系统">
+                  <i class="fa fa-chevron-left"></i> 计算机图形学.李胜.02.图形硬件设备与系统
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/01/26/Algebra/QWS/00/" rel="next" title="高等代数.丘维声.00.说明">
+                  高等代数.丘维声.00.说明 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

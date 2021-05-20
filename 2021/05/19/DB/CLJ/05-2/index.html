@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="模式分解、模式分解中的问题(异常、违约、有损)、无损分解、保持函数依赖的分解、模式调优">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.05.关系规范化(3)">
+<meta property="og:url" content="http://example.com/2021/05/19/DB/CLJ/05-2/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="模式分解、模式分解中的问题(异常、违约、有损)、无损分解、保持函数依赖的分解、模式调优">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520000151424.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520113036080.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520113541161.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520113735780.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520114858895.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520114954753.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520121032976.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520121911067.png">
+<meta property="og:image" content="c:/Users/神秘嘉宾990/AppData/Roaming/Typora/typora-user-images/image-20210520151750073.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520152425047.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520155032495.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520162648780.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520163507285.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520163631550.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520164000533.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520164045282.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520164113081.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520164130508.png">
+<meta property="article:published_time" content="2021-05-19T14:20:45.000Z">
+<meta property="article:modified_time" content="2021-05-20T08:43:55.032Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/image-20210520000151424.png">
+
+
+<link rel="canonical" href="http://example.com/2021/05/19/DB/CLJ/05-2/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.05.关系规范化(3) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E8%A7%A3"><span class="nav-text">模式分解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E8%A7%A3%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">模式分解的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E5%9C%A8%E5%B1%9E%E6%80%A7%E9%9B%86%E4%B8%8A%E7%9A%84%E6%8A%95%E5%BD%B1"><span class="nav-text">函数依赖在属性集上的投影</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%901"><span class="nav-text">例子1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%902"><span class="nav-text">例子2</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#fabto-decto-edto-ceto-a"><span class="nav-text">\((1)\;F&#x3D;\{AB\to DE,C\to E,D\to C,E\to A\}\)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#fato-dbdto-eacto-edeto-b"><span class="nav-text">\((2)\;F&#x3D;\{A\to D,BD\to E,AC\to E,DE\to B\}\)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#fabto-dacto-ebcto-ddto-aeto-b"><span class="nav-text">\((3)\;F&#x3D;\{AB\to D,AC\to E,BC\to D,D\to A,E\to B\}\)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E8%A7%A3%E7%9A%84%E5%AE%9A%E4%B9%89-1"><span class="nav-text">模式分解的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E8%A7%A3%E7%9A%84%E7%9B%AE%E6%A0%87"><span class="nav-text">模式分解的目标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E8%A7%A3%E4%B8%AD%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">模式分解中的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8"><span class="nav-text">异常</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9D%E7%BA%A6%E8%BF%9D%E7%AB%A0"><span class="nav-text">违约&#x2F;违章</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%89%E6%8D%9F"><span class="nav-text">有损</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E7%A1%AE%E7%9A%84%E5%88%86%E8%A7%A3"><span class="nav-text">正确的分解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E6%8C%81%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E7%9A%84%E5%88%86%E8%A7%A3"><span class="nav-text">保持函数依赖的分解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A2%E5%A4%B1%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E7%9A%84%E5%88%86%E8%A7%A3%E5%AE%9E%E4%BE%8B"><span class="nav-text">丢失函数依赖的分解实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%89%E6%8D%9F%E5%88%86%E8%A7%A3%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-text">有损分解的例子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A0%E6%8D%9F%E8%BF%9E%E6%8E%A5%E5%88%86%E8%A7%A3"><span class="nav-text">无损连接分解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-text">定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E6%8D%9F%E8%BF%9E%E6%8E%A5%E5%88%86%E8%A7%A3%E7%9A%84%E5%88%A4%E5%88%AB%E7%AE%97%E6%B3%95"><span class="nav-text">无损连接分解的判别算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BB%BA%E7%AB%8B%E4%B8%80%E4%B8%AA-n-%E5%88%97-k-%E8%A1%8C%E7%9A%84%E7%9F%A9%E9%98%B5-tb"><span class="nav-text">(1) 建立一个 \(n\) 列 \(k\) 行的矩阵 TB</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9-f-%E4%B8%AD%E6%AF%8F%E4%B8%80%E4%B8%AA%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96-xto-y"><span class="nav-text">(2) 对 \(F\) 中每一个函数依赖 \(X\to Y\)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8D%E5%A4%8D%E6%89%A7%E8%A1%8C-2%E7%9B%B4%E8%87%B3%E5%A6%82%E4%B8%8B%E6%83%85%E5%86%B5%E5%8F%91%E7%94%9F"><span class="nav-text">(3) 反复执行 (2)，直至如下情况发生</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E7%AE%97%E6%B3%95%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-text">一个算法的例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E8%A7%A3%E4%B8%BA%E4%B8%A4%E4%B8%AA%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F%E7%9A%84%E6%97%A0%E6%8D%9F%E5%88%86%E8%A7%A3"><span class="nav-text">分解为两个关系模式的无损分解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A4%E5%AE%9A"><span class="nav-text">判定</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%BE%E5%88%B0-bcnf-%E6%97%A0%E6%8D%9F%E8%BF%9E%E6%8E%A5%E5%88%86%E8%A7%A3%E7%AE%97%E6%B3%95"><span class="nav-text">达到 BCNF 无损连接分解算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B"><span class="nav-text">算法流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="nav-text">一个例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Ebcnf%E5%88%86%E8%A7%A3%E7%9A%84%E9%A2%9D%E5%A4%96%E8%AE%A8%E8%AE%BA"><span class="nav-text">关于BCNF分解的额外讨论</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%BE%E5%88%B0-4nf-%E6%97%A0%E6%8D%9F%E8%BF%9E%E6%8E%A5%E5%88%86%E8%A7%A3%E7%AE%97%E6%B3%95"><span class="nav-text">达到 4NF 无损连接分解算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A2%E5%A4%B1%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E7%9A%84-bcnf-%E5%88%86%E8%A7%A3"><span class="nav-text">丢失函数依赖的 BCNF 分解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%BE%E5%88%B0-3nf-%E4%BF%9D%E6%8C%81%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E7%9A%84%E5%88%86%E8%A7%A3"><span class="nav-text">达到 3NF 保持函数依赖的分解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1"><span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8C%E6%97%B6%E4%BF%9D%E6%8C%81%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E5%92%8C%E6%97%A0%E6%8D%9F%E8%BF%9E%E6%8E%A5%E7%9A%84%E5%88%86%E8%A7%A3"><span class="nav-text">同时保持函数依赖和无损连接的分解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E8%A7%A3%E7%AE%97%E6%B3%95"><span class="nav-text">分解算法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E5%88%86%E8%A7%A3%E6%96%B9%E5%BC%8F"><span class="nav-text">其他分解方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%82%AC%E6%8C%82%E5%85%83%E7%BB%84"><span class="nav-text">悬挂元组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E8%B0%83%E4%BC%98"><span class="nav-text">模式调优</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%97%E4%BD%99%E5%88%97"><span class="nav-text">冗余列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%9F%E5%BD%A2%E6%A8%A1%E5%BC%8F"><span class="nav-text">星形模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9B%AA%E8%8A%B1%E6%A8%A1%E5%BC%8F%E6%98%9F%E5%BD%A2%E6%A8%A1%E5%BC%8F%E7%9A%84%E8%A7%84%E8%8C%83%E5%8C%96"><span class="nav-text">雪花模式：星形模式的规范化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%97%E4%BD%99%E4%B8%8E%E5%88%86%E8%A7%A3"><span class="nav-text">冗余与分解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9E%82%E7%9B%B4%E5%88%92%E5%88%86"><span class="nav-text">垂直划分</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/19/DB/CLJ/05-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.05.关系规范化(3)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-05-19 22:20:45" itemprop="dateCreated datePublished" datetime="2021-05-19T22:20:45+08:00">2021-05-19</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-05-20 16:43:55" itemprop="dateModified" datetime="2021-05-20T16:43:55+08:00">2021-05-20</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">模式分解、模式分解中的问题(异常、违约、有损)、无损分解、保持函数依赖的分解、模式调优</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="模式分解">模式分解</h1>
+<ul>
+<li>例子：给定一个关系模式，通过模式分解解决异常</li>
+<li>关系模式：<span class="math inline">\(R(ABCD;A\to B,B\to C)\)</span></li>
+<li>分解一
+<ul>
+<li><span class="math inline">\(R_1(AB;A\to B),R_2(BC;B\to C)\)</span></li>
+<li>不是正确的分解，缺失了属性 <span class="math inline">\(D\)</span></li>
+</ul></li>
+<li>分解二
+<ul>
+<li><span class="math inline">\(R_1(ABD;A\to B),R_2(BC;B\to C),R_3(BD)\)</span></li>
+<li>不是正确的分解，<span class="math inline">\(R_3\)</span> 包含在 <span class="math inline">\(R_1\)</span> 中，没必要</li>
+</ul></li>
+<li>分解三
+<ul>
+<li><span class="math inline">\(R_1(AB;A\to B),R_2(AC),R_3(AD)\)</span></li>
+<li>不是正确的分解，和原来的关系模式函数依赖不等价（<span class="math inline">\(A\to C\)</span>）</li>
+</ul></li>
+<li>分解四
+<ul>
+<li><span class="math inline">\(R_1(AB;A\to B),R_2(AC;A\to C),R_3(AD)\)</span></li>
+<li>正确</li>
+</ul></li>
+</ul>
+<h2 id="模式分解的定义">模式分解的定义</h2>
+<ul>
+<li>属性上来看
+<ul>
+<li>子模式的属性集的并集和原来相同</li>
+<li>子模式的属性集之间不能有包含关系</li>
+</ul></li>
+<li>函数依赖上看
+<ul>
+<li>原来函数依赖集要正确的投影到子模式的属性集上面</li>
+</ul></li>
+</ul>
+<h3 id="函数依赖在属性集上的投影">函数依赖在属性集上的投影</h3>
+<ul>
+<li>函数依赖集 <span class="math inline">\(F\)</span> 在属性集 <span class="math inline">\(U_i\)</span> 上的投影定义为：<span class="math inline">\(F_i=\{X\to Y|X\to Y\in F^+\land XY\subseteq U_i\}\)</span></li>
+</ul>
+<h4 id="例子1">例子1</h4>
+<ul>
+<li>求 <span class="math inline">\(F=\{A\to B, B\to C, C\to D\}\)</span> 在 <span class="math inline">\(S(ACD)\)</span> 上的投影</li>
+<li>先求出闭包
+<ul>
+<li><span class="math inline">\(A_F^+=ABCD,C_F^+=CD,D_F^+=D\)</span></li>
+</ul></li>
+<li>写出函数依赖
+<ul>
+<li>需要考虑二元（多元）
+<ul>
+<li><span class="math inline">\(A_F^+\)</span> 已经是全集了，于是不需要考虑 <span class="math inline">\(A\)</span> 和其他的组合</li>
+<li><span class="math inline">\((CD_F)^+=CD\)</span>，于是也不需要了</li>
+</ul></li>
+<li><span class="math inline">\(A\to C,A\to D,C\to D\)</span></li>
+</ul></li>
+<li>消除冗余依赖
+<ul>
+<li><span class="math inline">\(A\to C,C\to D\)</span></li>
+</ul></li>
+</ul>
+<h4 id="例子2">例子2</h4>
+<ul>
+<li>计算下面函数依赖集在 <span class="math inline">\(S(ABC)\)</span> 上的投影
+<ul>
+<li><span class="math inline">\(F=\{AB\to DE,C\to E,D\to C,E\to A\}\)</span></li>
+<li><span class="math inline">\(F=\{A\to D,BD\to E,AC\to E,DE\to B\}\)</span></li>
+<li><span class="math inline">\(F=\{AB\to D,AC\to E,BC\to D,D\to A,E\to B\}\)</span></li>
+</ul></li>
+</ul>
+<h5 id="fabto-decto-edto-ceto-a"><span class="math inline">\((1)\;F=\{AB\to DE,C\to E,D\to C,E\to A\}\)</span></h5>
+<ul>
+<li><p><span class="math inline">\({\color{red}\{C\to A,AB\to C,BC\to A\}}\)</span></p></li>
+<li><span class="math inline">\(A_F^+=A\)</span></li>
+<li><span class="math inline">\(B_F^+=B\)</span></li>
+<li><span class="math inline">\(C_F^+=CEA\)</span></li>
+<li><span class="math inline">\((AB)_F^+=ABDEC\)</span></li>
+<li><span class="math inline">\((AC)_F^+=ACE\)</span></li>
+<li><p><span class="math inline">\((BC)_F^+=BCEAD\)</span></p></li>
+</ul>
+<h5 id="fato-dbdto-eacto-edeto-b"><span class="math inline">\((2)\;F=\{A\to D,BD\to E,AC\to E,DE\to B\}\)</span></h5>
+<ul>
+<li><span class="math inline">\({\color{red}\{AC\to B\}}\)</span></li>
+<li><span class="math inline">\(A_F^+=AD\)</span></li>
+<li><span class="math inline">\(B_F^+=B\)</span></li>
+<li><span class="math inline">\(C_F^+=C\)</span></li>
+<li><span class="math inline">\((AB)_F^+=ABDE\)</span></li>
+<li><span class="math inline">\((AC)_F^+=ACDEB\)</span></li>
+<li><span class="math inline">\((BC)_F^+=BC\)</span></li>
+</ul>
+<h5 id="fabto-dacto-ebcto-ddto-aeto-b"><span class="math inline">\((3)\;F=\{AB\to D,AC\to E,BC\to D,D\to A,E\to B\}\)</span></h5>
+<ul>
+<li><span class="math inline">\({\color{red}\{AC\to B,BC\to A\}}\)</span></li>
+<li><span class="math inline">\(A_F^+=A\)</span></li>
+<li><span class="math inline">\(B_F^+=B\)</span></li>
+<li><span class="math inline">\(C_F^+=C\)</span></li>
+<li><span class="math inline">\((AB)_F^+=ABD\)</span></li>
+<li><span class="math inline">\((AC)_F^+=ACEBD\)</span></li>
+<li><span class="math inline">\((BC)_F^+=BCDAE\)</span></li>
+</ul>
+<h3 id="模式分解的定义-1">模式分解的定义</h3>
+<ul>
+<li>关系模式 <span class="math inline">\(R(U , F)\)</span> 的一个分解是指
+<ul>
+<li><span class="math inline">\(\rho=\{R_1(U_1,F_1),\cdots,R_n(U_n,F_n)\}\)</span></li>
+<li>其中 <span class="math inline">\(U=\bigcup_{i=1}^{n}U_i\)</span>，并且没有 <span class="math inline">\(U_i\subseteq U_j,1\le i,j\le n\)</span></li>
+<li><span class="math inline">\(F_i\)</span> 是 <span class="math inline">\(F\)</span> 在 <span class="math inline">\(U_i\)</span> 上的投影</li>
+</ul></li>
+<li>模式分解的代数运算
+<ul>
+<li>分解：投影</li>
+<li>还原：自然连接</li>
+</ul></li>
+</ul>
+<h3 id="模式分解的目标">模式分解的目标</h3>
+<ul>
+<li>trade off
+<ul>
+<li><strong>达到更高级的范式</strong></li>
+<li><strong>无损连接分解</strong></li>
+<li><strong>保持函数依赖</strong></li>
+</ul></li>
+</ul>
+<h2 id="模式分解中的问题">模式分解中的问题</h2>
+<h3 id="异常">异常</h3>
+<ul>
+<li>分解的过于完全：丢失信息</li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520000151424.png" style="zoom:50%;"></p>
+<h3 id="违约违章">违约/违章</h3>
+<ul>
+<li>在分解之后的表中执行插入操作，重构的时候可能违反原始表的函数依赖
+<ul>
+<li>问题是丢失了函数依赖</li>
+<li><span class="math inline">\(A\to B,A\to C\)</span> 推导不出原来的 <span class="math inline">\(B\to C\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520113036080.png" style="zoom:50%;"></p>
+<h3 id="有损">有损</h3>
+<ul>
+<li>有损分解：信息损失了</li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520113541161.png" style="zoom:50%;"></p>
+<h3 id="正确的分解">正确的分解</h3>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520113735780.png" style="zoom:50%;"></p>
+<ul>
+<li>有损比违章害处更大，违章的数据可以通过检查剔除</li>
+</ul>
+<h2 id="保持函数依赖的分解">保持函数依赖的分解</h2>
+<ul>
+<li>设关系模式 <span class="math inline">\(R(U , F)\)</span> 的一个分解是
+<ul>
+<li><span class="math inline">\(\rho=\{R_1(U_1,F_1),\cdots,R_n(U_n,F_n)\}\)</span></li>
+<li>如果 <span class="math inline">\(F^+=(\bigcup_{i=1}^nF_i)^+\)</span></li>
+<li>则称 <span class="math inline">\(\rho\)</span> 是保持函数依赖的分解</li>
+</ul></li>
+<li>等价于验证 <span class="math inline">\(F\subseteq (\bigcup_{i=1}^nF_i)^+,F_i\subseteq F\)</span></li>
+<li>由于 <span class="math inline">\(F_i\)</span> 都是由 <span class="math inline">\(F\)</span> 导出的，我们只需要验证 <span class="math inline">\(F\)</span> 中的函数依赖能够被 <span class="math inline">\(\bigcup F_i\)</span> 导出即可</li>
+</ul>
+<h3 id="丢失函数依赖的分解实例">丢失函数依赖的分解实例</h3>
+<ul>
+<li><span class="math inline">\(U=\{CITY,ST,ZIP\},F=\{(CITY,ST)\to ZIP,ZIP\to CITY\}\)</span></li>
+<li>分解如下
+<ul>
+<li><span class="math inline">\(U_1=\{ST,ZIP\},F1=\{\}\)</span></li>
+<li><span class="math inline">\(U_2=\{CITY,ZIP\},F2=\{ZIP\to CITY\}\)</span></li>
+</ul></li>
+<li>丢失了函数依赖 <span class="math inline">\((CITY,ST)\to ZIP\)</span></li>
+<li>插入数据导致的问题</li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520114858895.png" style="zoom:50%;"></p>
+<h3 id="有损分解的例子">有损分解的例子</h3>
+<ul>
+<li>构造方法：公共属性上相同值多一些</li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520114954753.png" style="zoom:50%;"></p>
+<h2 id="无损连接分解">无损连接分解</h2>
+<h3 id="定义">定义</h3>
+<ul>
+<li>设关系模式 <span class="math inline">\(R(U , F)\)</span> 的一个分解是
+<ul>
+<li><span class="math inline">\(\rho=\{R_1(U_1,F_1),\cdots,R_n(U_n,F_n)\}\)</span></li>
+<li><span class="math inline">\(r\)</span> 是 <span class="math inline">\(R\)</span> 的任意一个关系实例</li>
+<li>定义 <span class="math inline">\(m_{\rho}(r)=\prod_{U_i}(r)\)</span></li>
+<li>若 <span class="math inline">\(m_{\rho}(r)=r\)</span>，则称 <span class="math inline">\(\rho\)</span> 是 <span class="math inline">\(R\)</span> 的一个无损分解</li>
+</ul></li>
+</ul>
+<h3 id="无损连接分解的判别算法">无损连接分解的判别算法</h3>
+<ul>
+<li><span class="math inline">\(U=\{A_1,A_2,\cdots,A_n\}\)</span></li>
+<li><span class="math inline">\(\rho=\{R_1(U_1,F_1),\cdots,R_k(U_k,F_k)\}\)</span></li>
+</ul>
+<h4 id="建立一个-n-列-k-行的矩阵-tb">(1) 建立一个 <span class="math inline">\(n\)</span> 列 <span class="math inline">\(k\)</span> 行的矩阵 TB</h4>
+<ul>
+<li>填充矩阵</li>
+<li><span class="math inline">\(TB=\{C_{ij}|若A_i\in U_i,C_{ij}=a_j,否则C_{ij}=b_{ij}\}\)</span></li>
+</ul>
+<h4 id="对-f-中每一个函数依赖-xto-y">(2) 对 <span class="math inline">\(F\)</span> 中每一个函数依赖 <span class="math inline">\(X\to Y\)</span></h4>
+<ul>
+<li>若 TB 中存在元组 <span class="math inline">\(t_1,t_2\)</span>，使得 <span class="math inline">\(t_1[X]=t_2[X],t_1[Y]\ne t_2[Y]\)</span></li>
+<li>则对每一个 <span class="math inline">\(A_i\in Y\)</span> 进行如下操作
+<ul>
+<li>若 <span class="math inline">\(t_1[A_i],t_2[A_i]\)</span> 中有一个等于<span class="math inline">\(a_j\)</span>，则另一个也改为 <span class="math inline">\(a_j\)</span></li>
+<li>否则取 <span class="math inline">\(t_1[A_i]=t_2[A_i]\)</span>（<span class="math inline">\(t_2\)</span> 的行号小于 <span class="math inline">\(t_1\)</span>）</li>
+</ul></li>
+</ul>
+<h4 id="反复执行-2直至如下情况发生">(3) 反复执行 (2)，直至如下情况发生</h4>
+<ul>
+<li>TB 中出现一行全为 <span class="math inline">\(a_1,a_2,\cdots,a_n\)</span>的一行（无损分解）</li>
+<li>TB 不再变化，而且没有一行为 <span class="math inline">\(a_1,a_2,\cdots,a_n\)</span>（有损分解）</li>
+</ul>
+<h4 id="一个算法的例子">一个算法的例子</h4>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520121032976.png" style="zoom:50%;"></p>
+<h3 id="分解为两个关系模式的无损分解">分解为两个关系模式的无损分解</h3>
+<ul>
+<li>关系模式 <span class="math inline">\(R(U),U_1\cup U_2 = U\)</span></li>
+<li><span class="math inline">\(r\)</span> 是 <span class="math inline">\(R\)</span> 上的任一关系，<span class="math inline">\(r_1=\prod_{U_1}(r),r_2=\prod_{U_2}(r)\)</span></li>
+<li>若<span class="math inline">\(r = r_1\bowtie r_2\)</span>，则称 <span class="math inline">\(\{U_1,U_2\}\)</span> 是 <span class="math inline">\(U\)</span> 的一个无损连接分解</li>
+</ul>
+<h4 id="判定">判定</h4>
+<ul>
+<li><span class="math inline">\(\rho\)</span> 是无损连接分解 <span class="math inline">\(\Leftrightarrow\)</span> <span class="math inline">\(U_1\cap U_2\to U_1−U_2\)</span> 或 <span class="math inline">\(U_1\cap U_2\to U_2−U_1\)</span></li>
+<li>使用之前的判定算法做一个简单的证明</li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520121911067.png" style="zoom:50%;"></p>
+<ul>
+<li>在这里没有证明， 如果是无损的，则能推出上述函数依赖</li>
+</ul>
+<h4 id="例子">例子</h4>
+<ul>
+<li><span class="math inline">\(R=ABC,F=\{A\to B\}\)</span></li>
+<li>分解一：<span class="math inline">\(\rho_1={R_1(AB),R_2(AC)}\)</span>
+<ul>
+<li><span class="math inline">\(R_1\cap R_2=A,R_1-R_2=B\)</span></li>
+<li>由 <span class="math inline">\(A\to B\)</span>，得到 <span class="math inline">\(\rho_1\)</span></li>
+<li>是无损连接分解</li>
+</ul></li>
+<li>分解二：<span class="math inline">\(\rho_2=\{R_1(AB),R_2(BC)\}\)</span>
+<ul>
+<li><span class="math inline">\(R_1\cap R_2=B,R_1-R_2=A,R_2-R_1=C\)</span></li>
+<li><span class="math inline">\(B\to A,B\to C\)</span> 均不成立</li>
+<li>不是无损连接分解</li>
+</ul></li>
+</ul>
+<h3 id="达到-bcnf-无损连接分解算法">达到 BCNF 无损连接分解算法</h3>
+<ul>
+<li>BCNF：对于每个子模式，所有的函数依赖的左边都是码</li>
+</ul>
+<h4 id="算法流程">算法流程</h4>
+<ul>
+<li>给定关系模式 <span class="math inline">\(R(U,F)\)</span>
+<ul>
+<li><ol type="1">
+<li>令 <span class="math inline">\(\rho=R(U,F)\)</span></li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>检查 <span class="math inline">\(\rho\)</span> 中各关系模式是否属于BCNF，若是，则算法终止</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>设 <span class="math inline">\(\rho\)</span> 中 <span class="math inline">\(R_i(U_i,F_i)\)</span> 不属于 BCNF</li>
+</ol>
+<ul>
+<li>则存在函数依赖 <span class="math inline">\(X\to A\in F_i^+\)</span>，且 <span class="math inline">\(X\)</span> 不是 <span class="math inline">\(R_i\)</span> 的码</li>
+<li>将 <span class="math inline">\(R_i\)</span> 分解为 <span class="math inline">\(\sigma=\{S_1(U_1),S_2(U_2)\}\)</span></li>
+<li>其中 <span class="math inline">\(U_1=XA,U_2=U_i-A\)</span></li>
+<li>以 <span class="math inline">\(\sigma\)</span> 代替 <span class="math inline">\(R_i\)</span>，返回到 (2)</li>
+</ul></li>
+</ul></li>
+<li>结果一定能够达到 BCNF</li>
+<li>结果一定是无损的，可以通过上面 ”分解为两个关系模式的无损分解算法“ 证明
+<ul>
+<li><span class="math inline">\(U_1\cap U_2=X\)</span></li>
+<li><span class="math inline">\(U_1-U_2=A\)</span></li>
+<li><span class="math inline">\(X\to A\)</span></li>
+</ul></li>
+</ul>
+<h4 id="一个例子">一个例子</h4>
+<p><img src="C:/Users/神秘嘉宾990/AppData/Roaming/Typora/typora-user-images/image-20210520151750073.png" style="zoom:50%;"></p>
+<ul>
+<li>当原来的关系模式中，存在多个函数依赖不满足 BCNF，处理的先后顺序会影响最终的结果</li>
+<li>如何构造一个有 N 种 BCNF 分解结果的关系模式？
+<ul>
+<li>一个例子：3</li>
+<li><span class="math inline">\(A\to D,B\to D,C\to D\)</span>，候选码 <span class="math inline">\(ABC\)</span></li>
+</ul></li>
+</ul>
+<h4 id="关于bcnf分解的额外讨论">关于BCNF分解的额外讨论</h4>
+<ul>
+<li><span class="math inline">\(R(ABCD),FD=\{A\to B,A\to C\}\)</span></li>
+<li>码是 <span class="math inline">\(AD\)</span>，分解为 BCNF
+<ul>
+<li>分解结果为 <span class="math inline">\(R_1(AB),R_2(AC),R_3(AD)\)</span></li>
+</ul></li>
+<li><span class="math inline">\(R_1,R_2\)</span> 没必要分开</li>
+<li>优化方法：基于 <span class="math inline">\(X\to A\)</span> 的 BCNF 分解，<span style="font-weight:bold;color:red">将右边扩展为 <span class="math inline">\(X\)</span> 的闭包</span>
+<ul>
+<li>分解结果为 <span class="math inline">\(R_1(ABC),R_2(AD)\)</span></li>
+</ul></li>
+</ul>
+<h3 id="达到-4nf-无损连接分解算法">达到 4NF 无损连接分解算法</h3>
+<ul>
+<li>给定关系模式 <span class="math inline">\(R(U,F)\)</span>
+<ul>
+<li><ol type="1">
+<li>令 <span class="math inline">\(\rho=R(U,F)\)</span></li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>检查 <span class="math inline">\(\rho\)</span> 中各关系模式是否属于BCNF，若是，则算法终止</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>设 <span class="math inline">\(\rho\)</span> 中 <span class="math inline">\(R_i(U_i,F_i)\)</span> 不属于 BCNF</li>
+</ol>
+<ul>
+<li>则存在非平凡多值依赖 <span class="math inline">\(X\to\to A\)</span>，且 <span class="math inline">\(X\)</span> 不是 <span class="math inline">\(R_i\)</span> 的码</li>
+<li>将 <span class="math inline">\(R_i\)</span> 分解为 <span class="math inline">\(\sigma=\{S_1(U_1),S_2(U_2)\}\)</span></li>
+<li>其中 <span class="math inline">\(U_1=XA,U_2=U_i-A\)</span></li>
+<li>以 <span class="math inline">\(\sigma\)</span> 代替 <span class="math inline">\(R_i\)</span>，返回到 (2)</li>
+</ul></li>
+</ul></li>
+<li>一个例子</li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520152425047.png" style="zoom:50%;"></p>
+<h3 id="丢失函数依赖的-bcnf-分解">丢失函数依赖的 BCNF 分解</h3>
+<ul>
+<li>若要求分解保持函数依赖，那么分解后的模式总可以达到 3NF，但不一定能达到 BCNF</li>
+<li>例子
+<ul>
+<li><span class="math inline">\(U=(sno, tno, cno),F=\{(sno, cno)\to tno, tno\to cno\}\)</span></li>
+<li>不属于BCNF，分解为 <span class="math inline">\(U_1=(sno, tno),U_2=(tno, cno),F_2=\{tno\to cno\}\)</span></li>
+<li>丢失了函数依赖 <span class="math inline">\((sno, cno)\to tno\)</span></li>
+</ul></li>
+</ul>
+<h3 id="达到-3nf-保持函数依赖的分解">达到 3NF 保持函数依赖的分解</h3>
+<ul>
+<li>求 <span class="math inline">\(F\)</span> 的最小覆盖 <span class="math inline">\(F_{min}\)</span></li>
+<li>找出不在 <span class="math inline">\(F_{min}\)</span> 中出现的属性，将它们构成一个关系模式，并从 <span class="math inline">\(U\)</span> 中去掉它们（剩余属性仍记为<span class="math inline">\(U\)</span>）</li>
+<li>若有 <span class="math inline">\(X\to A\in F_{min}\)</span>，且 <span class="math inline">\(XA=U\)</span>，<span class="math inline">\(\rho=\{R\}\)</span>，算法终止</li>
+<li>对 <span class="math inline">\(F_{min}\)</span> 按具有相同左部的原则进行分组（设为 <span class="math inline">\(k\)</span> 组）
+<ul>
+<li>每一组函数依赖所涉及的属性全体为 <span class="math inline">\(U_i\)</span></li>
+<li>令 <span class="math inline">\(F_i\)</span> 为 <span class="math inline">\(F_{min}\)</span>在 <span class="math inline">\(U_i\)</span>上的投影</li>
+<li>则 <span class="math inline">\(\rho=\{R_1(U_1,F_1),\cdots,R_k(U_k,F_k)\}\)</span> 是 <span class="math inline">\(R(U,F)\)</span> 的一个保持函数依赖的分解</li>
+<li>并且每个 <span class="math inline">\(R_i(U_i,F_i)\in 3NF\)</span></li>
+</ul></li>
+</ul>
+<h4 id="例子-1">例子</h4>
+<ul>
+<li><span class="math inline">\(U=\{A,B,C,D,E\},F=\{A\to B,B\to C,AD\to E\}\)</span></li>
+<li>分组
+<ul>
+<li><span class="math inline">\(\{(AB),A\to B\}\)</span></li>
+<li><span class="math inline">\(\{(BC),B\to C\}\)</span></li>
+<li><span class="math inline">\(\{(ADE),AD\to E\}\)</span></li>
+</ul></li>
+</ul>
+<h3 id="同时保持函数依赖和无损连接的分解">同时保持函数依赖和无损连接的分解</h3>
+<ul>
+<li><span class="math inline">\(R(ABC;A\to C, B\to C)\)</span></li>
+<li>按保持无损连接分解，码为 <span class="math inline">\(AB\)</span>
+<ul>
+<li>分解为 <span class="math inline">\(\{AC;A\to C\},\{AB\}\)</span></li>
+<li>丢失了函数依赖 <span class="math inline">\(B\to C\)</span></li>
+</ul></li>
+<li>按保持函数依赖分解
+<ul>
+<li>进行分组 <span class="math inline">\(\{AC;A\to C\},\{BC;B\to C\}\)</span></li>
+<li>分解是有损的</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520155032495.png" style="zoom:50%;"></p>
+<ul>
+<li>如何在保持函数依赖的同时，进行无损分解？
+<ul>
+<li>从重构的表中删除不在原来表里的行</li>
+<li>怎么删除？和原来的表的码做一次连接</li>
+</ul></li>
+<li>上述分解为 <span class="math inline">\(\{AC;A\to C\},\{BC;B\to C\},\{AB\}\)</span></li>
+</ul>
+<h4 id="分解算法">分解算法</h4>
+<ul>
+<li>设 <span class="math inline">\(\rho=\{R_1(U_1,F_1),\cdots,R_k(U_k,F_k)\}\)</span> 是 <span class="math inline">\(R(U,F)\)</span> 的一个保持函数依赖的 3NF 分解</li>
+<li>设 <span class="math inline">\(X\)</span> 是 <span class="math inline">\(R(U,F)\)</span> 的码，若有某个 <span class="math inline">\(U_i,X\subseteq U_i\)</span> 则 <span class="math inline">\(\rho\)</span> 即为所求</li>
+<li>否则结果为 <span class="math inline">\(\rho\cup \{R^\ast(X,F_X)\}\)</span></li>
+</ul>
+<h2 id="其他">其他</h2>
+<h3 id="其他分解方式">其他分解方式</h3>
+<ul>
+<li>先将所有的关系模式打散，然后合并
+<ul>
+<li><span class="math inline">\(R_1(AB;\{A\to B\})\)</span></li>
+<li><span class="math inline">\(R_2(AC;\{A\to C\})\)</span></li>
+<li><span class="math inline">\(R_3(AD; \{A\to D\})\)</span></li>
+<li>合并为 <span class="math inline">\(R(ABCD;A\to B,A\to C;A\to D)\)</span></li>
+</ul></li>
+</ul>
+<h3 id="悬挂元组">悬挂元组</h3>
+<ul>
+<li><strong>泛关系</strong>
+<ul>
+<li><span class="math inline">\(R\)</span> 分解为 <span class="math inline">\(R_1,\cdots,R_n\)</span> ，则 <span class="math inline">\(r_1\bowtie r_2\bowtie\cdots\bowtie r_n\)</span> 称为泛关系</li>
+</ul></li>
+<li>在 <span class="math inline">\(r_i\)</span> 中出现，但在 <span class="math inline">\(\prod_{R_i}(r_1\bowtie r_2\bowtie\cdots\bowtie r_n)\)</span> 中没有出现的元组，称为<strong>悬挂元组</strong></li>
+<li>悬挂元组代表了不完整信息</li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520162648780.png" style="zoom:50%;"></p>
+<ul>
+<li>模式分解允许一些不完整信息在数据库中的记录</li>
+</ul>
+<h3 id="模式调优">模式调优</h3>
+<ul>
+<li>规范化为了消除异常，模式调优是追求性能</li>
+<li><span class="math inline">\(R(XYZ)\)</span> 还是 <span class="math inline">\(R_1(XY)\)</span> 和 <span class="math inline">\(R_2(XZ)\)</span>
+<ul>
+<li>一般情况下 <span class="math inline">\(R\)</span> 好于 <span class="math inline">\(R_1\)</span> 和 <span class="math inline">\(R_2\)</span>，在下面情况下后者较好：
+<ul>
+<li>大多数用户的存取分别在两个集合上
+<ul>
+<li><span class="math inline">\(Y\)</span> 经常访问，但是 <span class="math inline">\(Z\)</span> 很少访问</li>
+</ul></li>
+<li>属性 <span class="math inline">\(Y\)</span> 和 <span class="math inline">\(Z\)</span> 的值占用很大空间</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="冗余列">冗余列</h3>
+<ul>
+<li>把一个表里的某一列，复制到另一个表中</li>
+<li>反规范化的设计</li>
+<li>冗余列的好处：避免表连接</li>
+<li>模式1
+<ul>
+<li>Order1(supplier_ID,part_ID,quantity,supplier_address)</li>
+<li>Supplier(supplier_ID,supplier_name,supplier_address)</li>
+</ul></li>
+<li>模式2
+<ul>
+<li>Order2(supplier_ID,part_ID,quantity)</li>
+<li>Supplier(supplier_ID,supplier_name,supplier_address)</li>
+</ul></li>
+<li>冗余列可以减少复杂查询中的表连接操作</li>
+<li>模式 1 有利于经常查询供应某种零件的供应商地址</li>
+<li>模式 2 有利于新订单的插入</li>
+</ul>
+<h3 id="星形模式">星形模式</h3>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520163507285.png" style="zoom: 67%;"></p>
+<ul>
+<li>对于每个产品而言，产品分类是有冗余的</li>
+</ul>
+<h3 id="雪花模式星形模式的规范化">雪花模式：星形模式的规范化</h3>
+<ul>
+<li>不是好的设计</li>
+<li>虽然没有冗余，但是如果需要看某个类别的销售情况，需要通过好几步才能实现，不直观，速度慢</li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520163631550.png" style="zoom:50%;"></p>
+<h3 id="冗余与分解">冗余与分解</h3>
+<ul>
+<li>分解通常使得对复杂查询的回答的效率更差，因为在查询求值期间必须执行额外的连接</li>
+<li>分解使得对简单查询的回答更有效，因为这种查询通常涉及相同关系的一小部分属性</li>
+<li>分解通常使得简单的更新事务更有效</li>
+<li>分解能降低存储空间的要求，因为它一般能消除冗余数据</li>
+<li>如果冗余级别低，则分解会增加存储的需求</li>
+</ul>
+<h3 id="垂直划分">垂直划分</h3>
+<ul>
+<li>将经常同时访问的属性放在同一个表里</li>
+<li>对每个查询，我们统计不同属性之间被同时访问的次数</li>
+<li><strong>事务-属性交叉矩阵</strong></li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520164000533.png"></p>
+<ul>
+<li>统计结果</li>
+<li><strong>属性关联矩阵</strong></li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520164045282.png"></p>
+<ul>
+<li><strong>属性带权关联图</strong></li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520164113081.png" style="zoom:50%;"></p>
+<ul>
+<li><strong>图分割</strong></li>
+</ul>
+<p><img src="/2021/05/19/DB/CLJ/05-2/image-20210520164130508.png" style="zoom:67%;"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/14/DB/CLJ/05-1/" rel="prev" title="数据库概论.陈立军.05.关系规范化(2)">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.05.关系规范化(2)
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

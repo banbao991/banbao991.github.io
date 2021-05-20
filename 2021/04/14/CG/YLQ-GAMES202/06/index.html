@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="实时环境光照、PRT、球面谐波函数(SH)、基函数、DIffuse&#x2F;Glossy 物体的 PRT、预计算、小波">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES202.闫令琪.06.实时环境光照(2)">
+<meta property="og:url" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="实时环境光照、PRT、球面谐波函数(SH)、基函数、DIffuse&#x2F;Glossy 物体的 PRT、预计算、小波">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210414115518543.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210414122309086.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210414124153911.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/1.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210414140316760.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210414144553229.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210414141140164.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210414142001805.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210424213131713.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210424215319352.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210424220500394.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/wavelet.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210424221956291.png">
+<meta property="article:published_time" content="2021-04-14T02:50:51.000Z">
+<meta property="article:modified_time" content="2021-04-24T14:23:45.141Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/image-20210414115518543.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES202.闫令琪.06.实时环境光照(2) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E7%8E%AF%E5%A2%83%E5%85%89%E7%85%A7"><span class="nav-text">实时环境光照</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#shadow-from-environment-lighting"><span class="nav-text">Shadow From Environment Lighting</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E7%8E%AF%E5%A2%83%E5%85%89%E7%85%A7%E7%9A%84%E4%B8%8D%E5%90%8C%E8%A7%92%E5%BA%A6%E7%90%86%E8%A7%A3"><span class="nav-text">对环境光照的不同角度理解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E5%85%89%E6%BA%90"><span class="nav-text">多光源</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%87%87%E6%A0%B7"><span class="nav-text">采样</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%B8%9A%E7%95%8C%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text">工业界的解决方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E7%A0%94%E7%A9%B6"><span class="nav-text">相关研究</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%B8%9A%E7%95%8C"><span class="nav-text">工业界</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%91%E5%9F%9F%E4%B8%8E%E6%BB%A4%E6%B3%A2"><span class="nav-text">频域与滤波</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%82%85%E9%87%8C%E5%8F%B6%E5%8F%98%E6%8D%A2"><span class="nav-text">傅里叶变换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BB%A4%E6%B3%A2%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-text">滤波的理解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E5%87%BD%E6%95%B0"><span class="nav-text">基函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%90%83%E9%9D%A2%E8%B0%90%E6%B3%A2%E5%87%BD%E6%95%B0"><span class="nav-text">球面谐波函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%85%89%E7%85%A7%E4%B8%8B-diffuse-%E7%89%A9%E4%BD%93%E7%9A%84-shading"><span class="nav-text">环境光照下 diffuse 物体的 shading</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90-brdf"><span class="nav-text">分析 BRDF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%B0%E8%AE%A1%E5%85%89%E7%85%A7"><span class="nav-text">估计光照</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-text">实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sh%E8%AF%84%E4%BB%B7"><span class="nav-text">SH评价</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#diego"><span class="nav-text">Diego</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sh-%E7%9A%84%E6%80%A7%E8%B4%A8"><span class="nav-text">SH 的性质</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#prt"><span class="nav-text">PRT</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#prt-%E8%AE%BA%E6%96%87"><span class="nav-text">PRT 论文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prt-diffuse-%E7%89%A9%E4%BD%93"><span class="nav-text">PRT Diffuse 物体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prt-%E5%8F%A6%E5%A4%96%E4%B8%80%E7%A7%8D%E9%A2%84%E8%AE%A1%E7%AE%97%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-text">PRT 另外一种预计算的方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prt-glossy-%E7%89%A9%E4%BD%93"><span class="nav-text">PRT Glossy 物体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#interreflection-and-caustics"><span class="nav-text">Interreflection and caustics</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E8%BF%9B%E8%A1%8C%E9%A2%84%E8%AE%A1%E7%AE%97"><span class="nav-text">怎么进行预计算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prt-%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">PRT 的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prt-%E7%9A%84%E6%94%B9%E8%BF%9B"><span class="nav-text">PRT 的改进</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%9A%84%E4%B8%80%E4%BA%9B%E5%9F%BA%E5%87%BD%E6%95%B0"><span class="nav-text">其他的一些基函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%8F%E6%B3%A2"><span class="nav-text">小波</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%8F%E6%B3%A2-vs-%E7%90%83%E8%B0%90"><span class="nav-text">小波 vs 球谐</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES202.闫令琪.06.实时环境光照(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-14 10:50:51" itemprop="dateCreated datePublished" datetime="2021-04-14T10:50:51+08:00">2021-04-14</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-24 22:23:45" itemprop="dateModified" datetime="2021-04-24T22:23:45+08:00">2021-04-24</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES202/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES202</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">实时环境光照、PRT、球面谐波函数(SH)、基函数、DIffuse/Glossy 物体的 PRT、预计算、小波</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
+</ul>
+<h1 id="实时环境光照">实时环境光照</h1>
+<ul>
+<li>Precomputed Radiance Transfer</li>
+</ul>
+<h2 id="shadow-from-environment-lighting">Shadow From Environment Lighting</h2>
+<ul>
+<li>怎么从环境光照中得到阴影</li>
+<li>对于实时渲染而言，非常难</li>
+</ul>
+<h3 id="对环境光照的不同角度理解">对环境光照的不同角度理解</h3>
+<h4 id="多光源">多光源</h4>
+<ul>
+<li>可以把环境光理解为四面八方来的光照，理解为每个方向的都有光源</li>
+<li>环境光照被描述为一个 <code>many-light problem</code>
+<ul>
+<li>如果使用 SM 的话，没个光源需要一个 SM</li>
+<li>代价很高</li>
+</ul></li>
+</ul>
+<h4 id="采样">采样</h4>
+<ul>
+<li>可以通过采样估计，但是不知道 visibility 项（基于光栅化成像方法），采样很盲目</li>
+<li>之前的不等式（约等式）拆分不容易（visibility 不能剥离开来），因为有环境光项的存在
+<ul>
+<li>support 是整个半球</li>
+<li>变化不一定 smooth</li>
+</ul></li>
+</ul>
+<h3 id="工业界的解决方案">工业界的解决方案</h3>
+<ul>
+<li>只处理最亮的几个光源</li>
+<li>环境光遮蔽（AO）
+<ul>
+<li>只能处理 constant environment lighting 情况下的光照
+<ul>
+<li>全白、全灰等</li>
+</ul></li>
+<li>否则估计不准</li>
+</ul></li>
+</ul>
+<h3 id="相关研究">相关研究</h3>
+<ul>
+<li>Imperfect shadow maps
+<ul>
+<li>相对好懂</li>
+</ul></li>
+<li>Light cuts
+<ul>
+<li>反射物当作光源、光源归类</li>
+</ul></li>
+<li>RTRT (might be the ultimate solution)
+<ul>
+<li>Real-Time Ray Tracing</li>
+</ul></li>
+<li>Precomputed radiance transfer
+<ul>
+<li>能够得到非常准确得到环境光的阴影</li>
+</ul></li>
+</ul>
+<h3 id="工业界">工业界</h3>
+<ul>
+<li>游戏引擎使用的方法和我们学的差不多，但是在视线上可能融合了很多种方法</li>
+<li>工业界怎么实现的又快又好才是重点</li>
+</ul>
+<h2 id="频域与滤波">频域与滤波</h2>
+<h3 id="傅里叶变换">傅里叶变换</h3>
+<ul>
+<li>傅里叶变换 Foutier Transform</li>
+<li>任意函数都可以展开为 sin/cos 函数的线性组合
+<ul>
+<li><strong>基函数</strong></li>
+</ul></li>
+<li>频率高，变化快</li>
+<li>图像主要是低频区域</li>
+<li>高频区域是细节</li>
+<li>滤波器：去除某些频率的内容，保留感兴趣的频率</li>
+<li>时域卷积 <span class="math inline">\(\leftrightarrow\)</span> 频域相乘</li>
+<li>模糊
+<ul>
+<li>时域卷积</li>
+<li>频域低通滤波（乘一个低通滤波器）</li>
+</ul></li>
+</ul>
+<h3 id="滤波的理解">滤波的理解</h3>
+<ul>
+<li>乘积的积分可以理解为一种滤波
+<ul>
+<li>Any product integral can be considered as filtering</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\int_{\Omega}f(x)g(x)dx
+\]</span></p>
+<ul>
+<li>低频：smooth
+<ul>
+<li>Low frequency == smooth function / slow changes / etc</li>
+</ul></li>
+<li>上面积分得到的结果的频率是积分项中频率较低的一项
+<ul>
+<li>由较低的一项决定</li>
+<li>The frequency of the integral is the lowest of any individual’s</li>
+<li><strong>从频域上的相乘理解</strong></li>
+</ul></li>
+</ul>
+<h3 id="基函数">基函数</h3>
+<ul>
+<li>Basis Functions</li>
+<li>一组线性无关的函数，任意函数都可以由这组函数线性表出
+<ul>
+<li>A set of functions that can be used to represent other functions in general</li>
+</ul></li>
+<li>基函数正交</li>
+<li>傅里叶变换中的 <span class="math inline">\(\sin/\cos/\cdots\)</span></li>
+<li>泰勒展开中的多项式 <span class="math inline">\(x/x^2/\cdots\)</span></li>
+</ul>
+<h2 id="球面谐波函数">球面谐波函数</h2>
+<ul>
+<li>Spherical Harmonics</li>
+<li>A set of 2D basis functions defined on the sphere</li>
+<li>一系列的的二维函数，定义在球面上
+<ul>
+<li>方向函数 <span class="math inline">\((\theta,\phi)\)</span></li>
+</ul></li>
+<li>球面谐波函数的可视化
+<ul>
+<li>每一行的频率是一样的，第 <span class="math inline">\(l\)</span> 阶的 SH</li>
+<li><span class="math inline">\(m=2l+1\)</span></li>
+<li>前 <span class="math inline">\(n\)</span> 阶一共有 <span class="math inline">\(n^2\)</span> 个基函数</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210414115518543.png" style="zoom:67%;"></p>
+<ul>
+<li>上图中
+<ul>
+<li>颜色表示值（白/黑）</li>
+<li>值的变换快慢是频率</li>
+</ul></li>
+<li>为什么不使用 2D 的傅里叶变换
+<ul>
+<li>不适合球面，可能最终会在球面上产生一条缝</li>
+<li>SH 定义在球面上，因此在球面上的变换更加 smooth</li>
+</ul></li>
+<li>每一个基函数可以被勒让德多项式定义
+<ul>
+<li>Each SH basis function <span class="math inline">\(B(\omega_i)\)</span> is associated with a (Legendre) polynomial</li>
+</ul></li>
+<li><strong>投影操作</strong>
+<ul>
+<li>给定任意一个的定义在球面上的函数 <span class="math inline">\(f(w)\)</span>，其展开为 SH 表示的系数为</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+c_i=\int_{\Omega}f(\omega)B_i(\omega_i)\mathrm{d}(\omega)
+\]</span></p>
+<ul>
+<li>恢复函数的的时候，可以直接保留前几项（例如前 4 阶）
+<ul>
+<li>类似于傅里叶变换中保留前几项，就可以恢复出一个相对可以接受的结果</li>
+</ul></li>
+</ul>
+<h2 id="环境光照下-diffuse-物体的-shading">环境光照下 diffuse 物体的 shading</h2>
+<ul>
+<li>不考虑 shadow</li>
+<li>上一节课：Prefiltering + single query = no filtering + multiple queries</li>
+<li>我们的想法是通过i分析 diffuse 的 BDRF ，发现这是个低频成分，于是我们不需要保留光照太多的高频信息，于是我们可以指考虑光照在球面谐波函数中的前几项即可</li>
+</ul>
+<h3 id="分析-brdf">分析 BRDF</h3>
+<ul>
+<li><strong>diffuse</strong> 物体的 BRDF 表现的效果就是一个低通滤波器（球面上）
+<ul>
+<li><strong>相关</strong>，卷积</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+E_{lm}=A_lL_{lm}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(A_l\)</span> 为系数（<span class="math inline">\(l\)</span> 为偶数）</li>
+</ul>
+<p><span class="math display">\[
+A_l=2\pi\dfrac{(-1)^{\frac{l}{2}-1}}{(l+2)(l-1)}\left[\dfrac{l!}{2^l(\frac{l}{2}!)^2}\right]
+\]</span></p>
+<ul>
+<li>使用前 3 阶的 SH 就能够很好的恢复
+<ul>
+<li>因为 diffuse 的 BRDF 十分低频，最终得到的结果肯定也是低频项占据主导</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210414122309086.png" style="zoom:50%;"></p>
+<h3 id="估计光照">估计光照</h3>
+<ul>
+<li>因为 diffuse 的 BRDF 十分低频，最终能够得到的结果也会是一个低频信号
+<ul>
+<li>我们要计算的积分最终结果是 BRDF 和光照的卷积</li>
+</ul></li>
+<li>没必要保留光照太多的高频信息</li>
+</ul>
+<h3 id="实验">实验</h3>
+<ul>
+<li>ground truth</li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210414124153911.png"></p>
+<ul>
+<li>使用前 1/2/3 阶的 SH 进行恢复光照，然后最终 shading 的结果</li>
+<li>RMS ERROR：25%，8%，1%</li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/1.png"></p>
+<h3 id="sh评价">SH评价</h3>
+<ul>
+<li>很适合描述低频的 BRDF、低频的光照</li>
+</ul>
+<h3 id="diego">Diego</h3>
+<ul>
+<li>两行代码获得博士学位</li>
+<li>引入球谐函数，引领了一个时代</li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210414140316760.png" style="zoom: 50%;"></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">surface float1 <span class="title">irradmat</span> <span class="params">(matrix4 M, float3 v)</span> </span>&#123;</span><br><span class="line">    float4 n = &#123;v , <span class="number">1</span>&#125; ;</span><br><span class="line">    <span class="keyword">return</span> dot(n , M*n) ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="sh-的性质">SH 的性质</h3>
+<ul>
+<li>orthonormal
+<ul>
+<li>正交</li>
+</ul></li>
+<li>simple projection/reconstruction
+<ul>
+<li>投影/重建好算</li>
+</ul></li>
+<li>simple rotation
+<ul>
+<li>旋转球面上的任意函数，等价于旋转基函数</li>
+<li>旋转基函数，新的基函数可以被同阶的其他基函数线性表出</li>
+<li>因此旋转函数，相当于修改基函数的系数</li>
+</ul></li>
+<li>simple convolution</li>
+<li>few basis functions: low freqs
+<ul>
+<li>使用较小阶的基函数就能够得到不错的效果（低频）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210414144553229.png"></p>
+<h2 id="prt">PRT</h2>
+<ul>
+<li>Precomputed Radiance Transfer</li>
+<li>渲染方程</li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210414141140164.png" style="zoom:50%;"></p>
+<ul>
+<li>右下角中的红点对应的 3 张图</li>
+<li>复杂度很高，对于每一个点，需要取遍 6 张贴图中的所有点
+<ul>
+<li><span class="math inline">\(6\ast64\ast64\)</span></li>
+</ul></li>
+</ul>
+<h3 id="prt-论文">PRT 论文</h3>
+<ul>
+<li>Precomputed Radiance Transfer for Real-Time Rendering in Dynamic, Low-Frequency Lighting Environments [Sloan 02]</li>
+<li>SIGGRAPH 2002</li>
+<li>利用球谐函数的性质进行预计算</li>
+<li>用另一种角度看待渲染方程</li>
+<li><strong>我们假设场景是不变的，改变的只是光照</strong>
+<ul>
+<li>光照的位置、光照的颜色</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210414142001805.png" style="zoom:67%;"></p>
+<ul>
+<li>把 Lighting 表示为基函数</li>
+<li>场景是不变的，因此在预计算的时候把 light transport 先计算出来，然后用基函数表示</li>
+</ul>
+<h3 id="prt-diffuse-物体">PRT Diffuse 物体</h3>
+<ul>
+<li>将 diffuse 常数项从渲染方程中提取出来</li>
+</ul>
+<p><span class="math display">\[
+L(\boldsymbol{o})=\rho\int_{\Omega}L(\boldsymbol{i})V(\boldsymbol{i})\max(0,\boldsymbol{n}\cdot \boldsymbol{i})\mathrm{d}\boldsymbol{i}
+\]</span></p>
+<ul>
+<li>光照使用 SH 表示</li>
+</ul>
+<p><span class="math display">\[
+L(\boldsymbol{i})\approx\sum l_iB_i(\boldsymbol{i})
+\]</span></p>
+<ul>
+<li>渲染方程变为</li>
+</ul>
+<p><span class="math display">\[
+L(\boldsymbol{o})=\rho\sum l_i{\color{red}\int_{\Omega}B_i(\boldsymbol{i})V(\boldsymbol{i})\max(0,\boldsymbol{n}\cdot \boldsymbol{i})\mathrm{d}\boldsymbol{i}}
+\]</span></p>
+<ul>
+<li>红色部分与光照无关，可以预计算，记作 <span class="math inline">\(T_i\)</span>，渲染方程变为
+<ul>
+<li>预计算的话不考虑时间</li>
+<li>Reduce rendering computation to <strong>dot product</strong></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+L(\boldsymbol{o})=\rho\sum l_iT_i
+\]</span></p>
+<ul>
+<li><strong>场景是不能动的</strong>，因为动了，visibility 项就变了，预计算失效</li>
+<li>能不能解决光源移动的问题？
+<ul>
+<li>可以，SH 的性质，如果光源做了一个旋转操作，很快就能够得到新的 SH</li>
+</ul></li>
+</ul>
+<h3 id="prt-另外一种预计算的方式">PRT 另外一种预计算的方式</h3>
+<ul>
+<li>渲染方程</li>
+</ul>
+<p><span class="math display">\[
+L_o(p,\omega_o)=
+\int_{\Omega^+}{\color{red}L_i(p,\omega_i)}{\color{blue}f_r(p,\omega_i,\omega_o)\cos\theta_i V(p,\omega_i)}d\omega_i=\int_{\Omega^+}{\color{red}L(\omega_i)}{\color{blue}T(\omega_i)}d\omega_i
+\]</span></p>
+<ul>
+<li>把 <strong>lighting</strong> 和 <strong>light transport</strong> 都用基函数表示出来</li>
+</ul>
+<p><span class="math display">\[
+L(\omega_i)\approx\sum_{p}c_pB_p(\omega_i)
+\]</span></p>
+<p><span class="math display">\[
+T(\omega_i)\approx\sum_{q}t_qB_q(\omega_i)
+\]</span></p>
+<ul>
+<li>重新表示渲染方程</li>
+</ul>
+<p><span class="math display">\[
+L_o(p,\omega_o)=\sum_{p}\sum_{q}c_pt_q\int_{\Omega^+}B_p(\omega_i)B_q(\omega_i)d\omega_i
+\]</span></p>
+<ul>
+<li>似乎看起来是 <span class="math inline">\(O(n^2)\)</span> 的，但是由于 SH 的正交性，只有 <span class="math inline">\(p=q\)</span> 的情况下才不为 0</li>
+</ul>
+<h3 id="prt-glossy-物体">PRT Glossy 物体</h3>
+<ul>
+<li>diffuse 物体，BRDF 为常数</li>
+<li>glossy 物体，4D 的 BRDF
+<ul>
+<li>和 diffuse 的区别，上面 light transport（蓝色项）还与方向矢量 <span class="math inline">\(o\)</span> 有关（与视点有关）</li>
+</ul></li>
+<li>因此就算是使用了基函数，结果还是和 <span class="math inline">\(o\)</span> 相关</li>
+</ul>
+<p><span class="math display">\[
+L(o)\approx\sum_{i} l_iT_i(o)
+\]</span></p>
+<ul>
+<li>能否将 <span class="math inline">\(T_i(o)\)</span> 也用基函数表示</li>
+</ul>
+<p><span class="math display">\[
+T_i(o)\approx\sum_{j} t_{ij}B_j(o)
+\]</span></p>
+<p><span class="math display">\[
+L(o)\approx\sum_{i}\sum_{j} l_it_{ij}B_j(o)
+\]</span></p>
+<ul>
+<li>这样看来，我们需要把 light transport 作为一个矩阵来看待（而不是之前的向量）</li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210424213131713.png" style="zoom: 50%;"></p>
+<ul>
+<li>存储开销变大了，计算开销也变大了</li>
+<li>SH 阶数
+<ul>
+<li>diffuse 使用 3 阶 SH 就够了</li>
+<li>glossy 需要一些高频成分，4 阶或者 5 阶</li>
+</ul></li>
+<li>非常高频，接近镜面的物体，PRT 无法解决
+<ul>
+<li>需要很高阶，而且效果不好</li>
+<li>可以直接采样</li>
+</ul></li>
+</ul>
+<h3 id="interreflection-and-caustics">Interreflection and caustics</h3>
+<ul>
+<li>光路 transport paths
+<ul>
+<li><span class="math inline">\(LE\)</span>（直接看到光源）
+<ul>
+<li>light - eye</li>
+</ul></li>
+<li><span class="math inline">\(LGE\)</span>（直接反射）
+<ul>
+<li>light - glossy - eye</li>
+</ul></li>
+<li><span class="math inline">\(L(D|G)\ast E\)</span></li>
+<li><span class="math inline">\(LS\ast(D|G)\ast E\)</span>
+<ul>
+<li>caustics</li>
+</ul></li>
+</ul></li>
+<li>PRT 在做完预计算之后，实际渲染的过程复杂度和 transport 的复杂度是无关的</li>
+<li>也就是说 PRT 可以模拟任意复杂的 transport</li>
+</ul>
+<h3 id="怎么进行预计算">怎么进行预计算</h3>
+<ul>
+<li><strong>基函数看作是光照</strong></li>
+<li>对于 diffuse 物体</li>
+</ul>
+<p><span class="math display">\[
+T_i=\int_{\Omega}B_i(\boldsymbol{i})V(\boldsymbol{i})\max(0,\boldsymbol{n}\cdot \boldsymbol{i})\mathrm{d}\boldsymbol{i}
+\]</span></p>
+<ul>
+<li>形式上还是和 rendering equation，因此可以把基函数看作是某种光照</li>
+<li>因此，预计算的过程可以看作是一个离线渲染的过程，具体方法可以用之前提到的其他算法</li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210424215319352.png" style="zoom:60%;"></p>
+<h3 id="prt-的问题">PRT 的问题</h3>
+<ul>
+<li>不太适用于高频的光照（需要用很多的高阶的基函数）</li>
+<li>要求场景是固定的</li>
+<li>材质也需要是固定的</li>
+<li>存储开销</li>
+</ul>
+<h3 id="prt-的改进">PRT 的改进</h3>
+<ul>
+<li>More basis functions
+<ul>
+<li>其他的基函数</li>
+</ul></li>
+<li>dot product =&gt; triple products
+<ul>
+<li>预计算更多的部分，例如 BRDF、visibility 等</li>
+</ul></li>
+<li>Static scene =&gt; dynamic scene</li>
+<li>Fix material =&gt; dynamic material</li>
+<li>Other effects: translucent, hair, ...</li>
+<li>Precomputation =&gt; analytic computation
+<ul>
+<li>解析解，例如 split sum</li>
+</ul></li>
+</ul>
+<h2 id="其他的一些基函数">其他的一些基函数</h2>
+<ul>
+<li>Spherical Harmonics (SH)</li>
+<li>Wavelet</li>
+<li>Zonal Harmonics</li>
+<li>Spherical Gaussian (SG)</li>
+<li>Piecewise Constant</li>
+</ul>
+<h3 id="小波">小波</h3>
+<ul>
+<li>Wavelet
+<ul>
+<li>有很多种</li>
+</ul></li>
+<li>2D Haar Wavelet</li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210424220500394.png"></p>
+<ul>
+<li>小波定义在图像块上的，不同的小波定义域也不相同
+<ul>
+<li>灰色部分就是没有定义的地方</li>
+</ul></li>
+<li>小波变换之后，很多基函数对应的系数为 0
+<ul>
+<li>保留最大的多少个不为 0 的项即可</li>
+<li>非线性估计</li>
+</ul></li>
+<li><strong>对全频率的表示</strong></li>
+<li>由于小波是定义在平面上的，因此我们使用 cube map 去表示环境光照
+<ul>
+<li>对每个面进行小波变换</li>
+<li>将系数最大的几个项存在右上、右下、左下部分，对剩余的部分继续进行小波变换</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/wavelet.png"></p>
+<ul>
+<li>JPEG 文件使用了 DCT（离散余弦变换）去进行图像压缩
+<ul>
+<li>和小波变换比较像</li>
+</ul></li>
+</ul>
+<h3 id="小波-vs-球谐">小波 vs 球谐</h3>
+<p><img src="/2021/04/14/CG/YLQ-GAMES202/06/image-20210424221956291.png" style="zoom:50%;"></p>
+<ul>
+<li>小波变换
+<ul>
+<li>保留了一些高频信息，产生很多高频阴影</li>
+<li><strong>不支持快速旋转光照</strong></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/13/CG/Papers/2012/VCM/" rel="prev" title="(论文) Light Transport Simulation with Vertex Connection and Merging">
+                  <i class="fa fa-chevron-left"></i> (论文) Light Transport Simulation with Vertex Connection and Merging
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/20/DB/CLJ/04-1/" rel="next" title="数据库概论.陈立军.04.SQL 索引">
+                  数据库概论.陈立军.04.SQL 索引 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

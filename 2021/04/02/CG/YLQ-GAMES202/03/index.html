@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="Shadow Mapping、软阴影、PCF、PCSS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES202.闫令琪.03.实时阴影(1)">
+<meta property="og:url" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Shadow Mapping、软阴影、PCF、PCSS">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407160110616.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407160246926.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407161249651.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407161700013.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407163438738.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407171749439.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407172053852.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407173321583.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407173924706.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407175007126.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407175256445.png">
+<meta property="og:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407181810295.png">
+<meta property="article:published_time" content="2021-04-02T07:13:51.000Z">
+<meta property="article:modified_time" content="2021-04-16T06:43:54.696Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/image-20210407160110616.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES202.闫令琪.03.实时阴影(1) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#real-time-shadows"><span class="nav-text">Real-Time Shadows</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#shadow-mapping"><span class="nav-text">Shadow Mapping</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%AD%A5%E9%AA%A4"><span class="nav-text">算法步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E4%BB%B7"><span class="nav-text">评价</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E7%82%B9"><span class="nav-text">优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%BA%E7%82%B9"><span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E9%81%AE%E6%8C%A1%E9%97%AE%E9%A2%98"><span class="nav-text">自遮挡问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text">解决方案</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%95%E5%85%A5-bias-%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">引入 bias 带来的问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#second-depth-shadow-mapping"><span class="nav-text">second-depth shadow mapping</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B5%B0%E6%A0%B7%E9%97%AE%E9%A2%98"><span class="nav-text">走样问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sm-%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86"><span class="nav-text">SM 的数学原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E4%B8%8D%E7%AD%89%E5%BC%8F"><span class="nav-text">常用不等式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rtr-%E4%B8%AD%E7%9A%84%E4%B8%80%E4%B8%AA%E5%B8%B8%E7%94%A8%E8%BF%91%E4%BC%BC"><span class="nav-text">RTR 中的一个常用近似</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E4%BA%8E%E6%B8%B2%E6%9F%93%E6%96%B9%E7%A8%8B"><span class="nav-text">应用于渲染方程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#shadow-mapping-%E7%9A%84%E5%8E%9F%E7%90%86"><span class="nav-text">shadow mapping 的原理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pcss"><span class="nav-text">PCSS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AF%E9%98%B4%E5%BD%B1"><span class="nav-text">软阴影</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pcf"><span class="nav-text">PCF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pcss-1"><span class="nav-text">PCSS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pcss-%E6%B5%81%E7%A8%8B"><span class="nav-text">PCSS 流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-text">问题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-text">其他</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/02/CG/YLQ-GAMES202/03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES202.闫令琪.03.实时阴影(1)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-02 15:13:51" itemprop="dateCreated datePublished" datetime="2021-04-02T15:13:51+08:00">2021-04-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-16 14:43:54" itemprop="dateModified" datetime="2021-04-16T14:43:54+08:00">2021-04-16</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES202/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES202</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Shadow Mapping、软阴影、PCF、PCSS</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
+</ul>
+<h1 id="real-time-shadows">Real-Time Shadows</h1>
+<ul>
+<li>实时阴影</li>
+</ul>
+<h2 id="shadow-mapping">Shadow Mapping</h2>
+<ul>
+<li>SM</li>
+<li>经典的两趟算法
+<ul>
+<li>2-pass</li>
+</ul></li>
+</ul>
+<h3 id="算法步骤">算法步骤</h3>
+<ul>
+<li>第一遍渲染，转换到以光源为视点的观察坐标系，记录下深度图</li>
+<li>第二遍正常渲染，对每个点，转换到以光源为视点的观察坐标系中判断可见性
+<ul>
+<li>判断可见性的时候深度一致即可，可以使用原来的线性距离或者投影之后的 z 值</li>
+</ul></li>
+</ul>
+<h3 id="评价">评价</h3>
+<ul>
+<li>图像空间的算法</li>
+</ul>
+<h4 id="优点">优点</h4>
+<ul>
+<li>绘制阴影的时候，不需要直到场景的几何信息</li>
+</ul>
+<h4 id="缺点">缺点</h4>
+<ul>
+<li>artifacts
+<ul>
+<li>self occlusion 自遮挡</li>
+<li>aliasing 走样</li>
+</ul></li>
+</ul>
+<h3 id="自遮挡问题">自遮挡问题</h3>
+<ul>
+<li>self occlusion</li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407160110616.png" style="zoom: 33%;"></p>
+<ul>
+<li>地板上的平面出现了自遮挡现象</li>
+<li>由于数值精度造成的（分辨率）
+<ul>
+<li>shadow map 精度有限，投射出去就是图中的红色小片</li>
+<li>例如蓝色的视线应该是能看到红色的部分的，但是由于精度问题，shadow map 中记录的是橙色的值，导致我们判断红色部分不可见，从而产生自遮挡现象</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407160246926.png" style="zoom:67%;"></p>
+<ul>
+<li>如果光线和物体表面垂直，此时没有这个问题
+<ul>
+<li>光线和法线重合</li>
+</ul></li>
+<li>如果光线和物体表面成一个很小的角度时，自遮挡问题很严重
+<ul>
+<li>光线和法线夹角很大</li>
+<li>grazing angle</li>
+</ul></li>
+</ul>
+<h4 id="解决方案">解决方案</h4>
+<ul>
+<li>增加一个 bias</li>
+<li>中间的黄色那段我们不算
+<ul>
+<li>也就是说我们对计算得到的深度减去一个 bias</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407161249651.png" style="zoom:50%;"></p>
+<ul>
+<li>一些技巧：动态的 bias
+<ul>
+<li>当光线和物体表面法线夹角比较大时，bias 也需要比较大</li>
+<li>当光线和物体表面法线夹角比较小时，bias 比较小即可</li>
+</ul></li>
+</ul>
+<h4 id="引入-bias-带来的问题">引入 bias 带来的问题</h4>
+<ul>
+<li>detached shadow
+<ul>
+<li>不接触的阴影</li>
+</ul></li>
+<li>鞋子部分的阴影消失了</li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407161700013.png" style="zoom: 33%;"></p>
+<ul>
+<li>工业界 100% 解决这个问题的方法现在还没有
+<ul>
+<li>解决方法还是通过找一个合适的 bias，让自遮挡和detached shadow 都不出现</li>
+<li>最简单的方式</li>
+</ul></li>
+<li>学术界的方法（工业界用的人少）
+<ul>
+<li>second-depth shadow mapping</li>
+</ul></li>
+</ul>
+<h4 id="second-depth-shadow-mapping">second-depth shadow mapping</h4>
+<ul>
+<li>不使用 bias</li>
+<li>记录最小深度的同时，还记录第二小的深度</li>
+<li>实际比较的时候使用这两个深度的平均值
+<ul>
+<li>能够解决之前的问题</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407163438738.png" style="zoom:50%;"></p>
+<ul>
+<li>这个方法的问题
+<ul>
+<li>每个物体都得是一个几何实体
+<ul>
+<li>不能是一张平面，如果是一张纸的话，得描述成一个很扁的长方体</li>
+</ul></li>
+<li>实现这个算法很困难，复杂度没有变化，但是无法并行</li>
+</ul></li>
+<li>一些 trick
+<ul>
+<li>如果是<strong>最外层</strong>的地板，在做第一趟渲染深度图的时候不渲染地板</li>
+</ul></li>
+<li>实时渲染不相信复杂度，只相信实时运行的速度
+<ul>
+<li>RTR does not trust in COMPLEXITY</li>
+<li>常数也很重要</li>
+</ul></li>
+</ul>
+<h3 id="走样问题">走样问题</h3>
+<ul>
+<li>阴影分辨率的问题</li>
+<li>高端的做法
+<ul>
+<li>给不同位置不同的分辨率</li>
+</ul></li>
+<li>软影</li>
+</ul>
+<h2 id="sm-的数学原理">SM 的数学原理</h2>
+<h3 id="常用不等式">常用不等式</h3>
+<ul>
+<li>Schwarz Inequality
+<ul>
+<li>施瓦茨不等式</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\left[\int_a^bf(x)g(x)dx\right]^2\le\int_a^bf^2(x)dx\cdot \int_a^bg^2(x)dx
+\]</span></p>
+<ul>
+<li>Minkowski Inequality
+<ul>
+<li>明可夫斯基不等式</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\left[\int_a^b\left[f(x)+g(x)\right]^2dx\right]^{\frac{1}{2}}\le\left[\int_a^bf^2(x)dx\right]^{\frac{1}{2}}\cdot \left[\int_a^bg^2(x)dx\right]^{\frac{1}{2}}
+\]</span></p>
+<ul>
+<li>实时渲染中我们关心<strong>约等</strong>，而不是<strong>不等</strong>
+<ul>
+<li>在近似条件下<strong>约等</strong></li>
+</ul></li>
+</ul>
+<h3 id="rtr-中的一个常用近似">RTR 中的一个常用近似</h3>
+<p><span class="math display">\[
+{\color{red}\int_\Omega f(x)g(x)dx\approx \dfrac{\int_\Omega f(x)dx}{\int_\Omega dx}\cdot {\int_\Omega g(x)dx}}
+\]</span></p>
+<ul>
+<li>分母的部分表示归一化常数
+<ul>
+<li>例如 <span class="math inline">\(f(x)=2\)</span></li>
+</ul></li>
+<li>什么时候近似正确呢？（满足一个条件即可）
+<ul>
+<li>small support
+<ul>
+<li><span class="math inline">\(g(x)\)</span> 的积分域很小的时候</li>
+</ul></li>
+<li>smooth integrand
+<ul>
+<li><span class="math inline">\(g(x)\)</span> 在积分域内变化不大</li>
+<li>图形学学术界中的 smooth：min、max 差别不大</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="应用于渲染方程">应用于渲染方程</h4>
+<ul>
+<li>忽略自发光</li>
+</ul>
+<p><span class="math display">\[
+L_o(p,\omega_o)=
+\int_{\Omega^+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)V(p,\omega_i)\cos\theta_id\omega_i
+\]</span></p>
+<ul>
+<li>利用上面的近似</li>
+</ul>
+<p><span class="math display">\[
+L_o(p,\omega_o)\approx
+\dfrac{\int_{\Omega^+}V(p,\omega_i)d\omega_i}{\int_{\Omega^+}d\omega_i}\cdot\int_{\Omega^+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos\theta_id\omega_i
+\]</span></p>
+<ul>
+<li>这样子的近似把可见性从 shading 部分抽离出来了
+<ul>
+<li>我们做 shadow mapping 方法的原理</li>
+</ul></li>
+</ul>
+<h4 id="shadow-mapping-的原理">shadow mapping 的原理</h4>
+<ul>
+<li>什么时候是准确的？</li>
+<li>small support
+<ul>
+<li>积分范围只有一个点 <span class="math inline">\(\to\)</span> 点光源、方向光源</li>
+<li>做硬阴影的数学基础</li>
+</ul></li>
+<li>smooth integrand
+<ul>
+<li>diffuse bsdf / constant radiance area lighting</li>
+<li>diffuse BSDF + 面光源</li>
+<li>解释 shadow mapping 算法不适合的场景
+<ul>
+<li>环境光照（可以理解为超级大的面光源）+ glossy BRDF</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="pcss">PCSS</h2>
+<ul>
+<li>Percentage Closer Soft Shadows</li>
+<li>生成软阴影的一种算法</li>
+</ul>
+<h3 id="软阴影">软阴影</h3>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407171749439.png"></p>
+<ul>
+<li>生活中的现象：太阳
+<ul>
+<li>半影</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407172053852.png" style="zoom:67%;"></p>
+<h3 id="pcf">PCF</h3>
+<ul>
+<li>Percentage Closer Filtering</li>
+<li>这个技术是用于于抗锯齿的，而不是用于生成软阴影的（PCSS 是用于生成软阴影的）</li>
+<li>Filtering the results of shadow comparisons
+<ul>
+<li>先采样，后做平均（filter）</li>
+</ul></li>
+<li>为什么不能先对 SM 做 filter，后采样？
+<ul>
+<li>Texture filtering just averages color components, i.e. you’ll get blurred shadow map first</li>
+<li>Averaging depth values, then comparing, you still get a binary visibility</li>
+<li>这样的操作最后得到的结果还是非 0 即 1 的，没有意义</li>
+</ul></li>
+<li>原来判断一个点的可见性是直接做一次判断
+<ul>
+<li>shading point 和在深度图中对应位置记录的深度值作比较</li>
+</ul></li>
+<li>PCF 的想法是对其周围的几个点都做阴影判断，最后把得到的结果平均起来
+<ul>
+<li>shading point 和在深度图中对应位置周围的几个点的深度作比较</li>
+<li>最后得到的可见性是一个 0 - 1 之间的值</li>
+<li><strong>可以加权</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407173321583.png" style="zoom:50%;"></p>
+<ul>
+<li>PCF 的结果</li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407173924706.png"></p>
+<ul>
+<li>时间开销：变成原来的 k 倍（k 为核的大小）</li>
+<li>filter size
+<ul>
+<li>small：sharper</li>
+<li>large：softer</li>
+<li>决定分辨率，核越大，量化越细</li>
+</ul></li>
+<li>核的大小应该怎么确定？</li>
+<li>核的大小决定了阴影的软硬程度，根据阴影的软硬需求动态调整核的大小</li>
+</ul>
+<h3 id="pcss-1">PCSS</h3>
+<ul>
+<li>PCF 的思想，动态调整核的大小</li>
+<li>什么地方需要硬阴影，什么地方需要硬阴影？</li>
+<li><strong>遮挡物和阴影的距离</strong>
+<ul>
+<li>距离越大，阴影越软</li>
+<li>距离越小，阴影越硬</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407175007126.png" style="zoom:50%;"></p>
+<ul>
+<li>根据上面的启发，定义一个距离函数，通过这个距离函数计算核的大小
+<ul>
+<li>Filter size &lt;-&gt; blocker distance</li>
+<li>More accurately, <strong>relative</strong> <strong>average</strong> projected blocker depth!</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407175256445.png" style="zoom: 40%;"></p>
+<ul>
+<li>根据相似三角形
+<ul>
+<li>penumbra：半影</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+w_{penumbra}=\dfrac{d_{Receiver}-d_{Blocker}}{d_{Blocker}}\cdot w_{Light}
+\]</span></p>
+<ul>
+<li>这个式子也符合我们生活中的观察
+<ul>
+<li>Blocker 离 Receiver 越近，那么阴影越硬（<span class="math inline">\(w_{penumbra}\)</span> 越小）</li>
+</ul></li>
+<li><span class="math inline">\(d_{Blocker}\)</span>：average blocker depth
+<ul>
+<li>blocker 可能并不是一个点，有一定的范围，计算他们的平均值</li>
+<li>看 SM 中对应位置有多少个点能挡住 shading point，求他们的平均值</li>
+</ul></li>
+<li>面光源本身是没法生成一个 SM 的，我们模拟面光源的软阴影，用一个点光源代替它生成一个 SM</li>
+</ul>
+<h4 id="pcss-流程">PCSS 流程</h4>
+<ul>
+<li>Step 1: Blocker search
+<ul>
+<li>getting the average blocker depth in a <strong>certain region</strong></li>
+<li>将这些点在 SM 中的深度值和我们计算出来的深度值作比较
+<ul>
+<li>感觉这个时候还是当作点光源操作</li>
+</ul></li>
+<li>考虑的是平均的 blocker 的深度，如果不是 blocker 则不管这个像素</li>
+</ul></li>
+<li>Step 2: Penumbra estimation
+<ul>
+<li>use the average blocker depth to determine <strong>filter size</strong></li>
+</ul></li>
+<li>Step 3: Percentage Closer Filtering</li>
+</ul>
+<h4 id="问题">问题</h4>
+<ul>
+<li>怎么决定第一步搜索 blocker 的范围</li>
+<li>可以设置为一个常数，例如 5x5</li>
+<li>可以通过启发式计算出搜索范围</li>
+</ul>
+<p><img src="/2021/04/02/CG/YLQ-GAMES202/03/image-20210407181810295.png" style="zoom:40%;"></p>
+<ul>
+<li>比较慢，时间开销大</li>
+</ul>
+<h2 id="其他">其他</h2>
+<ul>
+<li>多光源，如果利用 SM，需要对每个光源计算一个 SM</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/01/CG/YLQ-GAMES101/13/" rel="prev" title="GAMES101.闫令琪.13.动画与模拟(2)(Lecture 22)">
+                  <i class="fa fa-chevron-left"></i> GAMES101.闫令琪.13.动画与模拟(2)(Lecture 22)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/02/DB/CLJ/03/" rel="next" title="数据库概论.陈立军.03.关系模型">
+                  数据库概论.陈立军.03.关系模型 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="索引定义、索引的作用、聚簇索引、组合索引、覆盖索引、函数索引、如何选择索引">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.04.SQL 索引">
+<meta property="og:url" content="http://example.com/2021/04/20/DB/CLJ/04-1/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="索引定义、索引的作用、聚簇索引、组合索引、覆盖索引、函数索引、如何选择索引">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/20/DB/CLJ/04-1/image-20210420164754395.png">
+<meta property="og:image" content="http://example.com/2021/04/20/DB/CLJ/04-1/image-20210420164903887.png">
+<meta property="og:image" content="http://example.com/2021/04/20/DB/CLJ/04-1/image-20210420165801101.png">
+<meta property="og:image" content="http://example.com/2021/04/20/DB/CLJ/04-1/image-20210420170749539.png">
+<meta property="og:image" content="http://example.com/2021/04/20/DB/CLJ/04-1/image-20210420170015594.png">
+<meta property="og:image" content="http://example.com/2021/04/20/DB/CLJ/04-1/image-20210420174817557.png">
+<meta property="article:published_time" content="2021-04-20T08:32:30.000Z">
+<meta property="article:modified_time" content="2021-04-20T09:55:53.881Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/20/DB/CLJ/04-1/image-20210420164754395.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/20/DB/CLJ/04-1/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.04.SQL 索引 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#sql-%E7%B4%A2%E5%BC%95"><span class="nav-text">SQL 索引</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sql-%E7%B4%A2%E5%BC%95%E5%AE%9A%E4%B9%89"><span class="nav-text">SQL 索引定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%B4%A2%E5%BC%95"><span class="nav-text">为什么需要索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text">索引的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">索引的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ascdesc"><span class="nav-text">asc&#x2F;desc</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#unique"><span class="nav-text">unique</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#innodb_fill_factor"><span class="nav-text">InnoDB_fill_factor</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%A2%8E%E7%89%87"><span class="nav-text">索引碎片</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%81%9A%E7%B0%87%E7%B4%A2%E5%BC%95"><span class="nav-text">聚簇索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E9%80%89%E6%8B%A9%E5%BA%A6"><span class="nav-text">索引的选择度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%90%86%E6%83%B3%E9%80%89%E6%8B%A9%E5%BA%A6"><span class="nav-text">理想选择度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E9%99%85%E9%80%89%E6%8B%A9%E5%BA%A6"><span class="nav-text">实际选择度</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%84%E5%90%88%E7%B4%A2%E5%BC%95"><span class="nav-text">组合索引</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-text">应用场景</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A6%86%E7%9B%96%E7%B4%A2%E5%BC%95"><span class="nav-text">覆盖索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E7%B4%A2%E5%BC%95"><span class="nav-text">过滤索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E7%B4%A2%E5%BC%95"><span class="nav-text">函数索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E5%88%A0%E9%99%A4"><span class="nav-text">索引的删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E"><span class="nav-text">索引的使用说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-text">索引的选择</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/20/DB/CLJ/04-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.04.SQL 索引
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2021-04-20 16:32:30 / Modified: 17:55:53" itemprop="dateCreated datePublished" datetime="2021-04-20T16:32:30+08:00">2021-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">索引定义、索引的作用、聚簇索引、组合索引、覆盖索引、函数索引、如何选择索引</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="sql-索引">SQL 索引</h1>
+<h2 id="sql-索引定义">SQL 索引定义</h2>
+<ul>
+<li>索引是对数据库<strong>性能</strong>影响最关键的一个因素</li>
+</ul>
+<h3 id="为什么需要索引">为什么需要索引</h3>
+<ul>
+<li>关系表是个无序集合</li>
+<li>如果想要找到某一条记录需要逐行的进行扫描，开销非常大</li>
+<li>连接操作是嵌套循环的，开销为 <span class="math inline">\(n^2\)</span> 的</li>
+<li>索引：希望建立起一个有序结构</li>
+<li>RowID：（文件号，页面号，页内偏移号）
+<ul>
+<li>物理结构的存储</li>
+</ul></li>
+<li>索引实现的直观解释</li>
+</ul>
+<p><img src="/2021/04/20/DB/CLJ/04-1/image-20210420164754395.png" style="zoom:60%;"></p>
+<ul>
+<li>B+树</li>
+</ul>
+<p><img src="/2021/04/20/DB/CLJ/04-1/image-20210420164903887.png" style="zoom:47%;"></p>
+<h3 id="索引的作用">索引的作用</h3>
+<ul>
+<li>查找元组
+<ul>
+<li>查找特定行</li>
+</ul></li>
+<li>表连接
+<ul>
+<li>如果行上都有索引的话，可以基于索引进行归并连接</li>
+</ul></li>
+<li>排序
+<ul>
+<li>排序列上有索引的话，直接按照索引排序</li>
+</ul></li>
+<li>分组
+<ul>
+<li>取值相同的行分在一起</li>
+</ul></li>
+<li>保证唯一性
+<ul>
+<li>声明一个列是唯一的，系统在内部会自动创建一个唯一的索引来支持它</li>
+<li>有序结构中插入元素，判断是否唯一很快</li>
+</ul></li>
+</ul>
+<h3 id="索引的定义">索引的定义</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> [<span class="keyword">unique</span> ] index 索引名</span><br><span class="line">[ using&#123; btree| hash &#125; ]</span><br><span class="line"><span class="keyword">on</span> 表名(列名[<span class="keyword">asc</span><span class="operator">/</span><span class="keyword">desc</span>] [ , 列名 <span class="keyword">asc</span><span class="operator">/</span><span class="keyword">desc</span>]...)</span><br></pre></td></tr></table></figure>
+<h4 id="ascdesc">asc/desc</h4>
+<ul>
+<li>索引表中索引值的排序次序，缺省为 asc</li>
+<li>降序索引的用处</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> A, B <span class="keyword">from</span> R <span class="keyword">order</span> <span class="keyword">by</span> A <span class="keyword">asc</span>, B <span class="keyword">desc</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> index my_idx <span class="keyword">on</span> R(A <span class="keyword">asc</span>, B <span class="keyword">desc</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="unique">unique</h4>
+<ul>
+<li>唯一性索引</li>
+<li>不允许表中不同的行在索引列上取相同值</li>
+<li>若已有相同值存在，则系统给出相关信息，不建此索引</li>
+<li>系统拒绝违背唯一性的插入、更新</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> uidxTb(</span><br><span class="line">    col1 <span class="type">int</span> <span class="keyword">primary</span> <span class="keyword">key</span>,</span><br><span class="line">    col2 <span class="type">int</span> <span class="keyword">unique</span>,</span><br><span class="line">    col3 <span class="type">int</span>, <span class="keyword">unique</span> index (col3)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>效果是一致的，系统会建立三个索引</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> index <span class="keyword">from</span> uidxTb</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/04/20/DB/CLJ/04-1/image-20210420165801101.png"></p>
+<h4 id="innodb_fill_factor">InnoDB_fill_factor</h4>
+<ul>
+<li>fill_factor 指定在<strong>创建索引</strong>的过程中，各索引页的填满程度</li>
+<li>为何索引页要预留空间？
+<ul>
+<li>如果某个索引页填满，系统就必须花时间拆分该索引页，以便为新行腾出空间，这需要很大开销并造成索引碎片</li>
+<li>新来的索引码如果恰好在某个填满的索引页，则需要进行拆分，开销比较大</li>
+</ul></li>
+</ul>
+<h5 id="索引碎片">索引碎片</h5>
+<p><img src="/2021/04/20/DB/CLJ/04-1/image-20210420170749539.png" style="zoom:70%;"></p>
+<ul>
+<li>由于经常性的拆分操作，会导致页面逻辑顺序和物理顺序不一致的情况</li>
+<li>索引碎片的负面影响？
+<ul>
+<li>读盘较多</li>
+</ul></li>
+<li>如何消除索引碎片？
+<ul>
+<li>把索引删了重建</li>
+</ul></li>
+</ul>
+<h3 id="聚簇索引">聚簇索引</h3>
+<ul>
+<li>cluster：聚簇索引</li>
+<li>表中元组按索引项的值排序并<strong>物理地聚簇</strong>在一起</li>
+<li>一个基本表上只能建一个聚簇索引</li>
+<li><strong>聚簇索引使得逻辑访问顺序和物理存储顺序尽可能一致</strong></li>
+<li>聚簇索引的好处</li>
+</ul>
+<p><img src="/2021/04/20/DB/CLJ/04-1/image-20210420170015594.png" style="zoom:60%;"></p>
+<ul>
+<li>如果建立了聚簇索引，那么原来的表就没了，数据存储在聚簇索引的叶结点上</li>
+</ul>
+<h3 id="索引的选择度">索引的选择度</h3>
+<h4 id="理想选择度">理想选择度</h4>
+<ul>
+<li>索引的理想选择度 = 1 / 索引列的唯一值个数
+<ul>
+<li>集势：cardinality（NUM_DISTINCT）</li>
+</ul></li>
+<li>选择度越小，越适合建索引
+<ul>
+<li>例如某一列上只有两个值，对其建索引只能排除一半的数据，效率不高</li>
+</ul></li>
+</ul>
+<h4 id="实际选择度">实际选择度</h4>
+<ul>
+<li>针对特定的查询，系统会通过评估来确定是否启用现有的索引
+<ul>
+<li>如果满足条件的行太多了，则没必要启用索引</li>
+<li>索引中的行一定比原表少，但是对表查询和用索引查询效率是不一样的</li>
+<li><strong>对表查询是顺序扫描磁盘</strong>，对索引查询是随机读</li>
+<li><strong>顺序读性能比随机读高很多</strong></li>
+</ul></li>
+<li>索引的实际选择度 = 查询结果行数 / 总行数</li>
+<li>早期 Oracle 设定的选择度阈值为 20%</li>
+<li>现在：2%
+<ul>
+<li>顺序读的性能远远超过随机读的性能</li>
+</ul></li>
+<li>估计选择度
+<ul>
+<li>“=” 的索引选择度为 1 / NUM_DISTINCT</li>
+<li>“&lt;&gt;” 的索引选择度是多少？</li>
+<li>“&gt;=” 的索引选择度是多少？</li>
+<li>在分布不均匀的情况，如何估计选择度的大小？</li>
+</ul></li>
+<li>事先做一个直方图</li>
+</ul>
+<h3 id="组合索引">组合索引</h3>
+<ul>
+<li>组合索引：建立在多个属性列上的索引</li>
+<li>如何排序？按照哪一个索引来排序</li>
+<li>组合索引建立在 A, B, C 上, 索引码该如何排序？
+<ul>
+<li>先看 A， 再看 B，再看 C</li>
+</ul></li>
+<li>该索引只对检索条件中包含 A 列的查询起作用
+<ul>
+<li>根据组合索引的排序原则看出来</li>
+<li>只是对 A 有序，对 B、C 是无序 的</li>
+</ul></li>
+<li>那为什么需要组合索引呢？</li>
+</ul>
+<h4 id="应用场景">应用场景</h4>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> A, B, C</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> B <span class="keyword">from</span> R <span class="keyword">where</span> A <span class="operator">&gt;</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>加快查询：对 A 建索引，而不是 B
+<ul>
+<li>可能系统不使用索引，预估表查询更快</li>
+</ul></li>
+<li>更快：组合索引 A，B</li>
+<li>组合属性不需要回到原表中获取第二个属性，可以直接通过属性获取到</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> R <span class="keyword">where</span> A <span class="operator">&gt;</span> <span class="number">10</span> <span class="keyword">and</span> B <span class="operator">=</span> <span class="number">20</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>组合索引会把 B 放在前面，<strong>等于</strong>过滤能力上更强</li>
+</ul>
+<h3 id="覆盖索引">覆盖索引</h3>
+<ul>
+<li><strong>把 select 中的列也包含进索引中</strong>，这样就可以完全基于索引回答查询，避免对表的访问</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> index my_idx <span class="keyword">on</span> R(A) include B</span><br></pre></td></tr></table></figure>
+<ul>
+<li>与组合索引的区别
+<ul>
+<li><strong>B 值不出现在索引的中间结点上</strong>，只在叶结点上出现</li>
+</ul></li>
+</ul>
+<h3 id="过滤索引">过滤索引</h3>
+<ul>
+<li>在索引的定义中加入 where 语句，索引中只包括那些满足过滤条件的列值</li>
+<li>例如在数据分布不均匀的条件下，对数据少的部分建索引</li>
+<li>例子：女生很少的场景</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> index my_idxon S(sex) <span class="keyword">where</span> sex <span class="operator">=</span> <span class="string">&#x27;F&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>可以用 <code>where is not null</code> 使得索引中不包括 null</li>
+</ul>
+<h3 id="函数索引">函数索引</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 对姓名建索引 */</span></span><br><span class="line"><span class="keyword">create</span> index idx1 <span class="keyword">on</span> S(sname)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 按照选择某个人, 但是他的输入可能不规范(大小写) */</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">from</span> S <span class="keyword">where</span> sname<span class="operator">=</span><span class="string">&#x27;tOm&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 上面的索引对这个查询是无效的 */</span></span><br><span class="line"><span class="comment">/* 上面索引是针对 sname 建的, 但是这个查询是 UPEER(sname) */</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">from</span> S <span class="keyword">where</span> <span class="built_in">UPPER</span>(sname)<span class="operator">=</span><span class="string">&#x27;TOM&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 先针对其建立函数索引,再查询 */</span></span><br><span class="line"><span class="keyword">create</span> index idx2 <span class="keyword">on</span> S(<span class="built_in">UPPER</span>(sname))</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> myTb(</span><br><span class="line">    x <span class="type">int</span>,</span><br><span class="line">    y <span class="type">int</span>,</span><br><span class="line">    index func_idx (<span class="built_in">sqrt</span>(<span class="built_in">power</span>(x,<span class="number">2</span>)<span class="operator">+</span><span class="built_in">power</span>(y,<span class="number">2</span>)))</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> myTb(</span><br><span class="line">    id <span class="type">char</span>(<span class="number">18</span>),</span><br><span class="line">    index idx1(<span class="built_in">substring</span>(id,<span class="number">7</span>,<span class="number">8</span>))</span><br><span class="line">)</span><br><span class="line"><span class="keyword">select</span> id <span class="keyword">from</span> myTb</span><br><span class="line"><span class="keyword">where</span> <span class="built_in">substring</span>(id,<span class="number">7</span>,<span class="number">8</span>)<span class="operator">=</span><span class="string">&#x27;20000101&#x27;</span></span><br></pre></td></tr></table></figure>
+<h3 id="索引的删除">索引的删除</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> index 索引名</span><br></pre></td></tr></table></figure>
+<ul>
+<li>drop index 语句不适用于通过定义 primary key 或 unique 约束创建的索引，它们必须通过除去约束来撤销</li>
+<li>只能够删除用户定义的索引</li>
+</ul>
+<h3 id="索引的使用说明">索引的使用说明</h3>
+<ul>
+<li>一个表上可建多个索引</li>
+<li>可以动态地定义索引，随时建立和删除索引</li>
+<li>索引可以提高查询效率
+<ul>
+<li>耗费空间，降低了插入、删除、更新的效率</li>
+</ul></li>
+<li>理想化状态：不允许用户在数据操作中引用索引</li>
+<li>数据的物理独立性：索引如何使用完全由系统决定</li>
+<li>强行让系统使用索引
+<ul>
+<li>select ... from MyTb force index(idx_name)</li>
+</ul></li>
+</ul>
+<h3 id="索引的选择">索引的选择</h3>
+<ul>
+<li>工作负载集：首先确定在这个数据集经常运行的命令</li>
+<li>分析每一个查询在不同索引条件下的执行代价</li>
+<li>推荐执行代价最小的索引</li>
+</ul>
+<p><img src="/2021/04/20/DB/CLJ/04-1/image-20210420174817557.png" style="zoom:50%"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/14/CG/YLQ-GAMES202/06/" rel="prev" title="GAMES202.闫令琪.06.实时环境光照(2)">
+                  <i class="fa fa-chevron-left"></i> GAMES202.闫令琪.06.实时环境光照(2)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/20/DB/CLJ/04-2/" rel="next" title="数据库概论.陈立军.04.SQL 数据查询(1)">
+                  数据库概论.陈立军.04.SQL 数据查询(1) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

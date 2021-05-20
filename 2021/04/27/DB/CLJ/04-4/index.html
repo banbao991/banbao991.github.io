@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="字符串操作、like、正则表达式、全文索引、字符串函数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.04.SQL 数据查询(3)">
+<meta property="og:url" content="http://example.com/2021/04/27/DB/CLJ/04-4/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="字符串操作、like、正则表达式、全文索引、字符串函数">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/27/DB/CLJ/04-4/image-20210427164844348.png">
+<meta property="og:image" content="http://example.com/2021/04/27/DB/CLJ/04-4/image-20210427170647485.png">
+<meta property="og:image" content="http://example.com/2021/04/27/DB/CLJ/04-4/image-20210427170713249.png">
+<meta property="og:image" content="http://example.com/2021/04/27/DB/CLJ/04-4/image-20210427170725681.png">
+<meta property="og:image" content="http://example.com/2021/04/27/DB/CLJ/04-4/image-20210427170740562.png">
+<meta property="article:published_time" content="2021-04-27T08:12:24.000Z">
+<meta property="article:modified_time" content="2021-04-27T09:14:05.651Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/27/DB/CLJ/04-4/image-20210427164844348.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/27/DB/CLJ/04-4/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.04.SQL 数据查询(3) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#sql-%E6%95%B0%E6%8D%AE%E6%9F%A5%E8%AF%A2"><span class="nav-text">SQL 数据查询</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E8%B5%84%E6%BA%90"><span class="nav-text">在线资源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%93%8D%E4%BD%9C"><span class="nav-text">字符串操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%B9%E9%85%8D%E8%A7%84%E5%88%99"><span class="nav-text">匹配规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AC%E4%B9%89%E5%AD%97%E7%AC%A6"><span class="nav-text">转义字符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95"><span class="nav-text">索引</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-text">正则表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#oracle"><span class="nav-text">Oracle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%87%E5%87%86-sql"><span class="nav-text">标准 SQL</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2"><span class="nav-text">全文检索</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95"><span class="nav-text">倒排索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E4%B8%AD%E7%9A%84%E5%85%A8%E6%96%87%E7%B4%A2%E5%BC%95"><span class="nav-text">SQL Server 中的全文索引</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%85%A8%E6%96%87%E7%B4%A2%E5%BC%95"><span class="nav-text">创建全文索引</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%A8%E6%96%87%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">全文索引的使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql%E5%85%A8%E6%96%87%E7%B4%A2%E5%BC%95"><span class="nav-text">MySQL全文索引</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%87%BD%E6%95%B0"><span class="nav-text">字符串函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1"><span class="nav-text">例子</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/27/DB/CLJ/04-4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.04.SQL 数据查询(3)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2021-04-27 16:12:24 / Modified: 17:14:05" itemprop="dateCreated datePublished" datetime="2021-04-27T16:12:24+08:00">2021-04-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">字符串操作、like、正则表达式、全文索引、字符串函数</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="sql-数据查询">SQL 数据查询</h1>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Select</span> ...</span><br><span class="line"><span class="keyword">From</span> ...</span><br><span class="line"><span class="keyword">Where</span> ...</span><br><span class="line"><span class="keyword">Group</span> <span class="keyword">by</span> ...</span><br><span class="line"><span class="keyword">Having</span> ...</span><br><span class="line"><span class="keyword">Union</span> ...</span><br><span class="line"><span class="keyword">Order</span> <span class="keyword">by</span> ...</span><br><span class="line">Limit ...</span><br></pre></td></tr></table></figure>
+<h2 id="在线资源">在线资源</h2>
+<ul>
+<li>http://sqlfiddle.com</li>
+</ul>
+<h2 id="字符串操作">字符串操作</h2>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">列名 [<span class="keyword">not</span>] <span class="keyword">like</span> <span class="string">&#x27;字符串&#x27;</span></span><br></pre></td></tr></table></figure>
+<h3 id="匹配规则">匹配规则</h3>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">%       匹配零个或多个字符</span><br><span class="line">_       匹配任意单个字符</span><br><span class="line">[]      任何在指定范围内的字符, [a-f], [abcdef]</span><br><span class="line">[^]     任何不在指定范围内的字符, [^a-f], [^abcdef]</span><br></pre></td></tr></table></figure>
+<h3 id="转义字符">转义字符</h3>
+<ul>
+<li><strong>用 escape 定义转义字符</strong>，以去掉特殊字符的特定含义，使其被作为普通字符看待
+<ul>
+<li>如 escape <code>\</code>，定义 <code>\</code> 作为转义字符</li>
+<li>则可用 <code>\%</code> 去匹配 <code>%</code>，用 <code>\_</code>去匹配 <code>_</code></li>
+<li>用什么去匹配 <code>\</code>：<code>\\</code></li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> my_tb</span><br><span class="line"><span class="keyword">where</span> col1 <span class="keyword">like</span> <span class="string">&#x27;x%%x__xx&#x27;</span> <span class="keyword">escape</span> <span class="string">&#x27;x&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">x%x_x    (x)</span></span><br><span class="line"><span class="comment">%xx_x    (x)</span></span><br><span class="line"><span class="comment">%xx_xx   (v)</span></span><br><span class="line"><span class="comment">%__x     (v)</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<h3 id="例子">例子</h3>
+<ul>
+<li>列出姓名以“张”打头的教师的所有信息</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> PROF</span><br><span class="line"><span class="keyword">where</span> pname <span class="keyword">like</span> <span class="string">&#x27;张%&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>列出名称中含有3个以上字符，且倒数第三个是d，倒数第二个是 <code>_</code> 的课程</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> C</span><br><span class="line"><span class="keyword">where</span> cname <span class="keyword">like</span> <span class="string">&#x27;%_d\__&#x27;</span> <span class="keyword">escape</span> <span class="string">&#x27;\&#x27;</span></span><br></pre></td></tr></table></figure>
+<h3 id="索引">索引</h3>
+<ul>
+<li>在 cname 上建有索引 cname_idx，观察下面查询的执行计划，看谁用到了该索引</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 放弃使用索引 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> C <span class="keyword">where</span> cname <span class="keyword">like</span> <span class="string">&#x27;%d&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 使用索引 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> C <span class="keyword">where</span> cname <span class="keyword">like</span> <span class="string">&#x27;d%&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>like 作用有限，如何增强数据库的文本处理能力
+<ul>
+<li><strong>全文检索</strong> + <strong>正则表达式</strong></li>
+</ul></li>
+</ul>
+<h2 id="正则表达式">正则表达式</h2>
+<ul>
+<li>Regular Expression</li>
+<li>一些例子</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">用户名</span><br><span class="line">/^[a-z0-9_-]&#123;3,16&#125;$/</span><br><span class="line"></span><br><span class="line">密码</span><br><span class="line">/^[a-z0-9_-]&#123;6,18&#125;$/</span><br><span class="line"></span><br><span class="line">电子邮箱</span><br><span class="line">/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]&#123;2,6&#125;)$/</span><br><span class="line"></span><br><span class="line">IP地址</span><br><span class="line">/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.)&#123;3&#125;(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/</span><br><span class="line"></span><br><span class="line">HTML标签</span><br><span class="line">/^&lt;([a-z]+)([^&lt;]+)*(?:&gt;(.*)&lt;\/\1&gt;|\s+\/&gt;)$/</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果数据库本身不支持正则表达式，那么一切都会变得很麻烦
+<ul>
+<li><strong>现在的数据库都是直接支持的</strong></li>
+</ul></li>
+<li>用 check 约束表达正则表达式</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> IP_Address(ip <span class="type">char</span>(<span class="number">15</span>) <span class="keyword">primary</span> <span class="keyword">key</span>)</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> IP_Address <span class="keyword">add</span> <span class="keyword">constraint</span> CHK_IP_Valid <span class="keyword">check</span>(</span><br><span class="line">    ip <span class="keyword">like</span> <span class="string">&#x27;_%._%._%._%&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> ip <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;%.%.%.%.%&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> ip <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;%[^0-9.]%&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> ip <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;%[0-9][0-9][0-9][0-9]%&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> ip <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;%[3-9][0-9][0-9]%&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> ip <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;%2[6-9][0-9]%&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> ip <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;%25[6-9]%&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>数据库中的正则表达式
+<ul>
+<li>按照 PPT 中，好像是含有正则表示式项即可</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> name <span class="keyword">from</span> my_name</span><br><span class="line"><span class="keyword">where</span> name regexp <span class="string">&#x27;^吴&#x27;</span> <span class="comment">/* 名字以 &#x27;吴&#x27; 开头 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> name <span class="keyword">from</span> my_name</span><br><span class="line"><span class="keyword">where</span> name regexp <span class="string">&#x27;吴&#x27;</span> <span class="comment">/* 名字中含有 &#x27;吴&#x27; */</span></span><br></pre></td></tr></table></figure>
+<h3 id="oracle">Oracle</h3>
+<ul>
+<li>在表定义的时候，可以在添加 constraint 的时候使用正则表达式
+<ul>
+<li>MySQL 和 SQL Server 好像都没有</li>
+</ul></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">函数名</th>
+<th style="text-align: center;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">REGEXP_LIKE</td>
+<td style="text-align: center;">类似于LIKE 运算符，但执行正则表达式匹配而不是简单的模式匹配</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">REGEXP_INSTR</td>
+<td style="text-align: center;">在给定字符串中搜索某个正则表达式模式，并返回匹配项的位置</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">REGEXP_REPLACE</td>
+<td style="text-align: center;">搜索某个正则表达式模式并使用替换字符串替换它</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">REGEXP_SUBSTR</td>
+<td style="text-align: center;">在给定字符串中搜索某个正则表达式模式并返回匹配的子字符串</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Alter</span> <span class="keyword">table</span> students</span><br><span class="line"><span class="keyword">add</span> <span class="keyword">constraint</span> stud_ssn_ck</span><br><span class="line"><span class="keyword">check</span> (</span><br><span class="line">    REGEXP_LIKE(</span><br><span class="line">        ssn,</span><br><span class="line">        <span class="string">&#x27;^([[:digit:]]&#123;3&#125;-[[:digit:]]&#123;2&#125;-[[:digit:]]&#123;4&#125;|[[:digit:]]&#123;9&#125;)$&#x27;</span></span><br><span class="line">    )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="标准-sql">标准 SQL</h3>
+<ul>
+<li>similar to</li>
+</ul>
+<h2 id="全文检索">全文检索</h2>
+<ul>
+<li>大量文档不适用于用 like 查询</li>
+</ul>
+<h3 id="倒排索引">倒排索引</h3>
+<p><img src="/2021/04/27/DB/CLJ/04-4/image-20210427164844348.png" style="zoom:60%;"></p>
+<h3 id="sql-server-中的全文索引">SQL Server 中的全文索引</h3>
+<h4 id="创建全文索引">创建全文索引</h4>
+<ul>
+<li>key index 指定 table_name 上唯一码索引的名称, 最好是聚簇索引</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> fulltext catalog catalog_name</span><br><span class="line"><span class="keyword">create</span> fulltext index <span class="keyword">on</span></span><br><span class="line">    table_name[(column_name]</span><br><span class="line">key index index_name</span><br><span class="line"><span class="keyword">on</span> catalog_name</span><br></pre></td></tr></table></figure>
+<h4 id="全文索引的使用">全文索引的使用</h4>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Contains</span>(属性列<span class="operator">|</span><span class="operator">*</span>, 查找条件)</span><br><span class="line">freetext(属性列<span class="operator">|</span><span class="operator">*</span>, 查找文本)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用 freetext 时，全文查询引擎内部将查找文本拆分为若干个搜索词，并赋予每个词以不同的加权，然后查找匹配</li>
+</ul>
+<h4 id="示例">示例</h4>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">doc(doc_id,title,author,abstract,content)</span><br><span class="line"><span class="comment">/* 聚簇索引 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">unique</span> clustered index doc_idxondoc(doc_id)</span><br><span class="line"><span class="comment">/* 建立全文索引 */</span></span><br><span class="line"><span class="keyword">create</span> fulltext catalog doc_fulltext_catalog</span><br><span class="line"><span class="keyword">create</span> fulltext index <span class="keyword">on</span> doc(title,author,abstract,content)</span><br><span class="line">key index doc_idx</span><br><span class="line"><span class="keyword">on</span> doc_fulltext_catalog</span><br><span class="line"><span class="comment">/* 使用 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> doc</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">contains</span>(author,<span class="string">&#x27;Tom and Jerry&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> doc</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">contains</span>(<span class="operator">*</span>, <span class="string">&#x27;database and not dataspace&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> doc</span><br><span class="line"><span class="keyword">where</span> freetext(content, <span class="string">&#x27;DeepLearning&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="mysql全文索引">MySQL全文索引</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> fulltextindex ft_indx_nameontb_name(col_name,...)</span><br><span class="line"><span class="keyword">match</span> (col_name,...) against(search_expr[search_modifier])</span><br></pre></td></tr></table></figure>
+<ul>
+<li>search_modifier:
+<ul>
+<li>in natural language mode</li>
+<li>in natural language mode with query expansion</li>
+<li>in booleanmode</li>
+<li>with query expansion</li>
+</ul></li>
+<li>例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> myDoc(</span><br><span class="line">    id <span class="type">int</span> auto_increment <span class="keyword">primary</span> <span class="keyword">key</span>,</span><br><span class="line">    title <span class="type">varchar</span>(<span class="number">100</span>),</span><br><span class="line">    content text,</span><br><span class="line">    fulltext(title,content)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> myDoc(title,content) <span class="keyword">values</span></span><br><span class="line">    (<span class="string">&#x27;MySQL Tutorial&#x27;</span>,<span class="string">&#x27;DBMSstands for DataBase...&#x27;</span>),</span><br><span class="line">    (<span class="string">&#x27;How To Use MySQL Well&#x27;</span>,<span class="string">&#x27;Afteryou went through a ...&#x27;</span>),</span><br><span class="line">    (<span class="string">&#x27;Optimizing MySQL&#x27;</span>,<span class="string">&#x27;Inthis tutorial we will show ...&#x27;</span>),</span><br><span class="line">    (<span class="string">&#x27;1001 MySQL Tricks&#x27;</span>,<span class="string">&#x27;1. Never run mysqldas root. 2. ...&#x27;</span>),</span><br><span class="line">    (<span class="string">&#x27;MySQL vs. YourSQL&#x27;</span>,<span class="string">&#x27;In the following database comparison ...&#x27;</span>),</span><br><span class="line">    (<span class="string">&#x27;MySQL Security&#x27;</span>,<span class="string">&#x27;Whenconfigured properly, MySQL ...&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> myDoc</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">match</span>(title,content)</span><br><span class="line">against(<span class="string">&#x27;database&#x27;</span> <span class="keyword">in</span> <span class="keyword">natural</span> <span class="keyword">language</span> mode)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> id,<span class="keyword">match</span>(title,content)</span><br><span class="line">against(<span class="string">&#x27;database&#x27;</span>) <span class="keyword">as</span> score <span class="comment">/* 匹配分 */</span></span><br><span class="line"><span class="keyword">from</span> myDoc</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">match</span>(title,content) against(<span class="string">&#x27;+MySQL -YourSQL&#x27;</span><span class="keyword">in</span> <span class="type">boolean</span> mode)</span><br><span class="line"><span class="keyword">match</span>(title,content) against(<span class="string">&#x27;+MySQL +YourSQL&#x27;</span><span class="keyword">in</span> <span class="type">boolean</span> mode) <span class="comment">/* 且 */</span></span><br><span class="line"><span class="keyword">match</span>(title,content) against(<span class="string">&#x27;+MySQL YourSQL&#x27;</span><span class="keyword">in</span> <span class="type">boolean</span> mode)  <span class="comment">/* 或 */</span></span><br></pre></td></tr></table></figure>
+<h2 id="字符串函数">字符串函数</h2>
+<p><img src="/2021/04/27/DB/CLJ/04-4/image-20210427170647485.png"></p>
+<p><img src="/2021/04/27/DB/CLJ/04-4/image-20210427170713249.png"></p>
+<p><img src="/2021/04/27/DB/CLJ/04-4/image-20210427170725681.png"></p>
+<p><img src="/2021/04/27/DB/CLJ/04-4/image-20210427170740562.png"></p>
+<h3 id="例子-1">例子</h3>
+<ul>
+<li>计算字符 a 出现次数</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> len(<span class="string">&#x27;databases&#x27;</span>) − len(replace(<span class="string">&#x27;databases&#x27;</span>,<span class="string">&#x27;a&#x27;</span>,<span class="string">&#x27;&#x27;</span>))</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果是检索多个字符出现次数的话，还要除以相应的字符个数</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> len(<span class="string">&#x27;databases&#x27;</span>) − len(replace(<span class="string">&#x27;databases&#x27;</span>,<span class="string">&#x27;ta&#x27;</span>,<span class="string">&#x27;&#x27;</span>))<span class="operator">/</span>len(<span class="string">&#x27;ta&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/26/CG/mitsuba/methodsCompare/" rel="prev" title="mitsuba.不同渲染方法在不同场景上的对比">
+                  <i class="fa fa-chevron-left"></i> mitsuba.不同渲染方法在不同场景上的对比
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/27/DB/CLJ/04-5/" rel="next" title="数据库概论.陈立军.04. 数据更新">
+                  数据库概论.陈立军.04. 数据更新 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

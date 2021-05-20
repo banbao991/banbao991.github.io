@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="Whitted 风格的光线追踪，光线和物体求交、加速结构、包围盒">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES101.闫令琪.04.光线追踪(1).Whitted 风格的光线追踪(Lecture 13-14)">
+<meta property="og:url" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Whitted 风格的光线追踪，光线和物体求交、加速结构、包围盒">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615966794240.png">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615967125590.png">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615967375006.png">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/image-20210403111154716.png">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615973061088.png">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615974169938.png">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615975085492.png">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615984666604.png">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615985336608.png">
+<meta property="og:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615985641979.png">
+<meta property="article:published_time" content="2021-03-17T07:16:46.000Z">
+<meta property="article:modified_time" content="2021-04-03T03:12:15.844Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta property="article:tag" content="RayTracing">
+<meta property="article:tag" content="GI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/1615966794240.png">
+
+
+<link rel="canonical" href="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES101.闫令琪.04.光线追踪(1).Whitted 风格的光线追踪(Lecture 13-14) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%89%E6%A0%85%E5%8C%96%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">光栅化的问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ray-tracing"><span class="nav-text">Ray Tracing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%89%E7%BA%BF%E7%9A%84-3-%E4%B8%AA%E5%81%87%E5%AE%9A"><span class="nav-text">光线的 3 个假定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ray-casting"><span class="nav-text">Ray Casting</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#recursive-whitted-style-ray-tracing"><span class="nav-text">Recursive (Whitted-Style) Ray Tracing</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%89%E7%BA%BF%E6%B1%82%E4%BA%A4"><span class="nav-text">光线求交</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%89%E7%BA%BF%E4%B8%8E%E7%90%83%E4%BD%93%E6%B1%82%E4%BA%A4"><span class="nav-text">光线与球体求交</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E8%88%AC%E7%9A%84%E6%9B%B2%E9%9D%A2"><span class="nav-text">一般的曲面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%98%BE%E5%BC%8F%E8%A1%A8%E9%9D%A2%E6%B1%82%E4%BA%A4"><span class="nav-text">显式表面求交</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%89%E7%BA%BF%E5%92%8C%E4%B8%89%E8%A7%92%E5%BD%A2%E6%B1%82%E4%BA%A4%E6%96%B9%E6%B3%95"><span class="nav-text">光线和三角形求交方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#moller-trumbore-algorithm"><span class="nav-text">Moller Trumbore Algorithm</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A0%E9%80%9F%E6%B1%82%E4%BA%A4"><span class="nav-text">加速求交</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#bounding-volumn"><span class="nav-text">Bounding Volumn</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#aabb"><span class="nav-text">AABB</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#gtc-%E4%B8%80%E4%BA%9B%E6%96%B0%E9%97%BB"><span class="nav-text">GTC 一些新闻</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E-aabb-%E7%9A%84%E5%85%89%E7%BA%BF%E6%B1%82%E4%BA%A4%E5%8A%A0%E9%80%9F%E7%BB%93%E6%9E%84"><span class="nav-text">基于 AABB 的光线求交加速结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9D%87%E5%8C%80%E7%9A%84%E6%A0%BC%E5%AD%90"><span class="nav-text">均匀的格子</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A0%E9%80%9F%E7%A8%8B%E5%BA%A6"><span class="nav-text">加速程度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E5%88%92%E5%88%86"><span class="nav-text">空间划分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#kd-tree"><span class="nav-text">KD-Tree</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">存在的问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bvh"><span class="nav-text">BVH</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/17/CG/YLQ-GAMES101/04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES101.闫令琪.04.光线追踪(1).Whitted 风格的光线追踪(Lecture 13-14)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-03-17 15:16:46" itemprop="dateCreated datePublished" datetime="2021-03-17T15:16:46+08:00">2021-03-17</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-03 11:12:15" itemprop="dateModified" datetime="2021-04-03T11:12:15+08:00">2021-04-03</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES101/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES101</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Whitted 风格的光线追踪，光线和物体求交、加速结构、包围盒</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/av90798049</li>
+</ul>
+<h1 id="光栅化的问题">光栅化的问题</h1>
+<ul>
+<li>不好去表示一些全局的效果（Global Effects）</li>
+<li>软阴影（Soft Shadow）
+<ul>
+<li>光栅化 VSM</li>
+</ul></li>
+<li>Glossy Reflection
+<ul>
+<li>Glossy：有高光的效果，但是同时本身具有粗糙性的材质</li>
+</ul></li>
+<li>间接光照（Indirect Illumination）
+<ul>
+<li>light bounce more than once</li>
+<li>光栅化有一些效果可以模拟，但是效果不太好</li>
+</ul></li>
+<li>光栅化方法
+<ul>
+<li>快，但是是一种近似算法</li>
+<li>Real-Time</li>
+</ul></li>
+<li>光线追踪方法
+<ul>
+<li>准确，但是慢</li>
+<li>Offline（离线）</li>
+</ul></li>
+</ul>
+<h1 id="ray-tracing">Ray Tracing</h1>
+<h2 id="光线的-3-个假定">光线的 3 个假定</h2>
+<ul>
+<li>Light travels in straight lines (though this is wrong)
+<ul>
+<li>光沿直线传播</li>
+</ul></li>
+<li>Light rays do not “collide” with each other if they cross (though this is still wrong)
+<ul>
+<li>光线发生交互的时候互不干扰</li>
+</ul></li>
+<li>Light rays travel from the light sources to the eye
+<ul>
+<li>(but the physics is invariant under path reversal - reciprocity).</li>
+<li>光线（光路）的可逆性</li>
+</ul></li>
+</ul>
+<h2 id="ray-casting">Ray Casting</h2>
+<ul>
+<li>Appel 1968 - Ray casting
+<ul>
+<li>Generate an image by casting one ray per pixel
+<ul>
+<li>对每个像素，从视点向像素发出一条光线（reciprocity）</li>
+</ul></li>
+<li>Check for shadows by sending a ray to the light
+<ul>
+<li>对于找到的点，判断其是否处在阴影中（对光源可见）</li>
+</ul></li>
+</ul></li>
+<li>其他的假设
+<ul>
+<li>视点就是一个点</li>
+</ul></li>
+<li>投射光线
+<ul>
+<li>eye ray：从眼睛射向像素的光线</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/1615966794240.png" style="zoom:50%;"></p>
+<ul>
+<li>判断是否可见，若可见利用之前的模型进行计算光照</li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/1615967125590.png" style="zoom: 50%;"></p>
+<h1 id="recursive-whitted-style-ray-tracing">Recursive (Whitted-Style) Ray Tracing</h1>
+<ul>
+<li>考虑第一次接触点的折射、反射
+<ul>
+<li>递归计算</li>
+<li>shadow rays（判断是否对光源可见）</li>
+<li>着色计算：对每一个接触点进行计算
+<ul>
+<li>多条光路的叠加</li>
+</ul></li>
+<li>需要考虑<strong>能量损失</strong></li>
+</ul></li>
+<li>eye ray 又被称为 primary ray</li>
+<li>secondary ray：经过一次折射/反射之后的线</li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/1615967375006.png" style="zoom:50%;"></p>
+<h1 id="光线求交">光线求交</h1>
+<ul>
+<li>Ray-Surface Intersection</li>
+<li>光线的定义
+<ul>
+<li>光线的起点 <span class="math inline">\(\mathbf{o}\)</span></li>
+<li>光线的方向 <span class="math inline">\(\mathbf{d}\)</span>
+<ul>
+<li>单位向量</li>
+</ul></li>
+</ul></li>
+<li>光线的方程
+<ul>
+<li>Ray Equation</li>
+<li><span class="math inline">\(\mathbf{r}(t)=\mathbf{o}+t\mathbf{d},0\le t\le \infty\)</span></li>
+</ul></li>
+</ul>
+<h2 id="光线与球体求交">光线与球体求交</h2>
+<ul>
+<li>Sphere
+<ul>
+<li><span class="math inline">\(\mathbf{p}:(\mathbf{p}-\mathbf{c})^2-R^2=0\)</span></li>
+</ul></li>
+<li>联立方程组求解即可
+<ul>
+<li>解的个数：<span class="math inline">\(0,1,2\)</span></li>
+<li>不相交，相切，两个交点（取小的）</li>
+</ul></li>
+</ul>
+<h2 id="一般的曲面">一般的曲面</h2>
+<p><span class="math display">\[
+\left\{
+\begin{array}{**lr**}
+    \mathbf{r}(t)=\mathbf{o}+t\mathbf{d},0\le t\le \infty\\
+    f(\mathbf{p})=0
+\end{array}
+\right.
+\]</span></p>
+<h2 id="显式表面求交">显式表面求交</h2>
+<ul>
+<li>和三角形求交</li>
+<li>可以用于判断点是否在物体内部
+<ul>
+<li>内部的点，引一条射线，和物体的交点必为<strong>奇数个</strong></li>
+<li>外部的点，引一条射线，和物体的交点必为<strong>偶数个</strong></li>
+</ul></li>
+<li>很慢，每个三角都需要求交</li>
+</ul>
+<h3 id="光线和三角形求交方法">光线和三角形求交方法</h3>
+<ul>
+<li>光线和三角形所在的平面求交</li>
+<li>判断这个交点是否在三角形内部</li>
+<li>平面的定义
+<ul>
+<li>法线 <span class="math inline">\(\mathbf{N}\)</span></li>
+<li>平面上任意一个点 <span class="math inline">\(\mathbf{p&#39;}\)</span></li>
+</ul></li>
+<li>平面上的一个点 <span class="math inline">\(\mathbf{p}:(\mathbf{p&#39;}-\mathbf{p})\cdot\mathbf{N}=0\)</span>
+<ul>
+<li>展开后和平面方程相同 <span class="math inline">\(ax+by+cz+d=0\)</span></li>
+</ul></li>
+<li>联立方程组求解</li>
+</ul>
+<h3 id="moller-trumbore-algorithm">Moller Trumbore Algorithm</h3>
+<ul>
+<li>怎么直接把结果解出来用于判断</li>
+<li><strong>重心坐标</strong></li>
+</ul>
+<p><span class="math display">\[
+\mathbf{r}(t)=\mathbf{o}+t\mathbf{d}=(1-b_1-b_2)\mathbf{P_0}+b_1\mathbf{P_1}+b_2\mathbf{P2}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;0\le t\le \infty\\
+&amp;0\le b_1\le1\\
+&amp;0\le b_2\le1\\
+&amp;0\le 1-b_1-b_2\le1\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>3 个未知量，3 个方程（3维）</li>
+<li>解的显式表达</li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/image-20210403111154716.png" style="zoom:50%;"></p>
+<h1 id="加速求交">加速求交</h1>
+<ul>
+<li>Accelerating Ray-Surface Intersection</li>
+<li>如果不加速，算法复杂度
+<ul>
+<li>pixels x triangles x bounces</li>
+</ul></li>
+</ul>
+<h2 id="bounding-volumn">Bounding Volumn</h2>
+<ul>
+<li>包围盒：包围整个模型</li>
+<li>先对包围盒求交，如果无交点，则不需要对模型求交</li>
+<li>简单的包围盒：长方体
+<ul>
+<li>三个对面</li>
+<li>box is the intersection of 3 pairs of slabs</li>
+</ul></li>
+</ul>
+<h3 id="aabb">AABB</h3>
+<ul>
+<li>Axis-Aligned Bounding Box
+<ul>
+<li>轴对齐包围盒</li>
+<li>计算快</li>
+</ul></li>
+<li>如何计算 （2D 的例子）
+<ul>
+<li>每个对面求交</li>
+<li><span class="math inline">\(t_{enter}=\max\{t_{min}\},t_{exit}=\min\{t_{max}\}\)</span></li>
+<li>思想
+<ul>
+<li>The ray enters the box only when it enters all pairs of slabs
+<ul>
+<li>三个对面都进入，才是进入</li>
+</ul></li>
+<li>The ray exits the box as long as it exits any pair of slabs
+<ul>
+<li>离开一个对面，即离开</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/1615973061088.png"></p>
+<ul>
+<li>如果不相交：<span class="math inline">\(t_{exit}\le t_{enter}\)</span></li>
+<li>光线是射线，考虑 <span class="math inline">\(t\)</span> 的正负
+<ul>
+<li><span class="math inline">\(t_{exit}&lt;0\)</span>：无交点（物体在光线背后）</li>
+<li><span class="math inline">\(t_{enter}&lt;0,t_{exit}\ge0\)</span>：光源在物体里面</li>
+</ul></li>
+</ul>
+<h1 id="gtc-一些新闻">GTC 一些新闻</h1>
+<ul>
+<li>GTC news: DLSS 2.0
+<ul>
+<li>https://zhuanlan.zhihu.com/p/116211994</li>
+</ul></li>
+<li>GTC news: RTXGI
+<ul>
+<li>https://developer.nvidia.com/rtxgi</li>
+</ul></li>
+</ul>
+<h1 id="基于-aabb-的光线求交加速结构">基于 AABB 的光线求交加速结构</h1>
+<ul>
+<li>光线与 AABB 求交</li>
+</ul>
+<h2 id="均匀的格子">均匀的格子</h2>
+<ul>
+<li>Uniform Spatial Partitions (Grids)</li>
+<li>场景预处理
+<ul>
+<li>网格化</li>
+</ul></li>
+<li>算法步骤
+<ul>
+<li>光线与沿途每个盒子求交</li>
+<li>若盒子里面含有物体，则于保存的物体部分求交</li>
+<li>没有物体，则光线前进（找下一个盒子）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/1615974169938.png" style="zoom:50%;"></p>
+<ul>
+<li>基于想法如下
+<ul>
+<li><strong>光线和盒子求交比光线与物体求交快</strong></li>
+</ul></li>
+<li>光线与盒子求交
+<ul>
+<li>怎么找光线下一次相交的盒子
+<ul>
+<li>最朴素的想法：周围两个都算一遍（向前 2 个测试，向后的 2 个不用管）</li>
+</ul></li>
+<li>高级算法：类似于光栅化一条线的算法</li>
+</ul></li>
+</ul>
+<h3 id="加速程度">加速程度</h3>
+<ul>
+<li>网格：1 x 1（无加速效果）</li>
+<li>网格过于密集：与盒子求交的成本变大</li>
+<li>经验性划分
+<ul>
+<li>#cells = C x #objs</li>
+<li>C = 3 x 3 x 3</li>
+</ul></li>
+<li>适合场景
+<ul>
+<li>物体多，在场景中分布均匀</li>
+</ul></li>
+<li>不适合场景
+<ul>
+<li>场景较空，分布不均匀
+<ul>
+<li>大规模空白，和物体相交前需要经过大量空白</li>
+</ul></li>
+<li>&quot;Teapot in a stadium&quot; problem</li>
+</ul></li>
+</ul>
+<h2 id="空间划分">空间划分</h2>
+<ul>
+<li>Spatial Partitions</li>
+<li>划分方法
+<ul>
+<li>八叉树
+<ul>
+<li>维度相关（<span class="math inline">\(2^n\)</span> 叉树）</li>
+</ul></li>
+<li><strong>KD 树</strong>
+<ul>
+<li>每次只沿着一个轴展开（二叉树）</li>
+<li>横竖交划分（相对均匀）</li>
+</ul></li>
+<li>BSP 树
+<ul>
+<li>空间二分</li>
+<li>每次选择一个方向做划分</li>
+<li>不是横平竖直的
+<ul>
+<li>纬度高了就不好计算</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/1615975085492.png" alt="1615975085492" style="zoom:67%;"></p>
+<h3 id="kd-tree">KD-Tree</h3>
+<ul>
+<li>在光线跟踪之前先建立 KD 树</li>
+<li>数据结构
+<ul>
+<li>内部结点
+<ul>
+<li>记录划分方向（x，y，z）</li>
+<li>记录划分位置（不一定是正中间）</li>
+<li>子结点（指向子节点的指针）</li>
+<li><strong>不需要存储物体信息</strong></li>
+</ul></li>
+<li>外部结点（叶结点）
+<ul>
+<li>存储物体列表</li>
+</ul></li>
+</ul></li>
+<li>光线遍历
+<ul>
+<li>先判断和 A 是否有交点</li>
+<li>有交点，接着和 A 的两个子结点判断是否有交点</li>
+<li>1 有交点，但是是叶子结点了，计算光照
+<ul>
+<li>其实 1 还需要继续划分
+<ul>
+<li>内部还有多个物体，可能规则上认为可以停止</li>
+</ul></li>
+<li>但是这里已经当作叶子结点了，就不划分了</li>
+</ul></li>
+<li>B 有交点，重复上述步骤，进入 B</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/1615984666604.png" style="zoom:60%;"></p>
+<ul>
+<li>无交点的块不需要计算光照了</li>
+</ul>
+<h4 id="存在的问题">存在的问题</h4>
+<ul>
+<li>KD-Tree 的建立不简单</li>
+<li>难以判断一个三角形和某个包围盒有交集
+<ul>
+<li>3 个顶点都在包围盒外也可能有交点
+<ul>
+<li>包围盒穿透三角形</li>
+<li>截面整个在三角形内部</li>
+</ul></li>
+</ul></li>
+<li>一个在边界的物体可能属于多个包围盒
+<ul>
+<li>多个叶子节点里面都需要计算光照</li>
+</ul></li>
+<li><strong>现在很少用这种方法了</strong></li>
+</ul>
+<h3 id="bvh">BVH</h3>
+<ul>
+<li>Bounding Volumn Hierarchy</li>
+<li>基于<span style="color:red;font-weight:bold">物体</span>的划分</li>
+<li>Object Partition</li>
+<li><strong>现在常用的方法</strong></li>
+<li>算法
+<ul>
+<li>把当前包围盒内的三角形做一个划分</li>
+<li>然后把划分得到的两个部分分别求包围盒</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/1615985336608.png" style="zoom:50%;"></p>
+<ul>
+<li><strong>一个物体只可能属于一个叶子结点</strong></li>
+<li>不需要求三角形和包围盒的交点</li>
+<li>避免了 KD-Tree 的问题</li>
+<li>但是 BVH 并没有把整个空间划分开，两个子结点可能有重合部分
+<ul>
+<li>一个好的划分，重叠部分尽量小</li>
+<li>BVH 的研究</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/17/CG/YLQ-GAMES101/04/1615985641979.png" style="zoom:50%;"></p>
+<ul>
+<li>怎么选取划分方向
+<ul>
+<li>可以学习 KD-Tree，横竖交替划分，尽量均匀</li>
+<li>但是可能有一个轴还是很长
+<ul>
+<li>所以可以每次选择较长的轴进行划分</li>
+</ul></li>
+<li>可以选取中间的物体进行划分
+<ul>
+<li>保证三角形数量差不多</li>
+<li>树的深度小，更平衡
+<ul>
+<li>涉及排序问题，重心排序</li>
+<li>找第 <span class="math inline">\(k\)</span> 大的数有 <span class="math inline">\(O(n)\)</span> 的算法
+<ul>
+<li>快排思想算法</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>适合静态场景
+<ul>
+<li>动态需要修改</li>
+</ul></li>
+<li>BVH 的存储和 KD-Tree 类似</li>
+<li>伪代码</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Intersect(Ray ray, BVH node) &#123;</span><br><span class="line">    <span class="keyword">if</span> (ray misses node.bbox) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (node is a leaf node)&#123;</span><br><span class="line">        test intersection with all objs;</span><br><span class="line">        <span class="keyword">return</span> closest intersection;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    hit1 = Intersect(ray, node.child1);</span><br><span class="line">    hit2 = Intersect(ray, node.child2);</span><br><span class="line">    <span class="keyword">return</span> the closer of hit1, hit2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+              <a href="/tags/RayTracing/" rel="tag"># RayTracing</a>
+              <a href="/tags/GI/" rel="tag"># GI</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/13/CG/YLQ-GAMES101/03/" rel="prev" title="GAMES101.闫令琪.03.几何(Lecture 10-12)">
+                  <i class="fa fa-chevron-left"></i> GAMES101.闫令琪.03.几何(Lecture 10-12)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/17/CG/YLQ-GAMES101/05/" rel="next" title="GAMES101.闫令琪.05.光线追踪(2).辐射度量学(Lecture 14-15)">
+                  GAMES101.闫令琪.05.光线追踪(2).辐射度量学(Lecture 14-15) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

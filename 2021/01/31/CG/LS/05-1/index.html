@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="投影(2) OpenGL 中的投影变换推导">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.05.投影(2)">
+<meta property="og:url" content="http://example.com/2021/01/31/CG/LS/05-1/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="投影(2) OpenGL 中的投影变换推导">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/01/31/CG/LS/05-1/xyz_OpenGL.png">
+<meta property="og:image" content="http://example.com/2021/01/31/CG/LS/05-1/projection_01.png">
+<meta property="og:image" content="http://example.com/2021/01/31/CG/LS/05-1/projection_02.png">
+<meta property="article:published_time" content="2021-01-31T06:27:18.000Z">
+<meta property="article:modified_time" content="2021-03-19T12:24:09.133Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/01/31/CG/LS/05-1/xyz_OpenGL.png">
+
+
+<link rel="canonical" href="http://example.com/2021/01/31/CG/LS/05-1/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>计算机图形学.李胜.05.投影(2) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#opengl-%E4%B8%AD%E7%9A%84%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5"><span class="nav-text">OpenGL 中的投影矩阵</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A8%E5%AF%BC%E4%B8%80%E6%8A%95%E5%BD%B1%E8%A7%92%E5%BA%A6"><span class="nav-text">推导一：投影角度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%95%E5%BD%B1"><span class="nav-text">(1) 投影</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%84%E8%8C%83%E5%8C%96"><span class="nav-text">(2) 规范化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95%E6%B7%B1%E5%BA%A6%E4%BF%A1%E6%81%AF"><span class="nav-text">(3) 记录深度信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A8%E5%AF%BC%E4%BA%8C%E5%8F%98%E6%8D%A2%E8%A7%92%E5%BA%A6"><span class="nav-text">推导二：变换角度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%99%E5%88%87"><span class="nav-text">(1) 错切</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%A9%E6%94%BE"><span class="nav-text">(2) 缩放</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%8F%E8%A7%86%E5%B9%B3%E8%A1%8C"><span class="nav-text">(3) 透视&#x3D;&gt;平行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B3%E7%A7%BB"><span class="nav-text">(4) 平移</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%BA%E7%BC%A9"><span class="nav-text">(5) 尺缩</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%B1%E5%BA%A6%E5%8F%98%E6%8D%A2"><span class="nav-text">(6) 深度变换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">(7) 结果</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/31/CG/LS/05-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机图形学.李胜.05.投影(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-31 14:27:18" itemprop="dateCreated datePublished" datetime="2021-01-31T14:27:18+08:00">2021-01-31</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-03-19 20:24:09" itemprop="dateModified" datetime="2021-03-19T20:24:09+08:00">2021-03-19</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-LS/" itemprop="url" rel="index"><span itemprop="name">CG.LS</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">投影(2) OpenGL 中的投影变换推导</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="opengl-中的投影矩阵">OpenGL 中的投影矩阵</h1>
+<ul>
+<li>vmath:Frusutm()</li>
+</ul>
+<p><span class="math display">\[
+\begin{bmatrix}
+\dfrac{2near}{right-left}&amp;0&amp;A&amp;0\\
+0&amp;\dfrac{2near}{top-bottom}&amp;B&amp;0\\
+0&amp;0&amp;C&amp;D\\
+0&amp;0&amp;-1&amp;0\\
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li>其中 <span class="math inline">\(A,B,C,D\)</span> 含义如下</li>
+</ul>
+<p><span class="math display">\[
+A=\dfrac{left+right}{right-left}
+\]</span></p>
+<p><span class="math display">\[
+B=\dfrac{top+bottom}{top-bottom}
+\]</span></p>
+<p><span class="math display">\[
+C=-\dfrac{far+near}{far-near}
+\]</span></p>
+<p><span class="math display">\[
+D=-\dfrac{2far\cdot near}{far-near}
+\]</span></p>
+<ul>
+<li>其中 <span class="math inline">\(far,near,top,bottom,left,right\)</span> 表示6个裁剪面
+<ul>
+<li>实际的裁剪面
+<ul>
+<li><span class="math inline">\(far,near\)</span> 使用的是绝对值
+<ul>
+<li>因为一定是负数</li>
+</ul></li>
+<li><span class="math inline">\({\color{red}-far,-near},top,bottom,left,right\)</span></li>
+</ul></li>
+</ul></li>
+<li>坐标变换：
+<ul>
+<li><strong>现实坐标系中的视见体</strong> 转化为 <strong>OpenGL中的立方体</strong> <span class="math inline">\([-1,1]\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2021/01/31/CG/LS/05-1/xyz_OpenGL.png"></p>
+<ul>
+<li>投影中心 <span class="math inline">\((0,0,0)\)</span></li>
+<li>投影平面 <span class="math inline">\(z=-near\)</span></li>
+<li>推导过程中裁剪面使用单词首字母代替</li>
+</ul>
+<h2 id="推导一投影角度">推导一：投影角度</h2>
+<ul>
+<li>投影+规范化</li>
+</ul>
+<h3 id="投影">(1) 投影</h3>
+<ul>
+<li>将视见体中的点投影到 <span class="math inline">\(z=-n\)</span> 上</li>
+<li>以俯视图为例推导坐标关系（<span class="math inline">\(x,z\)</span>）</li>
+</ul>
+<p><img src="/2021/01/31/CG/LS/05-1/projection_01.png" alt="1612082808631" style="zoom:50%;"></p>
+<ul>
+<li><span class="math inline">\(z_p=-n\)</span></li>
+<li><span class="math inline">\(x_p=\dfrac{nx_e}{-z_e}\)</span></li>
+<li>利用侧视图可以得到 <span class="math inline">\(y_p=\dfrac{ny_e}{-z_e}\)</span></li>
+</ul>
+<h3 id="规范化">(2) 规范化</h3>
+<ul>
+<li><p><span class="math inline">\(x_p\in[l,r]\rightarrow x_n\in[-1,1]\)</span></p></li>
+<li><p><span class="math inline">\(y_p\in[b,t]\rightarrow y_n\in[-1,1]\)</span></p></li>
+<li><p>以 <span class="math inline">\(x\)</span> 的推导为例</p>
+<ul>
+<li><span class="math inline">\(\dfrac{x_p-l}{r-l}=\dfrac{x_n-(-1)}{1-(-1)}\)</span></li>
+<li><span class="math inline">\(x_n=2\dfrac{x_p-l}{r-l}-1=\dfrac{2}{r-l}x_p-\dfrac{r+l}{r-l}=\dfrac{2n}{-z_e(r-l)}x_e-\dfrac{r+l}{r-l}\)</span></li>
+<li><span class="math inline">\(x_n=\dfrac{\dfrac{2n}{r-l}x_e+\dfrac{z_e(r+l)}{r-l}}{-z_e}\)</span></li>
+</ul></li>
+<li><p>同理</p>
+<ul>
+<li><span class="math inline">\(y_n=\dfrac{\dfrac{2n}{t-b}y_e+\dfrac{z_e(t+b)}{t-b}}{-z_e}\)</span></li>
+</ul></li>
+<li><p>写成矩阵的形式</p>
+<ul>
+<li><p>为了计算的方便，我们把分母放到最终的齐次坐标化简中去</p></li>
+<li><p><span class="math inline">\(w_c=-z_e,x_n=\dfrac{x_c}{w_c},y_n=\dfrac{y_c}{w_c}\)</span></p></li>
+<li><p><span class="math display">\[
+  \begin{bmatrix}
+  \dfrac{2n}{r-l}&amp;0&amp;\dfrac{r+l}{r-l}&amp;0\\
+  0&amp;\dfrac{2n}{t-b}&amp;\dfrac{t+b}{t-b}&amp;0\\
+  \cdot&amp;\cdot&amp;\cdot&amp;\cdot\\
+  0&amp;0&amp;-1&amp;0
+  \end{bmatrix}
+  \begin{bmatrix}
+  x_e\\y_e\\z_e\\w_e
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+  x_c\\y_c\\z_c\\w_c
+  \end{bmatrix}
+  \]</span></p></li>
+</ul></li>
+</ul>
+<h3 id="记录深度信息">(3) 记录深度信息</h3>
+<p><span class="math display">\[
+\begin{bmatrix}
+\dfrac{2n}{r-l}&amp;0&amp;\dfrac{r+l}{r-l}&amp;0\\
+0&amp;\dfrac{2n}{t-b}&amp;\dfrac{t+b}{t-b}&amp;0\\
+0&amp;0&amp;A&amp;B\\
+0&amp;0&amp;-1&amp;0
+\end{bmatrix}
+\begin{bmatrix}
+x_e\\y_e\\z_e\\w_e
+\end{bmatrix}
+=
+\begin{bmatrix}
+x_c\\y_c\\z_c\\w_c
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li><p>我们可以看到， <span class="math inline">\(z_n\)</span> 并没有被用上，我们可以用来记录深度信息</p></li>
+<li><p><span class="math inline">\(z_n=\dfrac{z_c}{w_c}=\dfrac{Az_e+Bw_e}{w_c}=\dfrac{Az_e+B}{-z_e}=-A+\dfrac{B}{-z_e}\)</span></p></li>
+<li><p><span class="math inline">\(z_e\in[{\color{red}-f},-n]\rightarrow z_n\in[{\color{red}1},-1]\)</span></p>
+<ul>
+<li><span style="color:red;font-weight:bold">深度值越远越大</span></li>
+</ul></li>
+<li><p><span class="math display">\[
+  \left\{
+  \begin{array}{**lr**}
+  1=-A+\dfrac{B}{f}\\
+  -1=-A+\dfrac{B}{n}
+  \end{array}
+  \right.
+  \Rightarrow
+  \left\{
+  \begin{array}{**lr**}
+  A=-\dfrac{f+n}{f-n}\\
+  B=-\dfrac{2nf}{f-n}
+  \end{array}
+  \right.
+  \]</span></p></li>
+</ul>
+<h2 id="推导二变换角度">推导二：变换角度</h2>
+<ul>
+<li>错切+缩放+规范化</li>
+</ul>
+<h3 id="错切">(1) 错切</h3>
+<ul>
+<li>错切至关于 z 轴中心对称</li>
+</ul>
+<p><img src="/2021/01/31/CG/LS/05-1/projection_02.png" alt="1612084162326" style="zoom:50%;"></p>
+<ul>
+<li><span class="math inline">\(-x\)</span> 方向：<span class="math inline">\(\tan\theta_x=\dfrac{1}{2}\cdot\dfrac{l+r}{-n}\)</span>
+<ul>
+<li><span class="math inline">\(\Rightarrow +x:\tan\theta_x&#39;=\dfrac{l+r}{2n}\)</span></li>
+</ul></li>
+<li><span class="math inline">\(-y\)</span> 方向：<span class="math inline">\(\tan\theta_y=\dfrac{1}{2}\cdot\dfrac{t+b}{-n}\)</span>
+<ul>
+<li><span class="math inline">\(\Rightarrow +y:\tan\theta_y&#39;=\dfrac{t+b}{2n}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+M_1=
+\begin{bmatrix}
+1&amp;0&amp;\dfrac{l+r}{2n}&amp;0\\
+0&amp;1&amp;\dfrac{t+b}{2n}&amp;0\\
+0&amp;0&amp;1&amp;0\\
+0&amp;0&amp;0&amp;1
+\end{bmatrix}
+\]</span></p>
+<h3 id="缩放">(2) 缩放</h3>
+<ul>
+<li>缩放的结果
+<ul>
+<li><span class="math inline">\(x:[l,r]\to[-1,1]\)</span></li>
+<li><span class="math inline">\(y:[b,t]\to[-1,1]\)</span></li>
+<li><span class="math inline">\(z:[{\color{red}-f},-n]\to [{\color{red}-1},-\dfrac{f}{n}]\)</span>
+<ul>
+<li>因此，对应着投影平面 <span class="math inline">\(z=-1\)</span> 的是后裁剪面 <span class="math inline">\(z=-f\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+M_2=
+\begin{bmatrix}
+\dfrac{2n}{(r-l)f}&amp;0&amp;0&amp;0\\
+0&amp;\dfrac{2n}{(t-b)f}&amp;0&amp;0\\
+0&amp;0&amp;\dfrac{1}{f}&amp;0\\
+0&amp;0&amp;0&amp;1
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li>等价于 <span class="math inline">\(M_2&#39;\)</span>（化成标准齐次坐标是一样的）</li>
+</ul>
+<p><span class="math display">\[
+M_2&#39;=
+\begin{bmatrix}
+\dfrac{2n}{r-l)f}&amp;0&amp;0&amp;0\\
+0&amp;\dfrac{2n}{t-b}&amp;0&amp;0\\
+0&amp;0&amp;1&amp;0\\
+0&amp;0&amp;0&amp;f
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li>以上形成的视见体其实是一个棱台
+<ul>
+<li>顶点为 <span class="math inline">\((0,0,0)\)</span> 底面为 <span class="math inline">\((-1,-1,0),(-1,1,0),(1,1,0),(1,-1,0)\)</span> 的四棱锥被平面 <span class="math inline">\(z=-\dfrac{n}{f}\)</span> 截成的四棱锥</li>
+</ul></li>
+</ul>
+<h3 id="透视平行">(3) 透视=&gt;平行</h3>
+<ul>
+<li>将透视投影的规范视见体变换为平行投影的规范视见体
+<ul>
+<li>将上述四棱锥转换为长方体</li>
+<li><span class="math inline">\(x:[-1,1]\to[-1,1]\)</span></li>
+<li><span class="math inline">\(y:[-1,1]\to[-1,1]\)</span></li>
+<li><span class="math inline">\(z:[{\color{red}-1},-\dfrac{f}{n}]\to [-1,0]\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+M_3=
+\begin{bmatrix}
+1&amp;0&amp;0&amp;0\\
+0&amp;1&amp;0&amp;0\\
+0&amp;0&amp;\dfrac{1}{1-n_{min}}&amp;\dfrac{n_{min}}{1-n_{min}}\\
+0&amp;0&amp;-1&amp;0
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(z_{min}\ge0\)</span></li>
+</ul>
+<p><span class="math display">\[
+M_3=
+\begin{bmatrix}
+1&amp;0&amp;0&amp;0\\
+0&amp;1&amp;0&amp;0\\
+0&amp;0&amp;\dfrac{f}{f-n}&amp;\dfrac{n}{f-n}\\
+0&amp;0&amp;-1&amp;0
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li>推导过程和 <strong>推导一的投影</strong> 相似
+<ul>
+<li><span class="math inline">\(\dfrac{x_p}{z_p}=\dfrac{x_n}{-1},\dfrac{y_p}{z_p}=\dfrac{y_n}{-1}\)</span></li>
+<li><span class="math inline">\(x_n=\dfrac{x_p}{-z_p},y_n=\dfrac{y_p}{-z_p}\)</span></li>
+</ul></li>
+<li>得到矩阵如下</li>
+</ul>
+<p><span class="math display">\[
+M_3=
+\begin{bmatrix}
+1&amp;0&amp;0&amp;0\\
+0&amp;1&amp;0&amp;0\\
+\cdot&amp;\cdot&amp;\cdot&amp;\cdot\\
+0&amp;0&amp;-1&amp;0
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li>将第三行用于记录深度信息</li>
+</ul>
+<p><span class="math display">\[
+M_3=
+\begin{bmatrix}
+1&amp;0&amp;0&amp;0\\
+0&amp;1&amp;0&amp;0\\
+0&amp;0&amp;A&amp;B\\
+0&amp;0&amp;-1&amp;0
+\end{bmatrix}
+\]</span></p>
+<ul>
+<li><p><span class="math inline">\(z_n=\dfrac{Az_p+B}{-z_p}=-A+\dfrac{B}{-z_p}\)</span></p>
+<ul>
+<li><span class="math display">\[
+  \left\{
+  \begin{array}{**lr**}
+  -1=-A+\dfrac{B}{1}\\
+  0=-A+\dfrac{B}{n_{min}}
+  \end{array}
+  \right.
+  \Rightarrow
+  \left\{
+  \begin{array}{**lr**}
+  A=\dfrac{1}{1-n_{min}}\\
+  B=\dfrac{n_{min}}{1-n_{min}}
+  \end{array}
+  \right.
+  \]</span></li>
+</ul></li>
+</ul>
+<h3 id="平移">(4) 平移</h3>
+<ul>
+<li><span class="math inline">\(x:[-1,-1]\to[-1,1]\)</span></li>
+<li><span class="math inline">\(y:[-1,-1]\to[-1,1]\)</span></li>
+<li><span class="math inline">\(z:[-1,0]\to -[\dfrac{1}{2},\dfrac{1}{2}]\)</span></li>
+</ul>
+<p><span class="math display">\[
+M_4=
+\begin{bmatrix}
+1&amp;0&amp;0&amp;0\\
+0&amp;1&amp;0&amp;0\\
+0&amp;0&amp;1&amp;\dfrac{1}{2}\\
+0&amp;0&amp;0&amp;1
+\end{bmatrix}
+\]</span></p>
+<h3 id="尺缩">(5) 尺缩</h3>
+<ul>
+<li><span class="math inline">\(x:[-1,-1]\to[-1,1]\)</span></li>
+<li><span class="math inline">\(y:[-1,-1]\to[-1,1]\)</span></li>
+<li><span class="math inline">\(z:[-\dfrac{1}{2},\dfrac{1}{2}]\to [-1,1]\)</span></li>
+</ul>
+<p><span class="math display">\[
+M_5=
+\begin{bmatrix}
+1&amp;0&amp;0&amp;0\\
+0&amp;1&amp;0&amp;0\\
+0&amp;0&amp;2&amp;0\\
+0&amp;0&amp;0&amp;1
+\end{bmatrix}
+\]</span></p>
+<h3 id="深度变换">(6) 深度变换</h3>
+<ul>
+<li>深度越大 <span class="math inline">\(z\)</span> 越大</li>
+</ul>
+<p><span class="math display">\[
+M_6=
+\begin{bmatrix}
+1&amp;0&amp;0&amp;0\\
+0&amp;1&amp;0&amp;0\\
+0&amp;0&amp;-1&amp;0\\
+0&amp;0&amp;0&amp;1
+\end{bmatrix}
+\]</span></p>
+<h3 id="结果">(7) 结果</h3>
+<ul>
+<li>与上面一致</li>
+</ul>
+<p><span class="math display">\[
+M_6M_5M_4M_3M_2&#39;M_1
+\]</span></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/01/29/CG/LS/05/" rel="prev" title="计算机图形学.李胜.05.投影(1)">
+                  <i class="fa fa-chevron-left"></i> 计算机图形学.李胜.05.投影(1)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/01/31/CG/LS/05-2/" rel="next" title="计算机图形学.李胜.05.投影(3)">
+                  计算机图形学.李胜.05.投影(3) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

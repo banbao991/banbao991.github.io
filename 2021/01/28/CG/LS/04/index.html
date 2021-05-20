@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="二维&#x2F;三维基本变换（平移、旋转、错切、尺度、对称等）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.04.几何变换">
+<meta property="og:url" content="http://example.com/2021/01/28/CG/LS/04/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="二维&#x2F;三维基本变换（平移、旋转、错切、尺度、对称等）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/01/28/CG/LS/04/shear_y_y=0.png">
+<meta property="og:image" content="http://example.com/2021/01/28/CG/LS/04/shear_y_y_ref.png">
+<meta property="og:image" content="http://example.com/2021/01/28/CG/LS/04/shear_x_x=0.png">
+<meta property="og:image" content="http://example.com/2021/01/28/CG/LS/04/shear_x_x=ref.png">
+<meta property="og:image" content="http://example.com/2021/01/28/CG/LS/04/xyz_right.png">
+<meta property="article:published_time" content="2021-01-28T02:27:56.000Z">
+<meta property="article:modified_time" content="2021-02-06T09:16:04.216Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/01/28/CG/LS/04/shear_y_y=0.png">
+
+
+<link rel="canonical" href="http://example.com/2021/01/28/CG/LS/04/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>计算机图形学.李胜.04.几何变换 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E7%BB%B4%E5%9F%BA%E6%9C%AC%E5%8F%98%E6%8D%A2"><span class="nav-text">二维基本变换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B3%E7%A7%BB%E5%8F%98%E6%8D%A2"><span class="nav-text">1. 平移变换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%8B%E8%BD%AC%E5%8F%98%E6%8D%A2"><span class="nav-text">2. 旋转变换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%BA%E5%BA%A6%E5%8F%98%E6%8D%A2"><span class="nav-text">3. 尺度变换</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%BD%90%E6%AC%A1%E5%9D%90%E6%A0%87"><span class="nav-text">齐次坐标</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B3%E7%A7%BB%E5%8F%98%E6%8D%A2-1"><span class="nav-text">1. 平移变换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%8B%E8%BD%AC%E5%8F%98%E6%8D%A2-1"><span class="nav-text">2. 旋转变换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%BA%E5%BA%A6%E5%8F%98%E6%8D%A2-1"><span class="nav-text">3. 尺度变换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E7%9A%84%E5%8F%98%E6%8D%A2"><span class="nav-text">4. 复杂的变换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E4%BB%BB%E6%84%8F%E7%82%B9%E7%9A%84%E6%97%8B%E8%BD%AC"><span class="nav-text">(1) 对任意点的旋转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E4%BB%BB%E6%84%8F%E5%8F%82%E8%80%83%E7%82%B9%E7%9A%84%E6%94%BE%E7%BC%A9"><span class="nav-text">(2) 对任意参考点的放缩</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E7%A7%B0%E5%8F%98%E6%8D%A2"><span class="nav-text">5. 对称变换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-x-%E8%BD%B4%E7%9A%84%E5%AF%B9%E7%A7%B0%E5%8F%98%E6%8D%A2"><span class="nav-text">(1) 关于 x 轴的对称变换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-y-%E8%BD%B4%E7%9A%84%E5%AF%B9%E7%A7%B0%E5%8F%98%E6%8D%A2"><span class="nav-text">(2) 关于 y 轴的对称变换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E4%BB%BB%E6%84%8F%E8%BD%B4%E7%9A%84%E5%AF%B9%E7%A7%B0%E5%8F%98%E6%8D%A2"><span class="nav-text">(3) 关于任意轴的对称变换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%94%99%E5%88%87%E5%8F%98%E6%8D%A2"><span class="nav-text">6. 错切变换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A5-y-%E8%BD%B4%E4%B8%BA%E4%BE%9D%E8%B5%96%E8%BD%B4y0-%E4%B8%BA%E5%8F%82%E8%80%83%E8%BD%B4"><span class="nav-text">(1) 以 y 轴为依赖轴，y&#x3D;0 为参考轴</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A5-y-%E8%BD%B4%E4%B8%BA%E4%BE%9D%E8%B5%96%E8%BD%B4yy_ref-%E4%B8%BA%E5%8F%82%E8%80%83%E8%BD%B4"><span class="nav-text">(2) 以 y 轴为依赖轴，\(y&#x3D;y_{ref}\) 为参考轴</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A5-x-%E8%BD%B4%E4%B8%BA%E4%BE%9D%E8%B5%96%E8%BD%B4x0-%E4%B8%BA%E5%8F%82%E8%80%83%E8%BD%B4"><span class="nav-text">(3) 以 x 轴为依赖轴，x&#x3D;0 为参考轴</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A5-x-%E8%BD%B4%E4%B8%BA%E4%BE%9D%E8%B5%96%E8%BD%B4xx_ref-%E4%B8%BA%E5%8F%82%E8%80%83%E8%BD%B4"><span class="nav-text">(4) 以 x 轴为依赖轴，\(x&#x3D;x_{ref}\) 为参考轴</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BF%E5%B0%84%E5%8F%98%E6%8D%A2"><span class="nav-text">7. 仿射变换</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E7%BB%B4%E5%9B%BE%E5%BD%A2%E7%9A%84%E6%98%BE%E7%A4%BA%E6%B5%81%E7%A8%8B"><span class="nav-text">二维图形的显示流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E7%BB%B4%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2"><span class="nav-text">三维几何变换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B3%E7%A7%BB-translate"><span class="nav-text">1. 平移 translate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%BA%E5%BA%A6%E6%94%BE%E7%BC%A9-scale"><span class="nav-text">2. 尺度（放缩） scale</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%8B%E8%BD%AC-rotate"><span class="nav-text">3. 旋转 rotate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%95-x-%E8%BD%B4"><span class="nav-text">(1) 绕 x 轴</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%95-y-%E8%BD%B4"><span class="nav-text">(2) 绕 y 轴</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%95-z-%E8%BD%B4"><span class="nav-text">(3) 绕 z 轴</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%94%99%E5%88%87-shear"><span class="nav-text">4. 错切 shear</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E7%A7%B0%E5%8F%98%E6%8D%A2-1"><span class="nav-text">5. 对称变换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BF%E5%B0%84%E5%8F%98%E6%8D%A2%E4%B8%80%E8%88%AC%E5%BD%A2%E5%BC%8F"><span class="nav-text">6. 仿射变换一般形式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%95%E5%90%91%E5%8F%98%E6%8D%A2"><span class="nav-text">7. 法向变换</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/28/CG/LS/04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机图形学.李胜.04.几何变换
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-28 10:27:56" itemprop="dateCreated datePublished" datetime="2021-01-28T10:27:56+08:00">2021-01-28</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-06 17:16:04" itemprop="dateModified" datetime="2021-02-06T17:16:04+08:00">2021-02-06</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-LS/" itemprop="url" rel="index"><span itemprop="name">CG.LS</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">二维/三维基本变换（平移、旋转、错切、尺度、对称等）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="二维基本变换">二维基本变换</h1>
+<h2 id="平移变换">1. 平移变换</h2>
+<ul>
+<li><p><span class="math inline">\(\vec{P&#39;}=\vec{P}+\vec{T}\)</span></p></li>
+<li><p><span class="math display">\[
+  \begin{bmatrix} x&#39; \\ y&#39; \end{bmatrix} = \begin{bmatrix} x \\ y \end{bmatrix}+\begin{bmatrix}t_x \\ t_y\end{bmatrix}
+  \]</span></p></li>
+</ul>
+<h2 id="旋转变换">2. 旋转变换</h2>
+<ul>
+<li><p><span class="math inline">\(\vec{P&#39;}=R_{\theta}\cdot\vec{P}\)</span></p></li>
+<li><p><span class="math display">\[
+  R_{\theta}=\begin{bmatrix}\cos
+  \theta &amp; -\sin\theta  \\ \sin\theta&amp;\cos\theta\end{bmatrix}
+  \]</span></p></li>
+<li><p><span class="math inline">\(R_{\theta}=R_{-\theta}^{-1}\)</span></p></li>
+</ul>
+<h2 id="尺度变换">3. 尺度变换</h2>
+<ul>
+<li><p><span class="math inline">\(\vec{P&#39;}=S\cdot\vec{P}\)</span></p></li>
+<li><p><span class="math display">\[
+  S=\begin{bmatrix}s_x &amp; 0 \\ 0 &amp; s_y \end{bmatrix}
+  \]</span></p></li>
+</ul>
+<h1 id="齐次坐标">齐次坐标</h1>
+<ul>
+<li><strong>统一变换</strong></li>
+<li>n 维向量使用 <span style="color:red;font-weight:bold">n+1</span> 维向量表示
+<ul>
+<li>使用直线来表示点</li>
+</ul></li>
+<li><span class="math inline">\((x,y)\)</span> 使用 <span class="math inline">\((hx,hy,h),h\ne 0\)</span> 来表示
+<ul>
+<li>标准齐次坐标：<span class="math inline">\(h=1\)</span></li>
+</ul></li>
+<li>统一变换为 <span class="math inline">\(\vec{P&#39;}=M\cdot\vec{P}\)</span></li>
+</ul>
+<h2 id="平移变换-1">1. 平移变换</h2>
+<ul>
+<li><p><strong>translate</strong></p></li>
+<li><p><span class="math display">\[
+  M=T(t_x,t_y)=\begin{bmatrix}1 &amp; 0 &amp; t_x \\ 0 &amp; 1 &amp; t_y \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+  \]</span></p></li>
+</ul>
+<h2 id="旋转变换-1">2. 旋转变换</h2>
+<ul>
+<li></li>
+<li><span class="math display">\[
+  M=R(\theta)=\begin{bmatrix}\cos\theta &amp; -\sin\theta &amp; 0 \\ \sin\theta &amp; \cos\theta &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+  \]</span></li>
+</ul>
+<h2 id="尺度变换-1">3. 尺度变换</h2>
+<ul>
+<li></li>
+<li><span class="math display">\[
+  M=S(s_x,s_y)=\begin{bmatrix}s_x &amp; 0 &amp; 0 \\ 0 &amp; s_y &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+  \]</span></li>
+</ul>
+<h2 id="复杂的变换">4. 复杂的变换</h2>
+<ul>
+<li><span style="color:red;font-weight:bold">解构成基本变换</span></li>
+</ul>
+<h3 id="对任意点的旋转">(1) 对任意点的旋转</h3>
+<ul>
+<li><p>平移参考点到原点</p></li>
+<li><p>旋转</p></li>
+<li><p>将参考点移回去</p></li>
+<li><p>3 个矩阵变换</p>
+<ul>
+<li><strong>注意矩阵乘法不可交换</strong>，需要正确考虑顺序</li>
+</ul></li>
+<li><p><strong>两种模式</strong></p>
+<ul>
+<li>固定坐标系模式：先调用的先执行</li>
+<li>活动坐标系模式：后调用的先执行（<span style="color:red;font-weight:bold">OpenGL</span>）
+<ul>
+<li>变换结束之后更新的是坐标系</li>
+</ul></li>
+</ul></li>
+<li><p>左乘 vs 右乘</p>
+<ul>
+<li><p>左乘：行变换</p>
+<ul>
+<li><span class="math display">\[
+  M\begin{pmatrix}x_1 \\ x_2 \\ x_3 \end{pmatrix}
+  \]</span></li>
+</ul></li>
+<li><p>右乘：列变换</p>
+<ul>
+<li><span class="math display">\[
+  \begin{pmatrix}x_1, x_2, x_3 \end{pmatrix}M
+  \]</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="对任意参考点的放缩">(2) 对任意参考点的放缩</h3>
+<ul>
+<li>同理</li>
+</ul>
+<h2 id="对称变换">5. 对称变换</h2>
+<ul>
+<li><strong>symmetric</strong></li>
+</ul>
+<h3 id="关于-x-轴的对称变换">(1) 关于 x 轴的对称变换</h3>
+<ul>
+<li><p><span class="math inline">\(y\rightarrow -y\)</span></p></li>
+<li><p><span class="math display">\[
+  M=\begin{bmatrix}1 &amp; 0 &amp; 0 \\ 0 &amp; -1 &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+  \]</span></p></li>
+</ul>
+<h3 id="关于-y-轴的对称变换">(2) 关于 y 轴的对称变换</h3>
+<ul>
+<li><p><span class="math inline">\(x\rightarrow -x\)</span></p></li>
+<li><p><span class="math display">\[
+  M=\begin{bmatrix}1 &amp; 0 &amp; 0 \\ 0 &amp; -1 &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+  \]</span></p></li>
+</ul>
+<h3 id="关于任意轴的对称变换">(3) 关于任意轴的对称变换</h3>
+<ul>
+<li><strong>解构</strong></li>
+<li>步骤
+<ul>
+<li>平移轴至过原点</li>
+<li>绕原点旋转轴至与 x 轴或 y 轴重合</li>
+<li>对称变换</li>
+<li>旋转回去</li>
+<li>平移回去</li>
+</ul></li>
+</ul>
+<h2 id="错切变换">6. 错切变换</h2>
+<ul>
+<li><strong>shear</strong></li>
+</ul>
+<h3 id="以-y-轴为依赖轴y0-为参考轴">(1) 以 y 轴为依赖轴，y=0 为参考轴</h3>
+<ul>
+<li><p>y 不变，x 错切</p></li>
+<li><p><span class="math display">\[
+  M=\begin{bmatrix}1 &amp; sh_x &amp; 0 \\ 0 &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix},sh_x=tan\alpha
+  \]</span></p></li>
+</ul>
+<p><img src="/2021/01/28/CG/LS/04/shear_y_y=0.png" alt="img" style="zoom:30%;"></p>
+<h3 id="以-y-轴为依赖轴yy_ref-为参考轴">(2) 以 y 轴为依赖轴，<span class="math inline">\(y=y_{ref}\)</span> 为参考轴</h3>
+<ul>
+<li><p>平移，错切（y=0），反平移</p></li>
+<li><p><span class="math display">\[
+  M=\begin{bmatrix}1 &amp; sh_x(1-y_{ref}) &amp; 0 \\ 0 &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix},sh_x=tan\alpha
+  \]</span></p></li>
+</ul>
+<p><img src="/2021/01/28/CG/LS/04/shear_y_y_ref.png" alt="img" style="zoom: 50%;"></p>
+<h3 id="以-x-轴为依赖轴x0-为参考轴">(3) 以 x 轴为依赖轴，x=0 为参考轴</h3>
+<ul>
+<li><p>x 不变，y 错切</p></li>
+<li><p><span class="math display">\[
+  M=\begin{bmatrix}1 &amp; 0 &amp; 0 \\ sh_y &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix},sh_x=tan\beta
+  \]</span></p></li>
+</ul>
+<p><img src="/2021/01/28/CG/LS/04/shear_x_x=0.png" alt="img" style="zoom: 40%;"></p>
+<h3 id="以-x-轴为依赖轴xx_ref-为参考轴">(4) 以 x 轴为依赖轴，<span class="math inline">\(x=x_{ref}\)</span> 为参考轴</h3>
+<ul>
+<li><span class="math display">\[
+  M=\begin{bmatrix}1 &amp; 0 &amp; 0 \\ sh_y(1-x_{ref}) &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{bmatrix},sh_x=tan\beta
+  \]</span></li>
+</ul>
+<p><img src="/2021/01/28/CG/LS/04/shear_x_x=ref.png" alt="1611837351710" style="zoom:50%;"></p>
+<h2 id="仿射变换">7. 仿射变换</h2>
+<ul>
+<li><p>以上提到的变换都是仿射变换</p></li>
+<li><p>Affine Transform</p></li>
+<li><p>保持直线的平行性</p></li>
+<li><p>正交投影属于仿射变换，透视投影不属于仿射变换</p></li>
+<li><p>矩阵特征</p></li>
+<li><p><span class="math display">\[
+  \begin{bmatrix}a &amp; b &amp; c \\ d &amp; e &amp; f \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+  \]</span></p></li>
+</ul>
+<h1 id="二维图形的显示流程">二维图形的显示流程</h1>
+<ul>
+<li>世界坐标系（world coordinate）
+<ul>
+<li>或者称作用户坐标系（user coordinate）</li>
+</ul></li>
+<li>局部坐标系（local coordinate）</li>
+<li>屏幕坐标系（screen coordinate）
+<ul>
+<li>或者称作设备坐标系（device coordinate）</li>
+</ul></li>
+<li><strong>窗口</strong> 与 <strong>视区</strong>
+<ul>
+<li>窗口：在世界坐标系中指定的矩形区域，用来指定要显示的图形</li>
+<li>视区：在设备坐标系上指定的矩形区域，用来指定窗口内的图形在屏幕上显示的大小及位置</li>
+</ul></li>
+</ul>
+<h1 id="三维几何变换">三维几何变换</h1>
+<ul>
+<li>三维齐次坐标：<span class="math inline">\((x_h,y_h,z_h,h),h\ne 0\)</span></li>
+<li>标准齐次坐标：<span class="math inline">\((x,y,z,1)\)</span></li>
+<li>右手系：<span class="math inline">\(\vec{x} \times \vec{y} = \vec{z}\)</span></li>
+</ul>
+<p><img src="/2021/01/28/CG/LS/04/xyz_right.png" alt="1611884054147" style="zoom:50%;"></p>
+<h2 id="平移-translate">1. 平移 translate</h2>
+<p><span class="math display">\[
+T(t_x,t_y,t_z)=
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; t_x \\
+0 &amp; 1 &amp; 0 &amp; t_y \\
+0 &amp; 0 &amp; 1 &amp; t_z \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+\]</span></p>
+<h2 id="尺度放缩-scale">2. 尺度（放缩） scale</h2>
+<p><span class="math display">\[
+S(s_x,s_y,s_z)=
+\begin{bmatrix}
+s_x &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; s_y &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; s_z &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+\]</span></p>
+<h2 id="旋转-rotate">3. 旋转 rotate</h2>
+<ul>
+<li>正方向：大拇指指向绕的轴的方向，四指的方向即为正方向</li>
+</ul>
+<h3 id="绕-x-轴">(1) 绕 x 轴</h3>
+<ul>
+<li>x 不变</li>
+<li>相当于在 <strong>yOz</strong> 平面旋转 <span class="math inline">\(\theta\)</span></li>
+<li>划去 x 对应的列和行之后和二维相同</li>
+</ul>
+<p><span class="math display">\[
+R_x(\theta)=
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; \cos\theta &amp; -\sin\theta &amp; 0 \\
+0 &amp; \sin\theta &amp; \cos\theta &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+\]</span></p>
+<h3 id="绕-y-轴">(2) 绕 y 轴</h3>
+<ul>
+<li>y 不变</li>
+<li>在 <strong>zOx</strong> 平面旋转 <span class="math inline">\(\theta\)</span>
+<ul>
+<li>在 <strong>xOz</strong> 平面旋转 <span class="math inline">\(-\theta\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+R_y(\theta)=
+\begin{bmatrix}
+\cos\theta &amp; 0 &amp; \sin\theta &amp; 0\\
+0 &amp; 1 &amp; 0 &amp; 0 \\
+-\sin\theta &amp; 0 &amp; \cos\theta &amp; 0\\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+\]</span></p>
+<h3 id="绕-z-轴">(3) 绕 z 轴</h3>
+<ul>
+<li>z 不变</li>
+<li>绕 <strong>xOy</strong> 平面旋转 <span class="math inline">\(\theta\)</span></li>
+</ul>
+<p><span class="math display">\[
+R_z(\theta)=
+\begin{bmatrix}
+\cos\theta &amp; -\sin\theta &amp; 0 &amp; 0\\
+\sin\theta &amp; \cos\theta  &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+\]</span></p>
+<h2 id="错切-shear">4. 错切 shear</h2>
+<ul>
+<li>z 轴为依赖轴，z=0 平面为参考平面</li>
+</ul>
+<p><span class="math display">\[
+SH_z(sh_x,sh_y)=
+\begin{bmatrix}
+1 &amp; 0 &amp; sh_x &amp; 0 \\
+0 &amp; 1 &amp; sh_y &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+\]</span></p>
+<h2 id="对称变换-1">5. 对称变换</h2>
+<ul>
+<li>关于 z=0(xOy) 平面的对称变换</li>
+</ul>
+<p><span class="math display">\[
+SY_{xy}=
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; -1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+\]</span></p>
+<h2 id="仿射变换一般形式">6. 仿射变换一般形式</h2>
+<p><span class="math display">\[
+A =
+\begin{bmatrix}
+a_{11} &amp; a_{12} &amp; a_{13} &amp; a_{14} \\
+a_{21} &amp; a_{22} &amp; a_{23} &amp; a_{24} \\
+a_{31} &amp; a_{32} &amp; a_{33} &amp; a_{34} \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; a_{14} \\
+0 &amp; 1 &amp; 0 &amp; a_{24} \\
+0 &amp; 0 &amp; 1 &amp; a_{34} \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+a_{11} &amp; a_{12} &amp; a_{13} &amp; 0 \\
+a_{21} &amp; a_{22} &amp; a_{23} &amp; 0 \\
+a_{31} &amp; a_{32} &amp; a_{33} &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+= T\cdot M
+\]</span></p>
+<ul>
+<li>T 表示平移变换，M 表示其他变换
+<ul>
+<li>注意拆解顺序</li>
+</ul></li>
+</ul>
+<h3 id="法向变换">7. 法向变换</h3>
+<ul>
+<li>点坐标：<span class="math inline">\((x,y,z,{\color{red}1})\)</span>
+<ul>
+<li><strong>点</strong></li>
+</ul></li>
+<li>法向坐标：<span class="math inline">\((x,y,z,{\color{red}0})\)</span>
+<ul>
+<li><strong>向量</strong></li>
+</ul></li>
+<li>验证：
+<ul>
+<li>点 - 点 = 向量</li>
+<li>向量 + 向量 = 向量</li>
+<li>点 + 向量 = 点</li>
+</ul></li>
+<li><strong>向量变换</strong>
+<ul>
+<li>取向量上两个不同点 <span class="math inline">\(x_1,x_2\)</span>，变换矩阵 <span class="math inline">\(A\)</span></li>
+<li>原来的向量：<span class="math inline">\(x_2-x_1\)</span></li>
+<li>新的向量：<span class="math inline">\(Ax_2-Ax_1\)</span></li>
+</ul></li>
+<li>切向量：<span class="math inline">\(T\)</span>
+<ul>
+<li>变化矩阵 <span class="math inline">\(M\)</span></li>
+<li><span class="math inline">\(Mx_1-Mx_2=M(x_1-x_2)=M\cdot T\)</span></li>
+</ul></li>
+<li>法向量：<span class="math inline">\(N\)</span>
+<ul>
+<li>原始条件：<span class="math inline">\(N\cdot T=N^TT=0\)</span></li>
+<li><span class="math inline">\(N&#39;\cdot T&#39;=(GN)\cdot(MT)=0\)</span></li>
+<li>以上是向量乘法，转化为等价的矩阵乘法</li>
+<li><span class="math inline">\((GN)\cdot (MT)=(GN)^T(MT)=N^TG^TMT=0\)</span></li>
+<li><span class="math inline">\(\Rightarrow G^TM=I\)</span></li>
+</ul></li>
+<li>即法向量的变换矩阵 <span class="math inline">\({\color{red}G=(M^{-1})^T}\)</span>
+<ul>
+<li>当矩阵 <span class="math inline">\(M\)</span> 为正交矩阵的时候，<span class="math inline">\(G=M\)</span></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/01/26/Algebra/QWS/00/" rel="prev" title="高等代数.丘维声.00.说明">
+                  <i class="fa fa-chevron-left"></i> 高等代数.丘维声.00.说明
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/01/29/CG/LS/05/" rel="next" title="计算机图形学.李胜.05.投影(1)">
+                  计算机图形学.李胜.05.投影(1) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

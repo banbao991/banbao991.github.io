@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="光照与基本着色模型着色频率、图形管线、纹理映射、插值（重心坐标系）、高级纹理映射、阴影">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES101.闫令琪.02.Shading(Lecture 07-09)">
+<meta property="og:url" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="光照与基本着色模型着色频率、图形管线、纹理映射、插值（重心坐标系）、高级纹理映射、阴影">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615614278867.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615614006106.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615614093881.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615614525178.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615641364773.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615641448166.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615641521532.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615641786775.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615642434137.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615642847111.png">
+<meta property="article:published_time" content="2021-03-13T06:31:39.000Z">
+<meta property="article:modified_time" content="2021-04-29T15:34:19.659Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/1615614278867.png">
+
+
+<link rel="canonical" href="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES101.闫令琪.02.Shading(Lecture 07-09) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#lecture-07"><span class="nav-text">Lecture 07</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#lecture-08"><span class="nav-text">Lecture 08</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#blinn-phong-%E6%A8%A1%E5%9E%8B"><span class="nav-text">Blinn-Phong 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#diffuse"><span class="nav-text">(1) Diffuse</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#specular"><span class="nav-text">(2) Specular</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ambient"><span class="nav-text">(3) Ambient</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shading-frequencies"><span class="nav-text">Shading Frequencies</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E7%9F%A5%E9%81%93%E9%A1%B6%E7%82%B9%E5%83%8F%E7%B4%A0%E7%9A%84%E6%B3%95%E7%BA%BF"><span class="nav-text">怎么知道顶点&#x2F;像素的法线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#graphics-pipelinereal-time-pipeline"><span class="nav-text">Graphics Pipeline（Real-time Pipeline）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shader"><span class="nav-text">Shader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#texture-mapping"><span class="nav-text">Texture Mapping</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#lecture-09"><span class="nav-text">Lecture 09</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#barycentric-coordinates"><span class="nav-text">Barycentric Coordinates</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#texture-mapping-1"><span class="nav-text">Texture Mapping</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#simple-texture-mapping"><span class="nav-text">Simple Texture Mapping</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%B9%E7%90%86%E6%94%BE%E5%A4%A7"><span class="nav-text">纹理放大</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BA%B9%E7%90%86%E5%A4%AA%E5%B0%8F%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="nav-text">(1) 纹理太小了怎么办</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BA%B9%E7%90%86%E5%A4%AA%E5%A4%A7%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="nav-text">(2) 纹理太大了怎么办</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mipmap"><span class="nav-text">MipMap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%84%E5%90%91%E5%BC%82%E6%80%A7%E8%BF%87%E6%BB%A4-anisotropic-filtering"><span class="nav-text">各向异性过滤 Anisotropic Filtering</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ewa-filtering"><span class="nav-text">EWA Filtering</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%B9%E7%90%86%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-text">纹理的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#environment-lighting"><span class="nav-text">Environment lighting</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#spherical-environment-map"><span class="nav-text">Spherical Environment Map</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#cube-map"><span class="nav-text">Cube Map</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%B9%E5%87%B8%E8%B4%B4%E5%9B%BE"><span class="nav-text">凹凸贴图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%8D%E7%A7%BB%E8%B4%B4%E5%9B%BE"><span class="nav-text">位移贴图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#d-procedural-noise-solid-model"><span class="nav-text">3D Procedural Noise + Solid Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#provide-precomputed-shading"><span class="nav-text">Provide Precomputed Shading</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#d-textures-and-volume-rendering"><span class="nav-text">3D Textures and Volume Rendering</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/13/CG/YLQ-GAMES101/02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES101.闫令琪.02.Shading(Lecture 07-09)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-03-13 14:31:39" itemprop="dateCreated datePublished" datetime="2021-03-13T14:31:39+08:00">2021-03-13</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-29 23:34:19" itemprop="dateModified" datetime="2021-04-29T23:34:19+08:00">2021-04-29</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES101/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES101</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">光照与基本着色模型着色频率、图形管线、纹理映射、插值（重心坐标系）、高级纹理映射、阴影</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/av90798049</li>
+</ul>
+<h1 id="lecture-07">Lecture 07</h1>
+<ul>
+<li>Shading 1 (Illumination, Shading and Graphics Pipeline)</li>
+<li>着色（光照与基本着色模型）</li>
+</ul>
+<h1 id="lecture-08">Lecture 08</h1>
+<ul>
+<li>Shading 2 (Shading, pipeline and texture mapping)</li>
+<li>着色（着色频率、图形管线、纹理映射）</li>
+</ul>
+<h2 id="blinn-phong-模型">Blinn-Phong 模型</h2>
+<ul>
+<li>ambient + diffuse + specular</li>
+<li>单位向量
+<ul>
+<li>光源方向：<span class="math inline">\(\vec{l}\)</span>（指向光源）</li>
+<li>法向：<span class="math inline">\(\vec{n}\)</span></li>
+<li>视线方向：<span class="math inline">\(\vec{v}\)</span></li>
+<li>光线反射方向：<span class="math inline">\(\vec{r}\)</span></li>
+</ul></li>
+<li>光源到物体反射点的距离 <span class="math inline">\(r\)</span></li>
+</ul>
+<h3 id="diffuse">(1) Diffuse</h3>
+<p><span class="math display">\[
+L_d=k_d\dfrac{I}{r^2}\max(\vec{n}\cdot\vec{l},0)
+\]</span></p>
+<h3 id="specular">(2) Specular</h3>
+<ul>
+<li>半程向量：<span class="math inline">\(h\)</span></li>
+</ul>
+<p><span class="math display">\[
+\vec{h}=bisector(\vec{v},\vec{l})=\dfrac{\vec{v}+\vec{n}}{||\vec{v}+\vec{n}||}
+\]</span></p>
+<p><span class="math display">\[
+L_s=k_s\dfrac{I}{r^2}\max(\vec{n}\cdot\vec{h},0)^p
+\]</span></p>
+<ul>
+<li>Phong 模型中使用 <span class="math inline">\(\vec{r}\cdot\vec{v}\)</span>
+<ul>
+<li>Blinn-Phong 模型是一个改进
+<ul>
+<li>相对好算</li>
+<li><span class="math inline">\(\vec{v},\vec{r}\)</span> 的夹角大于90度时应该也能有部分高光
+<ul>
+<li>不会出现 Phong 模型中的高光断层问题</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><span class="math inline">\(p\)</span> 限制反光范围
+<ul>
+<li>实际应用：100 - 200</li>
+</ul></li>
+</ul>
+<h3 id="ambient">(3) Ambient</h3>
+<ul>
+<li>模拟间接光照</li>
+<li>实际上是不存在的 <strong>FAKE</strong></li>
+</ul>
+<p><span class="math display">\[
+L_a=k_aI_a
+\]</span></p>
+<ul>
+<li>光源到物体的距离会引发能量损失，<span style="color:red;font-weight:bold">视点到物体的距离不会</span></li>
+</ul>
+<h2 id="shading-frequencies">Shading Frequencies</h2>
+<ul>
+<li><strong>着色频率</strong>：多大的区域应用一次着色算法
+<ul>
+<li>频率越高，着色算法应用的区域越小，着色算法使用的次数越多</li>
+</ul></li>
+<li>Flat Shading
+<ul>
+<li><strong>逐三角形</strong> Face</li>
+<li>一个三角形只有一个法线，三角形内部没有颜色变化</li>
+</ul></li>
+<li>Gouraud Shading
+<ul>
+<li><strong>逐顶点</strong> Vertex</li>
+<li>一个三角形的每一个顶点进行一次着色计算，内部颜色使用插值计算出来</li>
+</ul></li>
+<li>Phong Shading
+<ul>
+<li><strong>逐像素</strong> Pixel</li>
+<li>对三角形所在区域的每一个像素进行光照计算</li>
+</ul></li>
+<li>模型足够复杂（面的细分够小）的时候，可能面的个数比像素多
+<ul>
+<li>逐三角形绘制可能耗时</li>
+<li>逐像素绘制也不一定比逐三角形绘制效果好</li>
+</ul></li>
+</ul>
+<h2 id="怎么知道顶点像素的法线">怎么知道顶点/像素的法线</h2>
+<ul>
+<li>如果知道已知模型，可以通过已知的几何模型中获取（例如本身是球体）</li>
+<li>不知道的话，可以对这个顶点关联的面的法线求一个平均
+<ul>
+<li>亦可以加权平均</li>
+</ul></li>
+<li>像素的法线：插值
+<ul>
+<li>重心坐标</li>
+</ul></li>
+</ul>
+<h2 id="graphics-pipelinereal-time-pipeline">Graphics Pipeline（Real-time Pipeline）</h2>
+<ul>
+<li>vertex processing</li>
+<li>triangle processing</li>
+<li>rasterization</li>
+<li>fragment processing</li>
+<li>framebuffer processing</li>
+</ul>
+<h2 id="shader">Shader</h2>
+<ul>
+<li>vertex shader</li>
+<li>fragment shader</li>
+<li>OpenGL: GLSL</li>
+</ul>
+<h2 id="texture-mapping">Texture Mapping</h2>
+<ul>
+<li>纹理映射</li>
+<li>纹理用于定义着色的时候所用的属性
+<ul>
+<li>一般用于代替漫反射系数 <span class="math inline">\(K_d\)</span></li>
+</ul></li>
+<li>3D 物体表面可以和一张 2D 表面相对应</li>
+<li>空间中的三角形怎么和 2D 平面上的纹理相对应
+<ul>
+<li>美工设计</li>
+<li>自动化：parametric（参数化）</li>
+</ul></li>
+<li>纹理坐标系 uv
+<ul>
+<li>通常认为 u,v 范围都是 [0, 1]</li>
+</ul></li>
+<li>纹理可以被重复使用
+<ul>
+<li>设计的好的时候，重复的时候可以无缝连接</li>
+</ul></li>
+<li>纹素：texel
+<ul>
+<li>a pixel on a texture</li>
+</ul></li>
+</ul>
+<h1 id="lecture-09">Lecture 09</h1>
+<ul>
+<li>Texture Mapping</li>
+<li>插值、高级纹理映射</li>
+</ul>
+<h2 id="barycentric-coordinates">Barycentric Coordinates</h2>
+<ul>
+<li>重心坐标</li>
+<li>为了做三角形内的插值
+<ul>
+<li>知道顶点属性，可以平滑的插值三角形内部的属性</li>
+</ul></li>
+<li>三角形 <span class="math inline">\(ABC\)</span> 所在平面内的任意一点 <span class="math inline">\((x,y)\)</span> 都可以用 <span class="math inline">\(ABC\)</span> 三个顶点的坐标线性组合得出</li>
+</ul>
+<p><span class="math display">\[
+(x,y)=\alpha A + \beta B+\gamma C,\alpha+\beta+\gamma=1
+\]</span></p>
+<ul>
+<li>如果点 <span class="math inline">\((x,y)\)</span> 在三角形内部，<strong>系数不为负</strong>
+<ul>
+<li>系数与面积相关</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615614278867.png" style="zoom:50%;"></p>
+<ul>
+<li>或者直接利用坐标计算</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\alpha &amp;=\frac{-\left(x-x_{B}\right)\left(y_{C}-y_{B}\right)+\left(y-y_{B}\right)\left(x_{C}-x_{B}\right)}{-\left(x_{A}-x_{B}\right)\left(y_{C}-y_{B}\right)+\left(y_{A}-y_{B}\right)\left(x_{C}-x_{B}\right)} \\
+\beta &amp;=\frac{-\left(x-x_{C}\right)\left(y_{A}-y_{C}\right)+\left(y-y_{C}\right)\left(x_{A}-x_{C}\right)}{-\left(x_{B}-x_{C}\right)\left(y_{A}-y_{C}\right)+\left(y_{B}-y_{C}\right)\left(x_{A}-x_{C}\right)} \\
+\gamma &amp;=1-\alpha-\beta
+\end{aligned}
+\]</span></p>
+<ul>
+<li>可以直接利用重心坐标进行属性插值</li>
+<li>存在的一个问题，<strong>投影变换下重心坐标会变化</strong>
+<ul>
+<li>例如深度值的插值应该在世界坐标系/观察中进行，不能在投影坐标系下进行</li>
+</ul></li>
+</ul>
+<h2 id="texture-mapping-1">Texture Mapping</h2>
+<h3 id="simple-texture-mapping">Simple Texture Mapping</h3>
+<ul>
+<li>插值出 <span class="math inline">\((u,v)\)</span></li>
+<li>然后再在纹理中采样</li>
+</ul>
+<h3 id="纹理放大">纹理放大</h3>
+<ul>
+<li>Texture Magnification</li>
+</ul>
+<h4 id="纹理太小了怎么办">(1) 纹理太小了怎么办</h4>
+<ul>
+<li>纹理分辨率太低</li>
+<li>计算出非整数值：插值（Nearest、Bilinear、Bicubic）</li>
+<li>双线性插值：Bilinear
+<ul>
+<li>使用临近的 4 个点进行双线性插值</li>
+<li>两趟线性插值 lerp</li>
+</ul></li>
+<li>双三次插值：Bicubic
+<ul>
+<li>取邻近得到 16 个点进行插值</li>
+<li>两趟 cubic 插值方法</li>
+<li>运算量大，但是效果更好
+<ul>
+<li>trade off</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="纹理太大了怎么办">(2) 纹理太大了怎么办</h4>
+<ul>
+<li>更严重的问题
+<ul>
+<li>远处摩尔纹，近处锯齿</li>
+</ul></li>
+<li>远处占据了一块很大区域的纹理，简单的取中心点所在的坐标会出问题</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615614006106.png" style="zoom:50%;"></p>
+<ul>
+<li>超采样，可以解决，但是计算量很大</li>
+<li>不做采样，立刻知道的话就不会有问题
+<ul>
+<li>Mipmap</li>
+</ul></li>
+<li>经典问题：Point Query &amp; Range Query</li>
+</ul>
+<h4 id="mipmap">MipMap</h4>
+<ul>
+<li>允许范围查询
+<ul>
+<li><strong>正方形</strong>、近似的、快</li>
+</ul></li>
+<li>通过一张图，生成一系列分辨率的纹理图
+<ul>
+<li>原始分辨率 64x64</li>
+<li>生成的一系列的纹理分辨率：64x64, 32x32, 16x16, 8x8, 4x4, 2x2, 1x1
+<ul>
+<li>Level 0 - 6</li>
+</ul></li>
+</ul></li>
+<li>存储量变为原来的 <span class="math inline">\(\dfrac{4}{3}\)</span></li>
+<li>怎么知道需要查询的是哪一张（层次）纹理
+<ul>
+<li>计算出来</li>
+<li>取最大值，相当于用一个正方形近似</li>
+<li><span class="math inline">\(D=\log_2L\)</span>，很巧妙
+<ul>
+<li>和上面生成纹理分辨率对比</li>
+<li>L = 1 刚好是 Level 0（原始图像）</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615614093881.png" style="zoom:50%;"></p>
+<ul>
+<li>由于层是离散的，因此计算出来的层数是不连续的
+<ul>
+<li>利用三线性插值（Trilinear）计算</li>
+<li>例如计算出来是 1.6 层，则在第 1 层和第 2 层上分别取最近的 4 个点进行一次双线性插值，然后在层与层之间进行一次线性插值</li>
+</ul></li>
+<li>MipMap 的问题
+<ul>
+<li>远处的细节全都被模糊掉了（和超采样相比）
+<ul>
+<li>三线性插值的近似</li>
+<li>只能查询正方形，对长条形的区域可能会产生 Overblur</li>
+</ul></li>
+<li>一个解决方法：各向异性过滤 Anisotropic Filtering</li>
+</ul></li>
+</ul>
+<h4 id="各向异性过滤-anisotropic-filtering">各向异性过滤 Anisotropic Filtering</h4>
+<ul>
+<li>水平竖直缩小的倍数不一样，使用矩形去近似</li>
+<li>部分解决问题，对于<strong>横平竖直的矩形</strong>查询相对更加准确</li>
+<li>但是一些斜着的区域还是存在 Over Blur 的问题</li>
+<li>存储开销变为原来的 4 倍</li>
+<li>RipMap</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615614525178.png"></p>
+<ul>
+<li>2x 指的是每个方向只压缩 1 次，左上角 4 张图
+<ul>
+<li>3x：左上角 9 张图（最小的压缩了两次）</li>
+<li>nx：最终收敛到 4 倍存储开销</li>
+</ul></li>
+</ul>
+<h4 id="ewa-filtering">EWA Filtering</h4>
+<ul>
+<li>不规则的图形利用<strong>圆形</strong>去近似</li>
+<li>多次查询，覆盖这个不规则图形（耗时长）</li>
+</ul>
+<h2 id="纹理的应用">纹理的应用</h2>
+<ul>
+<li>In modern GPUs, <strong>texture = memory + range query</strong> (filtering)<br>
+</li>
+<li>把纹理理解为一块数据，而不仅仅局限在图像上</li>
+<li>Store microgeometry</li>
+<li>Procedural textures</li>
+<li>Solid modeling</li>
+<li>Volume rendering</li>
+</ul>
+<h3 id="environment-lighting">Environment lighting</h3>
+<ul>
+<li>环境光照</li>
+<li>Environment Map 环境贴图</li>
+<li>认为光源无限远，没有深度意义，因此可以通过方向采样（不定义位置）</li>
+</ul>
+<h4 id="spherical-environment-map">Spherical Environment Map</h4>
+<ul>
+<li>球面光贴图</li>
+<li>将整个环境光记录在球面上</li>
+<li>展开到长方形平面上，极点部分会有扭曲的问题</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615641364773.png" style="zoom:50%;"></p>
+<h4 id="cube-map">Cube Map</h4>
+<ul>
+<li>解决扭曲问题而提出的</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615641448166.png" style="zoom:70%;"></p>
+<ul>
+<li>产生的问题
+<ul>
+<li>球面采样更快，立方体需要先判断在哪一个面上</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615641521532.png" style="zoom:60%;"></p>
+<h3 id="凹凸贴图">凹凸贴图</h3>
+<ul>
+<li>凹凸贴图（法线贴图）</li>
+<li>Bump Mapping / Normal Mapping</li>
+<li>复杂的效果，粗糙效果</li>
+<li>物体的几何信息没有改变，加入一个随机扰动（perturb）
+<ul>
+<li>常数用于表示凹凸贴图的影响程度</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615641786775.png" style="zoom:80%;"></p>
+<ul>
+<li>蓝色的线是凹凸贴图定义的高度，重新计算法线
+<ul>
+<li>先算切线，再算法线</li>
+</ul></li>
+<li>3 维空间类似
+<ul>
+<li>原来的法线 <span class="math inline">\(n(p)=(0,0,1)\)</span></li>
+<li><span class="math inline">\(\dfrac{dp}{du}=c1\ast[h(u+1)-h(u)]\)</span></li>
+<li><span class="math inline">\(\dfrac{dp}{dv}=c2\ast[h(\mathbf{v}+1)-h(\mathbf{v})]\)</span></li>
+<li>扰动后的法线（未归一化）<span class="math inline">\(n=(-\dfrac{dp}{du},-\dfrac{dp}{dv},1)\)</span></li>
+<li>可以通过旋转矩阵推导，或者空间想象</li>
+</ul></li>
+<li>局部坐标系：切线空间 TBN</li>
+</ul>
+<h3 id="位移贴图">位移贴图</h3>
+<ul>
+<li>Displacement Map</li>
+<li><strong>直接把顶点的位置移动了</strong>，而不是说简单的影响法线</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615642434137.png"></p>
+<ul>
+<li>和凹凸贴图的区别
+<ul>
+<li>边缘</li>
+<li>自己的阴影在自己上面</li>
+<li>影子</li>
+</ul></li>
+<li>要求三角形足够细
+<ul>
+<li>如果三角形比较大，纹理定义的变换在三角形内部体现不出来</li>
+<li>要求三角形定义的间隔比纹理间隔更下（频率更高）</li>
+</ul></li>
+<li>DirextX：动态曲面细分
+<ul>
+<li>根据需要做细分，而不是所有的三角形都这么细致</li>
+</ul></li>
+</ul>
+<h3 id="d-procedural-noise-solid-model">3D Procedural Noise + Solid Model</h3>
+<ul>
+<li>程序纹理</li>
+<li>定义三维空间的噪声函数</li>
+</ul>
+<h3 id="provide-precomputed-shading">Provide Precomputed Shading</h3>
+<ul>
+<li>记录一些已经计算好的信息</li>
+<li>OpenGL 帧缓冲</li>
+<li>环境光遮蔽例子</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/02/1615642847111.png" style="zoom:70%;"></p>
+<h3 id="d-textures-and-volume-rendering">3D Textures and Volume Rendering</h3>
+<ul>
+<li>体渲染</li>
+<li>例如核磁共振分层扫描，返回了三维信息，把这些记录的信息当作纹理传入用于渲染</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/13/CG/YLQ-GAMES101/01/" rel="prev" title="GAMES101.闫令琪.01.Lecture(01-06)">
+                  <i class="fa fa-chevron-left"></i> GAMES101.闫令琪.01.Lecture(01-06)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/13/CG/YLQ-GAMES101/03/" rel="next" title="GAMES101.闫令琪.03.几何(Lecture 10-12)">
+                  GAMES101.闫令琪.03.几何(Lecture 10-12) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

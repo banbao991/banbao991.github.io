@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="Geometry, 基本表示方法, 曲线与曲面, 贝塞尔曲线, 网格处理, 阴影图">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES101.闫令琪.03.几何(Lecture 10-12)">
+<meta property="og:url" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Geometry, 基本表示方法, 曲线与曲面, 贝塞尔曲线, 网格处理, 阴影图">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615648598629.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615648943112.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615649746896.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615649813984.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615650031168.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615710980473.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615711727481.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615711935263.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615712363260.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615713622062.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615713780545.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615718816431.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615957320024.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615957373007.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615957500126.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615959072991.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615959044715.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615959340053.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615959972772.png">
+<meta property="og:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615960495957.png">
+<meta property="article:published_time" content="2021-03-13T13:44:42.000Z">
+<meta property="article:modified_time" content="2021-03-30T08:02:07.995Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/1615648598629.png">
+
+
+<link rel="canonical" href="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES101.闫令琪.03.几何(Lecture 10-12) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#lecture-10"><span class="nav-text">Lecture 10</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E5%AE%9E"><span class="nav-text">现实</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%A0%E4%BD%95%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="nav-text">几何的表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%90%E5%BC%8F%E8%A1%A8%E7%A4%BA%E6%96%B9%E6%B3%95"><span class="nav-text">隐式表示方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A5%BD%E5%A4%84"><span class="nav-text">好处</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%BA%E7%82%B9"><span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%BE%E7%A4%BA%E7%9A%84%E8%A1%A8%E8%BE%BE%E6%96%B9%E6%B3%95"><span class="nav-text">显示的表达方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%BA%E7%82%B9-1"><span class="nav-text">缺点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%90%E5%BC%8F%E8%A1%A8%E7%A4%BA%E6%96%B9%E6%B3%95-1"><span class="nav-text">隐式表示方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#algebraic-surfaces-implicit"><span class="nav-text">Algebraic Surfaces (Implicit)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#constructive-solid-geometry-implicit"><span class="nav-text">Constructive Solid Geometry (Implicit)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#distance-functions-implicit"><span class="nav-text">Distance Functions (Implicit)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#level-set-methods-also-implicit"><span class="nav-text">Level Set Methods (Also implicit)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fractals-implicit"><span class="nav-text">Fractals (Implicit)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%90%E5%BC%8F%E8%A1%A8%E7%A4%BA%E6%96%B9%E6%B3%95%E8%AF%84%E4%BB%B7"><span class="nav-text">隐式表示方法评价</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#lecture-11"><span class="nav-text">Lecture 11</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%98%BE%E5%BC%8F%E8%A1%A8%E7%A4%BA%E6%96%B9%E6%B3%95"><span class="nav-text">显式表示方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#point-cloud-explicit"><span class="nav-text">Point Cloud (Explicit)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#polygon-mesh-explicit"><span class="nav-text">Polygon Mesh (Explicit)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F-.obj"><span class="nav-text">文件格式 .obj</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#curves"><span class="nav-text">Curves</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bezier-curvesexplict"><span class="nav-text">Bezier Curves(Explict)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#b%C3%A9zier-curves-de-casteljau-algorithm"><span class="nav-text">Bézier Curves – de Casteljau Algorithm</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#evaluating-b%C3%A9zier-curves-algebraic-formula"><span class="nav-text">Evaluating Bézier Curves Algebraic Formula</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#piecewise-bezier-curves"><span class="nav-text">Piecewise Bezier Curves</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E9%97%AE%E9%A2%98"><span class="nav-text">其他问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#splines-%E6%A0%B7%E6%9D%A1"><span class="nav-text">Splines 样条</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#b-splines"><span class="nav-text">B-Splines</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nubrbs"><span class="nav-text">NUBRBS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E5%87%A0%E4%BD%95%E5%86%85%E5%AE%B9"><span class="nav-text">深入几何内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%9D%E5%A1%9E%E5%B0%94%E6%9B%B2%E9%9D%A2"><span class="nav-text">贝塞尔曲面</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E6%A0%BC%E8%AE%A1%E7%AE%97"><span class="nav-text">网格计算</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#lecture-12"><span class="nav-text">Lecture 12</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%86%E5%88%86-mesh-subdivision"><span class="nav-text">细分 Mesh Subdivision</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#loop-subdivision"><span class="nav-text">Loop Subdivision</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#catmull-clark-subdivision"><span class="nav-text">Catmull-Clark Subdivision</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%A7%E7%94%9F%E6%96%B0%E7%9A%84%E7%82%B9"><span class="nav-text">产生新的点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B0%E7%9A%84%E7%82%B9%E7%9A%84%E4%BD%8D%E7%BD%AE%E8%AE%A1%E7%AE%97"><span class="nav-text">新的点的位置计算</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8C%96-mesh-simplification"><span class="nav-text">简化 Mesh Simplification</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%B9%E5%9D%8D%E7%BC%A9"><span class="nav-text">边坍缩</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/13/CG/YLQ-GAMES101/03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES101.闫令琪.03.几何(Lecture 10-12)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-03-13 21:44:42" itemprop="dateCreated datePublished" datetime="2021-03-13T21:44:42+08:00">2021-03-13</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-03-30 16:02:07" itemprop="dateModified" datetime="2021-03-30T16:02:07+08:00">2021-03-30</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES101/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES101</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Geometry, 基本表示方法, 曲线与曲面, 贝塞尔曲线, 网格处理, 阴影图</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/av90798049</li>
+</ul>
+<h1 id="lecture-10">Lecture 10</h1>
+<ul>
+<li>Geometry (Introduction)</li>
+<li>几何（基本表示方法）</li>
+</ul>
+<h2 id="现实">现实</h2>
+<ul>
+<li>曲面
+<ul>
+<li>现实生活中，我们不管离得多近，也看到不到小三角形，是真正的曲面</li>
+</ul></li>
+<li>布料，透明现象，摩擦力
+<ul>
+<li>纤维（fiber）</li>
+<li>股（ply）</li>
+<li>线（thread）</li>
+<li>布料</li>
+</ul></li>
+<li>水滴
+<ul>
+<li>水花飞溅</li>
+<li>水的表面张力</li>
+</ul></li>
+<li>城市
+<ul>
+<li>内部物体很多，树（树叶），草</li>
+<li>怎么存储</li>
+<li>怎么渲染这么多物体
+<ul>
+<li>Big Hero 6 （超能陆战队）</li>
+<li>城市远景的渲染，怎么快，怎么优化</li>
+</ul></li>
+</ul></li>
+<li>动物的毛发</li>
+<li>细胞（微观几何）</li>
+<li>树，树枝</li>
+</ul>
+<h2 id="几何的表示">几何的表示</h2>
+<ul>
+<li>隐式（Implicit）、显式（Explicit）</li>
+</ul>
+<h3 id="隐式表示方法">隐式表示方法</h3>
+<ul>
+<li>不告诉你点具体在哪，但是告诉你这些点满足的<strong>关系</strong></li>
+<li>例如球：<span class="math inline">\(x^2+y^2+z^2=1\)</span></li>
+<li>一般化的函数：<span class="math inline">\(f(x,y,z)=0\)</span></li>
+</ul>
+<h4 id="好处">好处</h4>
+<ul>
+<li>容易判断位置关系
+<ul>
+<li>例如判断一个点是否在内部</li>
+</ul></li>
+<li>很难找到所有满足关系的所有点，但是给定一个点后，容易判断是否在它上面</li>
+</ul>
+<h4 id="缺点">缺点</h4>
+<ul>
+<li>给你一个表达式，很难看出表达的是什么</li>
+</ul>
+<p><span class="math display">\[
+f(x,y,z)=(2-\sqrt{x^2+y^2})^2+z^2-1=0
+\]</span></p>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615648598629.png" style="zoom:70%;"></p>
+<h3 id="显示的表达方法">显示的表达方法</h3>
+<ul>
+<li>直接给出点（given directly）
+<ul>
+<li>例如之前给出的三角形面</li>
+</ul></li>
+<li>通过参数映射的方法定义的表面（parameter mapping）
+<ul>
+<li>把 <span class="math inline">\((u,v)\)</span> 全过一遍就找到了结果</li>
+<li><strong>类似纹理</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615648943112.png" style="zoom:70%;"></p>
+<h4 id="缺点-1">缺点</h4>
+<ul>
+<li>很难判断一个点是否在内部 /上面</li>
+</ul>
+<p><span class="math display">\[
+f(u,v)=(\cos u\sin v,\sin u\sin v,\cos v)
+\]</span></p>
+<ul>
+<li>是一个球面（单位球），但是直接给你一个表达式很难看出，而且不好判断点和几何体的位置关系</li>
+</ul>
+<h2 id="隐式表示方法-1">隐式表示方法</h2>
+<h3 id="algebraic-surfaces-implicit">Algebraic Surfaces (Implicit)</h3>
+<ul>
+<li>数学公式</li>
+<li>如下是一个<strong>爱心</strong></li>
+</ul>
+<p><span class="math display">\[
+(x^2+\dfrac{9y^2}{4}+z^2-1)^3=x^2z^3+\dfrac{9y^2z^3}{80}
+\]</span></p>
+<h3 id="constructive-solid-geometry-implicit">Constructive Solid Geometry (Implicit)</h3>
+<ul>
+<li>CSD</li>
+<li>通过定义几何体之间的集合运算获取新的集合体</li>
+<li>布尔运算 Boolean operation</li>
+</ul>
+<h3 id="distance-functions-implicit">Distance Functions (Implicit)</h3>
+<ul>
+<li>距离函数</li>
+<li>SDF：Signed Distance Function</li>
+<li>对空间中的每一个点，都求其到物体表面的最短距离（外部为正、内部为负）</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615649746896.png" style="zoom:80%;"></p>
+<ul>
+<li>对 SDF 进行 blend</li>
+<li>一个例子
+<ul>
+<li>A 到 B 的一个运动状态，阴影表示被遮挡</li>
+<li>想通过 A 和 B 得到中间状态（理想：左边一半黑色、右边一半白色）</li>
+<li>直接作 blend，变成黑、灰、白各占 <span class="math inline">\(\dfrac{1}{3}\)</span></li>
+<li>对 SDF 做 blend，与理想一致</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615649813984.png" style="zoom:80%;"></p>
+<ul>
+<li>另外一个例子</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615650031168.png"></p>
+<ul>
+<li><strong>距离函数很强</strong></li>
+<li>怎么从距离函数还原出原来的点
+<ul>
+<li>把距离函数为 0 的位置全找出来就得到了表面</li>
+</ul></li>
+<li>距离函数不太好写成解析的形式
+<ul>
+<li>水平集方法</li>
+</ul></li>
+</ul>
+<h3 id="level-set-methods-also-implicit">Level Set Methods (Also implicit)</h3>
+<ul>
+<li>水平集方法</li>
+<li>也是距离函数，把距离存在网格里，只是表示方式不同
+<ul>
+<li>非网格上的点：<strong>双线性插值</strong></li>
+</ul></li>
+<li>地理：等高线</li>
+<li>三维空间水平集，纹理</li>
+<li>医学：CT，MRI</li>
+<li>Level Sets in Physical Simulatio
+<ul>
+<li>水滴滴到水里</li>
+</ul></li>
+</ul>
+<h3 id="fractals-implicit">Fractals (Implicit)</h3>
+<ul>
+<li>分形</li>
+<li>Exhibit self-similarity, detail at all scales</li>
+<li>自相似性
+<ul>
+<li>渲染的时候会引起强烈的走样</li>
+</ul></li>
+</ul>
+<h2 id="隐式表示方法评价">隐式表示方法评价</h2>
+<ul>
+<li>缺点
+<ul>
+<li>difficult to model complex shapes
+<ul>
+<li>复杂形体难以表示</li>
+</ul></li>
+</ul></li>
+<li>优点
+<ul>
+<li>compact description (e.g., a function)
+<ul>
+<li>表示简单</li>
+</ul></li>
+<li>certain queries easy (inside object, distance to surface)
+<ul>
+<li>方便查询（内部、外部）</li>
+</ul></li>
+<li>good for ray-to-surface intersection (more later)
+<ul>
+<li>容易与光线求交（光线跟踪算法）</li>
+</ul></li>
+<li>for simple shapes, exact description / no sampling error
+<ul>
+<li>准确描述物体</li>
+</ul></li>
+<li>easy to handle changes in topology (e.g., fluid)
+<ul>
+<li>容易控制几何变化</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="lecture-11">Lecture 11</h1>
+<ul>
+<li>Geometry 2 (Curves and Surfaces)</li>
+<li>曲线与曲面</li>
+</ul>
+<h2 id="显式表示方法">显式表示方法</h2>
+<ul>
+<li>triangle meshes</li>
+<li>Bezier surfaces</li>
+<li>subdivision surfaces</li>
+<li>NURBS</li>
+<li>point clouds</li>
+</ul>
+<h3 id="point-cloud-explicit">Point Cloud (Explicit)</h3>
+<ul>
+<li>点云</li>
+<li>点表示的够细，就看不出来点与点之间的间隔</li>
+<li>精细模型：特别密集的点</li>
+<li>三维扫描的输出</li>
+<li>点云如何变成（三角形的）面
+<ul>
+<li>一个研究问题</li>
+</ul></li>
+</ul>
+<h3 id="polygon-mesh-explicit">Polygon Mesh (Explicit)</h3>
+<ul>
+<li>多边形面
+<ul>
+<li>三角形面、四边形面</li>
+</ul></li>
+<li>Perhaps <strong>most common</strong> representation in graph</li>
+</ul>
+<h4 id="文件格式-.obj">文件格式 .obj</h4>
+<ul>
+<li>The Wavefront Object File (.obj) Format</li>
+<li>Just a text file that specifies vertices, normals, texture coordinates and their connectivities</li>
+<li>一个<strong>立方体</strong>的例子
+<ul>
+<li>以下数据存在冗余（自动建模产生的）</li>
+<li>f 表示怎么形成三角形</li>
+<li>f 5/1/1 1/2/1 4/3/1</li>
+<li>三角形的三个顶点（v / vt / vn）
+<ul>
+<li>第 5 个顶点（第 1 个纹理坐标、第 1 个法线）</li>
+<li>第 1 个顶点（第 2 个纹理坐标、第 1 个法线）</li>
+<li>第 4 个顶点（第 3 个纹理坐标、第 1 个法线）</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615710980473.png"></p>
+<h3 id="curves">Curves</h3>
+<ul>
+<li>曲线</li>
+<li>Camera Path
+<ul>
+<li>摄像机沿着某条曲线运动（转换视点方向）</li>
+</ul></li>
+<li>定义字体</li>
+</ul>
+<h3 id="bezier-curvesexplict">Bezier Curves(Explict)</h3>
+<ul>
+<li>贝塞尔曲线</li>
+<li>通过参数定义的，因此是显式的</li>
+<li>通过控制点定义曲线（4/3）
+<ul>
+<li>控制点：定义切线、起始点、终点</li>
+</ul></li>
+</ul>
+<h4 id="bézier-curves-de-casteljau-algorithm">Bézier Curves – de Casteljau Algorithm</h4>
+<ul>
+<li>通过任意个控制点生成曲线</li>
+<li>quadratic Bezier（3 个点）</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615711727481.png" style="zoom:50%;"></p>
+<ul>
+<li><span class="math inline">\(b_0\)</span> 出发，<span class="math inline">\(b_2\)</span> 结束，<span class="math inline">\(b_1\)</span> 控制方向</li>
+<li>Insert a point using linear interpolation</li>
+<li>时间 0 在点 <span class="math inline">\(b_0\)</span>，时间 <span class="math inline">\(1\)</span> 在点 <span class="math inline">\(b_2\)</span>，问时间 t 点在哪里？</li>
+<li>对当前的所有线段进行一个插值，直到无法插值（只有一条线段上的一个点）
+<ul>
+<li>每趟插值减少一条线段</li>
+</ul></li>
+<li>例如
+<ul>
+<li><span class="math inline">\(b_0b_1\)</span> 插值出 <span class="math inline">\(b_0^1\)</span>，<span class="math inline">\(b_1b_2\)</span> 插值出 <span class="math inline">\(b_1^1\)</span></li>
+<li>例如 <span class="math inline">\(b_0^1b_1^1\)</span> 插值出 <span class="math inline">\(b_0^2\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615711935263.png" style="zoom:50%;"></p>
+<h4 id="evaluating-bézier-curves-algebraic-formula">Evaluating Bézier Curves Algebraic Formula</h4>
+<ul>
+<li>代数形式</li>
+<li>4 个点</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615712363260.png" style="zoom:50%;"></p>
+<ul>
+<li>3 个点</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+b_0^2&amp;=tb_0^1+(1-t)b_1^1\\
+&amp;=t[tb_0+(1-t)b_1]+(1-t)[tb_1+(1-t)b_2]\\
+&amp;=t^2b_0+2t(1-t)b_1+(1-t)^2b_2
+\end{aligned}
+\]</span></p>
+<ul>
+<li>4 个点</li>
+</ul>
+<p><span class="math display">\[
+b^n(t)=b_0(1-t)^3+b_13t(1-t)^2+b_23t^2(1-t)+b_3t^3
+\]</span></p>
+<ul>
+<li>是 1 的二项式展开</li>
+</ul>
+<p><span class="math display">\[
+b^n(t)=b_0^n=\sum_{j=0}^{n}b_jB_j^n(t)
+\]</span></p>
+<p><span class="math display">\[
+B_j^n(t)=\mathbf{C}_n^it^i(1-t)^{n-i}={n\choose i}t^i(1-t)^{n-i}
+\]</span></p>
+<ul>
+<li>输入为三维坐标，三维贝塞尔曲线</li>
+<li>一些性质（4个控制点情况下）
+<ul>
+<li><span class="math inline">\(b(0)=b_0\)</span></li>
+<li><span class="math inline">\(b(1)=b_3\)</span></li>
+<li><span class="math inline">\(b&#39;(0)=3(b_1-b_0)\)</span></li>
+<li><span class="math inline">\(b&#39;(1)=3(b_3-b_2)\)</span></li>
+</ul></li>
+<li><strong>控制点做仿射变换后生成的贝塞尔曲线和原来的贝塞尔曲线仿射变换后形成的曲线是一样的</strong>
+<ul>
+<li>投影变换不行</li>
+</ul></li>
+<li>凸包性质
+<ul>
+<li>画出来的贝塞尔曲线一定在控制点形成的<strong>凸包</strong>内</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615713622062.png" style="zoom:67%;"></p>
+<h4 id="piecewise-bezier-curves">Piecewise Bezier Curves</h4>
+<ul>
+<li>分段考虑
+<ul>
+<li>在线演示：http://math.hws.edu/eck/cs424/notes2013/canvas/bezier.html</li>
+</ul></li>
+<li>控制点多了，不太好控制形成想要的形状</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615713780545.png" style="zoom:50%;"></p>
+<ul>
+<li>每 4 个控制点定义一个贝塞尔曲线
+<ul>
+<li>广泛应用：fonts, paths, Illustrator, Keynote</li>
+<li>PhotoShop 的钢笔工具</li>
+</ul></li>
+<li>怎么样让连接点光滑？
+<ul>
+<li>切线的斜率相同</li>
+<li><span class="math inline">\(3(b_3-b_2)=3(b_4-b_3)\)</span></li>
+<li><span class="math inline">\(b_2+b_4=2b_3\)</span></li>
+</ul></li>
+<li><span class="math inline">\(C^0\)</span> 连续：点是同一个点</li>
+<li><span class="math inline">\(C^1\)</span> 连续：斜率（一阶导数）连续</li>
+</ul>
+<h4 id="其他问题">其他问题</h4>
+<ul>
+<li>高阶贝塞尔曲线转低阶</li>
+</ul>
+<h3 id="splines-样条">Splines 样条</h3>
+<ul>
+<li>a continuous curve constructed so as to pass through a given set of points and have a certain number of continuous derivatives.</li>
+<li>In short, a curve under control</li>
+<li>通过这些点</li>
+</ul>
+<h3 id="b-splines">B-Splines</h3>
+<ul>
+<li>B样条曲线</li>
+<li>basis splines（基函数样条）
+<ul>
+<li>伯恩斯坦多项式作为基函数，进行一个加权平均</li>
+</ul></li>
+<li>Require more information than Bezier curves</li>
+<li>Satisfy all important properties that Bézier curves have (i.e. superset)</li>
+<li>提出动机
+<ul>
+<li>如果使用贝塞尔曲线，改动一个点，可能会影响整条曲线
+<ul>
+<li>分段贝塞尔曲线没有这个问题（边界问题）</li>
+</ul></li>
+<li>然而我们希望只影响<strong>局部</strong>的曲线</li>
+</ul></li>
+</ul>
+<h3 id="nubrbs">NUBRBS</h3>
+<ul>
+<li>非均匀有理 B 样条</li>
+</ul>
+<h3 id="深入几何内容">深入几何内容</h3>
+<ul>
+<li>https://www.bilibili.com/video/av66548502</li>
+</ul>
+<h3 id="贝塞尔曲面">贝塞尔曲面</h3>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615718816431.png" style="zoom:50%;"></p>
+<ul>
+<li>双线性插值的思想</li>
+<li>两个方向上做两趟贝塞尔曲线</li>
+<li>复杂的问题：贝塞尔曲面的混合</li>
+</ul>
+<h2 id="网格计算">网格计算</h2>
+<ul>
+<li><p>网格细分：mesh subdivision</p>
+<ul>
+<li>upsampling</li>
+</ul></li>
+<li><p>网格简化：mesh simplification</p>
+<ul>
+<li>downsampling</li>
+</ul></li>
+<li><p>网格正则化：mesh regulation</p>
+<ul>
+<li>网格正则化</li>
+<li>原来的三角形可能有大有小，渲染困难</li>
+</ul></li>
+</ul>
+<h1 id="lecture-12">Lecture 12</h1>
+<ul>
+<li>Geometry (Mesh Operation)</li>
+<li><p>几何（网格处理）</p></li>
+<li><p>2019 图灵奖：Ed Catmull，Pat Hanrahan</p></li>
+</ul>
+<h2 id="细分-mesh-subdivision">细分 Mesh Subdivision</h2>
+<ul>
+<li>引入更多三角形</li>
+<li>三角形的位置发生点变化，更加光滑</li>
+</ul>
+<h3 id="loop-subdivision">Loop Subdivision</h3>
+<ul>
+<li>Loop：发明这个算法的人叫 Loop</li>
+<li>前提假设是原来表示物体的方式i就全都是<strong>三角形</strong></li>
+<li>三角形分为 4 个</li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615957320024.png" style="zoom:50%;"></p>
+<ul>
+<li>将顶点划分为新/老顶点，使用不同的更新方法去更新
+<ul>
+<li>新：边的中间</li>
+<li>老：原来存在的</li>
+</ul></li>
+<li>新的顶点的更新方法
+<ul>
+<li>AB 指更新的点所在的边（被两个三角形共享）</li>
+<li>CD 指上面个的两个三角形剩下的两个点</li>
+<li>直观上的理解：AB 近（贡献大），CD 远（贡献小）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615957373007.png" style="zoom:40%;"></p>
+<ul>
+<li>老的顶点的更新方式
+<ul>
+<li>老的顶点被若干（<span class="math inline">\(n\)</span>）个三角形共享，结点度为 <span class="math inline">\(n\)</span></li>
+<li>考虑<strong>周围顶点</strong>的影响同时还要考虑<strong>自己原来</strong>的位置
+<ul>
+<li>周围顶点的平均 / 和</li>
+<li>自己原来的位置</li>
+</ul></li>
+<li><span class="math inline">\(u\)</span> ：一个与 <span class="math inline">\(n\)</span> 相关的数</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615957500126.png" style="zoom:40%;"></p>
+<h3 id="catmull-clark-subdivision">Catmull-Clark Subdivision</h3>
+<ul>
+<li>适用于一般的形状表示</li>
+<li>一些定义
+<ul>
+<li>Quad face：四边形面</li>
+<li>Non-quad face：非四边形面</li>
+<li>Extraordinary point：奇异点
+<ul>
+<li>度不为 4 的点</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="产生新的点">产生新的点</h4>
+<ul>
+<li>产生算法
+<ul>
+<li>对于每个面，我们取<strong>所有边的中点</strong>以及<strong>面上的中点</strong>（重心）</li>
+<li>将边上的中点和面的中点连起来</li>
+</ul></li>
+<li>经过一次细分之后
+<ul>
+<li>奇异点
+<ul>
+<li>原来的奇异点还是奇异点</li>
+<li>增加的奇异点个数：原来非四边形面的个数</li>
+</ul></li>
+<li>非四边形面
+<ul>
+<li>非四边形面全都消失了</li>
+</ul></li>
+<li><strong>每一个非四边形面都会消失，并且引入一个奇异点</strong></li>
+</ul></li>
+<li>Catmull-Clark 细分，在第一步操作时会引入 <span class="math inline">\(n\)</span> 个奇异点，之后的操作不会再引入奇异点
+<ul>
+<li><span class="math inline">\(n\)</span>：初始非四边形面的个数</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615959072991.png" style="zoom: 33%;"></p>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615959044715.png" style="zoom:33%;"></p>
+<h4 id="新的点的位置计算">新的点的位置计算</h4>
+<ul>
+<li>点分为 3 类
+<ul>
+<li>Face Point：在<strong>面的中心</strong>的<strong>新</strong>的点
+<ul>
+<li>关联的顶点</li>
+</ul></li>
+<li>Edge Point：在<strong>边的中心</strong>的<strong>新</strong>的点
+<ul>
+<li>关联的边的两个顶点、关联的边关联的面的中心</li>
+</ul></li>
+<li>Vertex Point：老的顶点
+<ul>
+<li>自己、关联的面的中心、关联的边的中心</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615959340053.png" style="zoom: 67%;"></p>
+<ul>
+<li>Geri's Game
+<ul>
+<li>最早的一批利用曲面细分做的动画</li>
+</ul></li>
+</ul>
+<h2 id="简化-mesh-simplification">简化 Mesh Simplification</h2>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615959972772.png" style="zoom:70%;"></p>
+<ul>
+<li>简化需求的产生
+<ul>
+<li>如果一个物体离得很远，没必要划分得很细致
+<ul>
+<li>简化后，效果差不多，但是计算量小很多</li>
+</ul></li>
+<li>不同情况下我们会选用不同复杂程度的三角形（几何模型）</li>
+</ul></li>
+<li>几何层次结构的变化、切换很难
+<ul>
+<li>例如远处用精细模型，近处用简化模型，但是什么时候切换、怎么平滑切换是个问题</li>
+</ul></li>
+<li>怎么简化
+<ul>
+<li>不能直接删除三角形，会有洞</li>
+</ul></li>
+<li>一种方法：边坍缩（Collapsing An Edge）
+<ul>
+<li>找到一条边，然后把这条边收缩为一个点</li>
+</ul></li>
+</ul>
+<h3 id="边坍缩">边坍缩</h3>
+<ul>
+<li>坍缩哪些点？怎么坍缩
+<ul>
+<li>二次误差度量</li>
+</ul></li>
+<li>二次误差度量（Quadric Error Metrics）
+<ul>
+<li>怎么放置新的点（下图为例）
+<ul>
+<li>5 点平均：矮了很多</li>
+<li>3 点平均：还是会比轮廓矮</li>
+<li>找一个点，满足这个点到原来 4 个面的平方和最小</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/13/CG/YLQ-GAMES101/03/1615960495957.png" style="zoom: 67%;"></p>
+<ul>
+<li>算法：为每一条边用最小二次误差进行打分，首先坍缩误差最小的边
+<ul>
+<li>算法问题
+<ul>
+<li>坍缩一条边之后会影响其他边的最小二次误差</li>
+<li>需要重新计算被这条边影响的边的最小二次误差</li>
+</ul></li>
+<li>数据结构：堆（优先队列）</li>
+<li>算法正确性
+<ul>
+<li>贪心算法，并不保证最重的是全局最优解（可能陷入局部最优）</li>
+</ul></li>
+<li>实际效果还不错
+<ul>
+<li>图形学本身的特点</li>
+</ul></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/13/CG/YLQ-GAMES101/02/" rel="prev" title="GAMES101.闫令琪.02.Shading(Lecture 07-09)">
+                  <i class="fa fa-chevron-left"></i> GAMES101.闫令琪.02.Shading(Lecture 07-09)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/17/CG/YLQ-GAMES101/04/" rel="next" title="GAMES101.闫令琪.04.光线追踪(1).Whitted 风格的光线追踪(Lecture 13-14)">
+                  GAMES101.闫令琪.04.光线追踪(1).Whitted 风格的光线追踪(Lecture 13-14) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="关系代数、关系代数基本运算、关系代数扩展运算、关系代数查询实例、关系代数更新">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.03.关系模型(2)">
+<meta property="og:url" content="http://example.com/2021/04/02/DB/CLJ/03-1/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="关系代数、关系代数基本运算、关系代数扩展运算、关系代数查询实例、关系代数更新">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210406155455129.png">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210406162724169.png">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210406163333505.png">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210406170707244.png">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210406171102917.png">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210406171708087.png">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210406175312104.png">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210406231848054.png">
+<meta property="og:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210407002232950.png">
+<meta property="article:published_time" content="2021-04-02T14:00:10.000Z">
+<meta property="article:modified_time" content="2021-04-13T14:34:08.717Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/02/DB/CLJ/03-1/image-20210406155455129.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/02/DB/CLJ/03-1/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.03.关系模型(2) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B"><span class="nav-text">关系模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E7%9A%84%E5%88%86%E7%B1%BB"><span class="nav-text">关系代数的分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E5%9F%BA%E6%9C%AC%E8%BF%90%E7%AE%97"><span class="nav-text">关系代数基本运算</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E8%BF%90%E7%AE%97"><span class="nav-text">选择运算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%95%E5%BD%B1%E8%BF%90%E7%AE%97"><span class="nav-text">投影运算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9B%B4%E5%90%8D"><span class="nav-text">更名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B6%E8%BF%90%E7%AE%97"><span class="nav-text">并运算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%AE%E8%BF%90%E7%AE%97"><span class="nav-text">差运算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%A4%E8%BF%90%E7%AE%97"><span class="nav-text">交运算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%9B%E5%8D%A1%E5%B0%94%E7%A7%AF%E8%BF%90%E7%AE%97"><span class="nav-text">笛卡尔积运算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1"><span class="nav-text">例子 1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-2"><span class="nav-text">例子 2</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E6%89%A9%E5%B1%95%E8%BF%90%E7%AE%97"><span class="nav-text">关系代数扩展运算</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#theta-%E8%BF%9E%E6%8E%A5"><span class="nav-text">\(\theta\) 连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E7%84%B6%E8%BF%9E%E6%8E%A5"><span class="nav-text">自然连接</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E7%84%B6%E8%BF%9E%E6%8E%A5%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">自然连接的问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%96%E8%BF%9E%E6%8E%A5"><span class="nav-text">外连接</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1-1"><span class="nav-text">例子 1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-2-1"><span class="nav-text">例子 2</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%8A%E8%BF%9E%E6%8E%A5"><span class="nav-text">半连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%96%E9%83%A8%E5%B9%B6"><span class="nav-text">外部并</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B1%A1%E9%9B%86"><span class="nav-text">象集</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-3"><span class="nav-text">例子</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF-1"><span class="nav-text">思路 1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF-2"><span class="nav-text">思路 2</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%A4%E6%B3%95"><span class="nav-text">除法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-4"><span class="nav-text">例子</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E6%9F%A5%E8%AF%A2%E5%AE%9E%E4%BE%8B"><span class="nav-text">关系代数查询实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%82%E6%B2%A1%E6%9C%89%E9%80%89%E4%BF%AE-c1-%E5%8F%B7%E8%AF%BE%E7%A8%8B%E7%9A%84%E5%AD%A6%E7%94%9F"><span class="nav-text">求没有选修 c1 号课程的学生</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%82%E4%BB%85%E9%80%89%E4%BF%AE%E4%BA%86-c1-%E5%8F%B7%E8%AF%BE%E7%A8%8B%E7%9A%84%E5%AD%A6%E7%94%9F%E5%8F%B7"><span class="nav-text">求仅选修了 c1 号课程的学生号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%82%E9%80%89%E4%BF%AE-c1-%E8%AF%BE%E7%A8%8B%E6%AF%94-s1-%E5%AD%A6%E7%94%9F%E7%9A%84%E8%AF%A5%E9%97%A8%E8%AF%BE%E7%A8%8B%E6%88%90%E7%BB%A9%E9%AB%98%E7%9A%84%E5%AD%A6%E7%94%9F"><span class="nav-text">求选修 c1 课程比 s1 学生的该门课程成绩高的学生</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%82%E6%AF%8F%E9%97%A8%E8%AF%BE%E7%A8%8B%E7%9A%84%E5%85%88%E4%BF%AE%E8%AF%BE%E7%9A%84%E5%85%88%E4%BF%AE%E8%AF%BE"><span class="nav-text">求每门课程的先修课的先修课</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%82%E9%80%89%E4%BF%AE%E4%BA%86%E8%87%B3%E5%B0%91%E4%B8%A4%E9%97%A8%E8%AF%BE%E7%9A%84%E5%AD%A6%E7%94%9F"><span class="nav-text">求选修了至少两门课的学生</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%82%E6%9C%80%E4%BD%8E%E7%9A%84%E6%88%90%E7%BB%A9"><span class="nav-text">求最低的成绩</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%82%E9%80%89%E4%BF%AE%E8%AF%BE%E7%A8%8B%E4%B8%AD%E5%8C%85%E5%90%AB%E4%BA%86%E6%89%80%E6%9C%89-s01-%E5%8F%B7%E5%AD%A6%E7%94%9F%E6%89%80%E9%80%89%E4%BF%AE%E8%AF%BE%E7%A8%8B%E7%9A%84%E5%AD%A6%E7%94%9F%E5%8F%B7"><span class="nav-text">求选修课程中包含了所有 S01 号学生所选修课程的学生号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%BE%E5%87%BA%E4%B8%80%E7%9B%B4%E4%B8%8A%E6%B6%A8%E7%9A%84%E8%82%A1%E7%A5%A8"><span class="nav-text">找出一直上涨的股票</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%BB%E9%87%8D"><span class="nav-text">去重</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E6%9B%B4%E6%96%B0%E8%BF%90%E7%AE%97"><span class="nav-text">关系代数更新运算</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B5%8B%E5%80%BC%E8%BF%90%E7%AE%97"><span class="nav-text">赋值运算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%BF%E4%B9%89%E6%8A%95%E5%BD%B1"><span class="nav-text">广义投影</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BF%AE%E6%94%B9%E5%88%A0%E9%99%A4"><span class="nav-text">数据库修改：删除</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-5"><span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BF%AE%E6%94%B9%E6%8F%92%E5%85%A5"><span class="nav-text">数据库修改：插入</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-6"><span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BF%AE%E6%94%B9%E6%9B%B4%E6%96%B0"><span class="nav-text">数据库修改：更新</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-7"><span class="nav-text">例子</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/02/DB/CLJ/03-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.03.关系模型(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-02 22:00:10" itemprop="dateCreated datePublished" datetime="2021-04-02T22:00:10+08:00">2021-04-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-13 22:34:08" itemprop="dateModified" datetime="2021-04-13T22:34:08+08:00">2021-04-13</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">关系代数、关系代数基本运算、关系代数扩展运算、关系代数查询实例、关系代数更新</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="关系模型">关系模型</h1>
+<h2 id="关系代数的分类">关系代数的分类</h2>
+<ul>
+<li>基本运算
+<ul>
+<li>一元运算
+<ul>
+<li>选择、投影、更名</li>
+</ul></li>
+<li>多元运算
+<ul>
+<li>笛卡儿积、集合并、集合差</li>
+</ul></li>
+</ul></li>
+<li>扩展运算
+<ul>
+<li>集合交、<span class="math inline">\(\theta\)</span> 连接、自然连接、外连接</li>
+</ul></li>
+<li>其它运算
+<ul>
+<li>赋值、广义投影、插入、删除、更新</li>
+</ul></li>
+</ul>
+<h2 id="关系代数基本运算">关系代数基本运算</h2>
+<h3 id="选择运算">选择运算</h3>
+<ul>
+<li>在关系中选择满足给定条件的元组（行角度）</li>
+</ul>
+<p><span class="math display">\[
+\sigma_F(R)=\left\{t|t\in R,F(t)=true\right\}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(F\)</span> 是选择的条件，<span class="math inline">\(\forall t\in R,F(t)\)</span> 要么为真，要么为假</li>
+<li><span class="math inline">\(F\)</span> 由<strong>逻辑运算符</strong>连接<strong>算术表达式</strong>而成</li>
+<li>逻辑运算符：<span class="math inline">\(\land, \lor,\lnot\)</span></li>
+<li>算术表达式：<span class="math inline">\(X\ \theta\ Y\)</span>
+<ul>
+<li><span class="math inline">\(X,Y\)</span>是属性名、常量、或简单函数</li>
+<li><span class="math inline">\(\theta\)</span> 是比较算符
+<ul>
+<li><span class="math inline">\(\theta\in\left\{&gt;,\ge,&lt;,\le,=,ne\right\}\)</span></li>
+</ul></li>
+</ul></li>
+<li>例子：找年龄不小于 20 的男学生
+<ul>
+<li>表达上等效</li>
+<li>实际查询中谁更高效？取决于数据库的设计
+<ul>
+<li>如果索引中含有 age，则 （3） 可能最高效</li>
+<li>一般不会是（2），性别这种二值属性不适于建索引</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+(1)\ &amp;\sigma_{age\ge20\land sex=&#39;M&#39;}(S)\\
+(2)\ &amp;\sigma_{age\ge20}\left(\sigma_{sex=&#39;M&#39;}(S)\right)\\
+(3)\ &amp;\sigma_{sex=&#39;M&#39;}\left(\sigma_{age\ge20}(S)\right)\\
+\end{aligned}
+\]</span></p>
+<h3 id="投影运算">投影运算</h3>
+<ul>
+<li>从关系中取若干列组成新的关系（从列的角度）</li>
+</ul>
+<p><span class="math display">\[
+%% Π𝑨𝑨𝑹𝑹=𝒕𝒕𝑨𝑨𝒕𝒕∈𝑹𝑹},𝑨𝑨⊆𝑹𝑹
+\prod_A(R)\left\{ t[A]|t\in R\right\},A\subseteq R
+\]</span></p>
+<ul>
+<li>注意：<strong>投影的结果中要去掉相同的行</strong></li>
+<li>例子：给出所有学生的姓名和年龄
+<ul>
+<li><span class="math inline">\(\prod_{sno,age}(S)\)</span></li>
+</ul></li>
+</ul>
+<h3 id="更名">更名</h3>
+<ul>
+<li>将关系 <span class="math inline">\(R\)</span> 更名为 <span class="math inline">\(S\)</span>
+<ul>
+<li><span class="math inline">\(\rho_S(R)\)</span></li>
+<li>对现有的表进行更名</li>
+</ul></li>
+<li>将计算表达式 <span class="math inline">\(E\)</span> 更名为关系 <span class="math inline">\(S\)</span>
+<ul>
+<li><span class="math inline">\(\rho_{S(A_1,A_2,\cdots,A_n)}(E)\)</span></li>
+<li>将中间结果存储到自己定义的表里面</li>
+</ul></li>
+<li>更名运算的必要性
+<ul>
+<li>将更名运算施加到关系上，得到具有不同名字的同一关系</li>
+<li>当同一关系多次参与同一运算时需要更名</li>
+</ul></li>
+</ul>
+<h3 id="并运算">并运算</h3>
+<ul>
+<li>所有至少出现在两个关系中之一的元组集合</li>
+</ul>
+<p><span class="math display">\[
+R\cup S=\left\{r|r\in R\land r\in S\right\}
+\]</span></p>
+<ul>
+<li>关系 <span class="math inline">\(R\)</span> 和 <span class="math inline">\(S\)</span> 进行并运算的前提是它们必须是<strong>相容</strong>的
+<ul>
+<li>关系 <span class="math inline">\(R\)</span> 和 <span class="math inline">\(S\)</span> 必须是<strong>同元</strong>的，其<strong>属性数目必须相同</strong></li>
+<li>对 <span class="math inline">\(\forall i\)</span>，<span class="math inline">\(R\)</span> 的第 <span class="math inline">\(i\)</span> 个属性和 <span class="math inline">\(S\)</span> 的第 <span class="math inline">\(i\)</span> 个属性的<strong>域</strong>必须相同</li>
+</ul></li>
+<li>简单地说，得具有相同的表结构</li>
+<li>例子：求选修了 001 号或 002 号课程的学生号
+<ul>
+<li>两种表示</li>
+<li><span class="math inline">\(\prod_{sno}(\sigma_{cno=001\lor cno=002}(SC))\)</span></li>
+<li><span class="math inline">\(\prod_{sno}(\sigma_{cno=001}(SC))\cup\prod_{sno}(\sigma_{cno=001}(SC))\)</span></li>
+</ul></li>
+</ul>
+<h3 id="差运算">差运算</h3>
+<ul>
+<li>所有出现在一个关系而不在另一关系中的元组集合</li>
+</ul>
+<p><span class="math display">\[
+R-S=\left\{r|r\in R\land r\notin S\right\}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(R,S\)</span> 必须是<strong>相容</strong>的</li>
+<li>例子：求选修了001号但未选修002号课程的学生号
+<ul>
+<li><span class="math inline">\(\prod_{sno}(\sigma_{cno=001}(SC))-\prod_{sno}(\sigma_{cno=001}(SC))\)</span></li>
+<li><span class="math inline">\(\prod_{sno}(\sigma_{cno=001\land cno\ne002}(SC))\)</span>
+<ul>
+<li>这种表示是<span style="color:red;font-weight:bold">错误</span>的，一方面第二个条件是多余的，另一方面不适用于如下场景</li>
+<li>每个人有多个行，表示选择了不同的课程</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="交运算">交运算</h3>
+<ul>
+<li>所有同时出现在两个关系中的元组集合
+<ul>
+<li>交运算可以通过差运算来重写</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+R\cap S=R-(R-S)
+\]</span></p>
+<ul>
+<li>是一种扩展运算，早期定义的时候把差运算定义成了基本运算</li>
+<li>例子：求同时选修了 001 号和 002 号课程的学生号
+<ul>
+<li><span class="math inline">\(\prod_{sno}(\sigma_{cno=001}(SC))\cap\prod_{sno}(\sigma_{cno=001}(SC))\)</span></li>
+<li><span class="math inline">\(\prod_{sno}(\sigma_{cno=001\land cno=002}(SC))\)</span>
+<ul>
+<li>这种表示是<span style="color:red;font-weight:bold">错误</span>的，结果为空</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="笛卡尔积运算">笛卡尔积运算</h3>
+<ul>
+<li>元组的连串（Concatenation）</li>
+<li><span class="math inline">\(r=(r_1,\cdots,r_n), s=(s_1,\cdots,s_m)\)</span></li>
+<li>则 <span class="math inline">\(r\)</span> 与 <span class="math inline">\(s\)</span> 的连串定义为</li>
+</ul>
+<p><span class="math display">\[
+\hat{rs}=(r_1,\cdots,r_n,s_1,\cdots,s_m)
+\]</span></p>
+<ul>
+<li>关系的笛卡尔积</li>
+</ul>
+<p><span class="math display">\[
+R\times S=\left\{\hat{rs}|r\in R\land s\in S\right\}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(R\times S\)</span> 的度为 <span class="math inline">\(R\)</span> 与 <span class="math inline">\(S\)</span> 的度之和</li>
+<li><span class="math inline">\(R\times S\)</span> 的元组个数为 <span class="math inline">\(R\)</span> 与 <span class="math inline">\(S\)</span> 的元组个数的乘积</li>
+<li>计算的一个例子</li>
+</ul>
+<p><img src="/2021/04/02/DB/CLJ/03-1/image-20210406155455129.png" style="zoom:80%;"></p>
+<ul>
+<li>包打天下：<strong>选择</strong>、<strong>投影</strong>、<strong>笛卡尔积</strong></li>
+</ul>
+<h4 id="例子-1">例子 1</h4>
+<ul>
+<li>求选修 c1 课程的学生姓名</li>
+<li>两个表的连接</li>
+<li>SN：student name</li>
+</ul>
+<p><span class="math display">\[
+\prod_{SN}\left(\sigma_{S.sno=SC.sno\land R.cno=c1}(S\times SC)\right)
+\]</span></p>
+<h4 id="例子-2">例子 2</h4>
+<ul>
+<li>表 S</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">姓名</th>
+<th style="text-align: center;">课程</th>
+<th style="text-align: center;">成绩</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">A</td>
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">80</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">B</td>
+<td style="text-align: center;">b</td>
+<td style="text-align: center;">70</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">C</td>
+<td style="text-align: center;">b</td>
+<td style="text-align: center;">90</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>另外一个例子：课程 b 成绩比 A 高的成员</li>
+<li>自己和自己连接，更名</li>
+</ul>
+<p><span class="math display">\[
+\prod_{S.姓名}\left(\sigma_{R.姓名=A \land R.课程=b\land S.课程=b\land S.成绩&gt;R.成绩}(S\times\rho_R(S))\right)
+\]</span></p>
+<ul>
+<li>如果要比较同一个表里的三行，则可能需要再乘一次</li>
+</ul>
+<h2 id="关系代数扩展运算">关系代数扩展运算</h2>
+<h3 id="theta-连接"><span class="math inline">\(\theta\)</span> 连接</h3>
+<ul>
+<li>因为这个操作很常见，抽象成一个运算</li>
+<li>从两个关系的<strong>广义笛卡尔积</strong>中选取给定<strong>属性间满足一定条件</strong>的元组</li>
+</ul>
+<p><span class="math display">\[
+R{\bowtie\atop A\ \theta\ B}S=\left\{\hat{rs}|r\in R\land s\in S\land r[A]\
+ \theta s[B]\ \right\}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\theta\)</span> 为算术比较符，为<strong>等号</strong>时称为<strong>等值连接</strong></li>
+<li>A, B为 R 和 S 上度数相等且可比的属性列</li>
+<li>例子：笛卡尔积运算的例子 2</li>
+</ul>
+<p><span class="math display">\[
+\prod_{S.姓名}\left(\left(\sigma_{R.姓名=A \land R.课程=b}\right){\bowtie\atop R.成绩&lt;S.成绩}\left(\sigma_{S.课程=b}\right)\right)
+\]</span></p>
+<h3 id="自然连接">自然连接</h3>
+<ul>
+<li>从两个关系的广义笛卡儿积中选取在<strong>相同属性列 B 上取值相等</strong>的元组，并<strong>去掉重复的列</strong></li>
+</ul>
+<p><span class="math display">\[
+R\bowtie S=\left\{\hat{rs}[\bar{B}]|r\in R\land s\in S\land r[B]=s[B]\right\}
+\]</span></p>
+<ul>
+<li>自然连接与等值连接的不同
+<ul>
+<li>自然连接中相等的分量必须是相同的属性组，并且要在结果中去掉重复的属性，而等值连接则不必</li>
+<li>自然连接要求必须有公共的列，等值连接只要求可比</li>
+</ul></li>
+<li>自然连接非常有用
+<ul>
+<li>实体之间的联系在自然连接之后能够合成一张表</li>
+</ul></li>
+<li>例子</li>
+</ul>
+<p><img src="/2021/04/02/DB/CLJ/03-1/image-20210406162724169.png" style="zoom:80%;"></p>
+<ul>
+<li>相同属性列的相同元素越多，结果行数越多
+<ul>
+<li>如果全部相同，退化为笛卡尔积</li>
+</ul></li>
+<li>例子：求001号学生所在系的名称
+<ul>
+<li><span class="math inline">\(\prod_{dname}(\sigma_{sno=001}(S\bowtie dept))\)</span></li>
+<li><span class="math inline">\(\prod_{dname}((\sigma_{sno=001}(S))\bowtie dept)\)</span>
+<ul>
+<li>效率更高</li>
+</ul></li>
+</ul></li>
+<li>一般而言，我们先做选择，再做连接
+<ul>
+<li>先做连接可能出来很大的表</li>
+</ul></li>
+</ul>
+<h4 id="例子">例子</h4>
+<ul>
+<li>关系 <span class="math inline">\(R(A, B)\)</span>、<span class="math inline">\(S(A, C)\)</span>、<span class="math inline">\(R\)</span> 与 <span class="math inline">\(S\)</span> 中元组个数分别为10，15</li>
+<li><strong>不考虑空值的情况</strong></li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 27%">
+<col style="width: 29%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">条件</th>
+<th style="text-align: center;">表达式</th>
+<th style="text-align: center;">最小元组数</th>
+<th style="text-align: center;">最大元组数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">无任何条件</td>
+<td style="text-align: center;"><span class="math inline">\(R\bowtie S\)</span></td>
+<td style="text-align: center;">0<br>（R 的 A 属性和 S 的 A 属性都不相等）</td>
+<td style="text-align: center;">150<br>（都相等）</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">无任何条件</td>
+<td style="text-align: center;"><span class="math inline">\(\prod_{A}(R)\bigcup \prod_{A}(S)\)</span></td>
+<td style="text-align: center;">1<br>（都相等）</td>
+<td style="text-align: center;">25<br>（都不相等）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">A 是 R 的主码</td>
+<td style="text-align: center;"><span class="math inline">\(R\bowtie S\)</span></td>
+<td style="text-align: center;">0<br>（R 的 A 属性和 S 的 A 属性都不相等）</td>
+<td style="text-align: center;">15<br>（S 里的一行最多只能够和 R 的一行连接）</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">A 是 R 的主码</td>
+<td style="text-align: center;"><span class="math inline">\(\prod_{A}(R)\bigcup \prod_{A}(S)\)</span></td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">25</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">A 是 R 的主码<br>且 A 是 S 的外码</td>
+<td style="text-align: center;"><span class="math inline">\(R\bowtie S\)</span></td>
+<td style="text-align: center;">15<br>（外码）</td>
+<td style="text-align: center;">15<br>（S 里的一行最多只能够和 R 的一行连接）</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">A 是 R 的主码<br>且 A 是 S 的外码</td>
+<td style="text-align: center;"><span class="math inline">\(\prod_{A}(R)\bigcup \prod_{A}(S)\)</span></td>
+<td style="text-align: center;">10<br>（外码 + 主码）</td>
+<td style="text-align: center;">10<br>（外码 + 主码）</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>A 是 R 的主码表示 A 中的 R 各不相同</li>
+<li>A 是 S 的外码，则 S 在 A 上的取值必须在 R 的 A 上出现（参照完整性）</li>
+</ul>
+<h4 id="自然连接的问题">自然连接的问题</h4>
+<ul>
+<li>如果某个元素在某个表中缺失的话，结果将会有些元素缺失</li>
+<li>解决方案：<strong>外连接</strong></li>
+</ul>
+<h3 id="外连接">外连接</h3>
+<ul>
+<li>为避免自然连接时因失配而发生的信息丢失，可以<strong>假定往参与连接的一方表中附加一个取值全为空值的行</strong>，它和参与连接的另一方表中的任何一个未匹配上的元组都能匹配，称之为<strong>外连接</strong></li>
+<li><p>外连接 = 自然连接 + 未匹配元组（悬挂元组）</p></li>
+<li>外连接的形式：<strong>左外连接</strong>、<strong>右外连接</strong>、<strong>全外连接</strong>
+<ul>
+<li>左外连接 = 自然连接 + 左侧表中未匹配元组
+<ul>
+<li>⟕</li>
+</ul></li>
+<li>右外连接 = 自然连接 + 右侧表中未匹配元组
+<ul>
+<li>⟖</li>
+</ul></li>
+<li>全外连接 = 自然连接 + 两侧表中未匹配元组
+<ul>
+<li>⟗</li>
+</ul></li>
+</ul></li>
+<li><p>外连接不满足结合律</p></li>
+</ul>
+<h4 id="例子-1-1">例子 1</h4>
+<p><img src="/2021/04/02/DB/CLJ/03-1/image-20210406163333505.png" style="zoom:80%;"></p>
+<h4 id="例子-2-1">例子 2</h4>
+<ul>
+<li>外连接不满足结合律</li>
+<li>这个例子的巧妙之处在于：AB、BC、CA</li>
+</ul>
+<p><img src="/2021/04/02/DB/CLJ/03-1/image-20210406170707244.png" style="zoom:80%;"></p>
+<h3 id="半连接">半连接</h3>
+<ul>
+<li><span class="math inline">\(R⋉S\)</span>
+<ul>
+<li>提取出 R 里面<strong>能</strong>和 S 参与自然连接的那些行</li>
+</ul></li>
+<li>反半连接
+<ul>
+<li>提取出 R 里面<strong>不能</strong>和 S 参与自然连接的那些行</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/02/DB/CLJ/03-1/image-20210406171102917.png" style="zoom:80%;"></p>
+<ul>
+<li>反半连接的应用场景
+<ul>
+<li>物理底层的 not in/not exist 查询</li>
+</ul></li>
+<li>半连接的应用场景：<strong>减少分布式数据库的数据传输</strong></li>
+</ul>
+<p><img src="/2021/04/02/DB/CLJ/03-1/image-20210406171708087.png" style="zoom:80%;"></p>
+<h3 id="外部并">外部并</h3>
+<ul>
+<li>outer union</li>
+<li>R(AB) outer join S(BC)
+<ul>
+<li>在 B 上相同的行为合并成一行</li>
+</ul></li>
+<li>子实体集合合并为父实体集合</li>
+<li>例子：不同部门收集客户信息，然后将不同部门收集的信息整合起来</li>
+<li><span class="math inline">\({\color{red}TODO}\)</span>
+<ul>
+<li>外部并和全外连接的区别？<strong>没啥区别</strong></li>
+</ul></li>
+</ul>
+<h3 id="象集">象集</h3>
+<ul>
+<li>除法</li>
+<li>应用场景：找到选修了所有课程的同学
+<ul>
+<li>涉及到<strong>所有</strong>、<strong>全部</strong>问题</li>
+</ul></li>
+<li>关系 <span class="math inline">\(R(X,Z)\)</span>，<span class="math inline">\(X,Z\)</span> 是属性组，<span class="math inline">\(x\)</span> 是 <span class="math inline">\(X\)</span> 上的取值，定义 <span class="math inline">\(x\)</span> 在 <span class="math inline">\(R\)</span> 中的象集为</li>
+</ul>
+<p><span class="math display">\[
+Z_x=\left\{t[Z]|t\in R\land t[X]=x\right\}
+\]</span></p>
+<ul>
+<li>象集：先选择，后投影</li>
+<li>从R 中选出在 X 上取值为 x 的元组，只留 Z 属性
+<ul>
+<li><span class="math inline">\(Z_x\)</span></li>
+</ul></li>
+</ul>
+<h4 id="例子-3">例子</h4>
+<ul>
+<li>如何求得选修了全部课程的学生？</li>
+</ul>
+<h5 id="思路-1">思路 1</h5>
+<ul>
+<li>判断每个学生的课程象集是否包含了整个课程集合 C</li>
+</ul>
+<p><span class="math display">\[
+\left\{u|r\in SC\land u=r[姓名]\land 课程名_{u}\supseteq C\right\}
+\]</span></p>
+<h5 id="思路-2">思路 2</h5>
+<ul>
+<li>判断学生与课程集合构成的笛卡尔积是否完全包含在选课集合中</li>
+</ul>
+<p><span class="math display">\[
+\left\{u|u\in\prod_{姓名}(SC)\land\forall v\in C(\hat{uv}\in SC)\right\}
+\]</span></p>
+<ul>
+<li>理解图示</li>
+</ul>
+<p><img src="/2021/04/02/DB/CLJ/03-1/image-20210406175312104.png" style="zoom:80%;"></p>
+<h3 id="除法">除法</h3>
+<ul>
+<li><strong>所有</strong>、<strong>全部</strong>、<strong>任意</strong>问题</li>
+<li>定义表达式（2 种）
+<ul>
+<li>上面提到的两种方式</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+R(X,Y)\div S(Y)=\left\{x|r\in R\land x=r[X]\land Y_x\supseteq S\right\}
+\]</span></p>
+<p><span class="math display">\[
+R(X,Y)\div S(Y)=\left\{u|u\in\prod_X(R)\land\forall v\in S(\hat{uv}\in R)\right\}
+\]</span></p>
+<ul>
+<li>计算表达式
+<ul>
+<li>巧妙了</li>
+<li>先计算出不存在的关系，如果有不存在的说明就不是完全</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+R(X,Y)\div S(Y)=\prod_X(R)-\prod_X\left(\prod_X(R)\times\prod_{Y}(S)-R\right)
+\]</span></p>
+<ul>
+<li>减法计算
+<ul>
+<li>补集：区分两类不同性质的子集</li>
+<li>表结构必须相同</li>
+</ul></li>
+</ul>
+<h4 id="例子-4">例子</h4>
+<ul>
+<li>SC(sno, cno, grade)</li>
+<li>求选修了所有课程的学生
+<ul>
+<li>方案1：<span class="math inline">\(\prod_{sno,cno}(SC)\div \prod_{cno}(C)\)</span></li>
+<li>方案2：<span class="math inline">\(\prod_{sno}(SC\div \prod_{cno}(C))\)</span></li>
+</ul></li>
+<li><span style="color:red;font-weight:bold;">方案 2 是错误的</span>
+<ul>
+<li>除法的 X 表示 “课程+成绩”</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/02/DB/CLJ/03-1/image-20210406231848054.png" style="zoom: 80%;"></p>
+<h2 id="关系代数查询实例">关系代数查询实例</h2>
+<h3 id="求没有选修-c1-号课程的学生">求没有选修 c1 号课程的学生</h3>
+<ul>
+<li><strong>没有</strong>：求补</li>
+<li>所有学生 – 选修了c1号课程学生</li>
+</ul>
+<p><span class="math display">\[
+\prod_{sno}(SC)-\prod_{sno}(\sigma_{cno=c1}(SC))
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\prod_{sno}(\sigma_{cno\ne c1}(SC))\)</span>
+<ul>
+<li>这是错误的</li>
+<li>可能有人选了好几门课，注意这是随每条记录进行处理</li>
+<li>这个表示的含义：仅选 c1 号课程之外的其他学生</li>
+<li>所有的人分为 3 类
+<ul>
+<li>只选了 c1（只选了一门课，就是 c1）</li>
+<li>没有选 c1 （选了课，但是没有选 c1）</li>
+<li>选了好几门课，其中有一门是 c1（至少选了两门课）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="求仅选修了-c1-号课程的学生号">求仅选修了 c1 号课程的学生号</h3>
+<ul>
+<li>所有的学生－仅选 c1 号课程之外的学生</li>
+</ul>
+<p><span class="math display">\[
+\prod_{sno}(SC)-\prod_{sno}(\sigma_{cno\ne c1}(SC))
+\]</span></p>
+<ul>
+<li>选修 c1 号课程的学生－仅选 c1 号课程之外的学生
+<ul>
+<li>对上面的 3 类人进行判断</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\prod_{sno}(\sigma_{cno=c1}(SC))-\prod_{sno}(SC-\sigma_{cno=c1}(SC))
+\]</span></p>
+<h3 id="求选修-c1-课程比-s1-学生的该门课程成绩高的学生">求选修 c1 课程比 s1 学生的该门课程成绩高的学生</h3>
+<ul>
+<li><p>sno, cno, G</p></li>
+<li><p>笛卡尔积</p></li>
+</ul>
+<p><span class="math display">\[
+\prod_{S.sno}\left(\sigma_{R.sno=s1\land R.cno=c1\land S.cno=c1\land R.G\le S.G}\left(\rho_R(SC)\times\rho_S(SC)\right)\right)
+\]</span></p>
+<h3 id="求每门课程的先修课的先修课">求每门课程的先修课的先修课</h3>
+<ul>
+<li>cno, pcno</li>
+<li>递归查询</li>
+</ul>
+<p><span class="math display">\[
+\prod_{C.cno,R.pcno}\left(\sigma_{C.pcno=R.cno}\left(C\times\rho_R(C)\right)\right)
+\]</span></p>
+<ul>
+<li>怎么查找所有的祖辈先修课？
+<ul>
+<li>传递闭包</li>
+<li>从关系完备性来讲，我们目前的关系运算符是不够完备的，不能够表示这种运算</li>
+<li>现在的主流数据库是支持递归查询的</li>
+</ul></li>
+</ul>
+<h3 id="求选修了至少两门课的学生">求选修了至少两门课的学生</h3>
+<ul>
+<li>sno, cno, G</li>
+</ul>
+<p><span class="math display">\[
+\prod_{R.sno}\left(\sigma_{R.sno=S.sno\land R.cno\ne S.cno\left(\rho_R(SC)\times\rho_S(SC)\right)}\right)
+\]</span></p>
+<ul>
+<li>求选修了至少 N 门课的学生
+<ul>
+<li><span class="math inline">\({n \choose2}\)</span> 个不等号</li>
+</ul></li>
+<li>求只选修了 1 门课的学生
+<ul>
+<li>所有同学 - 至少选修了两门课的同学</li>
+</ul></li>
+</ul>
+<h3 id="求最低的成绩">求最低的成绩</h3>
+<ul>
+<li>sno, cno, G</li>
+<li>笛卡尔积</li>
+</ul>
+<p><span class="math display">\[
+\prod_G(SC)-\prod_{S.G}\left(\sigma_{R.G&lt;S.G}\left(\rho_R(SC)\times\rho_S(SC)\right)\right)
+\]</span></p>
+<ul>
+<li>小于等于好像不行，多个值的时候会变成空集</li>
+</ul>
+<h3 id="求选修课程中包含了所有-s01-号学生所选修课程的学生号">求选修课程中包含了所有 S01 号学生所选修课程的学生号</h3>
+<ul>
+<li>cno, sno</li>
+<li>除法</li>
+</ul>
+<p><span class="math display">\[
+\prod_{cno,sno}(SC)\div\prod_{cno}(\sigma_{sno=S01}(SC)
+\]</span></p>
+<h3 id="找出一直上涨的股票">找出一直上涨的股票</h3>
+<ul>
+<li>stock(sno, date, price)</li>
+<li>上涨过的股票</li>
+</ul>
+<p><span class="math display">\[
+\prod_{R,sno}\left(\sigma_{R.sno=S.sno\land R.date&gt;S.date\land R.price&gt;S.price}\left(\rho_R(stock)\times\rho_S(stock)\right)\right)
+\]</span></p>
+<ul>
+<li>一直上涨的股票
+<ul>
+<li>持续上涨的股票 = 所有股票 -下跌过的股票</li>
+</ul></li>
+</ul>
+<h3 id="去重">去重</h3>
+<ul>
+<li>guanxi(source,destination)</li>
+<li>可交换的</li>
+<li><strong>序列号可比</strong></li>
+</ul>
+<p><img src="/2021/04/02/DB/CLJ/03-1/image-20210407002232950.png" style="zoom:70%;"> <span class="math display">\[
+guanxi-\prod_{S.S,S.D}\left(\sigma_{R.D=S.S\land R.S=S.D\land R.S&lt;S.S}\left(\rho_R(guanxi)\times\rho_S(guanxi)\right)\right)
+\]</span></p>
+<h2 id="关系代数更新运算">关系代数更新运算</h2>
+<h3 id="赋值运算">赋值运算</h3>
+<ul>
+<li>为使查询表达简单、清晰，可以将一个复杂关系代数表达式分成几个部分</li>
+<li>每一部分都赋予一个临时关系变量</li>
+<li>该变量可被看作关系而在后续表达式中使用</li>
+<li>临时关系变量 <span class="math inline">\(\leftarrow\)</span> 关系代数表达式</li>
+<li>尽可能在一个表达式内写完</li>
+</ul>
+<h3 id="广义投影">广义投影</h3>
+<ul>
+<li>在投影列表中使用算术表达式来对投影进行扩展</li>
+</ul>
+<p><span class="math display">\[
+\prod_{F_1,F_2,\cdots,F_n}(E),\ F_i是算术表达式
+\]</span></p>
+<h3 id="数据库修改删除">数据库修改：删除</h3>
+<ul>
+<li>将满足条件的元组从关系中删除</li>
+<li><span class="math inline">\(R\leftarrow R-E\)</span></li>
+<li>是对永久关系的赋值运算</li>
+</ul>
+<h4 id="例子-5">例子</h4>
+<ul>
+<li>删除 001 号老师所担任的课程</li>
+</ul>
+<p><span class="math display">\[
+PC\leftarrow PC-\sigma_{pno=001}(PC)
+\]</span></p>
+<ul>
+<li>删除没有选课的学生
+<ul>
+<li>注意减法的表结构必须相同</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+S\leftarrow S-\left(\prod_{sno}(S)-\prod_{sno}(SC)\right)\bowtie S
+\]</span></p>
+<h3 id="数据库修改插入">数据库修改：插入</h3>
+<ul>
+<li>插入一个指定的元组，或者插入一个查询结果</li>
+</ul>
+<p><span class="math display">\[
+R\leftarrow R\ \bigcup E
+\]</span></p>
+<h4 id="例子-6">例子</h4>
+<ul>
+<li>加入计算机系学生选修 “数据结构” 的信息</li>
+<li>SC: sno,cno,G（学号、课程、成绩）</li>
+</ul>
+<p><span class="math display">\[
+SC\leftarrow SC\bigcup\left(\prod_{sno}\left(S\bowtie\sigma_{dname=&quot;计算机系&quot;}(DEPT)\right)\times \prod_{cno}\left(\sigma_{name=&quot;数据结构&quot;}(C)\right)\times{\color{red}\{null\}}\right)
+\]</span></p>
+<ul>
+<li>缺少成绩信息，一个 trick，和一个 <code>null</code> 属性相乘（笛卡尔积）</li>
+</ul>
+<h3 id="数据库修改更新">数据库修改：更新</h3>
+<ul>
+<li>利用广义投影改变元组的某些属性上的值</li>
+</ul>
+<p><span class="math display">\[
+\prod_{F_1,F_2,\cdots,F_n}(E)
+\]</span></p>
+<h4 id="例子-7">例子</h4>
+<ul>
+<li>给每位老师上调 10% 的工资</li>
+</ul>
+<p><span class="math display">\[
+PROF\leftarrow \prod_{pno,pname,sal\leftarrow sal*1.1,dno}\left(PROF\right)
+\]</span></p>
+<ul>
+<li>对工资超过 3000 的老师征收 5% 所得税</li>
+</ul>
+<p><span class="math display">\[
+PROF\leftarrow \prod_{pno,pname,sal\leftarrow sal*1.1,dno}\left(\sigma_{sal&gt;3000}PROF\right){\color{red}\bigcup\left(\sigma_{sal\le 3000}(PROF)\right)}
+\]</span></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/02/DB/CLJ/03/" rel="prev" title="数据库概论.陈立军.03.关系模型">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.03.关系模型
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/10/CG/YLQ-GAMES202/04/" rel="next" title="GAMES202.闫令琪.04.实时阴影(2)">
+                  GAMES202.闫令琪.04.实时阴影(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

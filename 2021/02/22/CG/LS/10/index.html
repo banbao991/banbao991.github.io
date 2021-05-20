@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="BRDF反射模型、反射方程、绘制方程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.10.高级光照模型与绘制理论">
+<meta property="og:url" content="http://example.com/2021/02/22/CG/LS/10/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="BRDF反射模型、反射方程、绘制方程">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/brdf.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/diffuse.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/specular.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/brdf-normal.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/brdf-01.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/mmicrofacet.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/fresnel.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/unblocked.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/masking.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/shadowing.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/environment.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/one-light.png">
+<meta property="og:image" content="http://example.com/2021/02/22/CG/LS/10/omega2a.png">
+<meta property="article:published_time" content="2021-02-22T01:21:55.000Z">
+<meta property="article:modified_time" content="2021-03-22T07:33:21.801Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/02/22/CG/LS/10/brdf.png">
+
+
+<link rel="canonical" href="http://example.com/2021/02/22/CG/LS/10/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>计算机图形学.李胜.10.高级光照模型与绘制理论 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#brdf%E5%8F%8D%E5%B0%84%E6%A8%A1%E5%9E%8B"><span class="nav-text">BRDF反射模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#brdf-%E7%9A%84%E6%80%A7%E8%B4%A8"><span class="nav-text">BRDF 的性质</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#brdf-%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-text">BRDF 的例子</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#diffuse-%E6%BC%AB%E5%8F%8D%E5%B0%84"><span class="nav-text">Diffuse 漫反射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#specular-%E9%95%9C%E9%9D%A2%E9%AB%98%E5%85%89"><span class="nav-text">specular 镜面高光</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E8%88%AC%E7%89%A9%E4%BD%93"><span class="nav-text">一般物体</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bssrdf"><span class="nav-text">BSSRDF</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%B0%84%E6%96%B9%E7%A8%8B"><span class="nav-text">反射方程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%82%B9%E5%85%89%E6%BA%90%E7%9A%84%E5%8F%8D%E5%B0%84%E6%96%B9%E7%A8%8B"><span class="nav-text">点光源的反射方程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#brdf%E5%88%86%E5%B8%83%E5%9B%BE"><span class="nav-text">BRDF分布图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BE%AE%E9%9D%A2%E5%85%83"><span class="nav-text">微面元</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8F%B2%E6%B6%85%E5%B0%94%E5%8F%8D%E5%B0%84"><span class="nav-text">菲涅尔反射</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8F%B2%E6%B6%85%E5%B0%94%E5%8F%8D%E5%B0%84%E5%85%AC%E5%BC%8F"><span class="nav-text">菲涅尔反射公式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#torrance-sparrow-cook-torrance-brdf"><span class="nav-text">Torrance-Sparrow &#x2F; Cook-Torrance BRDF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%89%E7%BA%BF%E5%9C%A8%E5%BE%AE%E9%9D%A2%E5%85%83%E4%B8%8A%E4%BC%A0%E6%92%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E6%83%85%E5%86%B5"><span class="nav-text">光线在微面元上传播的一些情况</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#unblocked"><span class="nav-text">unblocked</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#section"><span class="nav-text"></span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#masking"><span class="nav-text">masking</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#shadowing"><span class="nav-text">shadowing</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#brdf"><span class="nav-text">BRDF</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96-brdf"><span class="nav-text">如何获取 BRDF</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#brdf-%E7%BB%98%E5%88%B6%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95"><span class="nav-text">BRDF 绘制实现方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%A0%E6%95%B0%E5%88%86%E8%A7%A3%E6%B3%95"><span class="nav-text">因数分解法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9F%A9%E9%98%B5%E5%88%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E7%BA%B9%E7%90%86%E5%AF%B9"><span class="nav-text">矩阵分解计算纹理对</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%BA%E7%82%B9"><span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%9B%BE%E6%BB%A4%E6%B3%A2"><span class="nav-text">环境图滤波</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%98%E5%88%B6%E6%96%B9%E7%A8%8B"><span class="nav-text">绘制方程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%B0%84%E6%96%B9%E7%A8%8B-1"><span class="nav-text">反射方程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%82%B9%E5%85%89%E6%BA%90"><span class="nav-text">点光源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%85%89%E6%BA%90"><span class="nav-text">多光源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%A2%E5%85%89%E6%BA%90"><span class="nav-text">面光源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E5%85%89%E7%85%A7%E6%98%8E"><span class="nav-text">全局光照明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B8%B2%E6%9F%93%E6%96%B9%E7%A8%8B"><span class="nav-text">渲染方程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E6%B8%B2%E6%9F%93%E6%96%B9%E7%A8%8B%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-text">解渲染方程的方法</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/22/CG/LS/10/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机图形学.李胜.10.高级光照模型与绘制理论
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-02-22 09:21:55" itemprop="dateCreated datePublished" datetime="2021-02-22T09:21:55+08:00">2021-02-22</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-03-22 15:33:21" itemprop="dateModified" datetime="2021-03-22T15:33:21+08:00">2021-03-22</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-LS/" itemprop="url" rel="index"><span itemprop="name">CG.LS</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">BRDF反射模型、反射方程、绘制方程</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="brdf反射模型">BRDF反射模型</h1>
+<ul>
+<li>Bidirectional Reflectance Distribution Function</li>
+<li>双向反射率分布函数</li>
+<li>用来描述物体的<strong>材料属性</strong>，表示光如何从一个表面反射出去</li>
+<li>输入参数：5
+<ul>
+<li>入射光和发射光的方位角 <span class="math inline">\(\phi\)</span>、仰角 <span class="math inline">\(\theta\)</span></li>
+<li>入射光的波长 <span class="math inline">\(\lambda\)</span></li>
+</ul></li>
+<li>输出一个无单位的值
+<ul>
+<li>表示对于给定的入射方向，在发射方向反射出去能量的<strong>比例</strong></li>
+<li>BRDF 给出了入射光子在某一方向离开的<strong>概率</strong>
+<ul>
+<li>立体角对应的面上的能量</li>
+</ul></li>
+</ul></li>
+<li>incoming / outgoing</li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/10/brdf.png" style="zoom:60%;"></p>
+<ul>
+<li>BRDF 描述了入射辐射亮度和发射辐射亮度是如何相互联系的，但没有解释材料是如何在物理上与光相互作用的</li>
+</ul>
+<h2 id="brdf-的性质">BRDF 的性质</h2>
+<ul>
+<li>Helmholtz互反定理（Helmholtz reciprocity）
+<ul>
+<li>Value of BRDF remains unchanged if the incident and outgoing directions are interchanged</li>
+<li><strong>输入和输出角切换后函数值相同</strong></li>
+</ul></li>
+<li>能量守恒定律
+<ul>
+<li>the total amount of power reflected all directions must be less than or equal to the total amount of power incident on the surface</li>
+<li><strong>发射的能量小于等于入射的能量</strong></li>
+</ul></li>
+</ul>
+<h2 id="brdf-的例子">BRDF 的例子</h2>
+<h3 id="diffuse-漫反射">Diffuse 漫反射</h3>
+<p><span class="math display">\[
+F_r=\dfrac{\rho_d}{2\pi}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\rho_d\)</span> 表示出射光占入射光的比例，0-1</li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/10/diffuse.png" style="zoom: 50%;"></p>
+<h3 id="specular-镜面高光">specular 镜面高光</h3>
+<p><span class="math display">\[
+Exitant\ direction:R=2(N\cdot\Psi)N-\Psi
+\]</span></p>
+<p><img src="/2021/02/22/CG/LS/10/specular.png" alt="1613960000494" style="zoom:50%;"></p>
+<h3 id="一般物体">一般物体</h3>
+<p><img src="/2021/02/22/CG/LS/10/brdf-normal.png" style="zoom:50%;"></p>
+<h2 id="bssrdf">BSSRDF</h2>
+<ul>
+<li>BRDF 是更一般方程<strong>双向表面散射反射率分布函数</strong>的一种逼近
+<ul>
+<li>Bidirectional Surface Scattering Reflectance Distribution Function (BSSRDF)</li>
+</ul></li>
+<li>BRDF 没有考虑表面内光的散射
+<ul>
+<li>大理石</li>
+</ul></li>
+<li>BSSRDF 通过把<strong>入射光的位置</strong>和<strong>发射光的位置</strong>作为函数的输入覆盖了散射现象
+<ul>
+<li>它描述的是光从入射方向在表面的<strong>某一点</strong>入射，然后在<strong>另一点</strong>沿发射方向发射的比率</li>
+</ul></li>
+</ul>
+<h2 id="反射方程">反射方程</h2>
+<ul>
+<li>Reflectance Equation</li>
+<li>给定一 BRDF 和入射辐射亮度分布，反射方程决定了表面在给定视域方向的发射辐射亮度。它通过在表面的半球面上对所有方向的入射辐射亮度进行积分得到</li>
+</ul>
+<p><span class="math display">\[
+L(\theta_o,\phi_o)=\iint_{\Omega}f(\theta_o,\phi_o,\theta_i,\phi_i)L(\theta_i,\phi_i)\cos(\theta_i)d\sigma(\theta_i,\phi_i)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(i,o\)</span> 入射出射方向</li>
+<li><span class="math inline">\(f\)</span> 表示 BRDF</li>
+<li><span class="math inline">\(L\cos(\theta_i)\)</span> 将光线转化为正向入射</li>
+<li>在<strong>半球面</strong>上积分</li>
+<li>该方程对三个颜色分量<strong>单独</strong>计算</li>
+</ul>
+<h3 id="点光源的反射方程">点光源的反射方程</h3>
+<ul>
+<li><strong>点光源</strong>，简化为</li>
+</ul>
+<p><span class="math display">\[
+L(\theta_o,\phi_o)=f(\theta_o,\phi_o,\theta_i,\phi_i)L(\theta_i,\phi_i)\cos(\theta_i)
+\]</span></p>
+<ul>
+<li><span class="math inline">\((\theta_i,\phi_i)\)</span> 表示光源方向</li>
+<li>向量表示</li>
+</ul>
+<p><span class="math display">\[
+L(\vec{\omega_o})=f(\vec{\omega_o},\vec{\omega_i})L(\vec{\omega_i})(\vec{n}\cdot\vec{\omega_i})
+\]</span></p>
+<h2 id="brdf分布图">BRDF分布图</h2>
+<ul>
+<li>理解 BRDF 的一种方法为把入射方向保持恒定，然后观察其输出结果。对于给定方向的入射光，发射能量的分布不同。</li>
+<li>交点附近的球面部分为漫反射项。椭圆形部分的为反射叶(reflectance lobe)（镜面项），通常在入射光的反射方向。</li>
+<li>Torrance-Sparrow 模型：镜面高光并非在反射方向最强</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">漫反射表面</th>
+<th style="text-align: center;">Phong/Blinn 高光 + 漫反射</th>
+<th style="text-align: center;">Torrance-Sparrow模型</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Ward’s各向异性模型</td>
+<td style="text-align: center;">Hapke的BRDF模型</td>
+<td style="text-align: center;">Lommel-Seeliger散射模型</td>
+</tr>
+</tbody>
+</table>
+<p><img src="/2021/02/22/CG/LS/10/brdf-01.png" alt="1613960889148" style="zoom:80%;"></p>
+<h2 id="微面元">微面元</h2>
+<ul>
+<li><strong>microfacet</strong></li>
+<li>微面元是物体表面上一种<strong>微小</strong>的、<strong>平坦</strong>的<strong>镜面</strong>，具有<strong>随机的大小和角度</strong></li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/10/mmicrofacet.png" style="zoom:50%;"></p>
+<ul>
+<li>在 BRDF 模型中，一般处理成高斯分布
+<ul>
+<li>处理方便</li>
+</ul></li>
+<li>微面元描述典型反射
+<ul>
+<li><strong>镜面反射</strong>可以用一些微面元的<strong>直接反射</strong>来描述</li>
+<li><strong>漫反射</strong>可以用微面元间的<strong>相互反射</strong>来描述</li>
+<li>微面元之间还可以互相投射阴影</li>
+</ul></li>
+<li>当<strong>微面元的大小</strong>与<strong>光的波长</strong>相近时，还有一个重要概念 height correlation, 可用来模拟干涉、衍射等物理现象</li>
+</ul>
+<h2 id="菲涅尔反射">菲涅尔反射</h2>
+<ul>
+<li>Fresnel Reflectance</li>
+<li>塑料、玻璃和水等绝缘体或电介质材料</li>
+<li>当电介质材料以接近掠角（Grazing angle）的角度观察时，反射会更厉害（但对于金属，该角度引起的反射变化相对较小）
+<ul>
+<li>当用最浅的掠角时，所有的材料变成全反射</li>
+</ul></li>
+<li>现象
+<ul>
+<li>手拿一本书，对准计算机的显示器，以很浅的角度去看其中的页面，在一个极端浅的角度，你可以看到屏幕在书上的反射</li>
+</ul></li>
+</ul>
+<h3 id="菲涅尔反射公式">菲涅尔反射公式</h3>
+<ul>
+<li>菲涅尔反射的公式与折射率、衰减系数、入射角有关
+<ul>
+<li>绝缘体的折射率可设成是1.5</li>
+<li>若衰减系数未知，可设置为0</li>
+</ul></li>
+<li>菲涅尔反射公式如下</li>
+</ul>
+<p><span class="math display">\[
+F=\dfrac{1}{2}\dfrac{(g+c)^2}{(g-c)^2}(1+\dfrac{[c(g+c)-1]^2}{[c(g-c)+1]^2})
+\]</span></p>
+<p><span class="math display">\[
+c=\vec{v}\cdot\vec{h}
+\]</span></p>
+<p><span class="math display">\[
+g=\sqrt{n^2+c^2-1}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\vec{v}\)</span> 为视线矢量，<span class="math inline">\(\vec{h}\)</span> 为半角矢量，<span class="math inline">\(n\)</span> 为折射率
+<ul>
+<li><span class="math inline">\(\vec{h}=\dfrac{1}{2}(\vec{v}+\vec{l})\)</span></li>
+<li>入射光矢量、视线矢量</li>
+</ul></li>
+<li>一个 <span class="math inline">\(n=1.5\)</span> 的例子</li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/10/fresnel.png" style="zoom: 80%;"></p>
+<h2 id="torrance-sparrow-cook-torrance-brdf">Torrance-Sparrow / Cook-Torrance BRDF</h2>
+<ul>
+<li>描述较光滑的表面</li>
+<li>基于微面元
+<ul>
+<li>通过光线在微面元上的相互作用计算出一个衰减因子 <span class="math inline">\(G\)</span>
+<ul>
+<li>geometric attenuation factor</li>
+<li>0-1：total shadowing - no shadowing</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="光线在微面元上传播的一些情况">光线在微面元上传播的一些情况</h3>
+<h4 id="unblocked">unblocked</h4>
+<h3 id="section"></h3>
+<p><img src="/2021/02/22/CG/LS/10/unblocked.png" style="zoom:50%;"></p>
+<h4 id="masking">masking</h4>
+<ul>
+<li>部分/全部出射光线被遮挡</li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/10/masking.png" style="zoom:50%;"></p>
+<h4 id="shadowing">shadowing</h4>
+<ul>
+<li>入射光线部分/全部被遮挡</li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/10/shadowing.png" style="zoom:50%;"></p>
+<h3 id="brdf">BRDF</h3>
+<p><span class="math display">\[
+\dfrac{F(l,h)G(l,v)D(h)}{4(n\cdot l)(n\cdot v)}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(l\)</span>：光源方向，<span class="math inline">\(v\)</span>：视线方向，<span class="math inline">\(n\)</span>：法向，<span class="math inline">\(h\)</span>：半角矢量</li>
+<li><span class="math inline">\(G(l,v)\)</span>：Geometric Attenuation Factor
+<ul>
+<li>reduces the output based on the amount of <strong>shadowing</strong> or <strong>masking</strong> that occurs</li>
+</ul></li>
+<li><span class="math inline">\(F(l,h)\)</span>：Fresnel term（菲涅尔反射）</li>
+<li><span class="math inline">\(D(h)\)</span>：Distribution
+<ul>
+<li>distribution function determines what percentage of microfacet are oriented to reflect in the viewer direction</li>
+</ul></li>
+<li><span class="math inline">\((n\cdot l)\)</span>：How much of the macroscopic surface is visible to the light source</li>
+<li><span class="math inline">\((n\cdot v)\)</span>：How much of the macroscopic surface is visible to the viewer</li>
+</ul>
+<h2 id="如何获取-brdf">如何获取 BRDF</h2>
+<ul>
+<li>BRDF 理论模型的一个问题是它们不能表示特定的材料</li>
+<li>获取真实表面的 BRDF
+<ul>
+<li>角度测定法（goniometers）</li>
+<li>双向反射计成像法（imaging bidrectional reflectometers）</li>
+<li>基于图像的方法（image-based methods）</li>
+</ul></li>
+<li>公开数据库下载
+<ul>
+<li>http://people.csail.mit.edu/wojciech/BRDFDatabase/
+<ul>
+<li>无法访问？</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="brdf-绘制实现方法">BRDF 绘制实现方法</h2>
+<ul>
+<li>应用 BRDF 的直接方法为计算顶点的颜色并把结果传到流水线。但其缺点是：如果 BRDF 反射在一些象素上的变化速度太快，线性插值会导致丢失或过分突出这种反射变化。一个解决方法是把表面加细，但会降低算法的性能。</li>
+<li>对于给定的材料，如果有一种存取快速的简凑的表示方法，可以带来如下好处
+<ul>
+<li>避免精确理论模型的计算耗费</li>
+<li>减少存贮量</li>
+<li>减少实验获取BRDF中的噪声</li>
+</ul></li>
+<li>在实时绘制中，主要采用两种简凑的BRDF表示方法
+<ul>
+<li>Factorization 因数分解法</li>
+<li>Environment map filtering 环境图滤波</li>
+</ul></li>
+</ul>
+<h3 id="因数分解法">因数分解法</h3>
+<ul>
+<li>一种表示 BRDF 的方法为把 BRDF 表示成乘积项的和（而不是一系列基函数的加权和），其中每个乘积项包含两项</li>
+<li>思想：把 BRDF 转化为一系列二维纹理对。每对纹理通过四维参数存取（2个入射角和2个发射角），返回的纹理值相乘后再相加，得到象素的颜色</li>
+<li>初始的 BRDF 有两个方向矢量，入射矢量和发射矢量。因数分解法就是把 BRDF 表示成简单函数对乘积的和</li>
+</ul>
+<p><span class="math display">\[
+f(\vec{\omega_i},\vec{\omega_o})\approx\sum_{j=1}^np_j(\vec{\omega_i})q_j(\vec{\omega_o})
+\]</span></p>
+<ul>
+<li>因数分解法蕴涵的思想为把入射和发射方向映射为纹理上的象素，使得上式中的 n 尽量小，并且方向矢量可以通过纹理的线性插值来得到</li>
+<li>存取的纹理与环境映照具有相同的形式：球面图、抛物面图、立方体图
+<ul>
+<li>其中立方体图的质量最高</li>
+</ul></li>
+<li>我们的目标是构造纹理对
+<ul>
+<li>入射纹理：通过入射方向存取</li>
+<li>发射纹理：通过发射方向存取</li>
+</ul></li>
+<li>在实践中，我们发现这种参数化结果并不好，会导致需要很多纹理对（n很大）才能较好地逼近 BRDF。在三角形内的线性插值结果也不好，会导致严重的误差</li>
+<li>好的参数化方法与材料的类型有关（并非完全是一个科学问题）</li>
+</ul>
+<h4 id="矩阵分解计算纹理对">矩阵分解计算纹理对</h4>
+<ul>
+<li>为了计算纹理对，需要构造一大型矩阵（可以采用预计算的方法）</li>
+<li>入射纹理的每个纹素表示该矩阵的行下标，发射纹理的每个纹素表示该矩阵的列下标</li>
+<li>矩阵的每个元素表示 BRDF 的反射系数值</li>
+<li>矩阵分解通常采用两种方法
+<ul>
+<li>奇异值分解(SVD, Singular Value Decomposition),</li>
+<li>规范化分解(ND, Normalized Decomposition)</li>
+</ul></li>
+<li>把分解得到的行矢量和列矢量对存入纹理对，便得到我们所需要的纹理对</li>
+<li>规范化分解的缺点是结果不太精确，但比SVD简单、存贮量小，并且纹理值都是正的
+<ul>
+<li>用的不多</li>
+</ul></li>
+<li><strong>矩阵分解可看成是一种数据压缩方式</strong>
+<ul>
+<li>四维的 BRDF 转化为纹理对，然后由图形硬件进行解压。由于纹理可以用球面图或抛物面图来表示，因此该技术可在任何图形硬件上运行</li>
+</ul></li>
+</ul>
+<h4 id="缺点">缺点</h4>
+<ul>
+<li>对于每个光源，至少需要一对纹理</li>
+<li>只适合点光源和方向光。不能捕获从面光源、天空光和其它物体来的辐射亮度</li>
+</ul>
+<h3 id="环境图滤波">环境图滤波</h3>
+<ul>
+<li>BRDF 是一个方向，对多个反射方向进行滤波（漫反射效果）</li>
+<li>前面我们讲过，环境图可以用来绘制理想的发光表面（perfectly shiny surface）</li>
+<li>这个概念同样可以推广到光滑面（glossy surface）和漫反射面</li>
+<li>为了模拟表面<strong>不同程度的粗糙度</strong>，我们可以对纹理的环境表示进行<strong>滤波</strong>
+<ul>
+<li>通过对环境图进行<strong>模糊操作</strong>，我们可以使得镜面反射呈现**粗糙的视觉效果*</li>
+</ul></li>
+<li>理论上，模糊操作应以非线性的方式进行。也就是说，纹理的不同部分应以不同的方式进行模糊。但因为<strong>整体的反射效果通常比精确的反射更重要</strong>，所以我们可以直接采用对环境图进行<strong>均匀模糊</strong>的方法</li>
+<li>一个物理上更真实的方法为采用 Phong 镜面方程来对环境图进行滤波。镜面叶决定采样环境映照中的哪些纹素，并决定每个纹素的相对贡献</li>
+<li>滤波方式
+<ul>
+<li>理想镜面反射</li>
+<li>反射光线的<strong>镜面叶</strong></li>
+<li>对表面上的余弦加权半球面进行求和来得到漫反射分量中入射光的贡献</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/10/environment.png"></p>
+<ul>
+<li>其思想是把环境映照 EM 看成是罩在物体外面的一个球面。EM 上的每个纹素表示球面上的不同面积，其值为常数。由纹素构成的四边形实际上描述了一个球面四边形，其面积可用两个平面三角形来简单逼近。为了建立模拟表面模糊效果的图，首先进行预处理，计算纹素四个角点的单位化法向和纹素的面积。</li>
+<li>算法思想
+<ul>
+<li>对于每个反射方向，找到每个EM纹素对该方向的贡献</li>
+<li>假设反射方向附近有一个光源，直接从反射方向来的光具有最大的贡献，越偏离该方向, 贡献越小</li>
+<li>EM纹素的面积乘上该纹素的 BRDF 贡献给出了该纹素的相对影响，把结果相加来计算q。s为加权贡献的和</li>
+<li>最后的结果 q/s 为在反射方向叶上积分得到的整体颜色</li>
+</ul></li>
+</ul>
+<h1 id="绘制方程">绘制方程</h1>
+<h2 id="反射方程-1">反射方程</h2>
+<ul>
+<li>Reflected Light(Output Image)
+<ul>
+<li>Emission</li>
+<li>Incident Light (from light source) x BRDF x Cosine of Incident angle</li>
+</ul></li>
+<li>自发光 + 反射光</li>
+</ul>
+<h3 id="点光源">点光源</h3>
+<p><img src="/2021/02/22/CG/LS/10/one-light.png" style="zoom: 70%;"> <span class="math display">\[
+L_r(x,\vec{\omega_r})=L_e(x,\vec{\omega_r})+L_i(x,\vec{\omega_i})f(x,\omega_i,\omega_r)(\omega_i\cdot n)
+\]</span></p>
+<h3 id="多光源">多光源</h3>
+<p><span class="math display">\[
+L_r(x,\vec{\omega_r})=L_e(x,\vec{\omega_r})+\sum L_i(x,\vec{\omega_i})f(x,\omega_i,\omega_r)(\omega_i\cdot n)
+\]</span></p>
+<h3 id="面光源">面光源</h3>
+<ul>
+<li>立体角积分</li>
+</ul>
+<p><span class="math display">\[
+L_r(x,\vec{\omega_r})=L_e(x,\vec{\omega_r})+\int_\Omega L_i(x,\vec{\omega_i})f(x,\omega_i,\omega_r)(\omega_i\cdot n)d\omega_i
+\]</span></p>
+<h3 id="全局光照明">全局光照明</h3>
+<ul>
+<li>其他表面的反射光</li>
+<li>$ L_r(x',-)$ <strong>未知</strong></li>
+</ul>
+<p><span class="math display">\[
+L_r(x,\vec{\omega_r})=L_e(x,\vec{\omega_r})+\int_\Omega L_r(x&#39;,-\vec{\omega_i})f(x,\omega_i,\omega_r)(\omega_i\cdot n)d\omega_i
+\]</span></p>
+<h2 id="渲染方程">渲染方程</h2>
+<ul>
+<li>上面的全局光照明</li>
+<li>直接光与间接光
+<ul>
+<li>Direct (local ) illumination
+<ul>
+<li>Light directly from light sources</li>
+<li>No shadows</li>
+</ul></li>
+<li>Indirect (global ) illumination
+<ul>
+<li>Hard and soft shadows</li>
+<li>Diffuse interreflections (radiosity)
+<ul>
+<li>interreflections ：相互反射</li>
+</ul></li>
+<li>Glossy interreflections (caustics)
+<ul>
+<li>caustics：焦散</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>挑战：入射光出射光互相依赖
+<ul>
+<li>To evaluate the reflection equation the incoming radiance must be known</li>
+<li>To evaluate the incoming radiance the reflected radiance must be known</li>
+</ul></li>
+<li>Surface Balance Equation
+<ul>
+<li>[outgoing] = [emitted] + [reflected]</li>
+<li>[outgoing] = [emitted] + [reflected] + [transmitted]
+<ul>
+<li>BTDF：透射光（下面透射上来、透射下去）</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+L_o(x,\vec{\omega_o})=L_e(x,\vec{\omega_o})+L_r(x,\vec{\omega_o})+L_t(x,\vec{\omega_o})
+\]</span></p>
+<p><span class="math display">\[
+L_r(x,\vec{\omega_o})=\int_{H_+^2} L_i(x&#39;,\vec{\omega_i})f_r(x,\omega_i\to\omega_o)(\cos\theta_i)d\omega_i
+\]</span></p>
+<p><span class="math display">\[
+L_t(x,\vec{\omega_o})=\int_{H_-^2} L_i(x&#39;,\vec{\omega_t})f_r(x,\omega_t\to\omega_o)(\cos\theta_t)d\omega_t
+\]</span></p>
+<ul>
+<li>可以利用法向合并</li>
+</ul>
+<p><span class="math display">\[
+H_+^2(n):\omega_o\cdot n(x)&gt;0\\
+H_-^2(n):\omega_o\cdot n(x)&lt;0
+\]</span></p>
+<p><span class="math display">\[
+L(x,\vec{\omega})=L_e(x,\vec{\omega})+\int_{H^2} L(x^\ast(x,\omega&#39;),\vec{\omega})f_r(x,\omega&#39;\to\omega)(\cos\theta&#39;)d\omega&#39;
+\]</span></p>
+<ul>
+<li><span class="math inline">\(x^\ast(x,\omega&#39;)\)</span> 中间包含路径衰减等因素（传输因子）</li>
+<li>推到得到矩阵形式</li>
+</ul>
+<p><span class="math display">\[
+l(u)=e(u)+\int l(v)K(u,v)dv
+\]</span></p>
+<p><span class="math display">\[
+L=E+KL
+\]</span></p>
+<ul>
+<li>矩阵 <span class="math inline">\(K\)</span> 表示在光的传播过程中其他各点的贡献</li>
+<li>L, E are vectors, K is the light transport matrix</li>
+</ul>
+<h3 id="解渲染方程的方法">解渲染方程的方法</h3>
+<ul>
+<li>All global illumination methods try to solve (approximations of) the rendering equation
+<ul>
+<li>Too hard for analytic solution: numerical methods</li>
+<li>General theory of solving integral equations</li>
+</ul></li>
+<li>Radiosity (usually diffuse surfaces)
+<ul>
+<li>General class numerical finite element methods (divide surfaces in scene into a finite set elements or patches)</li>
+<li>Set up linear system (matrix) of simultaneous equations</li>
+<li>Solve <strong>iteratively</strong></li>
+</ul></li>
+<li>ray tracing and extensions
+<ul>
+<li><span class="math inline">\(L=(I-K)^{-1}E\)</span></li>
+<li><span class="math inline">\(L=(I+K+K^2+K^3+K^2+\cdots)E\)</span>
+<ul>
+<li><span class="math inline">\(E\)</span>：Emission directly（From light sources）</li>
+<li><span class="math inline">\(KE\)</span>：Direct Illumination on surfaces</li>
+<li><span class="math inline">\(KE^2\)</span>：Global Illumination (One bounce indirect)[Mirrors, Refraction]</li>
+<li><span class="math inline">\(KE^3\)</span>：Global Illumination (Two bounce indirect)[Caustics etc]</li>
+</ul></li>
+<li>OpenGL：L=E+KE</li>
+</ul></li>
+<li>将立体角转变为我们常用的离散面片</li>
+</ul>
+<p><img src="/2021/02/22/CG/LS/10/omega2a.png" style="zoom: 60%;"></p>
+<ul>
+<li>加入可见性检测 <span class="math inline">\(V(x,x&#39;)\)</span></li>
+</ul>
+<p><span class="math display">\[
+L_r(x,\vec{\omega_r})=L_e(x,\vec{\omega_r})+\int_\Omega L_r(x&#39;,-\vec{\omega_i})f(x,\omega_i,\omega_r)\cos\theta_id\omega_i
+\]</span></p>
+<p><span class="math display">\[
+L_r(x,\vec{\omega_r})=L_e(x,\vec{\omega_r})+\int_\Omega L_r(x&#39;,-\vec{\omega_i})f(x,\omega_i,\omega_r)V(x,x&#39;)\dfrac{\cos\theta_i\cos
+\theta_0}{|x-x&#39;|^2}dA&#39;
+\]</span></p>
+<p><span class="math display">\[
+L_r(x,\vec{\omega_r})=L_e(x,\vec{\omega_r})+\int_\Omega L_r(x&#39;,-\vec{\omega_i})f(x,\omega_i,\omega_r)V(x,x&#39;)G(x,x&#39;)dA&#39;
+\]</span></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/20/CG/LS/09/" rel="prev" title="计算机图形学.李胜.09.纹理映射">
+                  <i class="fa fa-chevron-left"></i> 计算机图形学.李胜.09.纹理映射
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/22/CG/LS/11/" rel="next" title="计算机图形学.李胜.11.物理模拟">
+                  计算机图形学.李胜.11.物理模拟 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

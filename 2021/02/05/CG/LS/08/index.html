@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="真实感绘制流程、简单光照明模型（环境光、漫反射、镜面高光、光的传播衰减、阴影、透明）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.08.真实感绘制之光照明(1)">
+<meta property="og:url" content="http://example.com/2021/02/05/CG/LS/08/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="真实感绘制流程、简单光照明模型（环境光、漫反射、镜面高光、光的传播衰减、阴影、透明）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/diffuse-reflection.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/ideal-specular-highlight.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/specular-highlight.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/phong-n.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/depth-cueing.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/bilinear-interpolation.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/normal-bilinear-interpolation.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/contrast-flat-gouraud-phong.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/highlight-gouraud-phong.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/interpolation-projection.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/interpolation-direction.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/interpolation-continue.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/interpolation-point-normal.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/accumulative.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/error.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/simple-transparent.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/refraction.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/refraction2.png">
+<meta property="article:published_time" content="2021-02-05T03:50:24.000Z">
+<meta property="article:modified_time" content="2021-02-07T16:15:37.166Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/02/05/CG/LS/08/diffuse-reflection.png">
+
+
+<link rel="canonical" href="http://example.com/2021/02/05/CG/LS/08/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>计算机图形学.李胜.08.真实感绘制之光照明(1) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9C%9F%E5%AE%9E%E6%84%9F%E7%BB%98%E5%88%B6%E6%B5%81%E7%A8%8B"><span class="nav-text">真实感绘制流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%89%E7%85%A7%E6%98%8E%E6%A8%A1%E5%9E%8B%E5%8F%91%E5%B1%95%E5%8E%86%E5%8F%B2"><span class="nav-text">光照明模型发展历史</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9C%9F%E5%AE%9E%E6%84%9F%E5%9B%BE%E5%BD%A2%E7%BB%98%E5%88%B6%E7%9A%84%E5%9B%9B%E4%B8%AA%E6%AD%A5%E9%AA%A4"><span class="nav-text">真实感图形绘制的四个步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#d%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="nav-text">3D流水线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%A0%E4%BD%95%E5%BB%BA%E6%A8%A1"><span class="nav-text">(1) 几何建模</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%95%E5%BD%B1"><span class="nav-text">(2) 投影</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AE%E5%AE%9A%E5%BD%A2%E7%8A%B6"><span class="nav-text">(3) 确定形状</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AE%E5%AE%9A%E8%89%B2%E5%BD%A9"><span class="nav-text">(4) 确定色彩</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%85%89%E7%85%A7%E6%98%8E%E6%A8%A1%E5%9E%8B"><span class="nav-text">简单光照明模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%85%89%E7%85%A7%E6%98%8E%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%81%87%E8%AE%BE"><span class="nav-text">简单光照明模型的假设</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80"><span class="nav-text">基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%85%89"><span class="nav-text">环境光</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%AB%E5%8F%8D%E5%B0%84"><span class="nav-text">漫反射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E4%B8%8E-phong-%E6%A8%A1%E5%9E%8B"><span class="nav-text">镜面反射与 Phong 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%90%86%E6%83%B3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84"><span class="nav-text">理想镜面反射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%9E%E7%90%86%E6%83%B3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84"><span class="nav-text">非理想镜面反射</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%89%E7%BA%BF%E7%9A%84%E8%A1%B0%E5%87%8F"><span class="nav-text">光线的衰减</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%89%E5%9C%A8%E5%85%89%E6%BA%90%E5%88%B0%E7%89%A9%E4%BD%93%E8%A1%A8%E9%9D%A2%E8%BF%87%E7%A8%8B%E4%B8%AD%E7%9A%84%E8%A1%B0%E5%87%8F"><span class="nav-text">(1) 光在光源到物体表面过程中的衰减</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%89%E5%9C%A8%E7%89%A9%E4%BD%93%E8%A1%A8%E9%9D%A2%E5%88%B0%E4%BA%BA%E7%9C%BC%E8%BF%87%E7%A8%8B%E4%B8%AD%E7%9A%84%E8%A1%B0%E5%87%8F"><span class="nav-text">(2) 光在物体表面到人眼过程中的衰减</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%85%89%E7%85%A7%E6%98%8E%E6%A8%A1%E5%9E%8B-1"><span class="nav-text">简单光照明模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%A9%E8%89%B2"><span class="nav-text">彩色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%85%89%E6%BA%90"><span class="nav-text">多光源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E8%BE%B9%E5%BD%A2%E7%BB%98%E5%88%B6%E7%9D%80%E8%89%B2%E6%96%B9%E6%B3%95"><span class="nav-text">多边形绘制着色方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%9F%E4%B8%80%E7%9D%80%E8%89%B2"><span class="nav-text">统一着色</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9D%87%E5%8C%80%E7%9D%80%E8%89%B2"><span class="nav-text">均匀着色</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%89%E6%BB%91%E7%9D%80%E8%89%B2"><span class="nav-text">光滑着色</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#gouraud-%E7%9D%80%E8%89%B2%E6%96%B9%E6%B3%95"><span class="nav-text">Gouraud 着色方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A4"><span class="nav-text">步骤</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BC%BA%E7%82%B9"><span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#phong-%E7%9D%80%E8%89%B2%E6%96%B9%E6%B3%95"><span class="nav-text">Phong 着色方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A4-1"><span class="nav-text">步骤</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E5%AF%B9%E6%AF%94"><span class="nav-text">方法对比</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%92%E5%80%BC%E6%96%B9%E6%B3%95%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">插值方法存在的问题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%B4%E5%BD%B1"><span class="nav-text">阴影</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E-gpu-%E7%A1%AC%E4%BB%B6%E7%9A%84-shadow-map-%E7%AE%97%E6%B3%95"><span class="nav-text">基于 GPU 硬件的 shadow map 算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%AD%A5%E9%AA%A4"><span class="nav-text">算法步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E7%82%B9"><span class="nav-text">优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%BA%E7%82%B9-1"><span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rsmreflective-shadow-map"><span class="nav-text">RSM：Reflective Shadow Map</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%B4%E5%BD%B1%E5%8F%8D%E6%B7%B7%E6%B7%86"><span class="nav-text">阴影反混淆</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Egpu%E7%A1%AC%E4%BB%B6-%E7%9A%84-shadow-volume"><span class="nav-text">基于GPU硬件 的 Shadow Volume</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E7%89%A9%E4%BD%93%E5%A4%84%E4%BA%8E%E9%98%B4%E5%BD%B1%E4%BD%93%E4%B8%AD"><span class="nav-text">如何判断物体处于阴影体中</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%B4%AF%E7%A7%AF%E7%BC%93%E5%86%B2"><span class="nav-text">累积缓冲</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF"><span class="nav-text">思路</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E5%BD%A2%E6%88%90%E7%BA%BF%E6%AE%B5"><span class="nav-text">怎么形成线段</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E6%AD%A5%E9%AA%A4"><span class="nav-text">具体步骤</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E7%89%B9%E4%BE%8B"><span class="nav-text">问题（特例）</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AF%E5%BD%B1%E4%BB%A5%E5%8F%8A%E5%8A%A8%E6%80%81%E5%85%89%E6%BA%90%E9%98%B4%E5%BD%B1%E7%9A%84%E7%94%9F%E6%88%90"><span class="nav-text">软影以及动态光源阴影的生成</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%8F%E6%98%8E%E7%8E%B0%E8%B1%A1"><span class="nav-text">透明现象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E9%80%8F%E6%98%8E"><span class="nav-text">简单透明</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%92%E5%80%BC%E9%80%8F%E6%98%8E"><span class="nav-text">插值透明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E9%80%8F%E6%98%8E"><span class="nav-text">过滤透明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%98%E5%B0%84"><span class="nav-text">折射</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/05/CG/LS/08/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机图形学.李胜.08.真实感绘制之光照明(1)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-02-05 11:50:24" itemprop="dateCreated datePublished" datetime="2021-02-05T11:50:24+08:00">2021-02-05</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-08 00:15:37" itemprop="dateModified" datetime="2021-02-08T00:15:37+08:00">2021-02-08</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-LS/" itemprop="url" rel="index"><span itemprop="name">CG.LS</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">真实感绘制流程、简单光照明模型（环境光、漫反射、镜面高光、光的传播衰减、阴影、透明）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="真实感绘制流程">真实感绘制流程</h1>
+<ul>
+<li>动机：图形真实感的需求</li>
+<li>真实感：产生幻觉（illusion）</li>
+<li>基于用户评估，没有一个确定的标准</li>
+<li>例子：树皮
+<ul>
+<li>光线：产生阴影</li>
+<li>边界：粗糙的感觉</li>
+</ul></li>
+</ul>
+<h2 id="光照明模型发展历史">光照明模型发展历史</h2>
+<ul>
+<li>早期光照明模型
+<ul>
+<li>基于<strong>经验</strong></li>
+<li>只能反映<strong>光源直接照射</strong>的情况</li>
+</ul></li>
+<li>比较精确的模型
+<ul>
+<li>模拟物体之间光的相互作用</li>
+<li><strong>间接光照</strong></li>
+</ul></li>
+<li>更精确的模型
+<ul>
+<li>模拟物体自身的光照相互作用</li>
+<li>模拟光源至物体表面以及物体表面至视点之间光的传播</li>
+<li>光传播的介质（雾）、物体表面形态、视点位置变化、体数据</li>
+</ul></li>
+<li>2005 siggraph achievement：Nishita 东京大学
+<ul>
+<li>截止：光在大气中传播的模拟</li>
+<li>participating media：参与介质</li>
+</ul></li>
+</ul>
+<h2 id="真实感图形绘制的四个步骤">真实感图形绘制的四个步骤</h2>
+<h3 id="d流水线">3D流水线</h3>
+<ul>
+<li>三维形体 <span class="math inline">\(\rightarrow\)</span> 变换 <span class="math inline">\(\rightarrow\)</span> 明暗处理（光照）<span class="math inline">\(\rightarrow\)</span> 光栅化 <span class="math inline">\(\rightarrow\)</span> 真实感图像</li>
+</ul>
+<h3 id="几何建模">(1) 几何建模</h3>
+<ul>
+<li>用数学方法建立所需三维场景的几何描述</li>
+<li>通常是由三维造型系统完成</li>
+<li>场景的几何描述直接影响了图形的复杂性和图形绘制的计算开销</li>
+</ul>
+<h3 id="投影">(2) 投影</h3>
+<ul>
+<li>将三维几何描述转换为二维透视图</li>
+<li>通过对场景的透视变换来完成</li>
+</ul>
+<h3 id="确定形状">(3) 确定形状</h3>
+<ul>
+<li>隐藏面消除</li>
+<li>确定场景中的所有可见面</li>
+<li>将视野之外或被其它物体遮挡的不可见面消去</li>
+</ul>
+<h3 id="确定色彩">(4) 确定色彩</h3>
+<ul>
+<li>计算场景中可见面的颜色</li>
+<li>根据基于光学物理的光照明模型计算可见面投射到观察者眼中的光亮度大小和色彩组成，并将它转换成适合图形设备的颜色值，从而确定投影画面上每一象素的颜色（或者与纹理相结合），最终生成图形</li>
+</ul>
+<h1 id="简单光照明模型">简单光照明模型</h1>
+<h2 id="简单光照明模型的假设">简单光照明模型的假设</h2>
+<ul>
+<li>仅考虑光源照射在物体表面产生的<strong>反射光</strong></li>
+<li>通常假定物体表面是<strong>光滑</strong>的且由<strong>理想材料</strong>构成，只考虑<strong>被照明物体的几何</strong>对反射和透射光的影响</li>
+<li>忽略光源的颜色和几何形状（<strong>点光源白光照明</strong>）</li>
+<li>可以模拟出<strong>不透明物体</strong>表面的明暗过渡，具有一定的真实感。 但真实感较差，阴影区域边界尖锐</li>
+</ul>
+<h2 id="基础">基础</h2>
+<ul>
+<li>反射
+<ul>
+<li>理想漫反射（diffuse reflection）</li>
+<li>镜面高光（specular highlight）</li>
+</ul></li>
+<li>环境光
+<ul>
+<li>ambient lighting</li>
+</ul></li>
+<li>直接光：直接反射/折射</li>
+<li>间接光：间接反射/折射
+<ul>
+<li>简单光照明不考虑间接光</li>
+</ul></li>
+<li><strong>以下提到的方向向量均为单位向量</strong></li>
+</ul>
+<h2 id="环境光">环境光</h2>
+<ul>
+<li>光线在场景中经过复杂传播之后，形成的弥漫于整个空间的光线</li>
+<li><strong>事实上是不存在的</strong>
+<ul>
+<li>由于难以模拟，假想出来的</li>
+</ul></li>
+<li><span class="math inline">\(I_e=K_aI_a\)</span>
+<ul>
+<li>物体表面呈现的亮度 = 环境光反射系数 x 环境光亮度</li>
+</ul></li>
+</ul>
+<h2 id="漫反射">漫反射</h2>
+<ul>
+<li>点光源
+<ul>
+<li>向周围辐射等强度的光</li>
+</ul></li>
+<li>漫反射
+<ul>
+<li>粗糙、无光泽物体（如粉笔）表面对光的反射</li>
+</ul></li>
+<li><span class="math inline">\(I_d=I_pK_d\cos\theta=I_pK_d(\vec{L}\cdot\vec{N})\)</span>
+<ul>
+<li>物体表面呈现的亮度 = 点光源的亮度 x 漫反射系数 x <span class="math inline">\(\cos\)</span>(入射角)</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/diffuse-reflection.png"></p>
+<h2 id="镜面反射与-phong-模型">镜面反射与 Phong 模型</h2>
+<ul>
+<li>光滑物体表面，高光效果</li>
+</ul>
+<h3 id="理想镜面反射">理想镜面反射</h3>
+<ul>
+<li>难以捕获：要求视点恰好在反射光 R 的方向上</li>
+<li><span class="math inline">\(\vec{R}=2(\vec{L}\cdot\vec{N})\vec{N}-\vec{L}\)</span></li>
+<li><span class="math inline">\(\vec{R}+\vec{L}=(2|\vec{R}|\cos\theta)\vec{N}=(2\cos\theta)\vec{N}=2(\vec{N}\cdot\vec{L})\vec{N}\)</span></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/ideal-specular-highlight.png"></p>
+<h3 id="非理想镜面反射">非理想镜面反射</h3>
+<ul>
+<li>锥形区域：中心轴为 R，圆锥角 <span class="math inline">\(2\beta\)</span>
+<ul>
+<li>圆锥内部：光强由中心向四周递减</li>
+<li>圆锥外部：光强为 0</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/specular-highlight.png"></p>
+<ul>
+<li>Phong 模型
+<ul>
+<li><span class="math inline">\(I_s=I_pK_s(\cos\alpha)^n=I_pK_s(\vec{V}\cdot\vec{R})^n\)</span></li>
+<li>n 为镜面反射系数
+<ul>
+<li>n 越大，高光越集中</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/phong-n.png"></p>
+<ul>
+<li>定义 <span class="math inline">\(\vec{H_0}=\dfrac{1}{2}(\vec{L}+\vec{V}),\vec{H}=\dfrac{\vec{H_0}}{\Vert\vec{H_0}\Vert}=\dfrac{\vec{H_0}}{\cos\theta}\)</span>
+<ul>
+<li>可以用 <span class="math inline">\(\vec{H}\cdot\vec{N}\)</span> 代替 <span class="math inline">\(\vec{V}\cdot\vec{R}\)</span></li>
+<li>趋势是一致的
+<ul>
+<li><span class="math inline">\(\vec{H}\cdot\vec{N}=\dfrac{\cos\theta+\cos(\theta+\alpha)}{2\cos\theta}\)</span>
+<ul>
+<li><span class="math inline">\(\alpha\in[0,\dfrac{\pi}{2}]\to[1,1-\tan\theta]\)</span></li>
+</ul></li>
+<li><span class="math inline">\(\vec{V}\cdot\vec{R}=\cos\alpha\)</span>
+<ul>
+<li><span class="math inline">\(\alpha\in[0,\dfrac{\pi}{2}]\to[1,0]\)</span></li>
+</ul></li>
+<li><span class="math inline">\(&lt;\vec{H},\vec{N}&gt;=\dfrac{&lt;\vec{V},\vec{R}&gt;}{2}\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="光线的衰减">光线的衰减</h2>
+<h3 id="光在光源到物体表面过程中的衰减">(1) 光在光源到物体表面过程中的衰减</h3>
+<ul>
+<li><span class="math inline">\(f(d)=\min(\dfrac{1}{c_0+c_1d+c_2d^2},1)\)</span>
+<ul>
+<li>经验函数</li>
+</ul></li>
+</ul>
+<h3 id="光在物体表面到人眼过程中的衰减">(2) 光在物体表面到人眼过程中的衰减</h3>
+<ul>
+<li>Depth Cueing 技术（深度暗示技术）
+<ul>
+<li>使用深度值代替表示距离（几乎等价）</li>
+</ul></li>
+<li>线性插值
+<ul>
+<li>front/back：前/后参考面，并且赋予比例因子 <span class="math inline">\(S_f,S_b\in[0,1]\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+S_0=
+\begin{cases}
+S_b,&amp;Z_0&lt;Z_b\\
+S_b+\dfrac{Z_0-Z_b}{Z_f-Z_b}(S_f-S_b),&amp;Z_0\in[Z_b,Z_f],\\
+S_f,&amp;Z_0&gt;Z_f
+\end{cases}
+\]</span></p>
+<p><img src="/2021/02/05/CG/LS/08/depth-cueing.png"></p>
+<ul>
+<li><span class="math inline">\(I&#39;=S_0I+(1-S_0)I_{dc}\)</span>
+<ul>
+<li><span class="math inline">\(I_{dc}\)</span> 为融合亮度，是用户指定的</li>
+</ul></li>
+<li>特别的：<span class="math inline">\(S_f=1,S_b=0,I_{dc}=0\)</span></li>
+</ul>
+<p><span class="math display">\[
+S_0=
+\begin{cases}
+0,&amp;Z_0&lt;Z_b\\
+\dfrac{Z_0-Z_b}{Z_f-Z_b},&amp;Z_0\in[Z_b,Z_f],\\
+1,&amp;Z_0&gt;Z_f
+\end{cases}
+\]</span></p>
+<p><span class="math display">\[
+I&#39;=
+\begin{cases}
+0,&amp;Z_0&lt;Z_b\\
+\dfrac{Z_0-Z_b}{Z_f-Z_b}I,&amp;Z_0\in[Z_b,Z_f],\\
+I,&amp;Z_0&gt;Z_f
+\end{cases}
+\]</span></p>
+<ul>
+<li>衰减为 0 <span class="math inline">\(\rightarrow\)</span> 部分衰减 <span class="math inline">\(\rightarrow\)</span> 不衰减
+<ul>
+<li>真实感较好</li>
+</ul></li>
+</ul>
+<h2 id="简单光照明模型-1">简单光照明模型</h2>
+<ul>
+<li><span class="math inline">\(I=I_aK_a+f(d)I_p[K_d(\vec{L}\cdot \vec{N})+K_s(\vec{V}\cdot\vec{R})^n]\)</span></li>
+<li>环境光是不衰减的</li>
+</ul>
+<h2 id="彩色">彩色</h2>
+<ul>
+<li>选择合适的颜色模型：RGB模型</li>
+<li>为颜色模型中的每一种基色建立光照明方程</li>
+<li><span class="math inline">\(I=I_{a\lambda}K_{a\lambda}+f(d)I_{p\lambda}[K_{d\lambda}(\vec{L}\cdot \vec{N})+K_{s\lambda}(\vec{V}\cdot\vec{R})^n]\)</span>
+<ul>
+<li><span class="math inline">\(\lambda\in\{R,G,B\}\)</span></li>
+</ul></li>
+</ul>
+<h2 id="多光源">多光源</h2>
+<ul>
+<li>为每个光源建立光照明模型
+<ul>
+<li>注意环境光只有一个</li>
+</ul></li>
+<li>如下，<span class="math inline">\(m\)</span> 个光源​</li>
+</ul>
+<p><span class="math display">\[
+I=I_{a\lambda}K_{a\lambda}+\sum_{i=1}^{m}\{f(d_i)I_{p_i\lambda}[K_{d_i\lambda}(\vec{L_i}\cdot \vec{N})+K_{s_i\lambda}(\vec{V}\cdot\vec{R})^n]\}
+\]</span></p>
+<h2 id="多边形绘制着色方法">多边形绘制着色方法</h2>
+<ul>
+<li>shading</li>
+<li>计算完<strong>顶点</strong>信息之后如何对<strong>内部的点</strong>上色
+<ul>
+<li>统一着色（constant shading）</li>
+<li>均匀着色（flat shading）</li>
+<li>光滑着色 (smooth shading)
+<ul>
+<li>Gouraud着色方法 (Gouraud shading)</li>
+<li>Phong着色方法 (Phong shading)</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="统一着色">统一着色</h3>
+<ul>
+<li>constant shading</li>
+<li>每个<strong>物体</strong>着同一种颜色</li>
+</ul>
+<h3 id="均匀着色">均匀着色</h3>
+<ul>
+<li>flat shading</li>
+<li>每个<strong>表面</strong>着同一种颜色</li>
+<li>着色方法
+<ul>
+<li>任取多边形上一点，利用光照明方程计算出它的颜色</li>
+<li>用这个颜色填充整个多边形</li>
+</ul></li>
+<li>适用情况：<strong>同一表面差别不大</strong>
+<ul>
+<li>光源在无穷远处</li>
+<li>视点在无穷远处</li>
+<li>多边形是物体表面的精确表示</li>
+</ul></li>
+<li>优点
+<ul>
+<li>每个多边形只需计算一次光照明方程，<strong>速度快</strong></li>
+</ul></li>
+<li>缺点
+<ul>
+<li>相邻多边形颜色<strong>过渡十分不光滑</strong></li>
+</ul></li>
+</ul>
+<h3 id="光滑着色">光滑着色</h3>
+<ul>
+<li>方法：<strong>插值</strong>
+<ul>
+<li>颜色插值 <span class="math inline">\(\rightarrow\)</span> Gouraud 着色方法</li>
+<li>法矢量插值 <span class="math inline">\(\rightarrow\)</span> Phong 着色方法</li>
+</ul></li>
+</ul>
+<h4 id="gouraud-着色方法">Gouraud 着色方法</h4>
+<ul>
+<li>面法向量 <span class="math inline">\(\rightarrow\)</span> 顶点法向量 <span class="math inline">\(\rightarrow\)</span> 计算颜色 <span class="math inline">\(\rightarrow\)</span> 颜色插值</li>
+</ul>
+<h5 id="步骤">步骤</h5>
+<ul>
+<li>计算多边形的单位法矢量（<strong>面法向量</strong>）
+<ul>
+<li>面内两个向量叉乘</li>
+</ul></li>
+<li>计算多边形顶点的单位法矢量（<strong>顶点法向量</strong>）
+<ul>
+<li>拟合</li>
+<li>简单的拟合方式：使用 1 邻域的面法向量的均值
+<ul>
+<li>1 邻域：直接相邻的面</li>
+<li>2 邻域：直接相邻的面以及和这些面直接相邻的面</li>
+</ul></li>
+</ul></li>
+<li>利用光照明方程计算顶点颜色</li>
+<li>对多边形顶点颜色进行<strong>双线性插值</strong>，获得多边形内部各点的颜色
+<ul>
+<li>如下图：需要求得点 <span class="math inline">\(P\)</span> 的颜色
+<ul>
+<li>第三步求出了顶点 <span class="math inline">\(P_1,P_2,P_3\)</span> 的颜色</li>
+<li>通过<strong>线性插值</strong>求出点 <span class="math inline">\(A,B\)</span> 的颜色</li>
+<li>对 <span class="math inline">\(A,B\)</span> 进行线性插值求得点 <span class="math inline">\(P\)</span> 的颜色</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/bilinear-interpolation.png"> <span class="math display">\[
+I_a=I_1\dfrac{y_a-y_2}{y_1-y_2}+I_2\dfrac{y_1-y_a}{y_1-y_2}\\
+I_b=I_1\dfrac{y_a-y_3}{y_1-y_3}+I_2\dfrac{y_1-y_a}{y_1-y_3}\\
+I_p=I_a\dfrac{x_p-x_a}{x_b-x_a}+I_b\dfrac{x_p-x_a}{x_b-x_a}
+\]</span></p>
+<h5 id="缺点">缺点</h5>
+<ul>
+<li>不能正确模拟高光</li>
+</ul>
+<h4 id="phong-着色方法">Phong 着色方法</h4>
+<ul>
+<li>面法向量 <span class="math inline">\(\rightarrow\)</span> 顶点法向量 <span class="math inline">\(\rightarrow\)</span>法向量插值 <span class="math inline">\(\rightarrow\)</span> 计算颜色</li>
+</ul>
+<h5 id="步骤-1">步骤</h5>
+<ul>
+<li>计算多边形单位法矢量</li>
+<li>计算多边形顶点单位法矢量</li>
+<li>对多边形顶点法矢量进行双线性插值，获得内部各点的法矢量</li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/normal-bilinear-interpolation.png"></p>
+<ul>
+<li>利用光照明方程计算多边形内部各点颜色</li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/contrast-flat-gouraud-phong.png"></p>
+<h4 id="方法对比">方法对比</h4>
+<ul>
+<li>计算颜色时期的不同：插值总是在<strong>光栅化</strong>阶段（rasterization）
+<ul>
+<li>Gouraud：vertex shader</li>
+<li>Phong：fragment shader</li>
+</ul></li>
+<li>高光
+<ul>
+<li>Gouraud：缺失</li>
+<li>Phong：还不错</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/highlight-gouraud-phong.png" style="zoom: 25%;"></p>
+<h4 id="插值方法存在的问题">插值方法存在的问题</h4>
+<ul>
+<li>不光滑的物体轮廓
+<ul>
+<li>模型离散化道中的</li>
+<li>解决方案：使用法相贴图，将需要求的法向值给定，这样就无需插值拟合</li>
+</ul></li>
+<li>透视变形
+<ul>
+<li>我们的插值是在投影平面上进行的，实际上应该在三维空间中插值</li>
+<li>这样在趋势上会有所差别</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/interpolation-projection.png" style="zoom:50%;"></p>
+<ul>
+<li>方向依赖性
+<ul>
+<li>双线性插值的方向依赖性</li>
+<li>早期的问题，现在已经能够解决</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/interpolation-direction.png" style="zoom:50%;"></p>
+<ul>
+<li>公共顶点颜色不连续
+<ul>
+<li>下图的绿点
+<ul>
+<li>对于左上角的小矩形来说，是顶点（计算产生）</li>
+<li>对于右上角的的矩形来说，不是顶点（插值产生）</li>
+</ul></li>
+<li>因此其周围的点颜色可能不连续</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/interpolation-continue.png" style="zoom:50%;"></p>
+<ul>
+<li>顶点方向不具有代表性
+<ul>
+<li>如果使用定顶点进行插值，区分不出来两种类型的面（颜色都一样）</li>
+<li>解决方案：<strong>将面进行更加细致的剖分</strong>，这样就可以减少这种情况的发生</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/interpolation-point-normal.png" style="zoom:50%;"></p>
+<h2 id="阴影">阴影</h2>
+<ul>
+<li>阴影
+<ul>
+<li>光源不能直接照射的区域</li>
+<li>对光源来说，不可见的面（隐藏面）</li>
+</ul></li>
+<li>考虑阴影的光照明方程</li>
+</ul>
+<p><span class="math display">\[
+I=I_{a\lambda}K_{a\lambda}+\sum_{i=1}^{m}\{S_if(d_i)I_{p_i\lambda}[K_{d_i\lambda}(\vec{L_i}\cdot \vec{N})+K_{s_i\lambda}(\vec{V}\cdot\vec{R})^n]\}\\
+\]</span></p>
+<p><span class="math display">\[
+S_i=
+\begin{cases}
+0,&amp;位于第i个光源的阴影中\\
+1,&amp;else
+\end{cases}
+\]</span></p>
+<ul>
+<li>简单：点光源</li>
+<li>复杂：体光源、面光源</li>
+</ul>
+<h3 id="基于-gpu-硬件的-shadow-map-算法">基于 GPU 硬件的 shadow map 算法</h3>
+<ul>
+<li><strong>像素</strong>级别精确的阴影算法</li>
+<li><strong>点光源</strong></li>
+<li>利用 z-buffer 消隐
+<ul>
+<li>将物体变换到光源坐标系中，消隐，记录下可见的最小深度值（z-buffer）</li>
+<li>将物体变换到光源坐标系中，计算深度，如果大于记录值则不可见，否则可见（只可能<strong>等于</strong>）</li>
+</ul></li>
+</ul>
+<h4 id="算法步骤">算法步骤</h4>
+<ul>
+<li>将所有景物变换到光源坐标系中，利用 z 缓冲器算法按光线方向对景物进行消隐，把那些距光源最近的物体表面上点的深度值保存在阴影缓冲器中</li>
+<li>利用Z缓冲器算法按视线方向对景物进行消隐，将得到的每一个可见点变换到光源坐标系中，若 它在光源坐标系中的深度值比阴影缓冲器中相应单元的值小，则说明该可见点位于阴影中，否则不是</li>
+</ul>
+<h4 id="优点">优点</h4>
+<ul>
+<li>算法简单，易于实现</li>
+<li>已经可以在GPU硬件上直接实现</li>
+</ul>
+<h4 id="缺点-1">缺点</h4>
+<ul>
+<li>每个光源需要一个阴影缓冲器</li>
+<li>在阴影的边界上容易形成锯齿效果
+<ul>
+<li>量化误差（算法精度、z-buffer大小、深度值精度）</li>
+</ul></li>
+</ul>
+<h3 id="rsmreflective-shadow-map">RSM：Reflective Shadow Map</h3>
+<ul>
+<li>shadow map 第一次渲染只生成了一张深度图，太浪费（代价太大）</li>
+<li>第一次渲染的时候同时生成一些其他信息
+<ul>
+<li>光源直接照到部分的深度 <span class="math inline">\(\rightarrow\)</span> 光源直接照到部分的深度、颜色、法向</li>
+</ul></li>
+<li>第二次绘制利用第一次绘制生成的信息可以计算<strong>单次间接光照</strong></li>
+</ul>
+<h3 id="阴影反混淆">阴影反混淆</h3>
+<ul>
+<li>边界锯齿 <span class="math inline">\(\rightarrow\)</span> 平滑过渡
+<ul>
+<li>锯齿的光栅化过程产生的</li>
+<li>走样</li>
+</ul></li>
+<li>反走样
+<ul>
+<li>时域：连续帧中，远方亮点的忽隐忽现（flick）</li>
+<li>空域：边界锯齿</li>
+</ul></li>
+<li>反走样方法
+<ul>
+<li>SSAA：Super Sampling Anti-Aliasing
+<ul>
+<li>超采样反走样</li>
+<li>每个采样点进行进一步的<strong>细分</strong>
+<ul>
+<li>x2，x3，x4 <span class="math inline">\(\rightarrow\)</span> 每个采样点细分为为 4，9，16个采样点</li>
+</ul></li>
+</ul></li>
+<li>MSAA：Multi-Sampling AA
+<ul>
+<li>多采样反走样</li>
+<li>SSAA 的计算量非常大，SSAA 的改进</li>
+<li>寻找出物体边缘部分的像素，然后对它们进行超采样处理
+<ul>
+<li>这样忽略掉了不会产生锯齿的内部像素，减少了计算量</li>
+</ul></li>
+<li>光栅化而言，MSAA 跟 SSAA 差不多，覆盖和遮挡信息在更大的分辨率上进行的</li>
+<li>着色的时候，通过计算原始的一个采样点细分出来的不同采样点的颜色混合得到原始采样点的颜色</li>
+</ul></li>
+<li>CSAA：Coverage Sampling AA
+<ul>
+<li>覆盖取样抗锯齿</li>
+</ul></li>
+<li>TAA
+<ul>
+<li>temporal AA</li>
+</ul></li>
+</ul></li>
+<li>方法对比
+<ul>
+<li>SSAA 中，每个取样表示了着色颜色、储存的颜色/Z/模板、和覆盖，本质上增加了渲染到一个过大的缓存并向下取样</li>
+<li>MSAA 通过从储存的颜色和覆盖中分离出着色取样，减少了这项操作的着色器开销；这允许应用程序使用抗锯齿来处理更少的着色取样同时维持同样质量的颜色/Z/模板和覆盖取样</li>
+<li>CSAA通过从颜色/Z/模板分离出覆盖进一步优化了这个过程，从而减少带宽和存储开销</li>
+</ul></li>
+<li>反走样方法
+<ul>
+<li>光栅化图形显示必然的问题问题</li>
+<li>trade off（时间与质量）</li>
+</ul></li>
+</ul>
+<h3 id="基于gpu硬件-的-shadow-volume">基于GPU硬件 的 Shadow Volume</h3>
+<ul>
+<li><strong>几何</strong>级别精确的阴影算法
+<ul>
+<li>没有阴影锯齿问题</li>
+</ul></li>
+<li>光源 <span class="math inline">\(\rightarrow\)</span> <strong>物体轮廓</strong>
+<ul>
+<li>光源和轮廓形成的锥体向远处拉伸，形成<strong>阴影体</strong></li>
+</ul></li>
+<li>关键问题
+<ul>
+<li>找出轮廓</li>
+<li>如何判断物体是否处于阴影中</li>
+</ul></li>
+</ul>
+<h4 id="如何判断物体处于阴影体中">如何判断物体处于阴影体中</h4>
+<ul>
+<li>直接对所有的几何体和阴影体求交、求交线
+<ul>
+<li>复杂度很高</li>
+</ul></li>
+<li>利用 buffer</li>
+</ul>
+<h5 id="累积缓冲">累积缓冲</h5>
+<h6 id="思路">思路</h6>
+<p><img src="/2021/02/05/CG/LS/08/accumulative.png" style="zoom:80%;"></p>
+<ul>
+<li>光源和物体形成射线</li>
+<li>视点和需要求的点形成<strong>线段</strong>（方向为视点到待求的点），在线段上求累积值</li>
+<li>正向面 +1，负向面 -1
+<ul>
+<li>朝向视点的面/远离视点的面</li>
+</ul></li>
+<li>求累计值
+<ul>
+<li>若大于 0，则处于阴影中</li>
+<li>若等于 0，则不在阴影中</li>
+</ul></li>
+</ul>
+<h6 id="怎么形成线段">怎么形成线段</h6>
+<ul>
+<li>怎么去掉物体之后的视线部分，上述黄线的绿点右边部分</li>
+<li><strong>绘制顺序、绘制状态</strong></li>
+</ul>
+<h6 id="具体步骤">具体步骤</h6>
+<ul>
+<li>绘制出整个场景（非阴影体），确定整个场景的深度（记录到深度缓冲器中）</li>
+<li>画阴影体（正向面/反向面），顺序没有关系
+<ul>
+<li>和记录的深度值比较
+<ul>
+<li>若比记录的小，则根据自己是正向面还是反向面更新累计缓冲值</li>
+<li>若大，则不更新累计缓冲值</li>
+</ul></li>
+<li>只进行深度判断，不进行深度更新（不修改深度缓冲器的值）</li>
+<li>阴影体是虚拟的，是我们人为加入的</li>
+</ul></li>
+</ul>
+<h6 id="问题特例">问题（特例）</h6>
+<ul>
+<li><p>视点位于阴影体内部</p>
+<ul>
+<li>解决方法：在视线上，从无穷远到待求的点这条线段上进行累计缓冲计数
+<ul>
+<li>比较计数的时候，只比较深度大于待求点的阴影体
+<ul>
+<li>z-fail：计数的点是没有通过深度检测的阴影体（解决特例的方法）</li>
+<li>z-pass：计数的点是通过深度检测的阴影体（常规方法）</li>
+</ul></li>
+<li>无穷远是客观的（无穷远不在阴影内部）</li>
+</ul></li>
+<li>问题：无穷远在阴影中，出错</li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/error.png" style="zoom:60%;"></p></li>
+<li><p>视见体把某些物体裁剪掉了，导致阴影体减少了</p>
+<ul>
+<li>上述算法出错</li>
+</ul></li>
+</ul>
+<h3 id="软影以及动态光源阴影的生成">软影以及动态光源阴影的生成</h3>
+<ul>
+<li>面光源、体光源
+<ul>
+<li>软影（本影、半影）</li>
+<li>笨的方法：将光源进行<strong>点采样</strong>
+<ul>
+<li>慢，效率低下</li>
+</ul></li>
+<li><strong>阴影楔</strong>
+<ul>
+<li>A Geometry-based Soft Shadow Volume Algorithm
+<ul>
+<li>实时图像渲染</li>
+<li>Tomas Akenine-Möller</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>光源形态发生变化（火焰）</li>
+<li>待渲染的物体变化</li>
+</ul>
+<h2 id="透明现象">透明现象</h2>
+<h3 id="简单透明">简单透明</h3>
+<ul>
+<li>简单透明不考虑折射现象</li>
+</ul>
+<h4 id="插值透明">插值透明</h4>
+<p><img src="/2021/02/05/CG/LS/08/simple-transparent.png"></p>
+<ul>
+<li><span class="math inline">\(I_\lambda=(1-K_{t_1})I_{\lambda_1}+K_{t_1}I_{\lambda_2}\)</span>
+<ul>
+<li><span class="math inline">\(K_{t_1}=1\)</span>：1 完全透明，2 完全不透明</li>
+<li><span class="math inline">\(K_{t_1}=0\)</span>：2 完全透明，1 完全不透明</li>
+</ul></li>
+</ul>
+<h4 id="过滤透明">过滤透明</h4>
+<ul>
+<li><span class="math inline">\(I_\lambda=I_{\lambda_1}+K_{t_1}C_{t\lambda}I_{\lambda_2}\)</span>
+<ul>
+<li><span class="math inline">\(K_{t_1}\)</span>：透射系数，越大颜色透射得越多</li>
+<li><span class="math inline">\(C_{t\lambda}\)</span>：不同颜色系数不同</li>
+</ul></li>
+</ul>
+<h3 id="折射">折射</h3>
+<ul>
+<li>折射定律</li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/refraction.png"></p>
+<ul>
+<li><span class="math inline">\(\dfrac{\sin\theta_i}{\sin\theta_t}=\dfrac{\eta_t}{\eta_i}=\dfrac{1}{\eta}\)</span></li>
+<li><span class="math inline">\(\vec{T}=(\eta\cos\theta_i-\cos\theta_t)\vec{N}-\eta\vec{I}\)</span></li>
+</ul>
+<p><img src="/2021/02/05/CG/LS/08/refraction2.png"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/03/CG/LS/07/" rel="prev" title="计算机图形学.李胜.07.三维实体的表示">
+                  <i class="fa fa-chevron-left"></i> 计算机图形学.李胜.07.三维实体的表示
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/06/CG/LS/08-1/" rel="next" title="计算机图形学.李胜.08.真实感绘制之光照明(2)">
+                  计算机图形学.李胜.08.真实感绘制之光照明(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

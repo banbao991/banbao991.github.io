@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="概率论回顾、解渲染方程、蒙特卡洛路径追踪">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES101.闫令琪.06.光线追踪(3).蒙特卡洛路径追踪(Lecture 15-16)">
+<meta property="og:url" content="http://example.com/2021/03/18/CG/YLQ-GAMES101/06/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="概率论回顾、解渲染方程、蒙特卡洛路径追踪">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/03/18/CG/YLQ-GAMES101/06/1616057889780.png">
+<meta property="og:image" content="http://example.com/2021/03/18/CG/YLQ-GAMES101/06/1616058100814.png">
+<meta property="og:image" content="http://example.com/2021/03/18/CG/YLQ-GAMES101/06/1616059764715.png">
+<meta property="og:image" content="http://example.com/2021/03/18/CG/YLQ-GAMES101/06/1616060900428.png">
+<meta property="og:image" content="http://example.com/2021/03/18/CG/YLQ-GAMES101/06/1616070852888.png">
+<meta property="article:published_time" content="2021-03-18T07:25:18.000Z">
+<meta property="article:modified_time" content="2021-04-29T16:05:11.888Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta property="article:tag" content="GI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/03/18/CG/YLQ-GAMES101/06/1616057889780.png">
+
+
+<link rel="canonical" href="http://example.com/2021/03/18/CG/YLQ-GAMES101/06/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES101.闫令琪.06.光线追踪(3).蒙特卡洛路径追踪(Lecture 15-16) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A6%82%E7%8E%87%E8%AE%BA%E5%9B%9E%E9%A1%BE"><span class="nav-text">概率论回顾</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A6%BB%E6%95%A3"><span class="nav-text">离散</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9E%E7%BB%AD"><span class="nav-text">连续</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA%E5%8F%98%E9%87%8F%E7%9A%84%E5%87%BD%E6%95%B0"><span class="nav-text">随机变量的函数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%92%99%E7%89%B9%E5%8D%A1%E6%B4%9B%E7%A7%AF%E5%88%86"><span class="nav-text">蒙特卡洛积分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#monte-carlo-%E7%A7%AF%E5%88%86"><span class="nav-text">Monte Carlo 积分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90%E5%9D%87%E5%8C%80%E5%88%86%E5%B8%83"><span class="nav-text">例子：均匀分布</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%A7%E8%B4%A8"><span class="nav-text">性质</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#path-tracing"><span class="nav-text">Path Tracing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#whitted-style-ray-tracing"><span class="nav-text">Whitted-Style Ray Tracing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-text">问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%AF%E5%BE%84%E8%BF%BD%E8%B8%AA"><span class="nav-text">路径追踪</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84%E8%92%99%E7%89%B9%E5%8D%A1%E6%B4%9B%E6%96%B9%E6%B3%95%E6%B1%82%E7%A7%AF%E5%88%86"><span class="nav-text">简单的蒙特卡洛方法求积分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%981%E6%8C%87%E6%95%B0%E7%88%86%E7%82%B8"><span class="nav-text">问题1：指数爆炸</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text">解决方案</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%982%E5%81%9C%E4%B8%8D%E4%B8%8B%E6%9D%A5"><span class="nav-text">问题2：停不下来</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95"><span class="nav-text">解决方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%983ssp-%E5%B0%8F%E6%97%B6%E6%95%88%E6%9E%9C%E4%B8%8D%E5%A5%BD"><span class="nav-text">问题3：SSP 小时效果不好</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-1"><span class="nav-text">解决方案</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sampling-to-the-light"><span class="nav-text">Sampling to the light</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#path-tracing-%E8%AF%84%E4%BB%B7"><span class="nav-text">Path Tracing 评价</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-ray-tracing-%E8%BF%99%E4%B8%AA%E6%A6%82%E5%BF%B5"><span class="nav-text">关于 Ray Tracing 这个概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AA%E6%B6%B5%E7%9B%96%E7%9A%84%E8%AF%9D%E9%A2%98"><span class="nav-text">未涵盖的话题</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/18/CG/YLQ-GAMES101/06/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES101.闫令琪.06.光线追踪(3).蒙特卡洛路径追踪(Lecture 15-16)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-03-18 15:25:18" itemprop="dateCreated datePublished" datetime="2021-03-18T15:25:18+08:00">2021-03-18</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-30 00:05:11" itemprop="dateModified" datetime="2021-04-30T00:05:11+08:00">2021-04-30</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES101/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES101</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">概率论回顾、解渲染方程、蒙特卡洛路径追踪</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/av90798049</li>
+</ul>
+<h1 id="概率论回顾">概率论回顾</h1>
+<ul>
+<li>随机变量 <span class="math inline">\(X\)</span></li>
+</ul>
+<h2 id="离散">离散</h2>
+<ul>
+<li>概率分布函数 <span class="math inline">\(X \sim p(x)\)</span>
+<ul>
+<li>Probability Density Function (PDF)</li>
+</ul></li>
+<li>性质
+<ul>
+<li><span class="math inline">\(p_i\ge0\)</span></li>
+<li><span class="math inline">\(\sum_{i=1}^np_i=1\)</span></li>
+</ul></li>
+<li>期望 <span class="math inline">\(E(X)\)</span>
+<ul>
+<li><span class="math inline">\(E[X]=\sum_{i=1}^{n} x_{i} p_{i}\)</span></li>
+</ul></li>
+</ul>
+<h2 id="连续">连续</h2>
+<ul>
+<li>概率密度函数 <span class="math inline">\(X \sim p(x)\)</span>
+<ul>
+<li>Probability Distribution Function (PDF)</li>
+</ul></li>
+<li>某一个 <span class="math inline">\(x\)</span> 对应的微元对应的概率 <span class="math inline">\(p(x)dx\)</span>
+<ul>
+<li>长条面积</li>
+</ul></li>
+<li>性质
+<ul>
+<li><span class="math inline">\(p(x)\ge0\)</span></li>
+<li><span class="math inline">\(\int p(x)dx=1\)</span></li>
+</ul></li>
+<li>期望
+<ul>
+<li><span class="math inline">\(E[X]=\int x p(x) d x\)</span></li>
+</ul></li>
+</ul>
+<h2 id="随机变量的函数">随机变量的函数</h2>
+<ul>
+<li>如果某个随机变量 <span class="math inline">\(Y\)</span> 是随机变量 <span class="math inline">\(X\)</span> 的函数
+<ul>
+<li><span class="math inline">\(Y=f(X)\)</span></li>
+</ul></li>
+<li>期望的关系
+<ul>
+<li><span class="math inline">\(E[Y]=E[f(X)]=\int f(x)p(x)dx\)</span></li>
+</ul></li>
+</ul>
+<h1 id="蒙特卡洛积分">蒙特卡洛积分</h1>
+<ul>
+<li>Monte Carlo Integration</li>
+<li>用于求定积分
+<ul>
+<li>数值形式是比较难求的定积分</li>
+</ul></li>
+<li>黎曼积分：划分为若干段，每段围成的小矩形之和（极限）</li>
+</ul>
+<h2 id="monte-carlo-积分">Monte Carlo 积分</h2>
+<ul>
+<li>定积分 <span class="math inline">\(\int_a^bf(x)dx\)</span></li>
+<li>随机变量 <span class="math inline">\(X_i\sim p(x)\)</span></li>
+<li>蒙特卡洛积分 <span class="math inline">\(F_{N}=\dfrac{1}{N} \sum_{i=1}^{N} \dfrac{f(X_{i})}{p(X_{i})}\)</span></li>
+</ul>
+<h2 id="例子均匀分布">例子：均匀分布</h2>
+<ul>
+<li><span class="math inline">\(X_i\sim p(x)=C\)</span>
+<ul>
+<li><span class="math inline">\(\int_a^bCdx=C(b-a)=1\)</span></li>
+<li><span class="math inline">\(C=\dfrac{1}{b-a}\)</span></li>
+</ul></li>
+<li><span class="math inline">\(F_N=\dfrac{b-a}{N} \sum_{i=1}^{N}f(X_{i})\)</span></li>
+</ul>
+<h2 id="性质">性质</h2>
+<ul>
+<li>样本越多，越准确
+<ul>
+<li>The more samples, the less variance.</li>
+</ul></li>
+<li>对 x 采样，只能对 x 做积分
+<ul>
+<li>Sample on x, integrate on x.</li>
+</ul></li>
+</ul>
+<h1 id="path-tracing">Path Tracing</h1>
+<h2 id="whitted-style-ray-tracing">Whitted-Style Ray Tracing</h2>
+<ul>
+<li>具体运作
+<ul>
+<li>Always perform <strong>specular</strong> reflections / refractions</li>
+<li><strong>Stop</strong> bouncing at <strong>diffuse</strong> surfaces</li>
+</ul></li>
+</ul>
+<h3 id="问题">问题</h3>
+<ul>
+<li>不能很好的模拟 <strong>Glossy</strong>（金属，类似磨砂的感觉） 材质的物体</li>
+<li>能产生高光，但是又有点糊，没有那么光滑</li>
+<li>The Utah Teapot（经典模型）</li>
+</ul>
+<p><img src="/2021/03/18/CG/YLQ-GAMES101/06/1616057889780.png" style="zoom:50%;"></p>
+<ul>
+<li>漫反射物体之间的反射光无法模拟
+<ul>
+<li><strong>Color Bleeding</strong> 效果
+<ul>
+<li>右图中盒子的侧面产生红色 / 绿色的效果</li>
+</ul></li>
+</ul></li>
+<li>The Cornell Box（经典模型）
+<ul>
+<li>广泛用于测试全局光照</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/18/CG/YLQ-GAMES101/06/1616058100814.png" style="zoom:50%;"></p>
+<h2 id="路径追踪">路径追踪</h2>
+<ul>
+<li>基于渲染方程</li>
+</ul>
+<p><span class="math display">\[
+L_{o}(p, \omega_{o})=L_{e}(p, \omega_{o})+\int_{\Omega^{+}} L_{i}(p, \omega_{i}) f_{r}(p, \omega_{i}, \omega_{o})(n \cdot \omega_{i}) d \omega_{i}
+\]</span></p>
+<ul>
+<li>问题
+<ul>
+<li>积分：蒙特卡洛方法求解</li>
+<li>递归定义</li>
+</ul></li>
+</ul>
+<h2 id="简单的蒙特卡洛方法求积分">简单的蒙特卡洛方法求积分</h2>
+<ul>
+<li>忽略发光项</li>
+</ul>
+<p><span class="math display">\[
+L_{o}(p, \omega_{o})=\int_{\Omega^{+}} L_{i}(p, \omega_{i}) f_{r}(p, \omega_{i}, \omega_{o})(n \cdot \omega_{i}) d \omega_{i}
+\]</span></p>
+<ul>
+<li>待求的就是上面的方程</li>
+<li>蒙特卡洛积分方程</li>
+</ul>
+<p><span class="math display">\[
+\int_a^bf(x)dx\approx\dfrac{1}{N} \sum_{i=1}^{N} \dfrac{f(X_{i})}{p(X_{i})},X_k\sim p(x)
+\]</span></p>
+<p><span class="math display">\[
+f(x)= L_{i}(p, \omega_{i}) f_{r}(p, \omega_{i}, \omega_{o})(n \cdot \omega_{i}) d \omega_{i}
+\]</span></p>
+<ul>
+<li>简单的 PDF
+<ul>
+<li>半球立体为 <span class="math inline">\(2\pi\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p(\omega_i)=\dfrac{1}{2\pi}
+\]</span></p>
+<ul>
+<li>积分方程</li>
+</ul>
+<p><span class="math display">\[
+L_{o}(p, \omega_{o})\approx\dfrac{2\pi}{N} \sum_{i=1}^{N} L_{i}(p, \omega_{i}) f_{r}(p, \omega_{i}, \omega_{o})(n \cdot \omega_{i}) d \omega_{i}
+\]</span></p>
+<ul>
+<li>根据这个方程，那么就可以得出一个算法
+<ul>
+<li>递归算法</li>
+</ul></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">shade(p, wo):</span><br><span class="line">    Randomly choose N directions wi~pdf</span><br><span class="line">    Lo = <span class="number">0.0</span></span><br><span class="line">    For each wi:</span><br><span class="line">        Trace a ray r(p, wi)</span><br><span class="line">        <span class="comment"># 碰到光源, 直接光照</span></span><br><span class="line">        If ray r hit the light:</span><br><span class="line">            Lo += (<span class="number">1</span> / N) * L_i * f_r * cosine / pdf(wi)</span><br><span class="line">        <span class="comment"># 碰到物体, 间接光照</span></span><br><span class="line">        Else If ray r hit an <span class="built_in">object</span> at q:</span><br><span class="line">            Lo += (<span class="number">1</span> / N) * shade(q, -wi) * f_r * cosine/ pdf(wi)</span><br><span class="line">    <span class="keyword">return</span> Lo</span><br></pre></td></tr></table></figure>
+<h3 id="问题1指数爆炸">问题1：指数爆炸</h3>
+<ul>
+<li>光线数量：<span class="math inline">\(N^{bounces}\)</span></li>
+<li><span class="math inline">\(N=1\)</span> 则不会有问题：近似效果会变差</li>
+<li>近似效果很差，noisy</li>
+</ul>
+<h4 id="解决方案">解决方案</h4>
+<ul>
+<li><strong>可以为同一个像素，多次发射光线</strong>
+<ul>
+<li>Trace <strong>more paths</strong> through each <strong>pixel</strong> and <strong>average</strong> their radiance!</li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/18/CG/YLQ-GAMES101/06/1616059764715.png" style="zoom:50%;"></p>
+<ul>
+<li>Ray Generation</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ray_generation(camPos, pixel):</span><br><span class="line">    Uniformly choose N sample positions within the pixel</span><br><span class="line">    pixel_radiance = <span class="number">0.0</span></span><br><span class="line">    For each sample <span class="keyword">in</span> the pixel:</span><br><span class="line">        Shoot a ray r(camPos, cam_to_sample)</span><br><span class="line">        If ray r hit the scene at p:</span><br><span class="line">            pixel_radiance += <span class="number">1</span> / N * shade(p, sample_to_cam)</span><br><span class="line">    <span class="keyword">return</span> pixel_radiance</span><br></pre></td></tr></table></figure>
+<h3 id="问题2停不下来">问题2：停不下来</h3>
+<ul>
+<li>互相调用：概率是很小的</li>
+<li>事先设置一个递归深度
+<ul>
+<li>不行，之前的例子</li>
+<li>玻璃灯，当设置的 bounces 比较小的时候，由于光线没有从玻璃外壳内出来，看不到里面的灯</li>
+<li>能量损失了
+<ul>
+<li>Cutting #bounces == cutting energy!</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="解决方法">解决方法</h4>
+<ul>
+<li>Russian Roulette（RR）
+<ul>
+<li>俄罗斯轮盘赌</li>
+</ul></li>
+<li>一定的概率停止光线追踪
+<ul>
+<li>概率 <span class="math inline">\(p\)</span> 发出一条光线，将得到的结果除以 <span class="math inline">\(p\)</span>
+<ul>
+<li><span class="math inline">\(\dfrac{L_o}{p}\)</span></li>
+</ul></li>
+<li>概率 <span class="math inline">\(1-p\)</span> 不发出光线，得到结果 <span class="math inline">\(0\)</span></li>
+<li>巧妙的一点：期望还是 <span class="math inline">\(L_o\)</span>
+<ul>
+<li><span class="math inline">\(E(X)=p\times\dfrac{L_O}{p}+(1-p)*0=L_O\)</span></li>
+</ul></li>
+</ul></li>
+<li>伪代码如下（<span class="math inline">\(N=1\)</span>）</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">shade(p, wo):</span><br><span class="line">    Manually specify a probability P_RR</span><br><span class="line">    Randomly select ksi <span class="keyword">in</span> a uniform dist. <span class="keyword">in</span> [<span class="number">0</span>, <span class="number">1</span>]</span><br><span class="line">    If (ksi &gt; P_RR):</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">    Randomly choose ONE direction wi~pdf(w)</span><br><span class="line">    Trace a ray r(p, wi)</span><br><span class="line">    If ray r hit the light:</span><br><span class="line">        <span class="keyword">return</span> L_i * f_r * cosine / pdf(wi) / P_RR</span><br><span class="line">    Else If ray r hit an <span class="built_in">object</span> at q:</span><br><span class="line">        <span class="keyword">return</span> shade(q, -wi) * f_r * cosine / pdf(wi) / P_RR</span><br></pre></td></tr></table></figure>
+<ul>
+<li>bounces 的期望</li>
+</ul>
+<p><span class="math display">\[
+\sum_i^{\infty}i(p^{i})(1-p)=\dfrac{p}{1-p}
+\]</span></p>
+<h3 id="问题3ssp-小时效果不好">问题3：SSP 小时效果不好</h3>
+<ul>
+<li>SSP：Samples Per Pixels</li>
+<li>SSP 高的时候，运行很慢</li>
+</ul>
+<p><img src="/2021/03/18/CG/YLQ-GAMES101/06/1616060900428.png" style="zoom:50%;"></p>
+<ul>
+<li>光源比较小的时候，发射出较少的光线<strong>很难打到光源</strong></li>
+</ul>
+<h4 id="解决方案-1">解决方案</h4>
+<ul>
+<li>修改 PDF</li>
+<li>对光源采样</li>
+</ul>
+<h4 id="sampling-to-the-light">Sampling to the light</h4>
+<ul>
+<li>对光源均匀采样</li>
+<li>面光源面积为 A
+<ul>
+<li><span class="math inline">\(PDF = \dfrac{1}{A}\)</span></li>
+</ul></li>
+<li>蒙特卡洛方法满足的条件：对谁积分，对谁采样
+<ul>
+<li>把渲染方程写成对光源表面的积分</li>
+<li>找出 <span class="math inline">\(dA\)</span> 和 <span class="math inline">\(d\omega\)</span> 的关系
+<ul>
+<li><span class="math inline">\(dw=\dfrac{dA\cos\theta&#39;}{||x&#39;-x||^2}\)</span></li>
+<li>向球面做投影</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/03/18/CG/YLQ-GAMES101/06/1616070852888.png" alt="1616070852888" style="zoom:50%;"></p>
+<ul>
+<li>重写渲染方程</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+L_{o}(p, \omega_{o})&amp;=\int_{\Omega^{+}} L_{i}(p, \omega_{i}) f_{r}(p, \omega_{i}, \omega_{o})(n \cdot \omega_{i}) d \omega_{i}\\
+&amp;=\int_{A} L_{i}(p, \omega_{i}) f_{r}(p, \omega_{i}, \omega_{o})(n \cdot \omega_{i}) \dfrac{dA\cos\theta&#39;}{||x&#39;-x||^2}\\
+&amp;=\int_{A} L_{i}(p, \omega_{i}) f_{r}(p, \omega_{i}, \omega_{o})\dfrac{\cos\theta\cos\theta&#39;}{||x&#39;-x||^2}dA\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>我们将光照分为两个部分
+<ul>
+<li><strong>light source</strong> (direct, no need to have RR)
+<ul>
+<li>光源对这个点的共享</li>
+</ul></li>
+<li><strong>other reflectors</strong> (indirect, RR)
+<ul>
+<li>所有其他非光源对这个点的贡献</li>
+</ul></li>
+</ul></li>
+<li>伪代码</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">shade(p, wo):</span><br><span class="line">    <span class="comment"># Contribution from the light source.</span></span><br><span class="line">    <span class="comment"># 对光源采样</span></span><br><span class="line">    Uniformly sample the light at x’ (pdf_light = <span class="number">1</span> / A)</span><br><span class="line">    L_dir = L_i * f_r * cos θ * cos θ’ / |x’ - p|^<span class="number">2</span> / pdf_light</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Contribution from other reflectors.</span></span><br><span class="line">    <span class="comment"># 对其他物体采样</span></span><br><span class="line">    L_indir = <span class="number">0.0</span></span><br><span class="line">    <span class="comment"># 俄罗斯轮盘赌测试</span></span><br><span class="line">    Test Russian Roulette <span class="keyword">with</span> probability P_RR</span><br><span class="line">    Uniformly sample the hemisphere toward wi (pdf_hemi = <span class="number">1</span> / 2pi)</span><br><span class="line">    Trace a ray r(p, wi)</span><br><span class="line">    <span class="comment"># 得判断不是光源</span></span><br><span class="line">    If ray r hit a non-emitting <span class="built_in">object</span> at q:</span><br><span class="line">        L_indir = shade(q, -wi) * f_r * cos θ / pdf_hemi / P_RR</span><br><span class="line"></span><br><span class="line">    Return L_dir + L_indir</span><br></pre></td></tr></table></figure>
+<ul>
+<li>问题：如果光源和待求的点之间有物体
+<ul>
+<li>采样点和待求的点之间打一条光线，判断是否会相交</li>
+</ul></li>
+<li><strong>点光源不好处理</strong>
+<ul>
+<li>做成一个很小的光源</li>
+</ul></li>
+</ul>
+<h2 id="path-tracing-评价">Path Tracing 评价</h2>
+<ul>
+<li>Path tracing (PT) is indeed difficult
+<ul>
+<li>Consider it the most challenging in undergrad CS</li>
+<li>Why: physics, probability, calculus（微积分学）, coding</li>
+<li>Learning PT will help you understand deeper in these</li>
+</ul></li>
+<li>Path Tracing 能够做到几乎 100% 真实
+<ul>
+<li><span style="color:red;font-weight:bold">PHOTO-REALISTIC</span></li>
+<li>照片级的真实感</li>
+<li>例子：http://www.graphics.cornell.edu/online/box/compare.html</li>
+</ul></li>
+</ul>
+<h2 id="关于-ray-tracing-这个概念">关于 Ray Tracing 这个概念</h2>
+<ul>
+<li>Ray tracing: Previous vs. Modern Concept</li>
+<li>以前
+<ul>
+<li>一般指的就是 Whitted 风格的 Ray-Tracing</li>
+</ul></li>
+<li>现代
+<ul>
+<li>所有关于光线传播方法的一个大集合</li>
+<li>(Unidirectional &amp; bidirectional) path tracing</li>
+<li>Photon mapping
+<ul>
+<li>光子映射</li>
+</ul></li>
+<li>Metropolis light transport</li>
+<li>VCM / UPBP…</li>
+</ul></li>
+</ul>
+<h2 id="未涵盖的话题">未涵盖的话题</h2>
+<ul>
+<li>怎么样在半球上均匀的采样</li>
+<li>给一个任何函数，怎么对它进行采样</li>
+<li>对于蒙特卡洛采样方法，对于一个函数，怎么选择 PDF 使得最优
+<ul>
+<li>重要性采样理论
+<ul>
+<li>important sampling</li>
+</ul></li>
+<li>用随机数怎么样
+<ul>
+<li>随机数有质量之分</li>
+<li>好的随机数：均匀分布在空间内，随机数之间的距离也能控制得很好
+<ul>
+<li>low discrepancy sequences</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>能不能把对光源和物体的采样结合起来
+<ul>
+<li>可以，把不同的采样方法结合起来，使得效果不会比原来的任何一种方法差</li>
+<li>MIS 采样理论</li>
+<li>multiple imp. sampling</li>
+</ul></li>
+<li>对于同一个像素的不同 path，简单的做平均行不行，需不需要对靠近中心一点的 path 加一个更大的权
+<ul>
+<li>pixel reconstruction filter</li>
+</ul></li>
+<li>最终计算出来的是一个 radiance，怎么转化为颜色
+<ul>
+<li>gamma correction</li>
+<li>color space</li>
+<li>HDR（curve）</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+              <a href="/tags/GI/" rel="tag"># GI</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/17/CG/YLQ-GAMES101/05/" rel="prev" title="GAMES101.闫令琪.05.光线追踪(2).辐射度量学(Lecture 14-15)">
+                  <i class="fa fa-chevron-left"></i> GAMES101.闫令琪.05.光线追踪(2).辐射度量学(Lecture 14-15)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/20/CG/Papers/2020/PathCuts/" rel="next" title="(论文) Path Cuts, Efficient Rendering of Pure Specular Light Transport">
+                  (论文) Path Cuts, Efficient Rendering of Pure Specular Light Transport <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

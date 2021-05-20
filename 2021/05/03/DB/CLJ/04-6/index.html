@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="约束类型、约束系统表、表级约束、约束命名、约束检查、延迟约束、函数约束、assertion">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.04.SQL 完整性">
+<meta property="og:url" content="http://example.com/2021/05/03/DB/CLJ/04-6/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="约束类型、约束系统表、表级约束、约束命名、约束检查、延迟约束、函数约束、assertion">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/03/DB/CLJ/04-6/image-20210504225355792.png">
+<meta property="og:image" content="http://example.com/2021/05/03/DB/CLJ/04-6/image-20210504232355476.png">
+<meta property="og:image" content="http://example.com/2021/05/03/DB/CLJ/04-6/image-20210504232541030.png">
+<meta property="article:published_time" content="2021-05-03T13:38:04.000Z">
+<meta property="article:modified_time" content="2021-05-07T01:42:12.740Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/03/DB/CLJ/04-6/image-20210504225355792.png">
+
+
+<link rel="canonical" href="http://example.com/2021/05/03/DB/CLJ/04-6/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.04.SQL 完整性 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF-sql"><span class="nav-text">在线 SQL</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sql-%E5%AE%8C%E6%95%B4%E6%80%A7"><span class="nav-text">SQL 完整性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%9E%8B%E4%B8%AD%E7%9A%84%E5%AE%8C%E6%95%B4%E6%80%A7"><span class="nav-text">关系模型中的完整性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93%E5%AE%8C%E6%95%B4%E6%80%A7"><span class="nav-text">实体完整性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E7%85%A7%E5%AE%8C%E6%95%B4%E6%80%A7"><span class="nav-text">参照完整性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E5%AE%9A%E4%B9%89%E7%9A%84%E5%AE%8C%E6%95%B4%E6%80%A7"><span class="nav-text">用户定义的完整性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%94%E8%BE%83"><span class="nav-text">比较</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%A6%E6%9D%9F%E7%B1%BB%E5%9E%8B"><span class="nav-text">约束类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%A6%E6%9D%9F%E7%B3%BB%E7%BB%9F%E8%A1%A8"><span class="nav-text">约束系统表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#primary-key-%E4%B8%8E-unique"><span class="nav-text">primary key 与 unique</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#primary-key-%E4%B8%8E-unique-%E7%9A%84%E8%83%8C%E5%90%8E"><span class="nav-text">primary key 与 unique 的背后</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#foreign-key"><span class="nav-text">foreign key</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#foreign-key-%E7%9A%84%E4%B8%89%E7%A7%8D%E5%AE%9A%E4%B9%89%E6%96%B9%E5%BC%8F"><span class="nav-text">foreign key 的三种定义方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#restrict-%E6%96%B9%E5%BC%8F"><span class="nav-text">RESTRICT 方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#cascade%E6%96%B9%E5%BC%8F"><span class="nav-text">CASCADE方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#set-null%E6%96%B9%E5%BC%8F"><span class="nav-text">SET NULL方式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E7%BA%A7%E7%BA%A6%E6%9D%9F"><span class="nav-text">表级约束</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%A6%E6%9D%9F%E5%91%BD%E5%90%8D%E5%8F%8A%E5%85%B6%E5%AE%9A%E4%B9%89"><span class="nav-text">约束命名及其定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%A6%E6%9D%9F%E6%A3%80%E6%9F%A5"><span class="nav-text">约束检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E8%BF%9F%E7%BA%A6%E6%9D%9F"><span class="nav-text">延迟约束</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E7%9A%84%E7%BA%A6%E6%9D%9F%E5%BC%80%E5%85%B3"><span class="nav-text">SQL Server 的约束开关</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E7%BA%A6%E6%9D%9F"><span class="nav-text">函数约束</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1"><span class="nav-text">例子 1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-2"><span class="nav-text">例子 2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#assertion"><span class="nav-text">assertion</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/03/DB/CLJ/04-6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.04.SQL 完整性
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-05-03 21:38:04" itemprop="dateCreated datePublished" datetime="2021-05-03T21:38:04+08:00">2021-05-03</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-05-07 09:42:12" itemprop="dateModified" datetime="2021-05-07T09:42:12+08:00">2021-05-07</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">约束类型、约束系统表、表级约束、约束命名、约束检查、延迟约束、函数约束、assertion</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="在线-sql">在线 SQL</h1>
+<ul>
+<li>http://sqlfiddle.com/</li>
+<li>MySQL 5.6</li>
+</ul>
+<h1 id="sql-完整性">SQL 完整性</h1>
+<h2 id="关系模型中的完整性">关系模型中的完整性</h2>
+<h3 id="实体完整性">实体完整性</h3>
+<ul>
+<li>关系的主码中的属性值不能为空值</li>
+<li>实体是相互可区分的</li>
+</ul>
+<h3 id="参照完整性">参照完整性</h3>
+<ul>
+<li>外码必须和某个参照的属性相同</li>
+<li>必须与客观存在的实体发生联系</li>
+</ul>
+<h3 id="用户定义的完整性">用户定义的完整性</h3>
+<ul>
+<li>用户针对具体应用环境定义的完整性约束条件</li>
+<li>例如一些具体的限定
+<ul>
+<li>sno要求是8位整数，首位是0或1</li>
+<li>飞行员的飞行里程与星级评定</li>
+<li>选课人数不能少于10人，多于100人</li>
+<li>在本地纳税记录超过5年才有购房资格</li>
+<li>婚姻登记必须购买百年好合保险</li>
+</ul></li>
+</ul>
+<h3 id="比较">比较</h3>
+<ul>
+<li>实体完整性和参照完整性由系统自动支持</li>
+<li>系统提供定义和检验用户定义的完整性的机制</li>
+</ul>
+<h2 id="约束类型">约束类型</h2>
+<ul>
+<li>列级约束
+<ul>
+<li>列值范围</li>
+<li>例子
+<ul>
+<li>取值范围</li>
+</ul></li>
+</ul></li>
+<li>行级约束
+<ul>
+<li>同一行各列之间</li>
+<li>例子
+<ul>
+<li>飞行员的等级和他的飞行里程有关</li>
+<li>主码约束</li>
+</ul></li>
+</ul></li>
+<li>表级约束
+<ul>
+<li>行间、表上、表间</li>
+<li>例子
+<ul>
+<li>外码约束</li>
+</ul></li>
+</ul></li>
+<li>查看约束：sp_helpconstraint</li>
+<li>SQL
+<ul>
+<li>primarykey</li>
+<li>unique</li>
+<li>foreignkey</li>
+<li>check</li>
+<li>default</li>
+</ul></li>
+</ul>
+<h2 id="约束系统表">约束系统表</h2>
+<ul>
+<li>Sysconstraints 系统表</li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 9%">
+<col style="width: 10%">
+<col style="width: 80%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">列名</th>
+<th style="text-align: center;">数据类型</th>
+<th style="text-align: center;">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">constid</td>
+<td style="text-align: center;">int</td>
+<td style="text-align: center;">约束号</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">id</td>
+<td style="text-align: center;">int</td>
+<td style="text-align: center;">拥有该约束的表ID</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">colid</td>
+<td style="text-align: center;">smallint</td>
+<td style="text-align: center;">在其上定义约束的列ID，如果是表约束则为0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">status</td>
+<td style="text-align: center;">int</td>
+<td style="text-align: center;">位图指示状态。可能的值包括：<br>1 = PRIMARY KEY 约束<br>2 = UNIQUE KEY 约束<br>3 = FOREIGN KEY 约束<br>4 = CHECK 约束<br>5 = DEFAULT 约束<br>16 = 列级约束<br>32 = 表级约束</td>
+</tr>
+</tbody>
+</table>
+<h2 id="primary-key-与-unique">primary key 与 unique</h2>
+<ul>
+<li>都是通过<strong>唯一性索引</strong>来支持</li>
+<li>区别
+<ul>
+<li>primary key 不能为空值，unique 可以为空值</li>
+<li><strong>unique 列只能有一个 null</strong></li>
+</ul></li>
+<li>unique 可以定义在多个列上，此时可以出现多个 null</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> t1 (</span><br><span class="line">    col1 intunique,</span><br><span class="line">    col2 <span class="type">int</span>,</span><br><span class="line">    col3 <span class="type">int</span>,</span><br><span class="line">    <span class="keyword">unique</span>(col2,col3)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Col1</th>
+<th style="text-align: center;">Col2</th>
+<th style="text-align: center;">Col3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">null</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">null</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> t1 (</span><br><span class="line">    col1 <span class="type">int</span> <span class="keyword">unique</span>,</span><br><span class="line">    col2 <span class="type">int</span>,</span><br><span class="line">    col3 <span class="type">int</span>,</span><br><span class="line">    <span class="keyword">unique</span>(col2,col3)</span><br><span class="line">);</span><br><span class="line"><span class="keyword">insert</span> t1 <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>);</span><br><span class="line"><span class="comment">/* insert t1 values(1,2,2);*/</span>     <span class="comment">/* ERROR */</span></span><br><span class="line"><span class="keyword">insert</span> t1 <span class="keyword">values</span>(<span class="number">2</span>,<span class="number">1</span>,<span class="keyword">null</span>);</span><br><span class="line"><span class="keyword">insert</span> t1 <span class="keyword">values</span>(<span class="number">3</span>,<span class="number">1</span>,<span class="keyword">null</span>);       <span class="comment">/* OK */</span></span><br><span class="line"><span class="keyword">insert</span> t1 <span class="keyword">values</span>(<span class="number">4</span>,<span class="number">1</span>,<span class="keyword">null</span>);       <span class="comment">/* OK */</span></span><br><span class="line"><span class="comment">/* insert t1 values(5,1,1);*/</span>     <span class="comment">/* ERROR */</span></span><br></pre></td></tr></table></figure>
+<h3 id="primary-key-与-unique-的背后">primary key 与 unique 的背后</h3>
+<ul>
+<li>系统自动生成一张约束系统表</li>
+</ul>
+<p><img src="/2021/05/03/DB/CLJ/04-6/image-20210504225355792.png" style="zoom:55%;"></p>
+<h2 id="foreign-key">foreign key</h2>
+<ul>
+<li><strong>基本关系</strong>：主码所在的关系</li>
+<li><strong>依赖关系</strong>：外码所在的关系</li>
+<li>参照完整性
+<ul>
+<li>当外码所在的表需要插入一个记录的时候，需要检查外码的值再主码中存在</li>
+<li>当主码所在的表删除一个记录的时候，可能也会影响参照完整性</li>
+</ul></li>
+</ul>
+<h3 id="foreign-key-的三种定义方式">foreign key 的三种定义方式</h3>
+<h4 id="restrict-方式">RESTRICT 方式</h4>
+<ul>
+<li>只有当依赖关系中<strong>没有一个外码值</strong>与要删除（更新）的基本关系的主码值相对应时，才可以删除（更新）该行（的主码），否则系统<strong>拒绝此删除操作</strong></li>
+</ul>
+<h4 id="cascade方式">CASCADE方式</h4>
+<ul>
+<li>将<strong>依赖关系</strong>中所有外码值与基本关系中要删除的主码值所对应的行<strong>一起删除</strong>（将依赖关系中所有与基本关系中要修改的主码值所对应的外码值一起修改为新值）</li>
+</ul>
+<h4 id="set-null方式">SET NULL方式</h4>
+<ul>
+<li>删除（更新）基本关系中的行时，将<strong>依赖关系</strong>中与基本关系中被删（更新）主码值相对应的<strong>外码值置为空值</strong></li>
+</ul>
+<h2 id="表级约束">表级约束</h2>
+<ul>
+<li>涉及多行或多表之间的联系</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> SC (</span><br><span class="line">    sno <span class="type">char</span>(<span class="number">8</span>),</span><br><span class="line">    cno <span class="type">char</span>(<span class="number">10</span>),</span><br><span class="line">    grade <span class="type">smallint</span>,</span><br><span class="line">    primay key(sno,cno),</span><br><span class="line">    <span class="keyword">check</span>(sno <span class="keyword">in</span>(<span class="keyword">select</span> sno <span class="keyword">from</span> S)),</span><br><span class="line">    <span class="keyword">check</span>(cno <span class="keyword">in</span>(<span class="keyword">select</span> cno <span class="keyword">from</span> C))</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>好像是在声明外码约束，有一些细节上的区别
+<ul>
+<li><strong>check 定义在 SC 中，当修改 S 表或 C 表的时候是不会有检查的</strong></li>
+</ul></li>
+</ul>
+<h2 id="约束命名及其定义">约束命名及其定义</h2>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">constraint</span> 约束名<span class="operator">&lt;</span>约束条件<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>撤销与添加约束</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> ... <span class="keyword">drop</span> <span class="keyword">constraint</span> ...</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> ... <span class="keyword">add</span> <span class="keyword">constraint</span> ...</span><br></pre></td></tr></table></figure>
+<ul>
+<li>例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> S (</span><br><span class="line">    sno <span class="type">char</span>(<span class="number">8</span>) <span class="keyword">constraint</span> S_PK <span class="keyword">primary</span> <span class="keyword">key</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> S <span class="keyword">drop</span> <span class="keyword">constraint</span> S_PK</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> SC <span class="keyword">add</span> <span class="keyword">constraint</span> SC_CHECK</span><br><span class="line">    <span class="keyword">check</span>(sno <span class="keyword">in</span>(<span class="keyword">select</span> sno <span class="keyword">from</span> S))</span><br></pre></td></tr></table></figure>
+<h2 id="约束检查">约束检查</h2>
+<ul>
+<li><strong>相互参照的表</strong>，如何插入行</li>
+</ul>
+<p><img src="/2021/05/03/DB/CLJ/04-6/image-20210504232355476.png" style="zoom:50%;"></p>
+<ul>
+<li>同样的问题，<strong>自参照的表</strong></li>
+</ul>
+<p><img src="/2021/05/03/DB/CLJ/04-6/image-20210504232541030.png" style="zoom:50%;"></p>
+<ul>
+<li>先 drop constraint，在插入之后再 add constraint
+<ul>
+<li><strong>不可行的，可能会有不满足约束条件的数据混入，不安全</strong></li>
+</ul></li>
+<li>可以先整理成一个树形的结构，然后从根部开始插入数据</li>
+</ul>
+<h2 id="延迟约束">延迟约束</h2>
+<ul>
+<li>deferred constraints
+<ul>
+<li>将<strong>多个更新操作语句放入一个事务</strong>，在提交时才检查约束</li>
+</ul></li>
+<li>如何设置延迟约束</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 在约束创建时 */</span></span><br><span class="line">[<span class="keyword">not</span>] deferrable</span><br><span class="line">initially deferred [immediate]</span><br><span class="line"><span class="comment">/* 对现有约束 */</span></span><br><span class="line"><span class="keyword">set</span> <span class="keyword">constraint</span> 约束名 deferried</span><br></pre></td></tr></table></figure>
+<ul>
+<li>例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> emp(</span><br><span class="line">    eno     <span class="type">char</span>(<span class="number">10</span>) <span class="keyword">primary</span> <span class="keyword">key</span>,</span><br><span class="line">    ename   <span class="type">char</span>(<span class="number">20</span>),</span><br><span class="line">    mgr     <span class="type">char</span>(<span class="number">10</span>) <span class="keyword">constraint</span> FK_Constraint   <span class="keyword">foreign</span> <span class="keyword">key</span></span><br><span class="line">                    <span class="keyword">references</span>  emp(eno)</span><br><span class="line">                    deferrable initially immediate <span class="comment">/* 初始的时候立即检查 */</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 在导入数据的时候,设置延迟约束 */</span></span><br><span class="line"><span class="keyword">set</span> <span class="keyword">constraint</span> FK_Constraint deferried</span><br></pre></td></tr></table></figure>
+<h3 id="sql-server-的约束开关">SQL Server 的约束开关</h3>
+<ul>
+<li>with nocheck</li>
+<li>暂时关闭约束开关</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> t1(col_a <span class="type">INT</span>)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t1 <span class="keyword">values</span>(<span class="number">-1</span>)</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> t1 <span class="keyword">with</span> nocheck</span><br><span class="line"><span class="keyword">add</span> <span class="keyword">constraint</span> skip_check <span class="keyword">check</span>(col_a <span class="operator">&gt;</span> <span class="number">1</span>)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t1 <span class="keyword">values</span>(<span class="number">-2</span>) <span class="comment">/* 可以执行 */</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>禁用</strong>并<strong>重新启用</strong>一个约束(nocheck)</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> t1 nocheck <span class="keyword">constraint</span> skip_check</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t1 <span class="keyword">VALUES</span>(<span class="number">-2</span>)</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> t1 <span class="keyword">check</span> <span class="keyword">constraint</span> skip_check</span><br></pre></td></tr></table></figure>
+<ul>
+<li>上面的操作很危险，可能混入不满足约束条件的记录</li>
+<li>SQL Server 提供了一个补救措施</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 列出不满足条件的行记忆他们不满足哪一个约束条件 */</span></span><br><span class="line">dbcc checkconstraints</span><br></pre></td></tr></table></figure>
+<h2 id="函数约束">函数约束</h2>
+<ul>
+<li>约束条件非常复杂，简单的 check 无法实现</li>
+</ul>
+<h3 id="例子-1">例子 1</h3>
+<ul>
+<li>当插入一个新行的时候，使用的值是当前没有使用的最小值</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 创建表 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> noGap(</span><br><span class="line">    <span class="keyword">no</span> <span class="type">int</span> <span class="keyword">primary</span> <span class="keyword">key</span>,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">10</span>)</span><br><span class="line">)</span><br><span class="line"><span class="comment">/* 函数约束 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">function</span> fn_noGap_minUnusedKey()</span><br><span class="line"><span class="keyword">returns</span> <span class="type">int</span> <span class="keyword">as</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">    <span class="comment">/* 尚未申请则返回 1 */</span></span><br><span class="line">    if(<span class="keyword">not</span> <span class="keyword">exists</span>(<span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> noGap <span class="keyword">where</span> <span class="keyword">no</span> <span class="operator">=</span> <span class="number">1</span>)) <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">declare</span> <span class="variable">@min</span>_unused_no <span class="type">int</span></span><br><span class="line">    <span class="keyword">select</span> <span class="variable">@min</span>_unused_no <span class="operator">=</span> <span class="built_in">min</span>(<span class="keyword">no</span> <span class="operator">+</span> <span class="number">1</span>)</span><br><span class="line">    <span class="keyword">from</span> noGap NO1</span><br><span class="line">    <span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span>(</span><br><span class="line">        <span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line">        <span class="keyword">from</span> noGap NO2</span><br><span class="line">        <span class="keyword">where</span> NO2.no <span class="operator">=</span> NO1.no <span class="operator">+</span> <span class="number">1</span></span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">@min</span>_unused_no</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 使用约束 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> noGap</span><br><span class="line">      <span class="keyword">add</span> <span class="keyword">constraint</span> DF_no <span class="keyword">default</span>(fn_noGap_minUnusedKey())<span class="keyword">for</span> <span class="keyword">no</span></span><br></pre></td></tr></table></figure>
+<h3 id="例子-2">例子 2</h3>
+<ul>
+<li>选课人数不能超过 100</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">function</span> fn_registerCount(<span class="variable">@cno</span> <span class="type">varchar</span> )</span><br><span class="line"><span class="keyword">returns</span> <span class="type">int</span> <span class="keyword">as</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        selectcount(<span class="operator">*</span>)</span><br><span class="line">        <span class="keyword">from</span> sc</span><br><span class="line">        <span class="keyword">where</span> cno<span class="operator">=</span> <span class="variable">@cno</span></span><br><span class="line">    )</span><br><span class="line"><span class="keyword">End</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> sc</span><br><span class="line">      <span class="keyword">add</span> <span class="keyword">constraint</span> CK_registerCount <span class="keyword">check</span>(fn_registerCount(cno) <span class="operator">&lt;=</span> <span class="number">100</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="assertion">assertion</h2>
+<ul>
+<li>实际数据库不支持</li>
+<li>检查开销太大了</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* AtoB 只能有一条路径 */</span></span><br><span class="line"><span class="keyword">create</span> assertion AtoB <span class="keyword">check</span> (</span><br><span class="line">    <span class="keyword">not</span> <span class="keyword">exists</span> (</span><br><span class="line">        <span class="keyword">select</span> A</span><br><span class="line">        <span class="keyword">from</span> R</span><br><span class="line">        <span class="keyword">group</span> <span class="keyword">by</span> A</span><br><span class="line">        <span class="keyword">having</span> <span class="built_in">count</span>(<span class="keyword">distinct</span> B) <span class="operator">&gt;</span> <span class="number">1</span></span><br><span class="line">    )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/29/CG/YLQ-GAMES202/08/" rel="prev" title="GAMES202.闫令琪.08.实时全局光照(屏幕空间)(SSAO/SSDO)">
+                  <i class="fa fa-chevron-left"></i> GAMES202.闫令琪.08.实时全局光照(屏幕空间)(SSAO/SSDO)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/05/03/DB/CLJ/04-7/" rel="next" title="数据库概论.陈立军.04.SQL 安全性">
+                  数据库概论.陈立军.04.SQL 安全性 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

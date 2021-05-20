@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="消隐概念、提高消隐效率的方法、消隐算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.06.隐藏面的消除">
+<meta property="og:url" content="http://example.com/2021/02/02/CG/LS/06/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="消隐概念、提高消隐效率的方法、消隐算法">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/02/02/CG/LS/06/OBB-AABB.png">
+<meta property="og:image" content="http://example.com/2021/02/02/CG/LS/06/4-DoP-2D.png">
+<meta property="og:image" content="http://example.com/2021/02/02/CG/LS/06/8-DoP-2D.png">
+<meta property="og:image" content="http://example.com/2021/02/02/CG/LS/06/2D-sort.png">
+<meta property="og:image" content="http://example.com/2021/02/02/CG/LS/06/3D-sort.png">
+<meta property="og:image" content="http://example.com/2021/02/02/CG/LS/06/edge-pair.jpg">
+<meta property="og:image" content="http://example.com/2021/02/02/CG/LS/06/scanline.png">
+<meta property="og:image" content="http://example.com/2021/02/02/CG/LS/06/transparent.png">
+<meta property="article:published_time" content="2021-02-02T12:19:29.000Z">
+<meta property="article:modified_time" content="2021-02-06T09:16:04.321Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/02/02/CG/LS/06/OBB-AABB.png">
+
+
+<link rel="canonical" href="http://example.com/2021/02/02/CG/LS/06/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>计算机图形学.李胜.06.隐藏面的消除 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B6%88%E9%9A%90%E7%9A%84%E4%B8%A4%E7%B1%BB%E6%96%B9%E6%B3%95"><span class="nav-text">消隐的两类方法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8F%90%E9%AB%98%E6%B6%88%E9%9A%90%E7%AE%97%E6%B3%95%E6%95%88%E7%8E%87%E7%9A%84%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95"><span class="nav-text">提高消隐算法效率的常用方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E8%BF%9E%E8%B4%AF%E6%80%A7"><span class="nav-text">利用连贯性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%86%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E5%8F%98%E6%8D%A2%E4%B8%BA%E5%B9%B3%E8%A1%8C%E6%8A%95%E5%BD%B1"><span class="nav-text">将透视投影变换为平行投影</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%85%E5%9B%B4%E7%9B%92%E6%8A%80%E6%9C%AF"><span class="nav-text">包围盒技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84%E5%8C%85%E5%9B%B4%E7%9B%92%E6%96%B9%E6%B3%95"><span class="nav-text">常用的包围盒方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E9%9D%A2%E5%89%94%E9%99%A4"><span class="nav-text">背面剔除</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E5%88%86%E5%89%B2%E6%8A%80%E6%9C%AF"><span class="nav-text">空间分割技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%A9%E4%BD%93%E7%9A%84%E5%88%86%E5%B1%82%E8%A1%A8%E7%A4%BA"><span class="nav-text">物体的分层表示</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B6%88%E9%9A%90%E7%AE%97%E6%B3%95"><span class="nav-text">消隐算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%BB%E5%AE%B6%E7%AE%97%E6%B3%95"><span class="nav-text">画家算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#z-buffer-%E7%AE%97%E6%B3%95"><span class="nav-text">z-buffer 算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%AB%E6%8F%8F%E7%BA%BF-z-buffer-%E7%AE%97%E6%B3%95"><span class="nav-text">扫描线 z-buffer 算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E8%BE%B9%E5%BD%A2%E9%A1%B6%E7%82%B9%E6%95%B0%E7%BB%84"><span class="nav-text">(1) 多边形顶点数组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E8%BE%B9%E5%BD%A2"><span class="nav-text">(2) 多边形</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E8%BE%B9%E5%BD%A2%E5%88%86%E7%B1%BB%E8%A1%A8-pt"><span class="nav-text">(3) 多边形分类表 PT</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B4%BB%E5%8C%96%E5%A4%9A%E8%BE%B9%E5%BD%A2%E8%A1%A8-apl"><span class="nav-text">(4) 活化多边形表 APL</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%B9"><span class="nav-text">(5) 边</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%B9%E5%88%86%E7%B1%BB%E8%A1%A8-et"><span class="nav-text">(6) 边分类表 ET</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%B9%E5%AF%B9"><span class="nav-text">(7) 边对</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BE%B9%E5%AF%B9%E5%8C%85%E5%90%AB%E4%BF%A1%E6%81%AF"><span class="nav-text">边对包含信息</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B4%BB%E5%8C%96%E8%BE%B9%E5%AF%B9%E8%A1%A8-aepl"><span class="nav-text">(8) 活化边对表 AEPL</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95"><span class="nav-text">算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E8%AF%B4%E6%98%8E"><span class="nav-text">算法说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E4%BB%B7"><span class="nav-text">评价</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%AB%E6%8F%8F%E7%BA%BF%E7%AE%97%E6%B3%95"><span class="nav-text">扫描线算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%BA%E5%9F%9F%E5%AD%90%E5%88%86%E7%AE%97%E6%B3%95"><span class="nav-text">区域子分算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%89%E7%BA%BF%E6%8A%95%E5%B0%84%E7%AE%97%E6%B3%95"><span class="nav-text">光线投射算法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8D%8A%E9%80%8F%E6%98%8E%E9%97%AE%E9%A2%98"><span class="nav-text">(半)透明问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#a-buffer-%E7%AE%97%E6%B3%95"><span class="nav-text">A-buffer 算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#depth-peeling-%E6%B7%B1%E5%BA%A6%E5%89%A5%E7%A6%BB"><span class="nav-text">Depth Peeling 深度剥离</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%8A%E9%80%8F%E6%98%8E%E9%A1%BA%E5%BA%8F"><span class="nav-text">半透明顺序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dual-depth-peeling-%E5%8F%8C%E5%90%91%E6%B7%B1%E5%BA%A6%E5%89%A5%E7%A6%BB"><span class="nav-text">Dual Depth Peeling 双向深度剥离</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%89%E7%BA%BF%E8%B7%9F%E8%B8%AA"><span class="nav-text">光线跟踪</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/02/CG/LS/06/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机图形学.李胜.06.隐藏面的消除
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-02-02 20:19:29" itemprop="dateCreated datePublished" datetime="2021-02-02T20:19:29+08:00">2021-02-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-06 17:16:04" itemprop="dateModified" datetime="2021-02-06T17:16:04+08:00">2021-02-06</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-LS/" itemprop="url" rel="index"><span itemprop="name">CG.LS</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">消隐概念、提高消隐效率的方法、消隐算法</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="基本概念">基本概念</h1>
+<ul>
+<li>空间遮挡关系</li>
+<li>隐藏面/线、可见面/线</li>
+<li>不同模型
+<ul>
+<li><strong>表面模型</strong>：<strong>面消隐</strong></li>
+<li><strong>线框模型</strong>：<strong>线消隐</strong></li>
+</ul></li>
+<li>深度
+<ul>
+<li>早期的深度：<strong>近大远小</strong></li>
+<li>现在的深度：<strong>近小远大</strong></li>
+<li>因此在消隐算法中会有初始化以及比大小的不同</li>
+</ul></li>
+</ul>
+<h2 id="消隐的两类方法">消隐的两类方法</h2>
+<ul>
+<li>以像素为循环核心</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(窗口内的每一个像素) &#123;</span><br><span class="line">    确定距视点最近的物体;</span><br><span class="line">    用该物体表面的颜色显示像素;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>以物体为循环核心</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(场景中的每一个物体) &#123;</span><br><span class="line">    将该物体与场景中的其它物体进行比较, 确定其表面的可见部分;</span><br><span class="line">    显示该物体表面的可见部分;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="提高消隐算法效率的常用方法">提高消隐算法效率的常用方法</h1>
+<h2 id="利用连贯性">利用连贯性</h2>
+<ul>
+<li>物体、面、区域、扫描线</li>
+</ul>
+<h2 id="将透视投影变换为平行投影">将透视投影变换为平行投影</h2>
+<ul>
+<li>消隐与投影方式有关
+<ul>
+<li>投影中心位置，投影方向</li>
+</ul></li>
+<li>平行投影的遮挡关系更好确定</li>
+<li>现代硬件的实现一般都是 <strong>z-buffer</strong></li>
+</ul>
+<h2 id="包围盒技术">包围盒技术</h2>
+<ul>
+<li>包围盒：包围目标的简单形体</li>
+<li>常用包围盒：长方体、球、圆柱</li>
+<li><strong>避免盲目求交</strong>
+<ul>
+<li>如果包围盒不相交，那么物体也一定不会相交</li>
+<li>包围盒的求交比物体更加简单</li>
+</ul></li>
+<li>初级的筛查</li>
+</ul>
+<h2 id="常用的包围盒方法">常用的包围盒方法</h2>
+<ul>
+<li>OBB：面平行
+<ul>
+<li>紧致的包围盒</li>
+<li>包围盒的所有面和物体切平面平行</li>
+<li>可以使用 PCA 的方法找出主轴（3D有3根主轴）</li>
+</ul></li>
+<li>AABB：轴平齐
+<ul>
+<li>例如3D，包围盒的所有面都是和轴垂直的简单，不准确</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/02/CG/LS/06/OBB-AABB.png"></p>
+<ul>
+<li>k-DoP：划分为多个轴，每个轴向找切线</li>
+</ul>
+<p><img src="/2021/02/02/CG/LS/06/4-DoP-2D.png" alt="1612319866629" style="zoom:70%;"></p>
+<p><img src="/2021/02/02/CG/LS/06/8-DoP-2D.png" alt="1612319889825" style="zoom:70%;"></p>
+<ul>
+<li>层次包围盒
+<ul>
+<li>树状结构</li>
+<li>包围盒套包围盒</li>
+<li>从根出来进行逐个判断，提高效率</li>
+</ul></li>
+</ul>
+<h2 id="背面剔除">背面剔除</h2>
+<ul>
+<li>前向面和后向面（背面）
+<ul>
+<li>背面是不可见的</li>
+</ul></li>
+<li>使用法向判断</li>
+<li>需要指定 FrontFace
+<ul>
+<li>顺时针（CW）clockwise</li>
+<li>逆时针（CCW）counterclockwise</li>
+</ul></li>
+</ul>
+<h2 id="空间分割技术">空间分割技术</h2>
+<ul>
+<li>并行渲染</li>
+</ul>
+<h2 id="物体的分层表示">物体的分层表示</h2>
+<ul>
+<li>小汽车
+<ul>
+<li>车身
+<ul>
+<li>车头</li>
+<li>车尾</li>
+</ul></li>
+<li>左前轮</li>
+<li>左后轮</li>
+<li>右后轮</li>
+<li>右前轮</li>
+</ul></li>
+</ul>
+<h1 id="消隐算法">消隐算法</h1>
+<ul>
+<li>消隐的基本（核心）问题：<span style="color:red;font-weight:bold">排序</span></li>
+<li>整体排序：画家算法</li>
+<li>点排序：z-buffer算法、光线投射算法</li>
+<li>区间排序：扫描线算法</li>
+<li>区域排序：区域子分算法</li>
+</ul>
+<h2 id="画家算法">画家算法</h2>
+<ul>
+<li><p>3D 待绘制的物体进行排序，<strong>远处先画，近处后画</strong></p>
+<ul>
+<li>对场景中的多边形按深度进行排序</li>
+<li>形成深度优先级表</li>
+<li>按从远到近的顺序显示多边形</li>
+</ul></li>
+<li><p>一维空间（数轴）上点的排序</p></li>
+<li><p>二维平面上直线段的排序</p>
+<ul>
+<li>两条直线段可能相交
+<ul>
+<li>分类讨论，包围盒</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/02/CG/LS/06/2D-sort.png" alt="1612321712197" style="zoom:70%;"></p></li>
+<li><p>三维空间中多边形的排序</p>
+<ul>
+<li>连环套问题
+<ul>
+<li>解套：拆分单个面片</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/02/CG/LS/06/3D-sort.png" alt="1612322086268" style="zoom:70%;"></p></li>
+</ul>
+<h2 id="z-buffer-算法">z-buffer 算法</h2>
+<ul>
+<li>窗口与缓冲器
+<ul>
+<li>绘图窗口</li>
+<li>帧缓冲器：存放对应像素的颜色</li>
+<li>z（深度）缓冲器：存放对应像素的深度值</li>
+</ul></li>
+<li>z 缓冲器算法
+<ul>
+<li>初始化所有像素深度值为 1（最大深度），颜色值为背景色</li>
+<li>对多边形的投影区域的每一个像素循环
+<ul>
+<li>逐像素比较深度，若小于 z-buffer 中存的深度，则更新两个缓冲器</li>
+</ul></li>
+</ul></li>
+<li>优点
+<ul>
+<li>算法简单、稳定</li>
+<li>便于硬件加速</li>
+<li>不需要整个场景的几何数据</li>
+</ul></li>
+<li>缺点
+<ul>
+<li>需要 z 缓冲器</li>
+<li>计算复杂度大
+<ul>
+<li>需要计算的像素深度值次数 = 多边形个数*多边形平均占据的像素个数</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="扫描线-z-buffer-算法">扫描线 z-buffer 算法</h2>
+<ul>
+<li>经典但是过时的算法</li>
+<li>早期在 z-buffer 数量不够时提出的算法</li>
+<li>需要的 z-buffer 数目从原来的<span style="color:red;font-weight:bold">整个窗口</span>减少到<span style="color:red;font-weight:bold">一条扫描线</span>
+<ul>
+<li>随着技术发展，z-buffer 已经不再是稀缺资源，可以支持整个窗口，因此现在很少用</li>
+</ul></li>
+<li><p>扫描线 z-buffer 算法</p>
+<ul>
+<li>将窗口划分为多条扫描线
+<ul>
+<li>初始化扫描线对应的两个缓冲器</li>
+<li>对每个多边形循环
+<ul>
+<li>求出每个多边形的投影区域与扫描线的的相交区间</li>
+<li>比较深度与对应像素在 z-buffer 中的深度值，看是否需要更新两个缓冲器</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><p>复杂度高</p>
+<ul>
+<li>每一条扫描线都需要和多边形进行相交测试</li>
+<li>需要计算相交区间的深度值</li>
+</ul></li>
+</ul>
+<h3 id="数据结构">数据结构</h3>
+<h4 id="多边形顶点数组">(1) 多边形顶点数组</h4>
+<ul>
+<li>二维数组 <span class="math inline">\(P[i][j]\)</span>，元素是三维坐标
+<ul>
+<li>第 i 个多边形的第 j 个顶点</li>
+</ul></li>
+</ul>
+<h4 id="多边形">(2) 多边形</h4>
+<ul>
+<li>平面信息：a,b,c,d</li>
+<li>多边形所在平面：<span class="math inline">\(f(u,v,n)=au+bv+cn+d=0\)</span></li>
+<li>多边形颜色值：color</li>
+<li>投影的最大 v 坐标：<span class="math inline">\(v_{max}\)</span></li>
+<li>多边形的序号：PI</li>
+<li>指向下一个多边形结构的指针：nextP</li>
+</ul>
+<h4 id="多边形分类表-pt">(3) 多边形分类表 PT</h4>
+<ul>
+<li>一维数组，长度等于绘图窗口内扫描线的数目，元素为多边形</li>
+<li>如果一个多边形的投影的最小 v 坐标为 v，那么它就属于 v 类</li>
+</ul>
+<h4 id="活化多边形表-apl">(4) 活化多边形表 APL</h4>
+<ul>
+<li>记录投影与当前扫描线相交的多边形</li>
+<li>多边形在 APL 中的顺序无关紧要</li>
+</ul>
+<h4 id="边">(5) 边</h4>
+<ul>
+<li>用于记录多边形的一条边</li>
+<li>边结构
+<ul>
+<li>边投影<strong>上</strong>端点的 v 坐标：<span class="math inline">\(v_{max}\)</span></li>
+<li>边投影<strong>下</strong>端点的 u 坐标：u</li>
+<li>边投影<strong>下</strong>端点的 n 坐标：n</li>
+<li>在该边上 v 值增加一个单位时，u 坐标的变化量：<span class="math inline">\(\Delta u\)</span></li>
+<li>指向下一个边结构的指针：nextE</li>
+</ul></li>
+</ul>
+<h4 id="边分类表-et">(6) 边分类表 ET</h4>
+<ul>
+<li>当一个多边形<strong>进入</strong>活化多边形表的时候，需要为其建立一个边分类表
+<ul>
+<li>不处理的就不需要建立了</li>
+</ul></li>
+<li>对非水平边进行分类的一维数组</li>
+<li>一维数组，长度等于扫描线的数目，元素为边</li>
+<li>若一条边的下端点的 v 坐标为 v，则将该边归为第 v 类</li>
+</ul>
+<h4 id="边对">(7) 边对</h4>
+<ul>
+<li>在一条扫描线上，同一多边形的相邻两条边称为边对</li>
+</ul>
+<p><img src="/2021/02/02/CG/LS/06/edge-pair.jpg"></p>
+<ul>
+<li>扫描线 3 对应的边对：<span class="math inline">\(e_0e_1\)</span></li>
+<li>扫描线 6 对应的边对：<span class="math inline">\(e_0e_4,e_3e_2\)</span></li>
+<li>边对中包含了大量信息，是该消隐算法的核心单元</li>
+</ul>
+<h5 id="边对包含信息">边对包含信息</h5>
+<ul>
+<li><span class="math inline">\(u_l\)</span>：边对左侧边与扫描线交点的 u 坐标</li>
+<li><span class="math inline">\(\Delta u_l\)</span>：当沿左侧边 v 坐标递增一个像素时，u 坐标的增量</li>
+<li><span class="math inline">\(v_{lmax}\)</span>：左侧边投影的上端点的 v 坐标</li>
+<li><span class="math inline">\(u_r,\Delta u_r,v_{rmax}\)</span></li>
+<li><span class="math inline">\(n_l\)</span>：左侧边与扫描线的交点处的多边形的 n 坐标（深度）</li>
+<li><span class="math inline">\(\Delta n_u\)</span>：当沿着扫描线 u 递增一个像素时，多边形所在平面的 n 坐标的增量
+<ul>
+<li><span class="math inline">\(f(u,v,n)=au+bv+cn+d=0\Rightarrow\Delta n_u=\dfrac{-a}{c}(c\ne0)\)</span></li>
+</ul></li>
+<li><span class="math inline">\(\Delta n_v=\dfrac{-b}{c}(c\ne0)\)</span></li>
+<li>PI：多边形序号</li>
+<li>nextEP：指向下一个边对结构的指针，用于将边连接成链表</li>
+</ul>
+<h4 id="活化边对表-aepl">(8) 活化边对表 AEPL</h4>
+<ul>
+<li>记录了活化多边形表中与当前扫描线相交的边对（顺序无关紧要）</li>
+</ul>
+<h3 id="算法">算法</h3>
+<ul>
+<li><p>建立多边形分类表 PT</p></li>
+<li><p>置活化多边形表 APL 为空，置活化边对表为空</p></li>
+<li><p>对每条扫描线执行以下操作</p>
+<ul>
+<li>置帧缓冲器第 v 行的各单元为背景色</li>
+<li>置 z 缓冲器个单元的值为 1（最大的深度值）</li>
+<li>检查 PT 的第 v 类是否非空，如果非空，则将该类的多边形去除加入到 APL 中</li>
+<li>对新加入 APL 的每个多边形，为其建立边分类表 ET</li>
+<li>对新加入 APL 的每个多边形，若他的 ET 中第 v 类非空，将其中的边对出插入 APEL 中</li>
+<li>对 APEL 中的每一个边对，执行以下步骤</li>
+</ul>
+<p><span class="math display">\[
+  \begin{aligned}
+  &amp;深度值 n=n_l\\
+  &amp;for(u = u_l; u &lt;= u_r; u = u + 1) \{\\
+  &amp;\qquad if(n &lt; z 缓冲器中第 u 个单元的深度值) \{\\
+  &amp;\qquad\qquad 置帧缓冲器第 (u,v) 单元的值为当前便对所属的多边形的颜色;\\
+  &amp;\qquad\qquad 置 z 缓冲器第 u 单元的值为 n;\\
+  &amp;\qquad\}\\
+  &amp;\qquad n = n + \Delta n_u; // 计算下一个像素 (u + 1,v) 处的深度值\\
+  &amp;\}\\
+\end{aligned}
+  \]</span></p>
+<ul>
+<li>检查 APL，删除那些满足 <span class="math inline">\(v=v_{max}\)</span> 的多边形，释放该多边形的 ET，并从 AEPL 中删除属于该多边形的边对</li>
+<li>检查 AEPL 中的边对，执行以下步骤
+<ul>
+<li>若 <span class="math inline">\(v_{lmax}=v\)</span> 或者 <span class="math inline">\(v_{rmax}=v\)</span> ，删除边对的左侧边或者右侧边
+<ul>
+<li>若边对的左侧边和右侧边都被删除了，则从 AEPL 中将这个边对删去</li>
+<li>若边对只被删去一条边，那么从其所属的多边形找另一条边和其配对成为新的边对，加入 APEL</li>
+</ul></li>
+</ul></li>
+<li>将扫描线向下移动一个像素 v = v + 1</li>
+</ul></li>
+</ul>
+<h3 id="算法说明">算法说明</h3>
+<ul>
+<li>一定配对
+<ul>
+<li>一条直线和封闭多边形相交的边数为偶数（不计直线和多边形顶点的相交）</li>
+</ul></li>
+<li>删除 AEPL 中的边对
+<ul>
+<li>扫描线<strong>从下向上</strong>移动</li>
+<li>删除时整个边对之间的区域都被上色了</li>
+</ul></li>
+</ul>
+<h3 id="评价">评价</h3>
+<ul>
+<li>和 z 缓冲器相比改进的地方
+<ul>
+<li>将窗口分割成扫描线，只需要一条扫描线的 z-buffer</li>
+<li>采用多边形分类表、活化多边形表避免多边形与扫描线的盲目求交</li>
+<li>利用边、边的分类表、边对、活化边对表避免边与扫描线的盲目求交</li>
+<li>利用连贯性计算深度</li>
+</ul></li>
+<li>缺点
+<ul>
+<li>在每一个被多边形覆盖像素处需要计算深度值</li>
+<li>被多个多边形覆盖的像素需要多次计算深度值</li>
+</ul></li>
+</ul>
+<h2 id="扫描线算法">扫描线算法</h2>
+<ul>
+<li><p>相较于 z-buffer 扫描线算法的改进</p>
+<ul>
+<li>在一条扫描线上，以区间为单位确定多边形的可见性
+<ul>
+<li>在一条扫描线上，每个区间只需要计算一次深度值</li>
+</ul></li>
+<li>不需要 z-buffer</li>
+</ul></li>
+<li><p>算法思想</p>
+<ul>
+<li>两个多边形（记作 <span class="math inline">\(P_1,P_2\)</span>） 的边界将扫描线分割为多个区间</li>
+<li>覆盖每段区间的多边形可能有 0 个或者多个，但是只有一个可见</li>
+<li>因此对于每段区间，我们只需要任取一个点，计算深度，找到深度最小的点，用它所在多边形的颜色为当前像素点上色即可（帧缓冲器）</li>
+</ul></li>
+<li><p>算法局限</p>
+<ul>
+<li>要求多边形不能相互贯穿</li>
+</ul>
+<p><img src="/2021/02/02/CG/LS/06/scanline.png"></p>
+<ul>
+<li>否则需要计算多边形相交的点作分界（让算法复杂度变高）</li>
+<li>如上图
+<ul>
+<li>区间 <span class="math inline">\([0,u_1],[u_1,u_2],[u_2,u_3],[u_3,u_4],[u_4,u_{max}]\)</span></li>
+<li>出现贯穿的情况，在区间 <span class="math inline">\(,[u_2,u_3]\)</span> 中出现深度变化</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="区域子分算法">区域子分算法</h2>
+<ul>
+<li>不把像素孤立起来看待，考虑<strong>区域连贯性</strong>
+<ul>
+<li>扫描线算法中的区间本质也是一种对于区域连贯性的考虑</li>
+</ul></li>
+<li>利用区域的连贯性提高排序的效率
+<ul>
+<li>分割窗口直到窗口足够简单</li>
+</ul></li>
+<li>窗口足够简单：满足以下几种条件之一即可
+<ul>
+<li>窗口为空：所有多边形和当前窗口的关系都是<strong>分离</strong></li>
+<li>窗口内仅包含一个多边形：仅有一个多边形与当前窗口<strong>相交</strong>或者<strong>包含</strong>于当前窗口</li>
+<li>窗口被一个多边形<strong>包围</strong>，并且它是离视点最近的</li>
+</ul></li>
+<li><strong>四叉树</strong></li>
+</ul>
+<h2 id="光线投射算法">光线投射算法</h2>
+<ul>
+<li>基本问题：光线与物体表面求交</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(v = <span class="number">0</span>; v &lt;= vmax; v++) &#123;</span><br><span class="line">    <span class="keyword">for</span>(u = <span class="number">0</span>; u &lt;= umax; u++) &#123;</span><br><span class="line">        形成通过像素(u,v)的投影线;</span><br><span class="line">        <span class="keyword">for</span>(场景中的每一个多边形)&#123;</span><br><span class="line">            将投影线与多边形求交;</span><br><span class="line">            <span class="keyword">if</span>(有交点) &#123;</span><br><span class="line">                以最近交点所属多边形的颜色显示像素(u,v);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                以背景颜色显示像素(u,v);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>特殊情况
+<ul>
+<li>光线穿越物体的边缘 / 顶点</li>
+<li>需要自己定义 visible / invisible</li>
+</ul></li>
+</ul>
+<h1 id="半透明问题">(半)透明问题</h1>
+<ul>
+<li>z-buffer test：用于确定物体的深度关系</li>
+<li>如果物体透明怎么办？</li>
+<li>顺序？
+<ul>
+<li>需要考虑混合顺序：排序</li>
+<li>去除透明物体，融合半透明物体与最近的不透明物体</li>
+</ul></li>
+</ul>
+<p><img src="/2021/02/02/CG/LS/06/transparent.png"></p>
+<ul>
+<li>排序
+<ul>
+<li>order dependent transparency：物体级别的排序
+<ul>
+<li>显式对物体进行排序</li>
+</ul></li>
+<li>order independent transparency：片元级别的排序</li>
+</ul></li>
+</ul>
+<h2 id="a-buffer-算法">A-buffer 算法</h2>
+<ul>
+<li>order dependent transparency</li>
+<li>对于每个像素，形成一个链表结构
+<ul>
+<li>链表内按照深度排序，之后可以通过类似于之前的方式进行上色</li>
+</ul></li>
+</ul>
+<h2 id="depth-peeling-深度剥离">Depth Peeling 深度剥离</h2>
+<ul>
+<li>order independent transparency</li>
+<li>多次渲染
+<ul>
+<li>每次渲染去除之前已经渲染的片元，把剩下的片元都当作不透明的处理</li>
+<li>相当于每次渲染得到深度最小的片元结果，将其存到一个 buffer 里面</li>
+<li>最后融合这些 buffer</li>
+</ul></li>
+<li>浪费了大量片元，大量空间都是空白的</li>
+</ul>
+<h2 id="半透明顺序">半透明顺序</h2>
+<ul>
+<li>如提前知道半透明的顺序，直接排序即可</li>
+<li>如果不知道，可以使用 A-buffer 或者 Depth Peeling 等算法</li>
+</ul>
+<h2 id="dual-depth-peeling-双向深度剥离">Dual Depth Peeling 双向深度剥离</h2>
+<ul>
+<li>渲染次数减半</li>
+</ul>
+<h2 id="光线跟踪">光线跟踪</h2>
+<ul>
+<li><strong>非传统渲染管线</strong></li>
+<li>直接考虑了半透明的信息</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/01/31/CG/LS/05-2/" rel="prev" title="计算机图形学.李胜.05.投影(3)">
+                  <i class="fa fa-chevron-left"></i> 计算机图形学.李胜.05.投影(3)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/03/CG/LS/07/" rel="next" title="计算机图形学.李胜.07.三维实体的表示">
+                  计算机图形学.李胜.07.三维实体的表示 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

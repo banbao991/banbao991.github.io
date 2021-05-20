@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="fork、exec、wait">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OSTEP 阅读笔记(Ch05.进程API)">
+<meta property="og:url" content="http://example.com/2021/03/26/OS/OSTEP/05/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="fork、exec、wait">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-03-26T03:58:22.000Z">
+<meta property="article:modified_time" content="2021-03-27T01:52:42.997Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2021/03/26/OS/OSTEP/05/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>OSTEP 阅读笔记(Ch05.进程API) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AC%AC-5-%E7%AB%A0-%E6%8F%92%E5%8F%99%E8%BF%9B%E7%A8%8B-api"><span class="nav-text">第 5 章 插叙：进程 API</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#fork"><span class="nav-text">5.1 fork()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#wait"><span class="nav-text">5.2 wait()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#exec"><span class="nav-text">5.3 exec()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E6%A0%B7%E8%AE%BE%E8%AE%A1-api"><span class="nav-text">5.4 为什么这样设计 API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96-api"><span class="nav-text">5.5 其他 API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%9C%E4%B8%9A"><span class="nav-text">作业</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#section"><span class="nav-text">(1)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-1"><span class="nav-text">(2)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-2"><span class="nav-text">(3)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-3"><span class="nav-text">(4)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-4"><span class="nav-text">(5)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-5"><span class="nav-text">(6)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-6"><span class="nav-text">(7)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-7"><span class="nav-text">(8)</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/26/OS/OSTEP/05/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OSTEP 阅读笔记(Ch05.进程API)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-03-26 11:58:22" itemprop="dateCreated datePublished" datetime="2021-03-26T11:58:22+08:00">2021-03-26</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-03-27 09:52:42" itemprop="dateModified" datetime="2021-03-27T09:52:42+08:00">2021-03-27</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/OS-OSTEP/" itemprop="url" rel="index"><span itemprop="name">OS.OSTEP</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">fork、exec、wait</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="第-5-章-插叙进程-api">第 5 章 插叙：进程 API</h1>
+<ul>
+<li>UNIX 系统中的进程 API</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fork();</span><br><span class="line">exec();</span><br><span class="line">wait();</span><br></pre></td></tr></table></figure>
+<h2 id="fork">5.1 fork()</h2>
+<ul>
+<li>调用一次，返回两次
+<ul>
+<li>父进程返回子进程的 pid</li>
+<li>子进程返回 0</li>
+</ul></li>
+<li>父进程和子进程的运行顺序是不确定的</li>
+<li>由于CPU 调度程序非常复杂，所以我们不能假设哪个进程会先运行</li>
+</ul>
+<h2 id="wait">5.2 wait()</h2>
+<ul>
+<li>等待子进程运行结束后再运行
+<ul>
+<li>具体等待哪个子进程、几个子进程由调用参数决定</li>
+</ul></li>
+</ul>
+<h2 id="exec">5.3 exec()</h2>
+<ul>
+<li>让子进程运行不一样的程序</li>
+<li>调用一次，从不返回</li>
+<li>没有创建新进程，而是直接将当前运行的程序替换为不同的运行程序</li>
+<li>从可执行程序中加载代码和静态数据，并用它覆写自己的代码段（以及静态数据），重新初始化堆、栈及其他内存空间</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> *myargs[<span class="number">3</span>];</span><br><span class="line">myargs[<span class="number">0</span>] = strdup(<span class="string">&quot;wc&quot;</span>);   <span class="comment">// program: &quot;wc&quot; (word count)</span></span><br><span class="line">myargs[<span class="number">1</span>] = strdup(<span class="string">&quot;p3.c&quot;</span>); <span class="comment">// argument: file to count</span></span><br><span class="line">myargs[<span class="number">2</span>] = <span class="literal">NULL</span>;           <span class="comment">// marks end of array</span></span><br><span class="line">execvp(myargs[<span class="number">0</span>], myargs);  <span class="comment">// runs word count</span></span><br></pre></td></tr></table></figure>
+<h2 id="为什么这样设计-api">5.4 为什么这样设计 API</h2>
+<ul>
+<li>UNIX shell
+<ul>
+<li>给了shell 在 fork 之后 exec 之前运行代码的机会</li>
+<li>这样可以改变运行时环境，实现有趣的功能</li>
+</ul></li>
+<li>重定向文件输出</li>
+</ul>
+<h2 id="其他-api">5.5 其他 API</h2>
+<ul>
+<li>kill()</li>
+<li>信号（signal）、</li>
+<li><strong>查看 man 手册获取更多知识</strong></li>
+</ul>
+<h2 id="作业">作业</h2>
+<h4 id="section">(1)</h4>
+<h4 id="section-1">(2)</h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> pid;</span><br><span class="line">    <span class="comment">// 当关闭了标准输出之后, open 找到的第一个可用的文件描述符就是 1</span></span><br><span class="line">    <span class="comment">// 此时 printf 输出到 open 打开的文件里</span></span><br><span class="line">    close(STDOUT_FILENO);</span><br><span class="line">    open(<span class="string">&quot;2.txt&quot;</span>, O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU);</span><br><span class="line">    pid = fork();</span><br><span class="line">    <span class="keyword">if</span>(pid &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Fork Error!\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(pid == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// child</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;cccccc&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// parent</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;pppppp&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>子进程和父进程都能共访问 open() 返回的文件描述符，因为父子进程虽然i有自己的文件描述符列表，但是共享打开文件</li>
+<li>父子进程同时写文件的时候不能保证谁先写入，我的 wsl 中结果为</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ppppppcccccc</span><br></pre></td></tr></table></figure>
+<h4 id="section-2">(3)</h4>
+<h4 id="section-3">(4)</h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv, <span class="keyword">char</span>** env)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> pid;</span><br><span class="line">    pid = fork();</span><br><span class="line">    <span class="keyword">if</span>(pid &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Fork Error!\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(pid == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// child</span></span><br><span class="line">        <span class="keyword">char</span> *myargs[<span class="number">2</span>];</span><br><span class="line">        myargs[<span class="number">0</span>] = strdup(<span class="string">&quot;/bin/ls&quot;</span>);</span><br><span class="line">        myargs[<span class="number">1</span>] = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="comment">// execl(myargs[0], myargs[0], NULL);</span></span><br><span class="line">        <span class="comment">// execle(myargs[0], myargs[0], NULL, env);</span></span><br><span class="line">        <span class="comment">// execlp(&quot;ls&quot;, myargs[0], NULL);</span></span><br><span class="line">        execv(myargs[<span class="number">0</span>], myargs);</span><br><span class="line">        <span class="comment">// execve(myargs[0], myargs, env);</span></span><br><span class="line">        <span class="comment">// execvp(&quot;ls&quot;, myargs);</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// parent</span></span><br><span class="line">        wait(<span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>结果确实可以执行 ls 命令，输出当前目录下的文件按</li>
+<li>我的输出如下</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2.c  2.out  2.txt  4.c  4.out</span><br></pre></td></tr></table></figure>
+<ul>
+<li>同样的基本调用，不同的封装方式为了满足不同的应用场景需要</li>
+<li>区别如下
+<ul>
+<li>l：用参数列表的方式传递新程序的参数，最后一个参数需要显示的指定为 NULL</li>
+<li>v：用数组的方式传递新程序的参数，数组最后一个值需要显示的指定为 NULL</li>
+<li>e：设置新的环境变量，作为一个数组在最后一个参数传入</li>
+<li>p：运行的可执行文件只需要传递文件名即可，否则需要传递全路径</li>
+</ul></li>
+</ul>
+<h4 id="section-4">(5)</h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv, <span class="keyword">char</span>** env)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> pid;</span><br><span class="line">    pid = fork();</span><br><span class="line">    <span class="keyword">if</span>(pid &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Fork Error!\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(pid == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// child</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;I&#x27;m child!\n&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// parent</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;wait&#x27;return pid: %d\n&quot;</span>, wait(<span class="literal">NULL</span>));</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;child&#x27;s pid: %d\n&quot;</span>, pid);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;I&#x27;m father!\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>输出如下</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">I&#x27;m child!</span><br><span class="line">wait&#x27;return pid: 323</span><br><span class="line">child&#x27;s pid: 323</span><br><span class="line">I&#x27;m father!</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>wait(NULL)</code> 返回等待的子进程的 pid</li>
+<li>子进程使用 <code>wait(NULL)</code> 会返回 -1</li>
+<li>使用 <code>man wait</code> 可以查看具体的含义
+<ul>
+<li><code>wait(NULL)</code> 操作当一个子进程结束的就会返回其 pid，等效于 <code>waitpid(-1, &amp;wstatus, 0)</code></li>
+</ul></li>
+</ul>
+<h4 id="section-5">(6)</h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv, <span class="keyword">char</span>** env)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> pid;</span><br><span class="line">    pid = fork();</span><br><span class="line">    <span class="keyword">if</span>(pid &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Fork Error!\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(pid == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// child</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;I&#x27;m child!\n&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// parent</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;wait&#x27;return pid: %d\n&quot;</span>, waitpid(<span class="number">-1</span>, <span class="literal">NULL</span>, <span class="number">0</span>));</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;child&#x27;s pid: %d\n&quot;</span>, pid);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;I&#x27;m father!\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>wait(NULL)</code> 等价于 <code>waitpid(-1, NULL, 0)</code></li>
+</ul>
+<h4 id="section-6">(7)</h4>
+<h4 id="section-7">(8)</h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>** argv, <span class="keyword">char</span>** env)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> pid;</span><br><span class="line">    <span class="keyword">int</span> pipe_fd[<span class="number">2</span>];</span><br><span class="line">    <span class="keyword">if</span>(pipe(pipe_fd) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Pipe Error!\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    pid = fork();</span><br><span class="line">    <span class="keyword">if</span>(pid &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Fork Error!\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(pid == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// child</span></span><br><span class="line">        dup2(pipe_fd[<span class="number">1</span>], STDOUT_FILENO);</span><br><span class="line">        close(pipe_fd[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;I&#x27;m child!\n&quot;</span>);</span><br><span class="line">        close(pipe_fd[<span class="number">1</span>]);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// parent</span></span><br><span class="line">        <span class="keyword">char</span>* msg = <span class="literal">NULL</span>; <span class="comment">// 系统帮助 malloc, 要求 len 设置为 0</span></span><br><span class="line">        <span class="keyword">size_t</span> len = <span class="number">0</span>;</span><br><span class="line">        dup2(pipe_fd[<span class="number">0</span>], STDIN_FILENO);</span><br><span class="line">        close(pipe_fd[<span class="number">1</span>]);</span><br><span class="line">        getline(&amp;msg, &amp;len, <span class="built_in">stdin</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;I&#x27;m father!\nmessage from child: %s\n&quot;</span>, msg);</span><br><span class="line">        close(pipe_fd[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">free</span>(msg);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>输出如下</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">I&#x27;m father!</span><br><span class="line">message from child: I&#x27;m child!</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OS/" rel="tag"># OS</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/26/OS/OSTEP/04/" rel="prev" title="OSTEP 阅读笔记(Ch04.进程)">
+                  <i class="fa fa-chevron-left"></i> OSTEP 阅读笔记(Ch04.进程)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/27/CG/YLQ-GAMES202/00/" rel="next" title="GAMES202.闫令琪.00.说明">
+                  GAMES202.闫令琪.00.说明 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+
+</body>
+</html>

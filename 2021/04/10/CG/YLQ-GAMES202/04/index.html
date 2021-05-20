@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="实时阴影、VSM&#x2F;VSSM(切比雪夫不等式估计)、MSM、SAT 数据结构、SDF(距离场)、DFSS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES202.闫令琪.04.实时阴影(2)">
+<meta property="og:url" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="实时阴影、VSM&#x2F;VSSM(切比雪夫不等式估计)、MSM、SAT 数据结构、SDF(距离场)、DFSS">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411002207326.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411002838515.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411004730398.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411005854571.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411010824972.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411011808699.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411012025564.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411012147457.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411012724712.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411013329525.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411142439398.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411143347944.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411144319279.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411144659961.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411145602479.png">
+<meta property="og:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411145813626.png">
+<meta property="article:published_time" content="2021-04-10T13:18:20.000Z">
+<meta property="article:modified_time" content="2021-04-11T07:18:51.250Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/image-20210411002207326.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES202.闫令琪.04.实时阴影(2) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E9%98%B4%E5%BD%B1"><span class="nav-text">实时阴影</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#pcfpcss"><span class="nav-text">PCF&#x2F;PCSS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E5%90%8E%E7%9A%84%E6%95%B0%E5%AD%A6"><span class="nav-text">背后的数学</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pcf"><span class="nav-text">PCF</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pcss"><span class="nav-text">PCSS</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pcss-%E7%9A%84%E6%AD%A5%E9%AA%A4"><span class="nav-text">PCSS 的步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%99%90%E9%80%9F%E6%AD%A5"><span class="nav-text">限速步</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vssm-vsm"><span class="nav-text">VSSM &#x2F; VSM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pcf-%E6%AD%A5%E9%AA%A4step-3"><span class="nav-text">PCF 步骤(Step 3)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#key-idea"><span class="nav-text">key idea</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9D%87%E5%80%BC"><span class="nav-text">均值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%96%B9%E5%B7%AE"><span class="nav-text">方差</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E7%99%BE%E5%88%86%E4%B9%8B%E5%87%A0"><span class="nav-text">计算百分之几</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%87%E6%AF%94%E9%9B%AA%E5%A4%AB%E4%B8%8D%E7%AD%89%E5%BC%8F%E4%BC%B0%E8%AE%A1"><span class="nav-text">切比雪夫不等式估计</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%84%E4%BB%B7"><span class="nav-text">评价</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E6%AD%A5%E7%9A%84%E9%97%AE%E9%A2%98step-1"><span class="nav-text">第一步的问题(Step 1)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E5%9F%BA%E7%A1%80%E9%87%8F"><span class="nav-text">定义基础量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#key-idea-1"><span class="nav-text">key idea</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vssm-%E6%95%88%E6%9E%9C"><span class="nav-text">VSSM 效果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%B0%E7%8A%B6"><span class="nav-text">现状</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mipmap-sat"><span class="nav-text">MipMap &#x2F; SAT</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#mipmap"><span class="nav-text">MipMap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sat"><span class="nav-text">SAT</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%80%E7%BB%B4%E6%95%B0%E7%BB%84"><span class="nav-text">一维数组</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%8C%E7%BB%B4%E6%95%B0%E7%BB%84"><span class="nav-text">二维数组</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#msm"><span class="nav-text">MSM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#vssm-%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">VSSM 的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8D%95%E5%B3%B0%E5%81%87%E8%AE%BE%E4%B8%8D%E5%87%86"><span class="nav-text">单峰假设不准</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%A5%E5%8F%97%E9%9D%A2%E4%B8%8D%E6%98%AF%E5%B9%B3%E9%9D%A2"><span class="nav-text">接受面不是平面</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%87%E6%AF%94%E9%9B%AA%E5%A4%AB%E4%B8%8D%E7%AD%89%E5%BC%8F%E9%97%AE%E9%A2%98"><span class="nav-text">切比雪夫不等式问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#msm-%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">MSM 解决的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%88%E6%9E%9C"><span class="nav-text">效果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dfss"><span class="nav-text">DFSS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#signed-distance-function"><span class="nav-text">(Signed) Distance Function</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%9D%E7%A6%BB%E5%9C%BA%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">距离场的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ray-marching"><span class="nav-text">ray marching</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E8%BD%AF%E9%98%B4%E5%BD%B1"><span class="nav-text">生成软阴影</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%9D%E7%A6%BB%E5%9C%BA%E7%9A%84%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-text">距离场的可视化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%9D%E7%A6%BB%E5%9C%BA%E5%81%9A%E8%BD%AF%E9%98%B4%E5%BD%B1%E7%9A%84%E8%AF%84%E4%BB%B7"><span class="nav-text">距离场做软阴影的评价</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-text">其他</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/10/CG/YLQ-GAMES202/04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES202.闫令琪.04.实时阴影(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-10 21:18:20" itemprop="dateCreated datePublished" datetime="2021-04-10T21:18:20+08:00">2021-04-10</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-11 15:18:51" itemprop="dateModified" datetime="2021-04-11T15:18:51+08:00">2021-04-11</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES202/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES202</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">实时阴影、VSM/VSSM(切比雪夫不等式估计)、MSM、SAT 数据结构、SDF(距离场)、DFSS</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
+</ul>
+<h1 id="实时阴影">实时阴影</h1>
+<h2 id="pcfpcss">PCF/PCSS</h2>
+<h3 id="背后的数学">背后的数学</h3>
+<h4 id="pcf">PCF</h4>
+<ul>
+<li>filter/convolution</li>
+<li>卷积</li>
+</ul>
+<p><span class="math display">\[
+[w\ast f](p)=\sum_{q\in \mathcal{N}(p)}w(p,q)f(q)
+\]</span></p>
+<h4 id="pcss">PCSS</h4>
+<p><span class="math display">\[
+V(x)=\sum_{q\in \mathcal{N}(p)}w(p,q)\cdot\chi^+[D_{SM}(q)-D_{scene}(x)]
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\chi^+(x)\)</span>
+<ul>
+<li><span class="math inline">\(1,x\ge0\)</span></li>
+<li><span class="math inline">\(0,x&lt;0\)</span></li>
+</ul></li>
+<li>PCF 并不是对 SM 进行模糊</li>
+</ul>
+<p><span class="math display">\[
+V(x)\ne\chi^+\{[w\ast D_{SM}](x)-D_{scene}(x)\}
+\]</span></p>
+<ul>
+<li>PCF 也不是在图像空间（结果图）上做 filter
+<ul>
+<li>二值的结果图（也就是经典 SM 做出来的阴影效果）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+V(x)\ne \sum_{y\in\mathcal{N}(x)}w(x,y)V(y)
+\]</span></p>
+<h3 id="pcss-的步骤">PCSS 的步骤</h3>
+<ul>
+<li>Step 1: Blocker search
+<ul>
+<li>在某个区域内计算平均遮挡深度</li>
+</ul></li>
+<li>Step 2: Penumbra estimation</li>
+<li>通过计算出来的平均遮挡深度来计算半影（penumbra）的大小</li>
+<li>Step 3: Percentage Closer Filtering
+<ul>
+<li>根据 Step 2 计算出来的大小进行 PCF</li>
+</ul></li>
+</ul>
+<h4 id="限速步">限速步</h4>
+<ul>
+<li>Step 1，Step 3
+<ul>
+<li>采样会比较慢</li>
+<li>Softer -&gt; larger filtering region -&gt; slower</li>
+</ul></li>
+<li>两种方式
+<ul>
+<li>对区域内的每一个像素采样</li>
+<li>对区域内的像素进行随机采样
+<ul>
+<li>稀疏采样会引起噪声</li>
+<li>处理噪声的方法：图像空间降噪，时间维度降噪
+<ul>
+<li>低通滤波回式低频噪声通过，帧间闪烁现象变成 boiling artifact（沸腾的现象）</li>
+</ul></li>
+<li>flicker：如果每一帧取得随机数不一样，会引起帧间闪烁的问题</li>
+</ul></li>
+</ul></li>
+<li>针对很慢的方法，提出了 Variance Shadow Mapping</li>
+</ul>
+<h2 id="vssm-vsm">VSSM / VSM</h2>
+<ul>
+<li>Variance Soft Shadow Mapping</li>
+<li>针对性地解决 PCSS 在第一步、第三步慢的问题</li>
+</ul>
+<h3 id="pcf-步骤step-3">PCF 步骤(Step 3)</h3>
+<ul>
+<li>假设均值滤波
+<ul>
+<li>等价于想要知道在指定范围内有百分之多少的 texel 是在 shading point 之前</li>
+<li>等价于在指定范围内找出有多少的 texel 深度值比 shading point 要小</li>
+<li>等价于想知道当前像素在指定范围内，深度排到第几（百分之几）</li>
+</ul></li>
+<li>如果知道指定区域的分布，那么就容易得到结果</li>
+<li>如果不需要那么准确，知道直方图也能得到结果</li>
+<li>假定是正态分布，也能得到结果（相对更加不准）</li>
+<li>怎么定义一个正态分布：均值、方差</li>
+</ul>
+<h4 id="key-idea">key idea</h4>
+<ul>
+<li>快速求出某个区域内的<strong>均值</strong>和<strong>方差</strong></li>
+<li>mean + variance</li>
+</ul>
+<h5 id="均值">均值</h5>
+<ul>
+<li>MipMap：不准确，只能求正方形</li>
+<li>Summed Area Tables（SAT）</li>
+</ul>
+<h5 id="方差">方差</h5>
+<p><span class="math display">\[
+Var(X)=E(X^2)-E^2(X)
+\]</span></p>
+<ul>
+<li>计算两个均值即可
+<ul>
+<li>存两张图</li>
+</ul></li>
+<li>怎么在 OpenGL 中实现
+<ul>
+<li>4 通道，一个通道存 <span class="math inline">\(SM\ (depth)\)</span>，一个通道保存 <span class="math inline">\(SM^2\ (depth^2)\)</span></li>
+</ul></li>
+</ul>
+<h5 id="计算百分之几">计算百分之几</h5>
+<ul>
+<li>CDF：求出阴影面积</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411002207326.png" style="zoom:70%;"></p>
+<ul>
+<li>具体实现求积分：<strong>打表</strong></li>
+<li>误差函数：error function</li>
+<li>c++ 中有函数 <code>erf()</code>
+<ul>
+<li>有数值解，没有解析解</li>
+</ul></li>
+</ul>
+<h5 id="切比雪夫不等式估计">切比雪夫不等式估计</h5>
+<ul>
+<li>Chebychev’s inequality</li>
+</ul>
+<p><span class="math display">\[
+P(x&gt;t)\le\dfrac{\sigma^2}{\sigma^2+(t-\mu^2)}
+\]</span></p>
+<ul>
+<li>背后假设是单峰的分布
+<ul>
+<li>具体得去看证明过程</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411002838515.png" style="zoom:50%;"></p>
+<ul>
+<li>我们在渲染中直接作为约等号（约等式）</li>
+<li>对于 <span class="math inline">\(t\ge\mu\)</span> 效果还是不错的
+<ul>
+<li>否则估计不准确</li>
+</ul></li>
+</ul>
+<h4 id="评价">评价</h4>
+<ul>
+<li>VSSM 在查询的时候是 O(1) 的（很快），但是在生成的时候需要有些开销</li>
+<li>生成 Mipmap 是硬件支持的，生成非常快</li>
+<li>生成 SAT 相对较慢</li>
+<li>现在解决了 PCSS 中的<strong>第三步</strong>的问题</li>
+</ul>
+<h3 id="第一步的问题step-1">第一步的问题(Step 1)</h3>
+<ul>
+<li>blocker search</li>
+<li>求出<strong>遮挡物</strong>的平均深度，而不是<strong>区域</strong>内的平均深度
+<ul>
+<li>区域内的平均深度是知道的</li>
+</ul></li>
+</ul>
+<h4 id="定义基础量">定义基础量</h4>
+<ul>
+<li>区域内的平均深度：<span class="math inline">\(z_{avg}\)</span></li>
+<li>blocker 的平均深度<span class="math inline">\((z&lt;t)\)</span>：<span class="math inline">\(avg.z_{ooc}\)</span>
+<ul>
+<li>待求的量</li>
+</ul></li>
+<li>non-blocker 的平均深度<span class="math inline">\((z&gt;t)\)</span>：<span class="math inline">\(avg.z_{unooc}\)</span></li>
+</ul>
+<h4 id="key-idea-1">key idea</h4>
+<ul>
+<li>满足如下的关系</li>
+</ul>
+<p><span class="math display">\[
+\dfrac{N_1}{N}z_{unooc}+\dfrac{N_2}{N}z_{ooc}=z_{avg}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\dfrac{N_1}{N}\)</span> 可以通过切比雪夫不等式估计</li>
+<li><span class="math inline">\(\dfrac{N_2}{N}=1-\dfrac{N_1}{N}\)</span></li>
+<li>假设 <span class="math inline">\(z_{unooc}=t\)</span>
+<ul>
+<li>非遮挡物的深度和当前的深度相似</li>
+<li><strong>基于绝大多数阴影的接收者是一个平面</strong>
+<ul>
+<li>这种假设还是有问题的
+<ul>
+<li>接受平面是曲面</li>
+<li>接受平面和光线平行</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><span class="math inline">\(z_{avg}\)</span> 可以通过范围查询得到</li>
+</ul>
+<h3 id="vssm-效果">VSSM 效果</h3>
+<ul>
+<li>https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch08.html</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411004730398.png"></p>
+<h3 id="现状">现状</h3>
+<ul>
+<li>人们会更多使用 PCSS 来做阴影</li>
+<li>人们对于噪声的容忍度很高
+<ul>
+<li>图像空间降噪做得很好</li>
+<li>尤其是结合时间维度之后</li>
+</ul></li>
+</ul>
+<h3 id="mipmap-sat">MipMap / SAT</h3>
+<ul>
+<li>快速范围查询</li>
+</ul>
+<h4 id="mipmap">MipMap</h4>
+<ul>
+<li>fast、approx、square</li>
+<li>涉及到插值
+<ul>
+<li>层内插值（线性插值）</li>
+<li>层间插值（三线性插值）</li>
+<li>插值会引发不准确</li>
+</ul></li>
+<li>正方形查询都会不准，对于矩形无法解决
+<ul>
+<li>各向异性过滤可以查询矩形</li>
+</ul></li>
+<li>在软阴影范围比较小的情况下还是表现不错的</li>
+</ul>
+<h4 id="sat">SAT</h4>
+<ul>
+<li>summed area table</li>
+<li>范围内元素平均和范围内元素综合是等价的（知道范围大小）</li>
+</ul>
+<h5 id="一维数组">一维数组</h5>
+<ul>
+<li><strong>前缀和</strong></li>
+<li>任意范围内的和可以通过两个前缀和相减得到</li>
+<li>前缀和可以通过动态规划方法很快得到 <span class="math inline">\(O(n)\)</span></li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411005854571.png" style="zoom:67%;"></p>
+<h5 id="二维数组">二维数组</h5>
+<ul>
+<li>忽略下图中的坐标系箭头，应该是左上角为原点才能和范围匹配</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411010824972.png" style="zoom:50%;"></p>
+<ul>
+<li>动态规划，<span class="math inline">\(dp[i][j]\)</span> 记录范围 <span class="math inline">\((0,0),(i,j)\)</span> 矩形内的面积</li>
+</ul>
+<p><span class="math display">\[
+S \left((a,b),(c,d)\right)=dp[c][d]-dp[c][b]-dp[a][d]+dp[a][b]
+\]</span></p>
+<ul>
+<li>建表
+<ul>
+<li>每行做一遍，每列做一遍</li>
+<li>复杂度 <span class="math inline">\(O(mn)\)</span>
+<ul>
+<li>并行 <span class="math inline">\(O(m+n)\)</span></li>
+</ul></li>
+</ul></li>
+<li>数值精度溢出问题：有可能（double 损失精度）</li>
+</ul>
+<h2 id="msm">MSM</h2>
+<ul>
+<li>Moment Shadow Mapping</li>
+</ul>
+<h3 id="vssm-的问题">VSSM 的问题</h3>
+<h4 id="单峰假设不准">单峰假设不准</h4>
+<ul>
+<li>正态分布的假设可能不成立</li>
+<li>带来的问题：计算出来的百分比不准确</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411011808699.png" style="zoom: 67%;"></p>
+<ul>
+<li>问题
+<ul>
+<li>偏黑：问题不大，结果可以忍受</li>
+<li>偏亮：问题很大（LIGHT LEAKING）</li>
+</ul></li>
+<li>下图表示偏亮</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411012025564.png" style="zoom:50%;"></p>
+<ul>
+<li>下图表示偏亮带来的问题
+<ul>
+<li>镂空车车底问题</li>
+<li>https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch08.html</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411012147457.png"></p>
+<h4 id="接受面不是平面">接受面不是平面</h4>
+<ul>
+<li>接收面不是平面导致假设出问题</li>
+</ul>
+<h4 id="切比雪夫不等式问题">切比雪夫不等式问题</h4>
+<ul>
+<li><span class="math inline">\(t\ge\mu\)</span></li>
+</ul>
+<h3 id="msm-解决的问题">MSM 解决的问题</h3>
+<ul>
+<li><strong>更精准的模拟分布</strong></li>
+<li>高阶矩（moment）描述分布
+<ul>
+<li>VSSM 只使用了 <span class="math inline">\(X,X^2\)</span></li>
+</ul></li>
+<li>保留更多阶的矩，描述的分布更准确
+<ul>
+<li>只给结论，过程复杂</li>
+<li>简单来说就是某种展开，保留更多的项，结果更加准确</li>
+</ul></li>
+<li>first <span class="math inline">\(m\)</span> orders of moments can represent a function with <span class="math inline">\(\dfrac{m}{2}\)</span> steps</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411012724712.png" style="zoom:50%;"></p>
+<ul>
+<li>通常而言，4 阶矩效果就很好了
+<ul>
+<li>越多，存储开销越大</li>
+<li>存储上工业界常用的方法：packing/unpacking
+<ul>
+<li>多个通道表示一个数</li>
+<li>一个数表示多个通道</li>
+<li>这样做的结果是不能<strong>直接</strong>插值的</li>
+</ul></li>
+</ul></li>
+<li>怎么通过这些高阶矩计算出需要的值
+<ul>
+<li>论文：[Peters et al., Moment Shadow Mapping]</li>
+</ul></li>
+</ul>
+<h3 id="效果">效果</h3>
+<ul>
+<li>解决了 light leaking 问题</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411013329525.png" style="zoom:50%;"></p>
+<h2 id="dfss">DFSS</h2>
+<ul>
+<li>Distance field soft shadows</li>
+<li>生成软阴影</li>
+</ul>
+<h3 id="signed-distance-function">(Signed) Distance Function</h3>
+<ul>
+<li>（有向）距离场</li>
+<li>At any point, giving the minimum distance (could be signed distance) to the closest location on an object</li>
+<li>对于任意一个点，定义到到物体表面的最近距离
+<ul>
+<li>可以带符号</li>
+<li>负号表示在物体内部</li>
+</ul></li>
+<li>SDF：Signed Distance Function</li>
+<li>GAMES101 中的例子：blend 一个边界
+<ul>
+<li>第一行是线性插值</li>
+<li>第二行是使用 SDF 进行插值</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411142439398.png" style="zoom:50%;"></p>
+<ul>
+<li>SDF 能在几何上产生非常好的过渡</li>
+<li>SDF 理论基础
+<ul>
+<li>最优传输理论（optimal transport）</li>
+<li>顾险峰</li>
+</ul></li>
+</ul>
+<h3 id="距离场的使用">距离场的使用</h3>
+<h4 id="ray-marching">ray marching</h4>
+<ul>
+<li>https://docs.unrealengine.com/en-US/BuildingWorlds/LightingAndShadows/MeshDistanceFields/index.html</li>
+<li>用于光线和物体求交</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411143347944.png"></p>
+<ul>
+<li>SDF 提供了一个<strong>安全距离</strong>
+<ul>
+<li>对于一个点 x，SDF(x) 表示在一个半径为 SDF(x) 的距离之内没有物体</li>
+<li>也就是说光线前进 SDF(x) 这么长的路程，一定不会打到物体上</li>
+</ul></li>
+<li>也就是说，光线每次前进 SDF 中记录的距离，优化求交过程</li>
+<li>SDF 的计算比较麻烦，存储开销很大</li>
+<li>运动物体（刚体）是可以使用 SDF 的
+<ul>
+<li>如果对每个模型计算了 SDF，求解整个场景的 SDF 只需要求每个模型 SDF 的<strong>最小值</strong>即可</li>
+<li>刚体运动的 SDF 比较好计算</li>
+</ul></li>
+<li>形变物体的 SDF 需要重新计算
+<ul>
+<li>比较麻烦</li>
+</ul></li>
+</ul>
+<h4 id="生成软阴影">生成软阴影</h4>
+<ul>
+<li>任意一点的 SDF 告诉了我们一个<strong>安全距离</strong>，等价于<strong>安全角度</strong></li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411144319279.png" style="zoom: 80%;"></p>
+<ul>
+<li>安全角度越小，意味着能够看到的东西越少
+<ul>
+<li>less visibility</li>
+</ul></li>
+<li>在 ray marching 的过程中，每一步都计算安全角度
+<ul>
+<li>最终的安全角度就是<strong>过程中最小的安全角度</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411144659961.png" style="zoom:50%;"></p>
+<ul>
+<li>怎么计算安全距离</li>
+</ul>
+<p><span class="math display">\[
+\arcsin\left\{\dfrac{SDF(p)}{||p-o||}\right\}
+\]</span></p>
+<ul>
+<li>更快的计算
+<ul>
+<li>一个近似，直接使用 <span class="math inline">\(\sin\)</span> 的结果也可以估计出阴影的大小</li>
+<li><span class="math inline">\(k\)</span> 的作用：控制 0,1 之间的过渡带范围，也就是阴影的软硬程度
+<ul>
+<li>larger k <span class="math inline">\(\leftrightarrow\)</span> earlier cutoff of penumbra <span class="math inline">\(\leftrightarrow\)</span> harder shadow</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\min\left\{\dfrac{k\cdot SDF(p)}{||p-o||},1.0\right\}
+\]</span></p>
+<ul>
+<li>安全角度的大小决定阴影的软硬程度</li>
+<li>效果</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411145602479.png" style="zoom:60%;"></p>
+<ul>
+<li>一个教程：https://zhuanlan.zhihu.com/p/94265891</li>
+</ul>
+<h3 id="距离场的可视化">距离场的可视化</h3>
+<ul>
+<li>很像是物体的描边</li>
+<li>https://docs.unrealengine.com/en-US/BuildingWorlds/LightingAndShadows/MeshDistanceFields/index.html</li>
+</ul>
+<p><img src="/2021/04/10/CG/YLQ-GAMES202/04/image-20210411145813626.png" style="zoom:50%;"></p>
+<h3 id="距离场做软阴影的评价">距离场做软阴影的评价</h3>
+<ul>
+<li>好处
+<ul>
+<li>快：在 ray marching 的同时计算出软阴影
+<ul>
+<li>生成 SDF 的过程相对耗时</li>
+</ul></li>
+<li>高质量</li>
+</ul></li>
+<li>问题
+<ul>
+<li>需要预先计算 SDF</li>
+<li>需要较大的存储（3D）
+<ul>
+<li>优化存储：八叉树、kd 树等</li>
+</ul></li>
+<li>artifacts</li>
+</ul></li>
+</ul>
+<h3 id="其他">其他</h3>
+<ul>
+<li>https://github.com/protectwise/troika/tree/master/packages/troika-three-text
+<ul>
+<li>利用距离场实现无限分辨率的字母</li>
+</ul></li>
+<li>SDF 生成的物体表面非常不好贴纹理，参数化表面很复杂</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/02/DB/CLJ/03-1/" rel="prev" title="数据库概论.陈立军.03.关系模型(2)">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.03.关系模型(2)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/11/CG/YLQ-GAMES202/05/" rel="next" title="GAMES202.闫令琪.05.实时环境光照(1)">
+                  GAMES202.闫令琪.05.实时环境光照(1) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>
