@@ -24711,4 +24711,958 @@ G(\bar{x})=\dfrac{1}{|L_x\times L_y|}
         <tag>DB</tag>
       </tags>
   </entry>
+  <entry>
+    <title>GAMES202.闫令琪.11.基于物理的材质与非真实感渲染</title>
+    <url>/2021/05/22/CG/YLQ-GAMES202/11/</url>
+    <content><![CDATA[<ul>
+<li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
+</ul>
+<h1 id="基于物理的材质">基于物理的材质</h1>
+<ul>
+<li>Shading Microfacet Models using Linearly Transformed Cosines (LTC)</li>
+<li>使用 LTC 方法对微表面模型进行着色</li>
+<li>LTC 方法可以用于简单反射叶（lobe）模型的着色
+<ul>
+<li>lobe：固定入射方向的反射叶，2D sliced BRDF</li>
+</ul></li>
+</ul>
+<h2 id="ltc">LTC</h2>
+<ul>
+<li>Linearly Transformed Cosines</li>
+<li>线性变换的余弦</li>
+<li>主要针对的是 GGX 法线分布的模型（其他的模型也 OK）</li>
+<li>不考虑 shadow</li>
+<li>解决的是微表面模型下，<strong>多边形光源</strong>的 shading
+<ul>
+<li>the split sum 做的是环境光下的 shading，和 LTC 不一样</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522153653136.png" style="zoom:50%;"></p>
+<ul>
+<li>如果没有 LTC 方法的话，如何做多边形光源下的 shading
+<ul>
+<li>需要做采样</li>
+<li>在多边形的光源上取很多采样点</li>
+<li>然后将这些采样点和 shading point 连线，求出 shading</li>
+</ul></li>
+<li><strong>LTC 不需要采样</strong></li>
+</ul>
+<h3 id="ltc-的关键想法">LTC 的关键想法</h3>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522161357852.png" style="zoom: 67%;"></p>
+<ul>
+<li>lobe 可以通过某种线性变换，变换成一个余弦函数</li>
+<li>多边形的光源也可以有类似的变换
+<ul>
+<li>例如上面的四边形，对四个顶点进行变换</li>
+<li>然后用变换后的结果进行 shading</li>
+</ul></li>
+<li>原来做渲染方程的积分不好做，但是经过上面的变换之后是<strong>有解析解</strong>的
+<ul>
+<li>将任意的 lobe 在任意的多边形光源下的积分问题转变为固定的 cosine 下对任意的多边形光源下进行积分的问题</li>
+<li>假设多边形内部是均匀的，任意的点对 shading point 的 radiance 都是相同的</li>
+</ul></li>
+</ul>
+<h3 id="具体的操作">具体的操作</h3>
+<ul>
+<li>我们观察到 2D 的 BRDF lobe 可以变幻成一个余弦
+<ul>
+<li><span class="math inline">\(\mathrm{BRDF\;lobe}{\buildrel{M^{-1}}\over\longrightarrow}\mathrm{Cosine}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522162225689.png" style="zoom:67%;"></p>
+<ul>
+<li>我们需要对所有的方向进行一个变换
+<ul>
+<li><span class="math inline">\(\omega_i{\buildrel{M^{-1}}\over\longrightarrow}\omega_i&#39;\)</span></li>
+</ul></li>
+<li>积分域发生变化
+<ul>
+<li><span class="math inline">\(P{\buildrel{M^{-1}}\over\longrightarrow}P&#39;\)</span></li>
+</ul></li>
+<li>结果如下</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522162343163.png" style="zoom:67%;"></p>
+<h3 id="ltc-的推导">LTC 的推导</h3>
+<ul>
+<li>我们所做的事情就是变换积分变量</li>
+<li>我们在这里假设，多边形光源的 radiance 是相同（uniform）的（<span class="math inline">\(L_i\)</span> 相同）
+<ul>
+<li>论文中可以通过其他的方法去掉这个假设</li>
+</ul></li>
+<li>新的方向经过 <span class="math inline">\(M\)</span> 变换，可以变成原来的方向
+<ul>
+<li>注意我们上面用的符号是 <span class="math inline">\(M^{-1}\)</span></li>
+<li><span class="math inline">\(w_i=\dfrac{M\omega_i&#39;}{\Vert M\omega_i&#39;\Vert}\)</span></li>
+<li>归一化的原因是，单元球上的点我们的变换操作可能不在单位球上（长度发生变化）</li>
+</ul></li>
+<li>渲染方程的变化
+<ul>
+<li><span class="math inline">\(F\)</span> 变换到 Cosine 上
+<ul>
+<li>具体怎么变换，在 Paper 中作了很多预计算</li>
+<li>通过优化方法计算</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+L(\omega_o)&amp;=L_i\cdot\int_PF(\omega_i)\;\mathrm{d}\omega_i\\
+&amp;=L_i\cdot\int_{P&#39;}\cos(\omega_i&#39;)\;\mathrm{d}\dfrac{M\omega_i&#39;}{\Vert M\omega_i&#39;\Vert}\\
+&amp;=L_i\cdot\int_{P&#39;}\cos(\omega_i&#39;)J\;\mathrm{d}\omega_i&#39;\\
+\end{aligned}
+\]</span></p>
+<h3 id="ltc-渲染结果">LTC 渲染结果</h3>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522164229335.png"></p>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522164237490.png" style="zoom: 67%;"></p>
+<h3 id="ltc-总结">LTC 总结</h3>
+<ul>
+<li>shadow 的问题
+<ul>
+<li>可以先做 LTC，再通过其他方法计算 shadow</li>
+</ul></li>
+<li>如果多边形光源不是 uniform 的，比如光源带纹理
+<ul>
+<li>这样 LTC 就不准确，但是也是一个好的近似</li>
+</ul></li>
+<li>各向异性的表面能不能变换到 Cosine
+<ul>
+<li>是可以的，入射方向确定之后，出射方向就是一个 lobe</li>
+</ul></li>
+</ul>
+<h2 id="disneys-principled-brdf">Disney’s Principled BRDF</h2>
+<ul>
+<li>Disney 原则的 BRDF</li>
+</ul>
+<h3 id="动机-motivation">动机 Motivation</h3>
+<ul>
+<li>微表面模型对于真实的材质表示的不是很好
+<ul>
+<li>例如 diffuse 项缺失
+<ul>
+<li>虽然我们可以通过某些方法可以补上，但是还是存在一些其他问题</li>
+</ul></li>
+<li>微表面模型 fit 不了我们一些实测的材质
+<ul>
+<li>例子：刷了清漆的桌子
+<ul>
+<li>高光+diffuse</li>
+<li>高光：清漆上的反射</li>
+<li>diffuse：进入清漆之后打到木板上的反射</li>
+<li>微表面模型模拟不了</li>
+</ul></li>
+<li>多层材质</li>
+</ul></li>
+<li>微表面模型表示不了所有的东西</li>
+</ul></li>
+<li>微表面模型不好用，对于艺术家们来说不友好
+<ul>
+<li>例如金属的折射率是一个复数：<span class="math inline">\(n-ik\)</span>，可能不好理解，不好调</li>
+</ul></li>
+</ul>
+<h3 id="设计目标">设计目标</h3>
+<ul>
+<li>Art directable，使用起来比较友好</li>
+<li>物理上并不是很准确，只是在一定程度上保证正确</li>
+<li>在实时渲染中，PBR 做了很多近似，因此还是认为这种方法是 PBR 的</li>
+</ul>
+<h3 id="一些设计原则">一些设计原则</h3>
+<ul>
+<li>Intuitive rather than physical parameters should be used.
+<ul>
+<li>使用的参数需要更直观一点，而不是生硬的物理参数</li>
+</ul></li>
+<li>There should be as few parameters as possible.
+<ul>
+<li>参数越少越好（调起来方便）</li>
+</ul></li>
+<li>Parameters should be zero to one over their plausible range.
+<ul>
+<li>参数设置为 0-1 的拖动条</li>
+</ul></li>
+<li>Parameters should be allowed to be pushed beyond their plausible range where it makes sense.
+<ul>
+<li>有时候允许结果超出原始的范围（营造特殊的效果）</li>
+</ul></li>
+<li>All combinations of parameters should be as robust and plausible as possible.
+<ul>
+<li>所有组合应该都是可以的（不会导致程序崩溃）</li>
+</ul></li>
+</ul>
+<h3 id="一个例子">一个例子</h3>
+<ul>
+<li>某些参数及其效果
+<ul>
+<li>表示能力很强大</li>
+<li>参数可能有冗余</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522171008715.png"></p>
+<ul>
+<li>subsurface：次表面散射
+<ul>
+<li>用来描述光线穿过透明/半透明表面时发生散射的照明现象，是指光从表面进入物体经过内部散射，然后又通过物体表面的其他顶点出射的光线传递过程</li>
+<li>效果：比 diffuse 还要平的效果（求被按扁了的效果）</li>
+</ul></li>
+<li>metallic：金属性</li>
+<li>specular：镜面反射的强度</li>
+<li>specular Tint：镜面反射的颜色更偏向于白色（0）还是物体本身的颜色</li>
+<li>roughness：粗糙程度</li>
+<li>anisotropic：各向异性程度</li>
+<li>sheen：天鹅绒的效果
+<ul>
+<li>沿着法线长了很多绒毛，在 grazing angle 看过去会有一种雾化的效果</li>
+</ul></li>
+<li>sheen Tint：sheen 的颜色是偏白还是物体本身的颜色</li>
+<li>clearcoat：木板上刷一层清漆的效果</li>
+<li>clearcoat Gloss：清漆的光滑程度（粗糙程度反一下）</li>
+</ul>
+<h3 id="pros-and-cons">Pros and Cons</h3>
+<ul>
+<li>容易理解和使用</li>
+<li>表示能力很强大</li>
+<li>实现是开源的，很多实现是对基于物理材质的近似</li>
+<li>不是基于物理的
+<ul>
+<li>牺牲了物理上的准确性</li>
+<li>学术界和工业界的不同</li>
+</ul></li>
+<li>参数空间很大
+<ul>
+<li>表示能力很强</li>
+<li>可能有冗余</li>
+<li>难以学习和训练</li>
+</ul></li>
+<li>模型本身是拟合能量守恒的</li>
+</ul>
+<h1 id="npr">NPR</h1>
+<ul>
+<li>非真实感渲染</li>
+<li>Non-Photorealistic Rendering (NPR)</li>
+<li>实时渲染中
+<ul>
+<li>NPR == fast and reliable stylization</li>
+<li>这也是神经网络不能够应用于 NPR 中的原因，可能不满足其中的某个因素</li>
+</ul></li>
+</ul>
+<h2 id="photorealistic-rendering">Photorealistic Rendering</h2>
+<ul>
+<li>照片级真实感渲染</li>
+<li>正确的阴影、光照、几何、材质</li>
+<li>目标是渲染出更加真实的图片，达到照片级的效果</li>
+<li>左右，一半是渲染，一半是真实
+<ul>
+<li>原作者记不清了，没有参考答案</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522174304452.png" style="zoom:50%;"></p>
+<h2 id="npr-目标">NPR 目标</h2>
+<ul>
+<li>目标是营造一种艺术效果</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522174600616.png" style="zoom:60%;"></p>
+<h2 id="npr-的思路">NPR 的思路</h2>
+<ul>
+<li>从真实感渲染出发，将某些部分简化，将某些重要的部分加强
+<ul>
+<li>Starts from photorealistic rendering</li>
+<li>Exploits abstraction</li>
+<li>Strengthens important parts</li>
+</ul></li>
+</ul>
+<h2 id="npr-的应用">NPR 的应用</h2>
+<ul>
+<li>art、visualization、instruction、education、entertainment</li>
+<li>艺术、可视化、说明书、教育（小孩子绘画）、娱乐</li>
+<li>说明书中非真实的图片可能更能够说明问题</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522174952337.png"></p>
+<ul>
+<li>游戏应用
+<ul>
+<li>[Atelier Ryza 2: Lost Legends &amp; the Secret Fairy]</li>
+</ul></li>
+<li>动漫
+<ul>
+<li>[Attack on Titan, Season 4]</li>
+<li>虽然是 NPR，同时保留了很多真实感渲染的部分</li>
+</ul></li>
+</ul>
+<h2 id="哪些地方需要做风格化">哪些地方需要做风格化</h2>
+<ul>
+<li>[Xenoblade Chronicles 2]
+<ul>
+<li>焰、光</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522175250659.png" style="zoom:50%;"></p>
+<ul>
+<li>Borderlands 3</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522175412405.png" style="zoom: 70%;"></p>
+<ul>
+<li>描边：Bold contours（outlines）</li>
+<li>色块：Blocks of colors</li>
+<li>素描的效果：Strokes on surfaces</li>
+</ul>
+<h3 id="outline-rendering">Outline Rendering</h3>
+<h4 id="什么是边">什么是边</h4>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522175622716.png" style="zoom:50%;"></p>
+<ul>
+<li>outlines 不仅仅是 contours
+<ul>
+<li>[B]oundary / border edge：边界</li>
+<li>[C]rease：折痕</li>
+<li>[M]aterial edge：材质的连接</li>
+<li>[S]ilhouette edge：轮廓
+<ul>
+<li>在物体的外面一圈的轮廓上（2D 最外边的轮廓）</li>
+<li>得是多个面共享的边界</li>
+<li>S 是 C 的子集</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="描边的思路">描边的思路</h4>
+<ul>
+<li>shading 方法来做</li>
+<li>修改几何</li>
+<li>后期图像处理</li>
+</ul>
+<h4 id="shading-方法描边">Shading 方法描边</h4>
+<ul>
+<li>只能做 silhouette 的边</li>
+<li>对于封闭的物体，什么样的边是 silhouette 边呢？
+<ul>
+<li><strong>观察的方向和法线几乎垂直的边</strong></li>
+<li>grazing angle</li>
+</ul></li>
+<li>渲染的时候可以为夹角设置一个阈值 threshold
+<ul>
+<li>域值越小，被认为是边缘的点越多，最终形成的边缘越粗</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522202842564.png" style="zoom: 33%;"></p>
+<ul>
+<li>step：硬边界</li>
+<li>smooth step：过渡的效果</li>
+</ul>
+<h5 id="问题">问题</h5>
+<ul>
+<li>不同位置的边的粗细不一致
+<ul>
+<li>法线变换比较平滑的地方，边比较粗</li>
+</ul></li>
+</ul>
+<h4 id="geometry-方法描边">Geometry 方法描边</h4>
+<ul>
+<li>Backface fattening</li>
+<li>把所有的背向面扩大一圈渲染成黑的，正向面正常渲染</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203233929.png" style="zoom:50%;"></p>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203244568.png" style="zoom:50%;"></p>
+<h4 id="image-方法描边">Image 方法描边</h4>
+<ul>
+<li>后期图像处理</li>
+<li>Edge detection（边缘检测）
+<ul>
+<li>Sobel detector</li>
+</ul></li>
+<li>锐化操作：边界增强，找到边界，加回到原来的图上</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203533535.png" style="zoom:50%;"></p>
+<ul>
+<li>可以通过其他辅助图像找到边界
+<ul>
+<li>法线、深度图</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203740986.png" style="zoom: 33%;"></p>
+<h3 id="color-blocks">Color blocks</h3>
+<ul>
+<li>色块效果</li>
+<li>下图：glossy、diffuse、color block</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203921025.png" style="zoom:50%;"></p>
+<ul>
+<li>实现方法
+<ul>
+<li>Hard shading：thresholding on shading
+<ul>
+<li>正常计算 shading，对计算出来的结果进行一个阈值化</li>
+</ul></li>
+<li>Posterization：thresholding on final image color
+<ul>
+<li>在最终的图片上进行阈值化</li>
+</ul></li>
+</ul></li>
+<li>阈值化可以是多值化，也可以是二值化
+<ul>
+<li>Quantization（量化）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522204142321.png" style="zoom:80%;"></p>
+<ul>
+<li>在不同的部分（specular、diffuse）上使用不同的阈值化方法</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522204304560.png" style="zoom:67%;"></p>
+<h3 id="strokes-surface-stylization">Strokes Surface Stylization</h3>
+<ul>
+<li>素描的效果</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522212218788.png" style="zoom:50%;"></p>
+<ul>
+<li>什么是素描的效果？
+<ul>
+<li>打格子</li>
+<li>密度：使用<strong>格子的密度</strong>表示<strong>明暗效果</strong></li>
+<li>连续性：使用纹理代替点的计算，保证笔触的连续性</li>
+</ul></li>
+<li>设计几种不同密度的纹理
+<ul>
+<li>我们希望在远处，不会变得越来越暗，导致全黑</li>
+<li>我们自己做一个 Mipmap，缩小之后不改变密度（相当于截取一部分）</li>
+</ul></li>
+<li>Tonal art maps (TAMs)
+<ul>
+<li>Strokes of different densities</li>
+<li>Each density has a MIPMAP</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522212429396.png" style="zoom:50%;"></p>
+<ul>
+<li>一些其他方法</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522212758582.png" style="zoom:67%;"></p>
+<h2 id="npr-总结">NPR 总结</h2>
+<ul>
+<li>NPR is art driven</li>
+<li>怎么把艺术家的需求转化为具体的渲染实现才是有趣/有挑战的</li>
+<li>多和艺术家交流</li>
+<li>NPR 很多时候是 if...else...
+<ul>
+<li>每个场景</li>
+<li>每个部分</li>
+</ul></li>
+<li>NPR 做的好与不好，很大程度上取决于原来的 photorealistic rendering 做的好坏
+<ul>
+<li>Photorealistic models are super important in NPR</li>
+<li>艺术是真实的抽象</li>
+<li>NPR 与 PR 不能被分开来看待</li>
+</ul></li>
+<li>例如：布料（cloth）</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522213943708.png" style="zoom:70%;"></p>
+]]></content>
+      <categories>
+        <category>CG.GAMES202</category>
+      </categories>
+      <tags>
+        <tag>CG</tag>
+        <tag>YLQ</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据库概论.陈立军.06.事务</title>
+    <url>/2021/05/21/DB/CLJ/06/</url>
+    <content><![CDATA[<h1 id="事务">事务</h1>
+<h2 id="事务概念">事务概念</h2>
+<ul>
+<li>transaction（交易）</li>
+<li>交易的核心：<strong>完整性</strong></li>
+<li>Jim Gray：在事务处理方面做出巨大的贡献
+<ul>
+<li>书籍：transaction processing: concept and techniques</li>
+</ul></li>
+<li>commitment
+<ul>
+<li>事务包含了很多操作，commitment 指把所有的操作完整的提交到数据库上</li>
+<li>It's like bacon and eggs. The chicken participants. The pig commited.</li>
+</ul></li>
+<li><strong>一致性条件</strong>
+<ul>
+<li>银行转账，两个账户的总和在转账前后保持不变</li>
+<li>存在两个操作，转出账户余额减去转账金额，转入账户余额加上转账金额
+<ul>
+<li><strong>必须保证这组操作的整体性</strong></li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="事务定义">事务定义</h3>
+<ul>
+<li>事务是由一系列操作序列构成的执行单元，这些操作<strong>要么都做，要么都不做</strong>，是一个<strong>不可分割</strong>的工作单位</li>
+<li><span class="math inline">\({\color{red}\mathrm{All\;or\;None}}\)</span></li>
+</ul>
+<h3 id="事务中的数据访问原语">事务中的数据访问原语</h3>
+<ul>
+<li>read(X)：从数据库传送数据项 X 到事务的工作区中
+<ul>
+<li><strong>从数据缓冲区读出来</strong></li>
+</ul></li>
+<li>write(X)：从事务的工作区中将数据项 X 写回数据库</li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210521223649619.png" style="zoom:50%;"></p>
+<h4 id="转账事务的原语表达">转账事务的原语表达</h4>
+<ul>
+<li>事务 T 从 A 帐户过户 50 到 B 帐户</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;read(A);\\
+&amp;A := A –50;\\
+&amp;write(A);\\
+&amp;read(B);\\
+&amp;B := B + 50;\\
+&amp;write(B);\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>电子商务：<strong>事务是现代信息系统的基石</strong></li>
+</ul>
+<h3 id="sql中事务的定义">SQL中事务的定义</h3>
+<ul>
+<li>事务以 Begin transaction 开始，以 Commit transaction 或 Rollback transaction 结束
+<ul>
+<li>Commit transaction 表示<strong>提交</strong>，<strong>事务正常结束</strong></li>
+<li>Rollback transaction 表示事务非正常结束，<strong>撤消事务已做的操作</strong>，回滚到事务开始时状态</li>
+</ul></li>
+<li>具体的结束方式，通过加入某些条件判断</li>
+<li>terminate 与 abort
+<ul>
+<li>Terminate：终止（中性）</li>
+<li>Abort：中止（失败，需要 rollback）</li>
+</ul></li>
+</ul>
+<h3 id="事务执行模式">事务执行模式</h3>
+<h4 id="显式事务">显式事务</h4>
+<ul>
+<li>以 begin transaction 开始，以 commit 或 rollback 结束</li>
+</ul>
+<h4 id="隐含事务">隐含事务</h4>
+<ul>
+<li>事务自动开始，直到遇到 commit 或 rollback 时结束</li>
+<li>set implicit_transactions{ ON | OFF }</li>
+</ul>
+<h4 id="自动事务">自动事务</h4>
+<ul>
+<li>每个数据操作语句作为一个事务</li>
+<li>update SC set GRADE = GRADE+15</li>
+</ul>
+<h3 id="事务中的错误检查">事务中的错误检查</h3>
+<ul>
+<li>GRADE 约束小于等于100，现在数据库中有两个 GRADE (80, 90)</li>
+<li>事务 <code>update SC set GRADE = GRADE+15</code> 操作的结果
+<ul>
+<li>(80,90)，事务出错，整个回滚</li>
+</ul></li>
+<li>如下事务操作的结果
+<ul>
+<li>(85, 95)
+<ul>
+<li>不做设置的前提下，会将第一个操作提交</li>
+</ul></li>
+<li>设置 <code>set XACT_ABORT ON</code> 之后结果为 (80,90)</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Begin</span> tran</span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">5</span></span><br><span class="line"><span class="comment">--没有违反 grade&lt;=100 约束</span></span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">20</span></span><br><span class="line"><span class="comment">--违反了 grade&lt;=100 约束</span></span><br><span class="line"><span class="keyword">Commit</span> tran</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如下事务操作的结果
+<ul>
+<li>(80, 90)</li>
+<li>rollback 把整个事务回滚</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Begin</span> tran</span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">5</span></span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">20</span></span><br><span class="line">If @<span class="variable">@error</span><span class="operator">&lt;&gt;</span><span class="number">0</span> <span class="comment">-- 全局变量, 上一行语句操作设置</span></span><br><span class="line">    <span class="keyword">rollback</span> tran</span><br><span class="line"><span class="keyword">Commit</span> tran</span><br></pre></td></tr></table></figure>
+<h3 id="事务基本特性acid">事务基本特性ACID</h3>
+<ul>
+<li><span class="math inline">\(\mathrm{ACID:Atomicity\;Consistency\;Isolation\;Durability}\)</span></li>
+</ul>
+<h4 id="原子性atomicity">原子性(Atomicity)</h4>
+<ul>
+<li>事务中包含的所有操作要么全做，要么全不做</li>
+<li>原子性由<strong>恢复机制</strong>实现
+<ul>
+<li>通过<strong>日志</strong>进行恢复</li>
+</ul></li>
+</ul>
+<h4 id="一致性consistency">一致性(Consistency)</h4>
+<ul>
+<li>事务的隔离执行必须保证数据库的一致性</li>
+<li>事务开始前，数据库处于一致性的状态；事务结束后，数据库必须仍处于一致性状态</li>
+<li><strong>数据库的一致性状态由用户来负责</strong></li>
+<li>如银行转帐，转帐前后两个帐户金额之和应保持不变
+<ul>
+<li>意大利香肠术，Salami technique</li>
+<li>偷小钱的盗窃术被称为意大利香肠术（意大利香肠切得很薄，偷一片看不出来）</li>
+</ul></li>
+</ul>
+<h4 id="隔离性isolation">隔离性(Isolation)</h4>
+<ul>
+<li>系统必须保证事务不受其它并发执行事务的影响</li>
+<li>对任何一对事务 T1，T2，在 T1 看来，T2 要么在 T1 开始之前已经结束，要么在 T1 完成之后再开始执行
+<ul>
+<li><strong>等价于串行执行的效果</strong></li>
+</ul></li>
+<li>隔离性通过<strong>并发控制机制</strong>实现</li>
+</ul>
+<h4 id="持久性durability">持久性(Durability)</h4>
+<ul>
+<li>一个事务一旦提交之后，它对数据库的影响必须是永久的</li>
+<li>系统发生故障不能改变事务的持久性
+<ul>
+<li>系统的<strong>抗故障能力</strong></li>
+<li>大企业的数据，备份，多个物理实体（物理上相隔较远，避免自然灾害的影响）</li>
+</ul></li>
+<li>持久性通过<strong>恢复机制</strong>实现</li>
+<li>持久性：将来总能够再现这个事务</li>
+</ul>
+<h3 id="事务生命周期图">事务生命周期图</h3>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210521234852488.png" style="zoom:50%;"></p>
+<ul>
+<li>部分提交状态：事务的所有操作都做完了</li>
+<li>一个事务的所有操作都做完了，并不意味着一定能成功提交，因为要保证持久性
+<ul>
+<li>数据库在做完事务的所有操作之后，在向程序客户端发送成功消息之前，<strong>把这个事务对应的<span style="color:red">日志记录</span>从内存写入磁盘</strong></li>
+<li>如果系统崩溃，内存中的数据丢失了，可以从日志记录恢复数据</li>
+</ul></li>
+</ul>
+<h2 id="事务调度">事务调度</h2>
+<ul>
+<li><strong>事务的执行顺序</strong>称为一个调度，表示事务的指令在系统中<strong>执行的时间顺序</strong></li>
+<li>一组事务的调度必须保证
+<ul>
+<li>包含了<strong>所有事务</strong>的操作指令</li>
+<li><strong>一个事务中指令的顺序必须保持不变</strong></li>
+</ul></li>
+</ul>
+<h3 id="事务调度例子">事务调度例子</h3>
+<ul>
+<li><span class="math inline">\(T_1:i_{11},i_{12},T_2:i_{21},i_{22}\)</span>
+<ul>
+<li><span class="math inline">\(S_1:i_{11},i_{12},i_{21}\)</span></li>
+<li><span class="math inline">\(S_2:i_{11},i_{22},i_{12},i_{21}\)</span></li>
+<li><span class="math inline">\(S_2:i_{11},i_{21},i_{12},i_{22}\)</span></li>
+</ul></li>
+<li><span class="math inline">\(S_1,S_2\)</span> 不是一个调度，<span class="math inline">\(S_3\)</span> 是一个调度</li>
+</ul>
+<h3 id="并行与串行">并行与串行</h3>
+<h4 id="串行调度">串行调度</h4>
+<ul>
+<li>在串行调度中，属于同一事务的指令紧挨在一起</li>
+<li>串行调度总是正确的</li>
+<li>对于有 <span class="math inline">\(n\)</span>个事务的事务组，可以有 <span class="math inline">\(n!\)</span> 个有效调度</li>
+</ul>
+<h4 id="并行调度">并行调度</h4>
+<ul>
+<li>在并行调度中，来自不同事务的指令可以交叉执行</li>
+<li><strong>当并行调度等价于某个串行调度时，则称它是正确的</strong></li>
+<li><span class="math inline">\(n\)</span> 个事务，<span class="math inline">\(t_i\)</span> 有 <span class="math inline">\(k_i\)</span> 条指令，则可能的并发调度有多少个
+<ul>
+<li><span class="math inline">\(\dfrac{(\sum k_i)!}{\prod(k_i!)}\)</span></li>
+<li>事务内有序</li>
+</ul></li>
+</ul>
+<h4 id="并行和串行的比较">并行和串行的比较</h4>
+<h5 id="基本比较">基本比较</h5>
+<ul>
+<li>并行事务有可能破坏数据库的一致性</li>
+<li>串行事务效率低</li>
+</ul>
+<h5 id="并行的优点">并行的优点</h5>
+<ul>
+<li>一个事务由不同的步骤组成，所涉及的系统资源也不同。这些步骤可以并发执行，<strong>提高系统的吞吐量</strong></li>
+<li>系统中存在着周期不等的各种事务，串行会导致难于预测的时延。如果各个事务所涉及的是数据库的不同部分，采用并发会<strong>减少平均响应时间</strong></li>
+</ul>
+<h3 id="事务调度例子-1">事务调度例子</h3>
+<ul>
+<li>两个转账事务
+<ul>
+<li><span class="math inline">\(T_1\)</span>：从 A 过户 50 到 B</li>
+<li><span class="math inline">\(T_2\)</span>：从 A 过户存款的 10% 到 B</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;T1\\
+&amp;read(A);\\
+&amp;A := A −50;\\
+&amp;write(A);\\
+&amp;read(B);\\
+&amp;B := B + 50;\\
+&amp;write(B);\\\\
+&amp;T2\\
+&amp;read(A);\\
+&amp;temp := A*0.1;\\
+&amp;A := A −temp;\\
+&amp;write(A);\\
+&amp;read(B);\\
+&amp;B := B + temp;\\
+&amp;write(B);\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>开始状态：A=1000，B=2000，A+B=3000</li>
+</ul>
+<h4 id="串行调度1">串行调度1</h4>
+<ul>
+<li><span class="math inline">\(T_1,T_2\)</span></li>
+<li>结束状态：A=855，B=2145，A+B=3000</li>
+</ul>
+<h4 id="串行调度2">串行调度2</h4>
+<ul>
+<li><span class="math inline">\(T_2,T_1\)</span></li>
+<li>结束状态：A=850，B=2150，A+B=3000</li>
+<li>串行调度可能会有不同的结果，但是都满足一致性，都是正确的</li>
+</ul>
+<h4 id="并行调度1">并行调度1</h4>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;T1:\;read(A);\\
+&amp;T1:\;A := A −50;\\
+&amp;T1:\;write(A);\\
+&amp;T2:\;read(A);\\
+&amp;T2:\;temp := A*0.1;\\
+&amp;T2:\;A := A −temp;\\
+&amp;T2:\;write(A);\\
+&amp;T1:\;read(B);\\
+&amp;T1:\;B := B + 50;\\
+&amp;T1:\;write(B);\\
+&amp;T2:\;read(B);\\
+&amp;T2:\;B := B + temp;\\
+&amp;T2:\;write(B);\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>需要保证操作 4 在操作 3 之后，否则是错误的</li>
+<li>结束状态：A=855，B=2145，A+B=3000</li>
+<li>等价于串行调度 <span class="math inline">\(T_1,T_2\)</span></li>
+</ul>
+<h4 id="并行调度2">并行调度2</h4>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;T1:\;read(A);\\
+&amp;T1:\;A := A −50;\\
+&amp;T2:\;read(A);\\
+&amp;T1:\;write(A);\\
+&amp;T2:\;temp := A*0.1;\\
+&amp;T2:\;A := A −temp;\\
+&amp;T2:\;write(A);\\
+&amp;T1:\;read(B);\\
+&amp;T1:\;B := B + 50;\\
+&amp;T1:\;write(B);\\
+&amp;T2:\;read(B);\\
+&amp;T2:\;B := B + temp;\\
+&amp;T2:\;write(B);\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>错误的</li>
+<li>结束状态：A=900，B=2150，A+B=3050</li>
+</ul>
+<h3 id="可恢复调度">可恢复调度</h3>
+<ul>
+<li>事务的恢复
+<ul>
+<li>一个事务失败了，应该能够撤消该事务对数据库的影响</li>
+<li>如果有其它事务读取了失败事务写入的数据，则该事务应该撤消</li>
+</ul></li>
+<li>一个不可恢复调度的例子</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">T1</th>
+<th style="text-align: center;">T2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">read(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">write(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">read(A)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">commit</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">read(B)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">rollback</td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>回滚 T1 的时候，T2 已经提交了，如果 T2 被撤销了，那么就违反了事务的持久性
+<ul>
+<li>在真实场景中， 会向 T2 发起一个<strong>补偿事务</strong></li>
+</ul></li>
+</ul>
+<h4 id="可恢复调度定义">可恢复调度定义</h4>
+<ul>
+<li>对于每对事务 T1 与 T2，如果 T2 读取了 T1 所写的数据，则 T1 必须先于 T2 提交</li>
+</ul>
+<h3 id="无级联调度">无级联调度</h3>
+<ul>
+<li>级联调度
+<ul>
+<li>由于一个事务故障而导致一系列事务回滚</li>
+</ul></li>
+<li>级联调度例子</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">T1</th>
+<th style="text-align: center;">T2</th>
+<th style="text-align: center;">T3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">read(A)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">read(B)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">write(B)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">read(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">write(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">read(A)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">rollback</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<h4 id="无级联调度定义">无级联调度定义</h4>
+<ul>
+<li>对于每对事务 T1 与 T2，如果 T2 读取了 T1 所写的数据，则 T1 必须在 <strong>T2 读取</strong>之前提交</li>
+<li><strong>无级联调度必是可恢复调度</strong>
+<ul>
+<li>要求比可恢复调度更加严格</li>
+</ul></li>
+</ul>
+<h2 id="并发调度中的不一致现象">并发调度中的不一致现象</h2>
+<h3 id="丢失修改">丢失修改</h3>
+<ul>
+<li>两个事务 T1 和 T2 读入同一数据并修改，T1 提交的结果破坏了 T2 提交的结果，导致 T2 的修改丢失</li>
+<li>一个例子：售票窗口
+<ul>
+<li>下面的操作只反映了售票窗口 T1 的结果，但是没有反应售票窗口 T2 的结果</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210522110153105.png" style="zoom:50%;"></p>
+<ul>
+<li><strong>写 —— 写</strong>不一致</li>
+</ul>
+<h3 id="读脏数据">读脏数据</h3>
+<ul>
+<li>事务 T1 修改某一数据，并将其写回磁盘，事务 T2 读取同一数据后，T1 由于某种原因被撤消，这时 T1 已修改过的数据恢复原值，T2 读到的数据与数据库中数据不一致，则 T2 读到的数据就是脏数据</li>
+<li>一个例子</li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210522110848800.png" style="zoom:50%;"></p>
+<ul>
+<li><strong>写 —— 读</strong>不一致</li>
+</ul>
+<h3 id="不能重复读">不能重复读</h3>
+<ul>
+<li>事务 T2 读取某一数据后，事务 T1 对其做了修改，当 T2 再次读取该数据时，得到与前次不同的值</li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210522111134680.png" style="zoom:50%;"></p>
+<ul>
+<li><strong>读 —— 写</strong>不一致</li>
+<li>发生概率比读脏数据小</li>
+<li>例子
+<ul>
+<li>r1(list) r2(list) w2(list) r2(count) w2(count) commit(t2) r1(count)</li>
+<li>r1(list) 和 r1(count) 不一致</li>
+</ul></li>
+</ul>
+<h3 id="发生幻象phantom">发生幻象(Phantom)</h3>
+<ul>
+<li>事务 T2 按一定条件读取了某些数据后，事务 T1 插入了一些满足这些条件的数据，当 T2 再次按相同条件读取数据时，发现多了一些记录</li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210522111831336.png" style="zoom:50%;"></p>
+<ul>
+<li>不可重复读是指对同一条记录出现不一致情况，幻象指的是多出来或者少掉某些记录
+<ul>
+<li>防止幻象更难</li>
+<li>例如
+<ul>
+<li>防范不可重复读只需要将原来在数据库中的数据锁住</li>
+<li>防范幻象则比较难，怎么处理新来的数据</li>
+</ul></li>
+</ul></li>
+</ul>
+]]></content>
+      <categories>
+        <category>DB.CLJ</category>
+      </categories>
+      <tags>
+        <tag>DB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据库概论.陈立军.06.事务(2)</title>
+    <url>/2021/05/22/DB/CLJ/06-1/</url>
+    <content><![CDATA[<h1 id="事务">事务</h1>
+<h2 id="事务隔离性级别">事务隔离性级别</h2>
+<h3 id="sql-中隔离性级别的定义">SQL 中隔离性级别的定义</h3>
+<ul>
+<li>（事务隔离性级别从低到高）</li>
+<li>read uncommitted
+<ul>
+<li>允许读取未提交的记录</li>
+</ul></li>
+<li>read committed
+<ul>
+<li>只允许读取已提交的记录，但不要求可重复读</li>
+</ul></li>
+<li>repeatable read
+<ul>
+<li>只允许读取已提交的记录，并且一个事务对同一记录的两次读取之间，其它事务不能对该记录进行更新</li>
+</ul></li>
+<li>serializable
+<ul>
+<li>调度的执行必须等价于串行调度</li>
+</ul></li>
+</ul>
+]]></content>
+      <categories>
+        <category>DB.CLJ</category>
+      </categories>
+      <tags>
+        <tag>DB</tag>
+      </tags>
+  </entry>
 </search>

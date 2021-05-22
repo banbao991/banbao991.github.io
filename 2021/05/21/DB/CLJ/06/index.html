@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="事务概念、事务的基本特性(ACID)、事务调度、串行与并行、可恢复调度、无级联调度、并发调度中的不一致现象">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.06.事务">
+<meta property="og:url" content="http://example.com/2021/05/21/DB/CLJ/06/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="事务概念、事务的基本特性(ACID)、事务调度、串行与并行、可恢复调度、无级联调度、并发调度中的不一致现象">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/image-20210521223649619.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/image-20210521234852488.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/image-20210522110153105.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/image-20210522110848800.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/image-20210522111134680.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/image-20210522111831336.png">
+<meta property="article:published_time" content="2021-05-21T05:04:27.000Z">
+<meta property="article:modified_time" content="2021-05-22T03:42:47.986Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/21/DB/CLJ/06/image-20210521223649619.png">
+
+
+<link rel="canonical" href="http://example.com/2021/05/21/DB/CLJ/06/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.06.事务 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1"><span class="nav-text">事务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%A6%82%E5%BF%B5"><span class="nav-text">事务概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E5%AE%9A%E4%B9%89"><span class="nav-text">事务定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E8%AE%BF%E9%97%AE%E5%8E%9F%E8%AF%AD"><span class="nav-text">事务中的数据访问原语</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BD%AC%E8%B4%A6%E4%BA%8B%E5%8A%A1%E7%9A%84%E5%8E%9F%E8%AF%AD%E8%A1%A8%E8%BE%BE"><span class="nav-text">转账事务的原语表达</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql%E4%B8%AD%E4%BA%8B%E5%8A%A1%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">SQL中事务的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%BC%8F"><span class="nav-text">事务执行模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%98%BE%E5%BC%8F%E4%BA%8B%E5%8A%A1"><span class="nav-text">显式事务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%90%E5%90%AB%E4%BA%8B%E5%8A%A1"><span class="nav-text">隐含事务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E4%BA%8B%E5%8A%A1"><span class="nav-text">自动事务</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E4%B8%AD%E7%9A%84%E9%94%99%E8%AF%AF%E6%A3%80%E6%9F%A5"><span class="nav-text">事务中的错误检查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E5%9F%BA%E6%9C%AC%E7%89%B9%E6%80%A7acid"><span class="nav-text">事务基本特性ACID</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E5%AD%90%E6%80%A7atomicity"><span class="nav-text">原子性(Atomicity)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7consistency"><span class="nav-text">一致性(Consistency)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E6%80%A7isolation"><span class="nav-text">隔离性(Isolation)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%81%E4%B9%85%E6%80%A7durability"><span class="nav-text">持久性(Durability)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%9B%BE"><span class="nav-text">事务生命周期图</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E8%B0%83%E5%BA%A6"><span class="nav-text">事务调度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E8%B0%83%E5%BA%A6%E4%BE%8B%E5%AD%90"><span class="nav-text">事务调度例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E4%B8%8E%E4%B8%B2%E8%A1%8C"><span class="nav-text">并行与串行</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%B2%E8%A1%8C%E8%B0%83%E5%BA%A6"><span class="nav-text">串行调度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E8%B0%83%E5%BA%A6"><span class="nav-text">并行调度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E5%92%8C%E4%B8%B2%E8%A1%8C%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-text">并行和串行的比较</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%AF%94%E8%BE%83"><span class="nav-text">基本比较</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E7%9A%84%E4%BC%98%E7%82%B9"><span class="nav-text">并行的优点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E8%B0%83%E5%BA%A6%E4%BE%8B%E5%AD%90-1"><span class="nav-text">事务调度例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%B2%E8%A1%8C%E8%B0%83%E5%BA%A61"><span class="nav-text">串行调度1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%B2%E8%A1%8C%E8%B0%83%E5%BA%A62"><span class="nav-text">串行调度2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E8%B0%83%E5%BA%A61"><span class="nav-text">并行调度1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E8%B0%83%E5%BA%A62"><span class="nav-text">并行调度2</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E6%81%A2%E5%A4%8D%E8%B0%83%E5%BA%A6"><span class="nav-text">可恢复调度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AF%E6%81%A2%E5%A4%8D%E8%B0%83%E5%BA%A6%E5%AE%9A%E4%B9%89"><span class="nav-text">可恢复调度定义</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E7%BA%A7%E8%81%94%E8%B0%83%E5%BA%A6"><span class="nav-text">无级联调度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E7%BA%A7%E8%81%94%E8%B0%83%E5%BA%A6%E5%AE%9A%E4%B9%89"><span class="nav-text">无级联调度定义</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E8%B0%83%E5%BA%A6%E4%B8%AD%E7%9A%84%E4%B8%8D%E4%B8%80%E8%87%B4%E7%8E%B0%E8%B1%A1"><span class="nav-text">并发调度中的不一致现象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A2%E5%A4%B1%E4%BF%AE%E6%94%B9"><span class="nav-text">丢失修改</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%BB%E8%84%8F%E6%95%B0%E6%8D%AE"><span class="nav-text">读脏数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E8%83%BD%E9%87%8D%E5%A4%8D%E8%AF%BB"><span class="nav-text">不能重复读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%91%E7%94%9F%E5%B9%BB%E8%B1%A1phantom"><span class="nav-text">发生幻象(Phantom)</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">75</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/21/DB/CLJ/06/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.06.事务
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-05-21 13:04:27" itemprop="dateCreated datePublished" datetime="2021-05-21T13:04:27+08:00">2021-05-21</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-05-22 11:42:47" itemprop="dateModified" datetime="2021-05-22T11:42:47+08:00">2021-05-22</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">事务概念、事务的基本特性(ACID)、事务调度、串行与并行、可恢复调度、无级联调度、并发调度中的不一致现象</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="事务">事务</h1>
+<h2 id="事务概念">事务概念</h2>
+<ul>
+<li>transaction（交易）</li>
+<li>交易的核心：<strong>完整性</strong></li>
+<li>Jim Gray：在事务处理方面做出巨大的贡献
+<ul>
+<li>书籍：transaction processing: concept and techniques</li>
+</ul></li>
+<li>commitment
+<ul>
+<li>事务包含了很多操作，commitment 指把所有的操作完整的提交到数据库上</li>
+<li>It's like bacon and eggs. The chicken participants. The pig commited.</li>
+</ul></li>
+<li><strong>一致性条件</strong>
+<ul>
+<li>银行转账，两个账户的总和在转账前后保持不变</li>
+<li>存在两个操作，转出账户余额减去转账金额，转入账户余额加上转账金额
+<ul>
+<li><strong>必须保证这组操作的整体性</strong></li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="事务定义">事务定义</h3>
+<ul>
+<li>事务是由一系列操作序列构成的执行单元，这些操作<strong>要么都做，要么都不做</strong>，是一个<strong>不可分割</strong>的工作单位</li>
+<li><span class="math inline">\({\color{red}\mathrm{All\;or\;None}}\)</span></li>
+</ul>
+<h3 id="事务中的数据访问原语">事务中的数据访问原语</h3>
+<ul>
+<li>read(X)：从数据库传送数据项 X 到事务的工作区中
+<ul>
+<li><strong>从数据缓冲区读出来</strong></li>
+</ul></li>
+<li>write(X)：从事务的工作区中将数据项 X 写回数据库</li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210521223649619.png" style="zoom:50%;"></p>
+<h4 id="转账事务的原语表达">转账事务的原语表达</h4>
+<ul>
+<li>事务 T 从 A 帐户过户 50 到 B 帐户</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;read(A);\\
+&amp;A := A –50;\\
+&amp;write(A);\\
+&amp;read(B);\\
+&amp;B := B + 50;\\
+&amp;write(B);\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>电子商务：<strong>事务是现代信息系统的基石</strong></li>
+</ul>
+<h3 id="sql中事务的定义">SQL中事务的定义</h3>
+<ul>
+<li>事务以 Begin transaction 开始，以 Commit transaction 或 Rollback transaction 结束
+<ul>
+<li>Commit transaction 表示<strong>提交</strong>，<strong>事务正常结束</strong></li>
+<li>Rollback transaction 表示事务非正常结束，<strong>撤消事务已做的操作</strong>，回滚到事务开始时状态</li>
+</ul></li>
+<li>具体的结束方式，通过加入某些条件判断</li>
+<li>terminate 与 abort
+<ul>
+<li>Terminate：终止（中性）</li>
+<li>Abort：中止（失败，需要 rollback）</li>
+</ul></li>
+</ul>
+<h3 id="事务执行模式">事务执行模式</h3>
+<h4 id="显式事务">显式事务</h4>
+<ul>
+<li>以 begin transaction 开始，以 commit 或 rollback 结束</li>
+</ul>
+<h4 id="隐含事务">隐含事务</h4>
+<ul>
+<li>事务自动开始，直到遇到 commit 或 rollback 时结束</li>
+<li>set implicit_transactions{ ON | OFF }</li>
+</ul>
+<h4 id="自动事务">自动事务</h4>
+<ul>
+<li>每个数据操作语句作为一个事务</li>
+<li>update SC set GRADE = GRADE+15</li>
+</ul>
+<h3 id="事务中的错误检查">事务中的错误检查</h3>
+<ul>
+<li>GRADE 约束小于等于100，现在数据库中有两个 GRADE (80, 90)</li>
+<li>事务 <code>update SC set GRADE = GRADE+15</code> 操作的结果
+<ul>
+<li>(80,90)，事务出错，整个回滚</li>
+</ul></li>
+<li>如下事务操作的结果
+<ul>
+<li>(85, 95)
+<ul>
+<li>不做设置的前提下，会将第一个操作提交</li>
+</ul></li>
+<li>设置 <code>set XACT_ABORT ON</code> 之后结果为 (80,90)</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Begin</span> tran</span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">5</span></span><br><span class="line"><span class="comment">--没有违反 grade&lt;=100 约束</span></span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">20</span></span><br><span class="line"><span class="comment">--违反了 grade&lt;=100 约束</span></span><br><span class="line"><span class="keyword">Commit</span> tran</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如下事务操作的结果
+<ul>
+<li>(80, 90)</li>
+<li>rollback 把整个事务回滚</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Begin</span> tran</span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">5</span></span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">20</span></span><br><span class="line">If @<span class="variable">@error</span><span class="operator">&lt;&gt;</span><span class="number">0</span> <span class="comment">-- 全局变量, 上一行语句操作设置</span></span><br><span class="line">    <span class="keyword">rollback</span> tran</span><br><span class="line"><span class="keyword">Commit</span> tran</span><br></pre></td></tr></table></figure>
+<h3 id="事务基本特性acid">事务基本特性ACID</h3>
+<ul>
+<li><span class="math inline">\(\mathrm{ACID:Atomicity\;Consistency\;Isolation\;Durability}\)</span></li>
+</ul>
+<h4 id="原子性atomicity">原子性(Atomicity)</h4>
+<ul>
+<li>事务中包含的所有操作要么全做，要么全不做</li>
+<li>原子性由<strong>恢复机制</strong>实现
+<ul>
+<li>通过<strong>日志</strong>进行恢复</li>
+</ul></li>
+</ul>
+<h4 id="一致性consistency">一致性(Consistency)</h4>
+<ul>
+<li>事务的隔离执行必须保证数据库的一致性</li>
+<li>事务开始前，数据库处于一致性的状态；事务结束后，数据库必须仍处于一致性状态</li>
+<li><strong>数据库的一致性状态由用户来负责</strong></li>
+<li>如银行转帐，转帐前后两个帐户金额之和应保持不变
+<ul>
+<li>意大利香肠术，Salami technique</li>
+<li>偷小钱的盗窃术被称为意大利香肠术（意大利香肠切得很薄，偷一片看不出来）</li>
+</ul></li>
+</ul>
+<h4 id="隔离性isolation">隔离性(Isolation)</h4>
+<ul>
+<li>系统必须保证事务不受其它并发执行事务的影响</li>
+<li>对任何一对事务 T1，T2，在 T1 看来，T2 要么在 T1 开始之前已经结束，要么在 T1 完成之后再开始执行
+<ul>
+<li><strong>等价于串行执行的效果</strong></li>
+</ul></li>
+<li>隔离性通过<strong>并发控制机制</strong>实现</li>
+</ul>
+<h4 id="持久性durability">持久性(Durability)</h4>
+<ul>
+<li>一个事务一旦提交之后，它对数据库的影响必须是永久的</li>
+<li>系统发生故障不能改变事务的持久性
+<ul>
+<li>系统的<strong>抗故障能力</strong></li>
+<li>大企业的数据，备份，多个物理实体（物理上相隔较远，避免自然灾害的影响）</li>
+</ul></li>
+<li>持久性通过<strong>恢复机制</strong>实现</li>
+<li>持久性：将来总能够再现这个事务</li>
+</ul>
+<h3 id="事务生命周期图">事务生命周期图</h3>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210521234852488.png" style="zoom:50%;"></p>
+<ul>
+<li>部分提交状态：事务的所有操作都做完了</li>
+<li>一个事务的所有操作都做完了，并不意味着一定能成功提交，因为要保证持久性
+<ul>
+<li>数据库在做完事务的所有操作之后，在向程序客户端发送成功消息之前，<strong>把这个事务对应的<span style="color:red">日志记录</span>从内存写入磁盘</strong></li>
+<li>如果系统崩溃，内存中的数据丢失了，可以从日志记录恢复数据</li>
+</ul></li>
+</ul>
+<h2 id="事务调度">事务调度</h2>
+<ul>
+<li><strong>事务的执行顺序</strong>称为一个调度，表示事务的指令在系统中<strong>执行的时间顺序</strong></li>
+<li>一组事务的调度必须保证
+<ul>
+<li>包含了<strong>所有事务</strong>的操作指令</li>
+<li><strong>一个事务中指令的顺序必须保持不变</strong></li>
+</ul></li>
+</ul>
+<h3 id="事务调度例子">事务调度例子</h3>
+<ul>
+<li><span class="math inline">\(T_1:i_{11},i_{12},T_2:i_{21},i_{22}\)</span>
+<ul>
+<li><span class="math inline">\(S_1:i_{11},i_{12},i_{21}\)</span></li>
+<li><span class="math inline">\(S_2:i_{11},i_{22},i_{12},i_{21}\)</span></li>
+<li><span class="math inline">\(S_2:i_{11},i_{21},i_{12},i_{22}\)</span></li>
+</ul></li>
+<li><span class="math inline">\(S_1,S_2\)</span> 不是一个调度，<span class="math inline">\(S_3\)</span> 是一个调度</li>
+</ul>
+<h3 id="并行与串行">并行与串行</h3>
+<h4 id="串行调度">串行调度</h4>
+<ul>
+<li>在串行调度中，属于同一事务的指令紧挨在一起</li>
+<li>串行调度总是正确的</li>
+<li>对于有 <span class="math inline">\(n\)</span>个事务的事务组，可以有 <span class="math inline">\(n!\)</span> 个有效调度</li>
+</ul>
+<h4 id="并行调度">并行调度</h4>
+<ul>
+<li>在并行调度中，来自不同事务的指令可以交叉执行</li>
+<li><strong>当并行调度等价于某个串行调度时，则称它是正确的</strong></li>
+<li><span class="math inline">\(n\)</span> 个事务，<span class="math inline">\(t_i\)</span> 有 <span class="math inline">\(k_i\)</span> 条指令，则可能的并发调度有多少个
+<ul>
+<li><span class="math inline">\(\dfrac{(\sum k_i)!}{\prod(k_i!)}\)</span></li>
+<li>事务内有序</li>
+</ul></li>
+</ul>
+<h4 id="并行和串行的比较">并行和串行的比较</h4>
+<h5 id="基本比较">基本比较</h5>
+<ul>
+<li>并行事务有可能破坏数据库的一致性</li>
+<li>串行事务效率低</li>
+</ul>
+<h5 id="并行的优点">并行的优点</h5>
+<ul>
+<li>一个事务由不同的步骤组成，所涉及的系统资源也不同。这些步骤可以并发执行，<strong>提高系统的吞吐量</strong></li>
+<li>系统中存在着周期不等的各种事务，串行会导致难于预测的时延。如果各个事务所涉及的是数据库的不同部分，采用并发会<strong>减少平均响应时间</strong></li>
+</ul>
+<h3 id="事务调度例子-1">事务调度例子</h3>
+<ul>
+<li>两个转账事务
+<ul>
+<li><span class="math inline">\(T_1\)</span>：从 A 过户 50 到 B</li>
+<li><span class="math inline">\(T_2\)</span>：从 A 过户存款的 10% 到 B</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;T1\\
+&amp;read(A);\\
+&amp;A := A −50;\\
+&amp;write(A);\\
+&amp;read(B);\\
+&amp;B := B + 50;\\
+&amp;write(B);\\\\
+&amp;T2\\
+&amp;read(A);\\
+&amp;temp := A*0.1;\\
+&amp;A := A −temp;\\
+&amp;write(A);\\
+&amp;read(B);\\
+&amp;B := B + temp;\\
+&amp;write(B);\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>开始状态：A=1000，B=2000，A+B=3000</li>
+</ul>
+<h4 id="串行调度1">串行调度1</h4>
+<ul>
+<li><span class="math inline">\(T_1,T_2\)</span></li>
+<li>结束状态：A=855，B=2145，A+B=3000</li>
+</ul>
+<h4 id="串行调度2">串行调度2</h4>
+<ul>
+<li><span class="math inline">\(T_2,T_1\)</span></li>
+<li>结束状态：A=850，B=2150，A+B=3000</li>
+<li>串行调度可能会有不同的结果，但是都满足一致性，都是正确的</li>
+</ul>
+<h4 id="并行调度1">并行调度1</h4>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;T1:\;read(A);\\
+&amp;T1:\;A := A −50;\\
+&amp;T1:\;write(A);\\
+&amp;T2:\;read(A);\\
+&amp;T2:\;temp := A*0.1;\\
+&amp;T2:\;A := A −temp;\\
+&amp;T2:\;write(A);\\
+&amp;T1:\;read(B);\\
+&amp;T1:\;B := B + 50;\\
+&amp;T1:\;write(B);\\
+&amp;T2:\;read(B);\\
+&amp;T2:\;B := B + temp;\\
+&amp;T2:\;write(B);\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>需要保证操作 4 在操作 3 之后，否则是错误的</li>
+<li>结束状态：A=855，B=2145，A+B=3000</li>
+<li>等价于串行调度 <span class="math inline">\(T_1,T_2\)</span></li>
+</ul>
+<h4 id="并行调度2">并行调度2</h4>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;T1:\;read(A);\\
+&amp;T1:\;A := A −50;\\
+&amp;T2:\;read(A);\\
+&amp;T1:\;write(A);\\
+&amp;T2:\;temp := A*0.1;\\
+&amp;T2:\;A := A −temp;\\
+&amp;T2:\;write(A);\\
+&amp;T1:\;read(B);\\
+&amp;T1:\;B := B + 50;\\
+&amp;T1:\;write(B);\\
+&amp;T2:\;read(B);\\
+&amp;T2:\;B := B + temp;\\
+&amp;T2:\;write(B);\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>错误的</li>
+<li>结束状态：A=900，B=2150，A+B=3050</li>
+</ul>
+<h3 id="可恢复调度">可恢复调度</h3>
+<ul>
+<li>事务的恢复
+<ul>
+<li>一个事务失败了，应该能够撤消该事务对数据库的影响</li>
+<li>如果有其它事务读取了失败事务写入的数据，则该事务应该撤消</li>
+</ul></li>
+<li>一个不可恢复调度的例子</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">T1</th>
+<th style="text-align: center;">T2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">read(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">write(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">read(A)</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">commit</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">read(B)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">rollback</td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>回滚 T1 的时候，T2 已经提交了，如果 T2 被撤销了，那么就违反了事务的持久性
+<ul>
+<li>在真实场景中， 会向 T2 发起一个<strong>补偿事务</strong></li>
+</ul></li>
+</ul>
+<h4 id="可恢复调度定义">可恢复调度定义</h4>
+<ul>
+<li>对于每对事务 T1 与 T2，如果 T2 读取了 T1 所写的数据，则 T1 必须先于 T2 提交</li>
+</ul>
+<h3 id="无级联调度">无级联调度</h3>
+<ul>
+<li>级联调度
+<ul>
+<li>由于一个事务故障而导致一系列事务回滚</li>
+</ul></li>
+<li>级联调度例子</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">T1</th>
+<th style="text-align: center;">T2</th>
+<th style="text-align: center;">T3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">read(A)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">read(B)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">write(B)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">read(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">write(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">read(A)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">rollback</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<h4 id="无级联调度定义">无级联调度定义</h4>
+<ul>
+<li>对于每对事务 T1 与 T2，如果 T2 读取了 T1 所写的数据，则 T1 必须在 <strong>T2 读取</strong>之前提交</li>
+<li><strong>无级联调度必是可恢复调度</strong>
+<ul>
+<li>要求比可恢复调度更加严格</li>
+</ul></li>
+</ul>
+<h2 id="并发调度中的不一致现象">并发调度中的不一致现象</h2>
+<h3 id="丢失修改">丢失修改</h3>
+<ul>
+<li>两个事务 T1 和 T2 读入同一数据并修改，T1 提交的结果破坏了 T2 提交的结果，导致 T2 的修改丢失</li>
+<li>一个例子：售票窗口
+<ul>
+<li>下面的操作只反映了售票窗口 T1 的结果，但是没有反应售票窗口 T2 的结果</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210522110153105.png" style="zoom:50%;"></p>
+<ul>
+<li><strong>写 —— 写</strong>不一致</li>
+</ul>
+<h3 id="读脏数据">读脏数据</h3>
+<ul>
+<li>事务 T1 修改某一数据，并将其写回磁盘，事务 T2 读取同一数据后，T1 由于某种原因被撤消，这时 T1 已修改过的数据恢复原值，T2 读到的数据与数据库中数据不一致，则 T2 读到的数据就是脏数据</li>
+<li>一个例子</li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210522110848800.png" style="zoom:50%;"></p>
+<ul>
+<li><strong>写 —— 读</strong>不一致</li>
+</ul>
+<h3 id="不能重复读">不能重复读</h3>
+<ul>
+<li>事务 T2 读取某一数据后，事务 T1 对其做了修改，当 T2 再次读取该数据时，得到与前次不同的值</li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210522111134680.png" style="zoom:50%;"></p>
+<ul>
+<li><strong>读 —— 写</strong>不一致</li>
+<li>发生概率比读脏数据小</li>
+<li>例子
+<ul>
+<li>r1(list) r2(list) w2(list) r2(count) w2(count) commit(t2) r1(count)</li>
+<li>r1(list) 和 r1(count) 不一致</li>
+</ul></li>
+</ul>
+<h3 id="发生幻象phantom">发生幻象(Phantom)</h3>
+<ul>
+<li>事务 T2 按一定条件读取了某些数据后，事务 T1 插入了一些满足这些条件的数据，当 T2 再次按相同条件读取数据时，发现多了一些记录</li>
+</ul>
+<p><img src="/2021/05/21/DB/CLJ/06/image-20210522111831336.png" style="zoom:50%;"></p>
+<ul>
+<li>不可重复读是指对同一条记录出现不一致情况，幻象指的是多出来或者少掉某些记录
+<ul>
+<li>防止幻象更难</li>
+<li>例如
+<ul>
+<li>防范不可重复读只需要将原来在数据库中的数据锁住</li>
+<li>防范幻象则比较难，怎么处理新来的数据</li>
+</ul></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/19/DB/CLJ/05-2/" rel="prev" title="数据库概论.陈立军.05.关系规范化(3)">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.05.关系规范化(3)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/05/22/DB/CLJ/06-1/" rel="next" title="数据库概论.陈立军.06.事务(2)">
+                  数据库概论.陈立军.06.事务(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

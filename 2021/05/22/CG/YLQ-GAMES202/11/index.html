@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="LTC、Disney 原则的 BRDF、非真实感渲染(NPR)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES202.闫令琪.11.基于物理的材质与非真实感渲染">
+<meta property="og:url" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="LTC、Disney 原则的 BRDF、非真实感渲染(NPR)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522153653136.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522161357852.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522162225689.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522162343163.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522164229335.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522164237490.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522171008715.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522174304452.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522174600616.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522174952337.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522175250659.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522175412405.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522175622716.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522202842564.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203233929.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203244568.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203533535.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203740986.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203921025.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522204142321.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522204304560.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522212218788.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522212429396.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522212758582.png">
+<meta property="og:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522213943708.png">
+<meta property="article:published_time" content="2021-05-22T03:43:32.000Z">
+<meta property="article:modified_time" content="2021-05-22T13:42:34.934Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/image-20210522153653136.png">
+
+
+<link rel="canonical" href="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES202.闫令琪.11.基于物理的材质与非真实感渲染 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E7%89%A9%E7%90%86%E7%9A%84%E6%9D%90%E8%B4%A8"><span class="nav-text">基于物理的材质</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ltc"><span class="nav-text">LTC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ltc-%E7%9A%84%E5%85%B3%E9%94%AE%E6%83%B3%E6%B3%95"><span class="nav-text">LTC 的关键想法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E7%9A%84%E6%93%8D%E4%BD%9C"><span class="nav-text">具体的操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ltc-%E7%9A%84%E6%8E%A8%E5%AF%BC"><span class="nav-text">LTC 的推导</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ltc-%E6%B8%B2%E6%9F%93%E7%BB%93%E6%9E%9C"><span class="nav-text">LTC 渲染结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ltc-%E6%80%BB%E7%BB%93"><span class="nav-text">LTC 总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#disneys-principled-brdf"><span class="nav-text">Disney’s Principled BRDF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%9C%BA-motivation"><span class="nav-text">动机 Motivation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87"><span class="nav-text">设计目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99"><span class="nav-text">一些设计原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="nav-text">一个例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pros-and-cons"><span class="nav-text">Pros and Cons</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#npr"><span class="nav-text">NPR</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#photorealistic-rendering"><span class="nav-text">Photorealistic Rendering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#npr-%E7%9B%AE%E6%A0%87"><span class="nav-text">NPR 目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#npr-%E7%9A%84%E6%80%9D%E8%B7%AF"><span class="nav-text">NPR 的思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#npr-%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-text">NPR 的应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%93%AA%E4%BA%9B%E5%9C%B0%E6%96%B9%E9%9C%80%E8%A6%81%E5%81%9A%E9%A3%8E%E6%A0%BC%E5%8C%96"><span class="nav-text">哪些地方需要做风格化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#outline-rendering"><span class="nav-text">Outline Rendering</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E8%BE%B9"><span class="nav-text">什么是边</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%8F%E8%BE%B9%E7%9A%84%E6%80%9D%E8%B7%AF"><span class="nav-text">描边的思路</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#shading-%E6%96%B9%E6%B3%95%E6%8F%8F%E8%BE%B9"><span class="nav-text">Shading 方法描边</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-text">问题</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#geometry-%E6%96%B9%E6%B3%95%E6%8F%8F%E8%BE%B9"><span class="nav-text">Geometry 方法描边</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#image-%E6%96%B9%E6%B3%95%E6%8F%8F%E8%BE%B9"><span class="nav-text">Image 方法描边</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#color-blocks"><span class="nav-text">Color blocks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#strokes-surface-stylization"><span class="nav-text">Strokes Surface Stylization</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#npr-%E6%80%BB%E7%BB%93"><span class="nav-text">NPR 总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">75</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/22/CG/YLQ-GAMES202/11/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES202.闫令琪.11.基于物理的材质与非真实感渲染
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2021-05-22 11:43:32 / Modified: 21:42:34" itemprop="dateCreated datePublished" datetime="2021-05-22T11:43:32+08:00">2021-05-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES202/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES202</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">LTC、Disney 原则的 BRDF、非真实感渲染(NPR)</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
+</ul>
+<h1 id="基于物理的材质">基于物理的材质</h1>
+<ul>
+<li>Shading Microfacet Models using Linearly Transformed Cosines (LTC)</li>
+<li>使用 LTC 方法对微表面模型进行着色</li>
+<li>LTC 方法可以用于简单反射叶（lobe）模型的着色
+<ul>
+<li>lobe：固定入射方向的反射叶，2D sliced BRDF</li>
+</ul></li>
+</ul>
+<h2 id="ltc">LTC</h2>
+<ul>
+<li>Linearly Transformed Cosines</li>
+<li>线性变换的余弦</li>
+<li>主要针对的是 GGX 法线分布的模型（其他的模型也 OK）</li>
+<li>不考虑 shadow</li>
+<li>解决的是微表面模型下，<strong>多边形光源</strong>的 shading
+<ul>
+<li>the split sum 做的是环境光下的 shading，和 LTC 不一样</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522153653136.png" style="zoom:50%;"></p>
+<ul>
+<li>如果没有 LTC 方法的话，如何做多边形光源下的 shading
+<ul>
+<li>需要做采样</li>
+<li>在多边形的光源上取很多采样点</li>
+<li>然后将这些采样点和 shading point 连线，求出 shading</li>
+</ul></li>
+<li><strong>LTC 不需要采样</strong></li>
+</ul>
+<h3 id="ltc-的关键想法">LTC 的关键想法</h3>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522161357852.png" style="zoom: 67%;"></p>
+<ul>
+<li>lobe 可以通过某种线性变换，变换成一个余弦函数</li>
+<li>多边形的光源也可以有类似的变换
+<ul>
+<li>例如上面的四边形，对四个顶点进行变换</li>
+<li>然后用变换后的结果进行 shading</li>
+</ul></li>
+<li>原来做渲染方程的积分不好做，但是经过上面的变换之后是<strong>有解析解</strong>的
+<ul>
+<li>将任意的 lobe 在任意的多边形光源下的积分问题转变为固定的 cosine 下对任意的多边形光源下进行积分的问题</li>
+<li>假设多边形内部是均匀的，任意的点对 shading point 的 radiance 都是相同的</li>
+</ul></li>
+</ul>
+<h3 id="具体的操作">具体的操作</h3>
+<ul>
+<li>我们观察到 2D 的 BRDF lobe 可以变幻成一个余弦
+<ul>
+<li><span class="math inline">\(\mathrm{BRDF\;lobe}{\buildrel{M^{-1}}\over\longrightarrow}\mathrm{Cosine}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522162225689.png" style="zoom:67%;"></p>
+<ul>
+<li>我们需要对所有的方向进行一个变换
+<ul>
+<li><span class="math inline">\(\omega_i{\buildrel{M^{-1}}\over\longrightarrow}\omega_i&#39;\)</span></li>
+</ul></li>
+<li>积分域发生变化
+<ul>
+<li><span class="math inline">\(P{\buildrel{M^{-1}}\over\longrightarrow}P&#39;\)</span></li>
+</ul></li>
+<li>结果如下</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522162343163.png" style="zoom:67%;"></p>
+<h3 id="ltc-的推导">LTC 的推导</h3>
+<ul>
+<li>我们所做的事情就是变换积分变量</li>
+<li>我们在这里假设，多边形光源的 radiance 是相同（uniform）的（<span class="math inline">\(L_i\)</span> 相同）
+<ul>
+<li>论文中可以通过其他的方法去掉这个假设</li>
+</ul></li>
+<li>新的方向经过 <span class="math inline">\(M\)</span> 变换，可以变成原来的方向
+<ul>
+<li>注意我们上面用的符号是 <span class="math inline">\(M^{-1}\)</span></li>
+<li><span class="math inline">\(w_i=\dfrac{M\omega_i&#39;}{\Vert M\omega_i&#39;\Vert}\)</span></li>
+<li>归一化的原因是，单元球上的点我们的变换操作可能不在单位球上（长度发生变化）</li>
+</ul></li>
+<li>渲染方程的变化
+<ul>
+<li><span class="math inline">\(F\)</span> 变换到 Cosine 上
+<ul>
+<li>具体怎么变换，在 Paper 中作了很多预计算</li>
+<li>通过优化方法计算</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+L(\omega_o)&amp;=L_i\cdot\int_PF(\omega_i)\;\mathrm{d}\omega_i\\
+&amp;=L_i\cdot\int_{P&#39;}\cos(\omega_i&#39;)\;\mathrm{d}\dfrac{M\omega_i&#39;}{\Vert M\omega_i&#39;\Vert}\\
+&amp;=L_i\cdot\int_{P&#39;}\cos(\omega_i&#39;)J\;\mathrm{d}\omega_i&#39;\\
+\end{aligned}
+\]</span></p>
+<h3 id="ltc-渲染结果">LTC 渲染结果</h3>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522164229335.png"></p>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522164237490.png" style="zoom: 67%;"></p>
+<h3 id="ltc-总结">LTC 总结</h3>
+<ul>
+<li>shadow 的问题
+<ul>
+<li>可以先做 LTC，再通过其他方法计算 shadow</li>
+</ul></li>
+<li>如果多边形光源不是 uniform 的，比如光源带纹理
+<ul>
+<li>这样 LTC 就不准确，但是也是一个好的近似</li>
+</ul></li>
+<li>各向异性的表面能不能变换到 Cosine
+<ul>
+<li>是可以的，入射方向确定之后，出射方向就是一个 lobe</li>
+</ul></li>
+</ul>
+<h2 id="disneys-principled-brdf">Disney’s Principled BRDF</h2>
+<ul>
+<li>Disney 原则的 BRDF</li>
+</ul>
+<h3 id="动机-motivation">动机 Motivation</h3>
+<ul>
+<li>微表面模型对于真实的材质表示的不是很好
+<ul>
+<li>例如 diffuse 项缺失
+<ul>
+<li>虽然我们可以通过某些方法可以补上，但是还是存在一些其他问题</li>
+</ul></li>
+<li>微表面模型 fit 不了我们一些实测的材质
+<ul>
+<li>例子：刷了清漆的桌子
+<ul>
+<li>高光+diffuse</li>
+<li>高光：清漆上的反射</li>
+<li>diffuse：进入清漆之后打到木板上的反射</li>
+<li>微表面模型模拟不了</li>
+</ul></li>
+<li>多层材质</li>
+</ul></li>
+<li>微表面模型表示不了所有的东西</li>
+</ul></li>
+<li>微表面模型不好用，对于艺术家们来说不友好
+<ul>
+<li>例如金属的折射率是一个复数：<span class="math inline">\(n-ik\)</span>，可能不好理解，不好调</li>
+</ul></li>
+</ul>
+<h3 id="设计目标">设计目标</h3>
+<ul>
+<li>Art directable，使用起来比较友好</li>
+<li>物理上并不是很准确，只是在一定程度上保证正确</li>
+<li>在实时渲染中，PBR 做了很多近似，因此还是认为这种方法是 PBR 的</li>
+</ul>
+<h3 id="一些设计原则">一些设计原则</h3>
+<ul>
+<li>Intuitive rather than physical parameters should be used.
+<ul>
+<li>使用的参数需要更直观一点，而不是生硬的物理参数</li>
+</ul></li>
+<li>There should be as few parameters as possible.
+<ul>
+<li>参数越少越好（调起来方便）</li>
+</ul></li>
+<li>Parameters should be zero to one over their plausible range.
+<ul>
+<li>参数设置为 0-1 的拖动条</li>
+</ul></li>
+<li>Parameters should be allowed to be pushed beyond their plausible range where it makes sense.
+<ul>
+<li>有时候允许结果超出原始的范围（营造特殊的效果）</li>
+</ul></li>
+<li>All combinations of parameters should be as robust and plausible as possible.
+<ul>
+<li>所有组合应该都是可以的（不会导致程序崩溃）</li>
+</ul></li>
+</ul>
+<h3 id="一个例子">一个例子</h3>
+<ul>
+<li>某些参数及其效果
+<ul>
+<li>表示能力很强大</li>
+<li>参数可能有冗余</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522171008715.png"></p>
+<ul>
+<li>subsurface：次表面散射
+<ul>
+<li>用来描述光线穿过透明/半透明表面时发生散射的照明现象，是指光从表面进入物体经过内部散射，然后又通过物体表面的其他顶点出射的光线传递过程</li>
+<li>效果：比 diffuse 还要平的效果（求被按扁了的效果）</li>
+</ul></li>
+<li>metallic：金属性</li>
+<li>specular：镜面反射的强度</li>
+<li>specular Tint：镜面反射的颜色更偏向于白色（0）还是物体本身的颜色</li>
+<li>roughness：粗糙程度</li>
+<li>anisotropic：各向异性程度</li>
+<li>sheen：天鹅绒的效果
+<ul>
+<li>沿着法线长了很多绒毛，在 grazing angle 看过去会有一种雾化的效果</li>
+</ul></li>
+<li>sheen Tint：sheen 的颜色是偏白还是物体本身的颜色</li>
+<li>clearcoat：木板上刷一层清漆的效果</li>
+<li>clearcoat Gloss：清漆的光滑程度（粗糙程度反一下）</li>
+</ul>
+<h3 id="pros-and-cons">Pros and Cons</h3>
+<ul>
+<li>容易理解和使用</li>
+<li>表示能力很强大</li>
+<li>实现是开源的，很多实现是对基于物理材质的近似</li>
+<li>不是基于物理的
+<ul>
+<li>牺牲了物理上的准确性</li>
+<li>学术界和工业界的不同</li>
+</ul></li>
+<li>参数空间很大
+<ul>
+<li>表示能力很强</li>
+<li>可能有冗余</li>
+<li>难以学习和训练</li>
+</ul></li>
+<li>模型本身是拟合能量守恒的</li>
+</ul>
+<h1 id="npr">NPR</h1>
+<ul>
+<li>非真实感渲染</li>
+<li>Non-Photorealistic Rendering (NPR)</li>
+<li>实时渲染中
+<ul>
+<li>NPR == fast and reliable stylization</li>
+<li>这也是神经网络不能够应用于 NPR 中的原因，可能不满足其中的某个因素</li>
+</ul></li>
+</ul>
+<h2 id="photorealistic-rendering">Photorealistic Rendering</h2>
+<ul>
+<li>照片级真实感渲染</li>
+<li>正确的阴影、光照、几何、材质</li>
+<li>目标是渲染出更加真实的图片，达到照片级的效果</li>
+<li>左右，一半是渲染，一半是真实
+<ul>
+<li>原作者记不清了，没有参考答案</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522174304452.png" style="zoom:50%;"></p>
+<h2 id="npr-目标">NPR 目标</h2>
+<ul>
+<li>目标是营造一种艺术效果</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522174600616.png" style="zoom:60%;"></p>
+<h2 id="npr-的思路">NPR 的思路</h2>
+<ul>
+<li>从真实感渲染出发，将某些部分简化，将某些重要的部分加强
+<ul>
+<li>Starts from photorealistic rendering</li>
+<li>Exploits abstraction</li>
+<li>Strengthens important parts</li>
+</ul></li>
+</ul>
+<h2 id="npr-的应用">NPR 的应用</h2>
+<ul>
+<li>art、visualization、instruction、education、entertainment</li>
+<li>艺术、可视化、说明书、教育（小孩子绘画）、娱乐</li>
+<li>说明书中非真实的图片可能更能够说明问题</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522174952337.png"></p>
+<ul>
+<li>游戏应用
+<ul>
+<li>[Atelier Ryza 2: Lost Legends &amp; the Secret Fairy]</li>
+</ul></li>
+<li>动漫
+<ul>
+<li>[Attack on Titan, Season 4]</li>
+<li>虽然是 NPR，同时保留了很多真实感渲染的部分</li>
+</ul></li>
+</ul>
+<h2 id="哪些地方需要做风格化">哪些地方需要做风格化</h2>
+<ul>
+<li>[Xenoblade Chronicles 2]
+<ul>
+<li>焰、光</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522175250659.png" style="zoom:50%;"></p>
+<ul>
+<li>Borderlands 3</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522175412405.png" style="zoom: 70%;"></p>
+<ul>
+<li>描边：Bold contours（outlines）</li>
+<li>色块：Blocks of colors</li>
+<li>素描的效果：Strokes on surfaces</li>
+</ul>
+<h3 id="outline-rendering">Outline Rendering</h3>
+<h4 id="什么是边">什么是边</h4>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522175622716.png" style="zoom:50%;"></p>
+<ul>
+<li>outlines 不仅仅是 contours
+<ul>
+<li>[B]oundary / border edge：边界</li>
+<li>[C]rease：折痕</li>
+<li>[M]aterial edge：材质的连接</li>
+<li>[S]ilhouette edge：轮廓
+<ul>
+<li>在物体的外面一圈的轮廓上（2D 最外边的轮廓）</li>
+<li>得是多个面共享的边界</li>
+<li>S 是 C 的子集</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="描边的思路">描边的思路</h4>
+<ul>
+<li>shading 方法来做</li>
+<li>修改几何</li>
+<li>后期图像处理</li>
+</ul>
+<h4 id="shading-方法描边">Shading 方法描边</h4>
+<ul>
+<li>只能做 silhouette 的边</li>
+<li>对于封闭的物体，什么样的边是 silhouette 边呢？
+<ul>
+<li><strong>观察的方向和法线几乎垂直的边</strong></li>
+<li>grazing angle</li>
+</ul></li>
+<li>渲染的时候可以为夹角设置一个阈值 threshold
+<ul>
+<li>域值越小，被认为是边缘的点越多，最终形成的边缘越粗</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522202842564.png" style="zoom: 33%;"></p>
+<ul>
+<li>step：硬边界</li>
+<li>smooth step：过渡的效果</li>
+</ul>
+<h5 id="问题">问题</h5>
+<ul>
+<li>不同位置的边的粗细不一致
+<ul>
+<li>法线变换比较平滑的地方，边比较粗</li>
+</ul></li>
+</ul>
+<h4 id="geometry-方法描边">Geometry 方法描边</h4>
+<ul>
+<li>Backface fattening</li>
+<li>把所有的背向面扩大一圈渲染成黑的，正向面正常渲染</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203233929.png" style="zoom:50%;"></p>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203244568.png" style="zoom:50%;"></p>
+<h4 id="image-方法描边">Image 方法描边</h4>
+<ul>
+<li>后期图像处理</li>
+<li>Edge detection（边缘检测）
+<ul>
+<li>Sobel detector</li>
+</ul></li>
+<li>锐化操作：边界增强，找到边界，加回到原来的图上</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203533535.png" style="zoom:50%;"></p>
+<ul>
+<li>可以通过其他辅助图像找到边界
+<ul>
+<li>法线、深度图</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203740986.png" style="zoom: 33%;"></p>
+<h3 id="color-blocks">Color blocks</h3>
+<ul>
+<li>色块效果</li>
+<li>下图：glossy、diffuse、color block</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522203921025.png" style="zoom:50%;"></p>
+<ul>
+<li>实现方法
+<ul>
+<li>Hard shading：thresholding on shading
+<ul>
+<li>正常计算 shading，对计算出来的结果进行一个阈值化</li>
+</ul></li>
+<li>Posterization：thresholding on final image color
+<ul>
+<li>在最终的图片上进行阈值化</li>
+</ul></li>
+</ul></li>
+<li>阈值化可以是多值化，也可以是二值化
+<ul>
+<li>Quantization（量化）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522204142321.png" style="zoom:80%;"></p>
+<ul>
+<li>在不同的部分（specular、diffuse）上使用不同的阈值化方法</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522204304560.png" style="zoom:67%;"></p>
+<h3 id="strokes-surface-stylization">Strokes Surface Stylization</h3>
+<ul>
+<li>素描的效果</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522212218788.png" style="zoom:50%;"></p>
+<ul>
+<li>什么是素描的效果？
+<ul>
+<li>打格子</li>
+<li>密度：使用<strong>格子的密度</strong>表示<strong>明暗效果</strong></li>
+<li>连续性：使用纹理代替点的计算，保证笔触的连续性</li>
+</ul></li>
+<li>设计几种不同密度的纹理
+<ul>
+<li>我们希望在远处，不会变得越来越暗，导致全黑</li>
+<li>我们自己做一个 Mipmap，缩小之后不改变密度（相当于截取一部分）</li>
+</ul></li>
+<li>Tonal art maps (TAMs)
+<ul>
+<li>Strokes of different densities</li>
+<li>Each density has a MIPMAP</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522212429396.png" style="zoom:50%;"></p>
+<ul>
+<li>一些其他方法</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522212758582.png" style="zoom:67%;"></p>
+<h2 id="npr-总结">NPR 总结</h2>
+<ul>
+<li>NPR is art driven</li>
+<li>怎么把艺术家的需求转化为具体的渲染实现才是有趣/有挑战的</li>
+<li>多和艺术家交流</li>
+<li>NPR 很多时候是 if...else...
+<ul>
+<li>每个场景</li>
+<li>每个部分</li>
+</ul></li>
+<li>NPR 做的好与不好，很大程度上取决于原来的 photorealistic rendering 做的好坏
+<ul>
+<li>Photorealistic models are super important in NPR</li>
+<li>艺术是真实的抽象</li>
+<li>NPR 与 PR 不能被分开来看待</li>
+</ul></li>
+<li>例如：布料（cloth）</li>
+</ul>
+<p><img src="/2021/05/22/CG/YLQ-GAMES202/11/image-20210522213943708.png" style="zoom:70%;"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/22/DB/CLJ/06-1/" rel="prev" title="数据库概论.陈立军.06.事务(2)">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.06.事务(2)
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>
