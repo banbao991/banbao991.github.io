@@ -23,18 +23,20 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
-<meta name="description" content="事务、事务隔离性级别">
+<meta name="description" content="事务、事务隔离性级别（read uncommitted、read uncommitted、repeatable read、serializable）、快照隔离 SI、语句级快照隔离 RCSI">
 <meta property="og:type" content="article">
-<meta property="og:title" content="数据库概论.陈立军.06.事务(2)">
+<meta property="og:title" content="数据库概论.陈立军.06.事务(2) 事务隔离性">
 <meta property="og:url" content="http://example.com/2021/05/22/DB/CLJ/06-1/index.html">
 <meta property="og:site_name" content="Banbao">
-<meta property="og:description" content="事务、事务隔离性级别">
+<meta property="og:description" content="事务、事务隔离性级别（read uncommitted、read uncommitted、repeatable read、serializable）、快照隔离 SI、语句级快照隔离 RCSI">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/22/DB/CLJ/06-1/image-20210524150236052.png">
 <meta property="article:published_time" content="2021-05-22T03:32:28.000Z">
-<meta property="article:modified_time" content="2021-05-22T03:42:24.010Z">
+<meta property="article:modified_time" content="2021-05-24T07:41:12.763Z">
 <meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="DB">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/22/DB/CLJ/06-1/image-20210524150236052.png">
 
 
 <link rel="canonical" href="http://example.com/2021/05/22/DB/CLJ/06-1/">
@@ -49,7 +51,7 @@
     lang   : 'en'
   };
 </script>
-<title>数据库概论.陈立军.06.事务(2) | Banbao</title>
+<title>数据库概论.陈立军.06.事务(2) 事务隔离性 | Banbao</title>
   
 
 
@@ -187,7 +189,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1"><span class="nav-text">事务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E6%80%A7%E7%BA%A7%E5%88%AB"><span class="nav-text">事务隔离性级别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-%E4%B8%AD%E9%9A%94%E7%A6%BB%E6%80%A7%E7%BA%A7%E5%88%AB%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">SQL 中隔离性级别的定义</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1"><span class="nav-text">事务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E6%80%A7%E7%BA%A7%E5%88%AB"><span class="nav-text">事务隔离性级别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-%E4%B8%AD%E9%9A%94%E7%A6%BB%E6%80%A7%E7%BA%A7%E5%88%AB%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">SQL 中隔离性级别的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E6%80%A7%E7%BA%A7%E5%88%AB%E7%9A%84%E5%86%85%E9%83%A8%E5%AE%9E%E7%8E%B0"><span class="nav-text">隔离性级别的内部实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#read-uncommitted"><span class="nav-text">read uncommitted</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#read-committed"><span class="nav-text">read committed</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#read-commited-%E4%B8%8D%E8%83%BD%E5%AE%9E%E7%8E%B0-repeatable-read"><span class="nav-text">read commited 不能实现 repeatable read</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-text">原因</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#repeatable-read"><span class="nav-text">repeatable read</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E6%80%A7%E7%BA%A7%E5%88%AB%E4%B8%8E%E4%B8%8D%E4%B8%80%E8%87%B4%E7%8E%B0%E8%B1%A1%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">隔离性级别与不一致现象的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E5%9C%BA%E6%99%AF%E7%9A%84%E6%BC%94%E7%A4%BA"><span class="nav-text">具体场景的演示</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#read-uncommitted-%E4%B8%8B%E5%8F%91%E7%94%9F%E8%84%8F%E8%AF%BB"><span class="nav-text">read uncommitted 下发生脏读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#read-committed-%E4%B8%8B%E9%81%BF%E5%85%8D%E8%84%8F%E8%AF%BB"><span class="nav-text">read committed 下避免脏读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#read-committed-%E4%B8%8B%E5%8F%91%E7%94%9F%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB"><span class="nav-text">read committed 下发生不可重复读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#repeatable-read-%E4%B8%8B%E9%81%BF%E5%85%8D%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB"><span class="nav-text">repeatable read 下避免不可重复读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#repeatable-read-%E4%B8%8B%E5%8F%91%E7%94%9F%E5%B9%BB%E8%B1%A1"><span class="nav-text">repeatable read 下发生幻象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#serializable-%E4%B8%8B%E9%81%BF%E5%85%8D%E5%B9%BB%E8%B1%A1"><span class="nav-text">serializable 下避免幻象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#read-committed-%E4%B8%8B%E7%9A%84%E4%B8%A2%E5%A4%B1%E4%BF%AE%E6%94%B9"><span class="nav-text">read committed 下的丢失修改</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E5%90%8C%E9%9A%94%E7%A6%BB%E6%80%A7%E7%BA%A7%E5%88%AB%E4%B8%8B%E7%9A%84%E5%8F%AF%E8%83%BD%E8%B0%83%E5%BA%A6"><span class="nav-text">不同隔离性级别下的可能调度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B9%90%E8%A7%82%E9%94%81%E5%AE%9A%E5%BF%AB%E7%85%A7%E9%9A%94%E7%A6%BB-si"><span class="nav-text">乐观锁定：快照隔离 SI</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BF%AB%E7%85%A7%E9%9A%94%E7%A6%BB-si"><span class="nav-text">快照隔离 SI</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BF%AB%E7%85%A7%E9%9A%94%E7%A6%BB%E4%B8%AD%E7%9A%84%E4%B8%8D%E4%B8%80%E8%87%B4%E7%8E%B0%E8%B1%A1"><span class="nav-text">快照隔离中的不一致现象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sql-server-%E4%B8%8B%E7%9A%84%E5%BF%AB%E7%85%A7%E9%9A%94%E7%A6%BB"><span class="nav-text">SQL Server 下的快照隔离</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BF%AB%E7%85%A7%E9%9A%94%E7%A6%BBsi%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB"><span class="nav-text">快照隔离SI：可重复读</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BF%AB%E7%85%A7%E9%9A%94%E7%A6%BBsi%E5%9B%9E%E6%BB%9A"><span class="nav-text">快照隔离SI：回滚</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sql-server%E5%BF%AB%E7%85%A7%E9%9A%94%E7%A6%BB-rcsi"><span class="nav-text">SQL Server：快照隔离 RCSI</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BF%AB%E7%85%A7%E9%9A%94%E7%A6%BB-rcsi%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB"><span class="nav-text">快照隔离 RCSI：不可重复读</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -203,7 +205,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">75</span>
+          <span class="site-state-item-count">76</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -279,7 +281,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          数据库概论.陈立军.06.事务(2)
+          数据库概论.陈立军.06.事务(2) 事务隔离性
         </h1>
 
         <div class="post-meta-container">
@@ -289,10 +291,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2021-05-22 11:32:28 / Modified: 11:42:24" itemprop="dateCreated datePublished" datetime="2021-05-22T11:32:28+08:00">2021-05-22</time>
+      <time title="Created: 2021-05-22 11:32:28" itemprop="dateCreated datePublished" datetime="2021-05-22T11:32:28+08:00">2021-05-22</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-05-24 15:41:12" itemprop="dateModified" datetime="2021-05-24T15:41:12+08:00">2021-05-24</time>
+      </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-folder"></i>
@@ -313,7 +321,7 @@
     </span>
 </div>
 
-            <div class="post-description">事务、事务隔离性级别</div>
+            <div class="post-description">事务、事务隔离性级别（read uncommitted、read uncommitted、repeatable read、serializable）、快照隔离 SI、语句级快照隔离 RCSI</div>
         </div>
       </header>
 
@@ -330,7 +338,7 @@
 <ul>
 <li>允许读取未提交的记录</li>
 </ul></li>
-<li>read committed
+<li>read uncommitted
 <ul>
 <li>只允许读取已提交的记录，但不要求可重复读</li>
 </ul></li>
@@ -343,6 +351,551 @@
 <li>调度的执行必须等价于串行调度</li>
 </ul></li>
 </ul>
+<h3 id="隔离性级别的内部实现">隔离性级别的内部实现</h3>
+<ul>
+<li>在数据库内部，如果一个事务要对某个记录项进行读或写操作，要先获得这个数据项上的读锁或者写锁，这由<strong>锁管理器</strong>统一控制
+<ul>
+<li>读 S 锁，写 X 锁</li>
+<li>二者不兼容，只能有一个锁</li>
+</ul></li>
+<li>写事务 W，读事务 R，锁管理器 L
+<ul>
+<li>以下是不同隔离性级别的内部实现</li>
+</ul></li>
+</ul>
+<h4 id="read-uncommitted">read uncommitted</h4>
+<ul>
+<li>W：申请 X 锁</li>
+<li>L：同意（X 锁被加上）</li>
+<li>R：读取数据项（不需要申请 S 锁）</li>
+</ul>
+<h4 id="read-committed">read committed</h4>
+<ul>
+<li>W：申请 X 锁</li>
+<li>L：同意（X 锁被加上）</li>
+<li>R：申请 S 锁（阻塞），等待</li>
+<li>W：提交（释放 X 锁）</li>
+<li>L：同意 R 读（S 锁被加上）</li>
+<li>R：读取数据项</li>
+</ul>
+<h5 id="read-commited-不能实现-repeatable-read">read commited 不能实现 repeatable read</h5>
+<ul>
+<li>R：申请 S 锁</li>
+<li>L：同意（S 锁被加上）</li>
+<li>R：读取数据项（读完立刻释放 S 锁）</li>
+<li>W：申请 X 锁</li>
+<li>L：同意（X 锁被加上）</li>
+<li>W：提交（X 锁被释放）</li>
+<li>R：读取数据项，（<strong>读取到的数据与之前不一致</strong>）</li>
+</ul>
+<h5 id="原因">原因</h5>
+<ul>
+<li><span style="color:red;font-weight:bold">read committed 的读锁是短锁</span>
+<ul>
+<li>短锁：操作一执行完，锁立即释放</li>
+<li>长锁：长锁会一直到保持到事务结束，提交之后才释放</li>
+</ul></li>
+<li><strong>只有读事务有短锁和长锁的区别，写事务都是长锁</strong></li>
+</ul>
+<h4 id="repeatable-read">repeatable read</h4>
+<ul>
+<li>R：申请 S 锁</li>
+<li>L：同意（S 锁被加上）</li>
+<li>R：读取数据项（S 锁是长锁）</li>
+<li>W：申请 X 锁（阻塞）等待</li>
+<li>R：读取数据项（<strong>读取到的数据与之前一致</strong>）</li>
+<li>R：提交（S 锁被释放）</li>
+<li>L：同意（X 锁被加上）</li>
+<li>W：提交（X 锁被释放）</li>
+</ul>
+<h3 id="隔离性级别与不一致现象的关系">隔离性级别与不一致现象的关系</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">隔离性级别</th>
+<th style="text-align: center;">读脏数据</th>
+<th style="text-align: center;">不能重复读</th>
+<th style="text-align: center;">幻象</th>
+<th style="text-align: center;">丢失修改</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Read uncommitted</td>
+<td style="text-align: center;">是</td>
+<td style="text-align: center;">是</td>
+<td style="text-align: center;">是</td>
+<td style="text-align: center;">是</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Read committed</td>
+<td style="text-align: center;">否</td>
+<td style="text-align: center;">是</td>
+<td style="text-align: center;">是</td>
+<td style="text-align: center;"><span style="color:red;font-weight:bold">是</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Repeatable read</td>
+<td style="text-align: center;">否</td>
+<td style="text-align: center;">否</td>
+<td style="text-align: center;"><span style="color:red;font-weight:bold">是</span></td>
+<td style="text-align: center;">否</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Serializable</td>
+<td style="text-align: center;">否</td>
+<td style="text-align: center;">否</td>
+<td style="text-align: center;">否</td>
+<td style="text-align: center;">否</td>
+</tr>
+</tbody>
+</table>
+<h3 id="具体场景的演示">具体场景的演示</h3>
+<h4 id="read-uncommitted-下发生脏读">read uncommitted 下发生脏读</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">事务1</th>
+<th style="text-align: center;">事务2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">set transaction isolation level <span style="color:red;font-weight:bold">read uncommitted</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran<br>select sname from S<br>where sname = '王红'<br>--只有一个学生名为王红</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">begin tran<br>update S<br>set sname= '王红'</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select sname from S<br>where sname= '王红'<br>--所有学生姓名均为王红</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">rollback tran</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select sname from S<br>where sname='王红'<br>--只有一个学生名为王红</td>
+</tr>
+</tbody>
+</table>
+<h4 id="read-committed-下避免脏读">read committed 下避免脏读</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">事务1</th>
+<th style="text-align: center;">事务2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">set transaction isolation level <span style="color:red;font-weight:bold">read committed</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">begin tran<br>update S<br>set sname= '王红'</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select sname from S<br>where sname='王红'<br>--阻塞，&quot;正在执行批查询&quot;</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">commit tran</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">--所有学生姓名均为王红</td>
+</tr>
+</tbody>
+</table>
+<h4 id="read-committed-下发生不可重复读">read committed 下发生不可重复读</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">事务1</th>
+<th style="text-align: center;">事务2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">set transaction isolation level <span style="color:red;font-weight:bold">read committed</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran<br>select sname from S<br>where sname= '王红'<br>--只有一个学生名为王红</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">begin tran<br>update S<br>set sname='王红'<br>commit tran</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select sname from S<br>where sname= '王红'<br>--所有学生姓名均为王红</td>
+</tr>
+</tbody>
+</table>
+<h4 id="repeatable-read-下避免不可重复读">repeatable read 下避免不可重复读</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">事务1</th>
+<th style="text-align: center;">事务2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">set transaction isolation level <span style="color:red;font-weight:bold">repeatable read</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran<br>select sname from S<br>where sname= '王红'<br>--有一个学生名为王红</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">begin tran<br>update S<br>set sname='王明'<br>where sname='王红'<br>--<span style="color:red;font-weight:bold">阻塞</span></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select sname from S<br>where sname= '王红'<br>--有一个学生名为王红</td>
+</tr>
+</tbody>
+</table>
+<h4 id="repeatable-read-下发生幻象">repeatable read 下发生幻象</h4>
+<ul>
+<li>对于其他事务的 insert 操作，无法阻塞</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">事务1</th>
+<th style="text-align: center;">事务2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">set transaction isolation level <span style="color:red;font-weight:bold">repeatable read</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran<br>select snamef rom S<br>where sname= '王%'<br>--只有一个学生，名为王红</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">insert into S values('s08', '王明', 23, 1)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select sname from S<br>where sname= '王%'<br>--有两个学生，名为王红和王明</td>
+</tr>
+</tbody>
+</table>
+<h4 id="serializable-下避免幻象">serializable 下避免幻象</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">事务1</th>
+<th style="text-align: center;">事务2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">set transaction isolation level <span style="color:red;font-weight:bold">serializable</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran<br>select snamef rom S<br>where sname= '王%'<br>--只有一个学生，名为王红</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">insert into S values('s08', '王明', 23, 1)<br>--阻塞</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select sname from S<br>where sname= '王%'<br>--只有一个学生，名为王红</td>
+</tr>
+</tbody>
+</table>
+<h4 id="read-committed-下的丢失修改">read committed 下的丢失修改</h4>
+<ul>
+<li>注意读和读不会发生不一致现象，允许多个事务同时申请读锁</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> chair(</span><br><span class="line">    seat_id <span class="type">int</span>,</span><br><span class="line">    host <span class="type">char</span>(<span class="number">10</span>)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> chair <span class="keyword">values</span> (<span class="number">1</span>,<span class="keyword">null</span>),(<span class="number">2</span>,<span class="keyword">null</span>),(<span class="number">3</span>,<span class="keyword">null</span>),(<span class="number">4</span>,<span class="keyword">null</span>)</span><br></pre></td></tr></table></figure>
+<table>
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">事务1</th>
+<th style="text-align: center;">事务2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">set transaction isolation level <span style="color:red;font-weight:bold">read committed</span></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">begin tran</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">set transaction isolation level <span style="color:red;font-weight:bold">read committed</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">select seat_id from chair<br>where host is null</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select seat_id from chair<br>where host is null<br>--<span style="color:red;font-weight:bold">read committed 的读锁是短锁，操作完马上释放</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">update chair set host='tom'<br>where seat_id=1</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">commit</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">update chair set host='jerry' where seat_id=1<br>update chair set host='bob' where seat_id=2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">commit</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>将事务 2 的隔离性级别修改为 repeatable read
+<ul>
+<li>这样事务 1 的 update 操作会被阻塞</li>
+<li>但是事务 2 的 update 操作也会被阻塞，引发死锁</li>
+<li>数据库中有专门的进程定期做死锁检测，检测到死锁会撤销一个事务，打开死锁</li>
+</ul></li>
+</ul>
+<h3 id="不同隔离性级别下的可能调度">不同隔离性级别下的可能调度</h3>
+<ul>
+<li>考虑关系 <code>Employee(ID,salary)</code>，有两个元组 <code>(A,20)</code> 和 <code>(B,30)</code></li>
+<li>两个事务 T1，T2 如下</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- T1:</span></span><br><span class="line"><span class="keyword">begin</span> transaction;</span><br><span class="line"><span class="keyword">update</span> Employee <span class="keyword">set</span> salary <span class="operator">=</span> <span class="number">2</span><span class="operator">*</span>salary <span class="keyword">where</span> ID<span class="operator">=</span><span class="string">&#x27;A&#x27;</span>;  <span class="comment">-- t11</span></span><br><span class="line"><span class="keyword">update</span> Employee <span class="keyword">set</span> salary <span class="operator">=</span> salary<span class="operator">+</span><span class="number">10</span> <span class="keyword">where</span> ID<span class="operator">=</span><span class="string">&#x27;A&#x27;</span>; <span class="comment">-- t12</span></span><br><span class="line"><span class="keyword">commit</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- T2:</span></span><br><span class="line"><span class="keyword">begin</span> transaction;</span><br><span class="line"><span class="keyword">select</span> <span class="built_in">sum</span>(salary) <span class="keyword">as</span> sal1 <span class="keyword">from</span> Employee;            <span class="comment">-- t21</span></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">sum</span>(salary) <span class="keyword">as</span> sal2 <span class="keyword">from</span> Employee;            <span class="comment">-- t22</span></span><br><span class="line"><span class="keyword">commit</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>给出 T2 在不同隔离性级别下所返回的 sal1 与 sal2 所有可能的值的情况</li>
+<li>思路：列出所有调度的可能性，在不同的隔离性级别下判断是否能够成立</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">S1: t11, t12, t21, t22 -&gt; (sal1, sal2) = (80,80)</span><br><span class="line">S2: t11, t21, t12, t22 -&gt; (sal1, sal2) = (70,80)</span><br><span class="line">S3: t11, t21, t22, t12 -&gt; (sal1, sal2) = (70,70)</span><br><span class="line">S4: t21, t22, t11, t12 -&gt; (sal1, sal2) = (50,50)</span><br><span class="line">S5: t21, t11, t22, t12 -&gt; (sal1, sal2) = (50,70)</span><br><span class="line">S6: t21, t11, t12, t22 -&gt; (sal1, sal2) = (50,80)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>read uncommitted
+<ul>
+<li>S1,S2,S3,S4,S5,S6</li>
+</ul></li>
+<li>read committed（读短锁，写长锁）
+<ul>
+<li>S1,S4,S6</li>
+</ul></li>
+<li>repeatable read
+<ul>
+<li>S1,S4</li>
+</ul></li>
+<li>serializable
+<ul>
+<li>S1,S4</li>
+</ul></li>
+</ul>
+<h3 id="乐观锁定快照隔离-si">乐观锁定：快照隔离 SI</h3>
+<ul>
+<li>Snapshot Isolation</li>
+<li>上述的隔离性是通过<strong>内部封锁</strong>来实现的（锁管理器）</li>
+<li>这样的设计是有代价的，<strong>锁请求</strong></li>
+<li>如果在某个应用场景下，只有很多读事务，产生冲突的可能性很小，加锁的方式效率很低
+<ul>
+<li>不必要加锁</li>
+</ul></li>
+<li>也就是说写操作比较多的时候，冲突较多的时候，加锁才是一个好的解决方法
+<ul>
+<li>锁：悲观的态度，假定冲突概率很高</li>
+</ul></li>
+<li>乐观的态度：假定发生冲突的概率很小</li>
+</ul>
+<h4 id="快照隔离-si">快照隔离 SI</h4>
+<ul>
+<li><strong>一旦检测到冲突，把某个事务回滚</strong></li>
+<li>通过<strong>多版本</strong>的方式实现的
+<ul>
+<li>更新事务修改数据项的时候形成一个新的版本</li>
+</ul></li>
+<li>一些关系
+<ul>
+<li>读不会阻塞写</li>
+<li>写不会阻塞读</li>
+<li><strong>写发生在提交时</strong></li>
+<li>冲突时先提交者赢</li>
+</ul></li>
+<li>一个例子：左到右时间顺序
+<ul>
+<li>T2 先提交，回滚 T4，因此 T3 保留下来了</li>
+<li>T5 读取到的结果是一开始的，T5 开始的时候，T3 还没写（提交才写）
+<ul>
+<li><strong>标准的快照隔离只能读取到事务一开始的版本</strong></li>
+</ul></li>
+<li>T1 事务无论在什么时候发出读命令，读取到的 X 都是一开始的</li>
+<li>T7 读取的是 T6 更新的结果</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/22/DB/CLJ/06-1/image-20210524150236052.png" style="zoom:67%;"></p>
+<h4 id="快照隔离中的不一致现象">快照隔离中的不一致现象</h4>
+<ul>
+<li>一致性要求：A+B &gt;= 0</li>
+<li>当前：A＋B＝5</li>
+<li>调度：r1(x), r1(y), r2(x), r2(y), w1(y), w2(x)</li>
+<li>T1、T2 分别将 x、y 减去 5，发生了什么？
+<ul>
+<li>调度可以执行，但是最终的结果是不满足一致性的</li>
+</ul></li>
+<li>问题原因：<strong>写偏斜</strong>
+<ul>
+<li>两个事务写不同的数据项</li>
+</ul></li>
+<li>悲观锁定的情况下，repeatable read 会防止这种情况的发生
+<ul>
+<li><strong>读长锁</strong>，后面的写操作阻塞</li>
+</ul></li>
+<li>写偏斜的另外一个例子
+<ul>
+<li>初始值：x=3, y=5</li>
+<li>T1: x := y；T2: y := x</li>
+<li>SI 下 r1(x), r1(y), r2(x), r2(y), w1(y), w2(x) 的结果是什么？
+<ul>
+<li>x=5, y=3</li>
+</ul></li>
+<li>串行的结果：(3,3) 或者 (5,5)</li>
+</ul></li>
+</ul>
+<h4 id="sql-server-下的快照隔离">SQL Server 下的快照隔离</h4>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> database demo</span><br><span class="line">use demo</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> isolation_1 (</span><br><span class="line">    id1 <span class="type">int</span>,</span><br><span class="line">    des <span class="type">varchar</span>(<span class="number">100</span>)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> isolation_1 <span class="keyword">values</span>(<span class="number">1</span>, <span class="string">&#x27;asdf&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h5 id="快照隔离si可重复读">快照隔离SI：可重复读</h5>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">连接1</th>
+<th style="text-align: center;">连接2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">begin tran<br>update isolation_1<br>set des ='UPDATED'<br>where id1=1</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran<br>select * from isolation_1<br>-- 读到的结果是 asdf（事务起点的状态）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">commit tran</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select * from isolation_1<br>commit tran<br>-- 读到的结果是 asdf（事务起点的状态）</td>
+</tr>
+</tbody>
+</table>
+<h5 id="快照隔离si回滚">快照隔离SI：回滚</h5>
+<ul>
+<li>发生冲突的时候，先提交者胜</li>
+<li>右边事务会被回滚</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">连接1</th>
+<th style="text-align: center;">连接2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">SET TRANSACTION ISOLATION<br>LEVEL SNAPSHOT</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran<br>select id1 from isolation_1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">begin tran<br>update isolation_1<br>set id1 = id1+10</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">update isolation_1<br>set id1 = id1+20</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">commit tran</td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<h4 id="sql-server快照隔离-rcsi">SQL Server：快照隔离 RCSI</h4>
+<ul>
+<li>语句级别的快照隔离</li>
+<li>当前语句操作的数据库是当前语句对应的数据库的状态
+<ul>
+<li>而不是事务开始时的版本</li>
+</ul></li>
+</ul>
+<h5 id="快照隔离-rcsi不可重复读">快照隔离 RCSI：不可重复读</h5>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">连接1</th>
+<th style="text-align: center;">连接2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">begin tran<br>update isolation_1<br>set des ='UPDATED'<br>where id1=1</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">begin tran<br>select * from isolation_1<br>-- 读到的结果是 asdf（语句开始的状态）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">commit tran</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">select * from isolation_1<br>commit tran<br>-- 读到的结果是 UPDATED（语句开始的状态）</td>
+</tr>
+</tbody>
+</table>
 
     </div>
 
