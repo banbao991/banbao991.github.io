@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="事务冲突可串行化（交换非冲突指令、优先图）、事务视图可串行化（从读一致性）、事务模型">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.06.事务(3)">
+<meta property="og:url" content="http://example.com/2021/05/23/DB/CLJ/06-2/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="事务冲突可串行化（交换非冲突指令、优先图）、事务视图可串行化（从读一致性）、事务模型">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525144122354.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525145111210.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525145951520.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525150148422.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525150856508.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525151342084.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525153235697.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525154116982.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525154541252.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525163716093.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525164238665.png">
+<meta property="article:published_time" content="2021-05-23T13:39:28.000Z">
+<meta property="article:modified_time" content="2021-05-25T08:48:37.032Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/image-20210525144122354.png">
+
+
+<link rel="canonical" href="http://example.com/2021/05/23/DB/CLJ/06-2/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.06.事务(3) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1"><span class="nav-text">事务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E5%86%B2%E7%AA%81%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96"><span class="nav-text">事务冲突可串行化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E9%A1%BA%E5%BA%8F%E5%AF%B9%E8%B0%83%E5%BA%A6%E7%BB%93%E6%9E%9C%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-text">指令顺序对调度结果的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6%E4%B8%AD%E7%9A%84%E5%86%B2%E7%AA%81%E6%8C%87%E4%BB%A4"><span class="nav-text">调度中的冲突指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%B2%E7%AA%81%E7%AD%89%E4%BB%B7"><span class="nav-text">冲突等价</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%B2%E7%AA%81%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">冲突可串行化的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%9E%E5%86%B2%E7%AA%81%E4%B8%B2%E8%A1%8C%E5%8C%96%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-text">非冲突串行化的例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%B2%E7%AA%81%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96%E7%9A%84%E5%88%A4%E5%AE%9A"><span class="nav-text">冲突可串行化的判定</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E5%85%88%E5%9B%BE%E6%9E%84%E9%80%A0%E4%BE%8B%E5%AD%90"><span class="nav-text">优先图构造例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8E%E5%86%B2%E7%AA%81%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96%E7%AD%89%E4%BB%B7%E7%9A%84%E4%B8%B2%E8%A1%8C%E9%A1%BA%E5%BA%8F"><span class="nav-text">与冲突可串行化等价的串行顺序</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96%E4%BD%86%E9%9D%9E%E5%86%B2%E7%AA%81%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96%E7%9A%84%E8%B0%83%E5%BA%A6"><span class="nav-text">可串行化但非冲突可串行化的调度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E8%A7%86%E5%9B%BE%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96"><span class="nav-text">事务视图可串行化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E8%AF%BB%E4%B8%80%E8%87%B4%E6%80%A7"><span class="nav-text">从读一致性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1s1-%E5%92%8C-s2-%E4%BB%8E%E8%AF%BB%E4%B8%80%E8%87%B4"><span class="nav-text">例子 1：S1 和 S2 从读一致</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-2s1-%E5%92%8C-s3-%E4%BB%8E%E8%AF%BB%E4%B8%8D%E4%B8%80%E8%87%B4"><span class="nav-text">例子 2：S1 和 S3 从读不一致</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%86%E5%9B%BE%E7%AD%89%E4%BB%B7%E7%9A%84%E8%B0%83%E5%BA%A6"><span class="nav-text">视图等价的调度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%86%E5%9B%BE%E7%AD%89%E4%BB%B7%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-text">视图等价的例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%86%E5%9B%BE%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96"><span class="nav-text">视图可串行化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%86%E5%9B%BE%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96%E5%88%A4%E5%AE%9A"><span class="nav-text">视图可串行化判定</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%9D%E6%83%B3"><span class="nav-text">思想</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%97%E6%B3%95"><span class="nav-text">算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E8%A7%A3%E9%87%8A"><span class="nav-text">算法解释</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E8%A7%A3%E9%87%8A%E4%BE%8B%E5%AD%901"><span class="nav-text">算法解释（例子1）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-2"><span class="nav-text">例子 2</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%86%E5%9B%BE%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96%E5%88%A4%E5%AE%9A%E7%A4%BA%E4%BE%8B"><span class="nav-text">视图可串行化判定示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%A8%A1%E5%9E%8B"><span class="nav-text">事务模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B3%E9%9D%A2%E4%BA%8B%E5%8A%A1"><span class="nav-text">平面事务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%83%A8%E5%88%86%E5%9B%9E%E6%BB%9A%E5%BA%94%E7%94%A8%E5%9C%BA%E5%90%88"><span class="nav-text">部分回滚应用场合</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98%E7%82%B9"><span class="nav-text">保存点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1"><span class="nav-text">分布式事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#moss-%E7%9A%84%E5%B5%8C%E5%A5%97%E4%BA%8B%E5%8A%A1%E6%A8%A1%E5%9E%8B"><span class="nav-text">Moss 的嵌套事务模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%84%E5%88%99"><span class="nav-text">规则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E6%B5%81workflow"><span class="nav-text">工作流（workflow）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E6%B5%81%E4%BB%BB%E5%8A%A1%E9%97%B4%E7%9A%84%E4%BE%9D%E8%B5%96%E5%85%B3%E7%B3%BB"><span class="nav-text">工作流任务间的依赖关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%9A%84%E6%89%A7%E8%A1%8C"><span class="nav-text">工作流的执行</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%95%BF%E4%BA%8B%E5%8A%A1"><span class="nav-text">长事务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B8%E5%9E%8B%E4%BE%8B%E5%AD%90"><span class="nav-text">典型例子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%89%B9%E7%82%B9"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#saga"><span class="nav-text">Saga</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#service-broker"><span class="nav-text">Service Broker</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">77</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/23/DB/CLJ/06-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.06.事务(3)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-05-23 21:39:28" itemprop="dateCreated datePublished" datetime="2021-05-23T21:39:28+08:00">2021-05-23</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-05-25 16:48:37" itemprop="dateModified" datetime="2021-05-25T16:48:37+08:00">2021-05-25</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">事务冲突可串行化（交换非冲突指令、优先图）、事务视图可串行化（从读一致性）、事务模型</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="事务">事务</h1>
+<h2 id="事务冲突可串行化">事务冲突可串行化</h2>
+<ul>
+<li>一个调度是否正确，看它执行的结果是否和某一个串行调度执行的结果相同</li>
+<li>核心问题：
+<ul>
+<li>如何判定一个调度是可串行化的？</li>
+<li>如何判定两个调度是等价的？</li>
+</ul></li>
+<li>微观视角：<strong>交换非冲突指令</strong>
+<ul>
+<li>如何把一个调度转换为另一个等价调度？</li>
+</ul></li>
+<li>宏观视角：<strong>从读一致性</strong>
+<ul>
+<li>如何保证每个事务在两个调度中是相同的？</li>
+<li>调度内部逻辑相同，因此对于每个事务，如果输入相同则结果一致</li>
+</ul></li>
+</ul>
+<h3 id="指令顺序对调度结果的影响">指令顺序对调度结果的影响</h3>
+<ul>
+<li>考虑一个调度 S 中的两条连续指令（仅限于 read 与 write 操作）Ii 与 Ij，分别属于事务 Ti 与 Tj</li>
+<li>考虑如下四种情况
+<ul>
+<li>A：Ii=read(Q), Ij=read(Q)</li>
+<li>B：Ii=read(Q), Ij=write(Q)</li>
+<li>C：Ii=write(Q), Ij=read(Q)</li>
+<li>D：Ii=write(Q), Ij=write(Q)</li>
+</ul></li>
+<li>只有 A 操作可以交换，也就是说两条指令中存在写指令则不能交换</li>
+<li>引出冲突指令的定义</li>
+</ul>
+<h3 id="调度中的冲突指令">调度中的冲突指令</h3>
+<ul>
+<li><strong>冲突指令</strong>
+<ul>
+<li>两条指令是不同事务在<strong>相同数据项</strong>上的操作，并且其中<strong>至少有一个</strong>是 <strong>write</strong> 指令</li>
+</ul></li>
+<li>非冲突指令（满足一条即可）
+<ul>
+<li>都是 read 操作</li>
+<li>操作不同数据项</li>
+</ul></li>
+</ul>
+<h3 id="冲突等价">冲突等价</h3>
+<ul>
+<li>如果调度 S 可以经过交换一系列非冲突指令转换成调度 S'，则称调度 S 与 S' 是冲突等价的</li>
+</ul>
+<h3 id="冲突可串行化的定义">冲突可串行化的定义</h3>
+<ul>
+<li>当一个调度 S 与一个串行调度冲突等价时，则称该调度是冲突可串行化的</li>
+</ul>
+<h4 id="非冲突串行化的例子">非冲突串行化的例子</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">T1</th>
+<th style="text-align: center;">T2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">read(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">write(A)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">write(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="冲突可串行化的判定">冲突可串行化的判定</h3>
+<ul>
+<li><strong>优先图</strong>（precedence graph）</li>
+<li>调度 S 的优先图的构造方式
+<ul>
+<li>它是一个有向图 G=(V，E)，V是顶点集，E是边集</li>
+<li>顶点集由所有参与调度的事务组成</li>
+<li>边集由满足下述条件之一的边 Ti <span class="math inline">\(\to\)</span> Tj 组成（冲突指令）
+<ul>
+<li>在 Tj 执行 read(Q) 之前，Ti 执行 write(Q)</li>
+<li>在 Tj 执行 write(Q) 之前，Ti 执行 read(Q)</li>
+<li>在 Tj 执行 write(Q) 之前，Ti 执行 write(Q)</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="优先图构造例子">优先图构造例子</h4>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525144122354.png" style="zoom:50%;"></p>
+<ul>
+<li>如果优先图中存在边 Ti <span class="math inline">\(\to\)</span> Tj，则在任何等价于 S 的串行调度 S' 中，Ti 都必须出现在 Tj 之前</li>
+<li>如果调度 S 的优先图中有环，则 S 是非冲突可串行化的</li>
+<li>如果调度 S 的优先图中无环，则是冲突可串行化的
+<ul>
+<li>拓扑排序</li>
+</ul></li>
+</ul>
+<h4 id="与冲突可串行化等价的串行顺序">与冲突可串行化等价的串行顺序</h4>
+<ul>
+<li>串行顺序可由拓扑排序得到，求出与优先图的偏序相一致的线序</li>
+<li>优先图</li>
+</ul>
+<pre class="mermaid">graph LR;
+T1-->T2;
+T1-->T3;
+T2-->T4;
+T3-->T4;</pre>
+<ul>
+<li>等价串行线序</li>
+</ul>
+<pre class="mermaid">graph LR;
+T1-->T2;
+T2-->T3;
+T3-->T4;</pre>
+<pre class="mermaid">graph LR;
+T1-->T3;
+T3-->T2;
+T2-->T4;</pre>
+<h3 id="可串行化但非冲突可串行化的调度">可串行化但非冲突可串行化的调度</h3>
+<ul>
+<li>满足上面冲突可串行化判断的调度一定是可串行化的</li>
+<li>不满足判断的调度不一定是不可串行化的</li>
+<li>一个例子：转账
+<ul>
+<li>在实际编写中应当尽量避免如下操作，应该按照相同的数据项的顺序进行处理</li>
+<li>容易造成死锁等问题</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525145111210.png" alt="image-20210525145414073" style="zoom:50%;"></p>
+<ul>
+<li>冲突可串行化的要求太苛刻了，引入视图可串行化的判定</li>
+</ul>
+<h2 id="事务视图可串行化">事务视图可串行化</h2>
+<h3 id="从读一致性">从读一致性</h3>
+<ul>
+<li>如果两个调度从读一致，则是等价的</li>
+<li>把两个调度的 read 指令挑出来，看对应的 read 指令读到的数据是否相同</li>
+<li>每个 read 指令往前找，离它最近的 write 相同数据项的指令，就是他读出来的值</li>
+</ul>
+<h4 id="例子-1s1-和-s2-从读一致">例子 1：S1 和 S2 从读一致</h4>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525145951520.png" style="zoom:67%;"></p>
+<ul>
+<li>S1 中的从读关系
+<ul>
+<li>r1(A) 和 r1(B) 读取的是数据库中的初值</li>
+<li>r2(A) 读取的是 w1(A)，r2(B) 读取 w1(B)</li>
+</ul></li>
+<li>S2 中的从读关系
+<ul>
+<li>r1(A) 和 r1(B) 读取的是数据库中的初值</li>
+<li>r2(A) 读取的是 w1(A)，r2(B) 读取 w1(B)</li>
+</ul></li>
+</ul>
+<h4 id="例子-2s1-和-s3-从读不一致">例子 2：S1 和 S3 从读不一致</h4>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525150148422.png" style="zoom:67%;"></p>
+<ul>
+<li>S1 中的从读关系
+<ul>
+<li>r1(A) 和 r1(B) 读取的是数据库中的初值</li>
+<li>r2(A) 读取的是 w1(A)，r2(B) 读取 w1(B)</li>
+</ul></li>
+<li>S3 中的从读关系
+<ul>
+<li>r1(A) 和 r1(B) 读取的是数据库中的初值</li>
+<li>r2(A) 读取的是数据库中的初值</li>
+<li>r2(B) 读取 w1(B)</li>
+</ul></li>
+</ul>
+<h3 id="视图等价的调度">视图等价的调度</h3>
+<ul>
+<li>考虑关于某个事务集的两个调度 S，S'，若调度 S，S' 满足以下条件，则称它们是视图等价的
+<ul>
+<li>数据库初值 <span class="math inline">\({\buildrel{S}\over\longrightarrow}\)</span> ri(Q)，数据库初值 <span class="math inline">\({\buildrel{S&#39;}\over\longrightarrow}\)</span> ri(Q)</li>
+<li>wj(Q) <span class="math inline">\({\buildrel{S}\over\longrightarrow}\)</span> ri(Q)，wj(Q) <span class="math inline">\({\buildrel{S&#39;}\over\longrightarrow}\)</span> ri(Q)</li>
+<li>wj(Q) <span class="math inline">\({\buildrel{S}\over\longrightarrow}\)</span> 数据库终值，wj(Q) <span class="math inline">\({\buildrel{S&#39;}\over\longrightarrow}\)</span> 数据库终值</li>
+</ul></li>
+<li>前两条保证从读一致性</li>
+<li>最后一条保证两个调度得到最终相同的系统状态</li>
+</ul>
+<h4 id="视图等价的例子">视图等价的例子</h4>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525150856508.png" style="zoom:50%;"></p>
+<h3 id="视图可串行化">视图可串行化</h3>
+<ul>
+<li>如果某个调度视图等价于一个串行调度，则称该调度是视图可串行化的</li>
+<li><strong>冲突可串行化调度一定是视图可串行化的</strong>
+<ul>
+<li>冲突可串行化的调度一定满足从读一致性</li>
+<li>交换一系列非冲突指令，不会破坏从读一致性</li>
+</ul></li>
+<li><strong>存在视图可串行化但非冲突可串行化的调度</strong></li>
+</ul>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525151342084.png" style="zoom:50%;"></p>
+<ul>
+<li>盲目写操作：不读就写</li>
+</ul>
+<h3 id="视图可串行化判定">视图可串行化判定</h3>
+<h4 id="思想">思想</h4>
+<ul>
+<li>找出所有的从读关系</li>
+<li>如果有其他事务对某个数据项有写操作，这个写操作不能破坏这个数据项的从读关系</li>
+</ul>
+<h4 id="算法">算法</h4>
+<ul>
+<li>设调度 S 包含了事务 {T1,T2, ... ,Tn} ，设 Tb,Tf 是两个虚事务，其中 Tb 为 S 中所有 write(Q) 操作，Tf 为 S 中所有 read(Q) 操作。在调度 S 的开头插入 Tb ，在调度 S 的末尾插入 Tf，得到新的调度 S'
+<ul>
+<li>如果 Tj 读取 Ti 写入的数据项的值，则加入边 Ti <span class="math inline">\({\buildrel{0}\over\longrightarrow}\)</span> Tj</li>
+<li>删除所有关联无用事务的边。如果在优先图中不存在从 Ti 到 Tf 的通路，则 Ti 是无用事务</li>
+<li>对于每个数据项 Q，如果 Tj 读取 Ti 写入的 Q 值，Tk 执行 write(Q) 操作且 Tk <span class="math inline">\(\ne\)</span> Tb，则
+<ul>
+<li>如果 Ti = Tb 且 Tj <span class="math inline">\(\ne\)</span> Tf，则在带标记的优先图中插入边 Tj <span class="math inline">\({\buildrel{0}\over\longrightarrow}\)</span> Tk</li>
+<li>如果Ti <span class="math inline">\(\ne\)</span> Tb 且 Tj=Tf，则在带标记的优先图中插入边 Tk <span class="math inline">\({\buildrel{0}\over\longrightarrow}\)</span> Ti</li>
+<li>如果 Ti <span class="math inline">\(\ne\)</span> Tb且 Tj <span class="math inline">\(\ne\)</span> Tf，则在带标记的优先图中插入边 Tk <span class="math inline">\({\buildrel{p}\over\longrightarrow}\)</span> Ti 与 Tj <span class="math inline">\({\buildrel{p}\over\longrightarrow}\)</span> Tk
+<ul>
+<li>其中 p 是一个唯一的，在前面边的标记中未曾用过的大于 0 的整数</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="算法解释">算法解释</h4>
+<ul>
+<li>读数据库初值的，就是读取 Tb 的</li>
+<li>最终加入一个 Tf，表示读数据库终值</li>
+</ul>
+<h4 id="算法解释例子1">算法解释（例子1）</h4>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525153235697.png" style="zoom:50%;"></p>
+<ul>
+<li>找出从读关系（红边）
+<ul>
+<li>read(A) 读取数据库初值，加上一条边（Tb <span class="math inline">\(\to\)</span> T1）</li>
+<li>write(A) 写数据库终值，加上一条边 （T1 <span class="math inline">\(\to\)</span> Tf）</li>
+</ul></li>
+<li>对从读关系进行判断，找到和从读关系操作数据项相同的 write 操作
+<ul>
+<li>write(A) 不能破坏边（Tb <span class="math inline">\(\to\)</span> T1）的从读关系，因此 T2 只能在 Tb 的前面（这不允许，Tb是第一个事务）或者 T1 的后面</li>
+<li>write(A) 不能破坏边（T1 <span class="math inline">\(\to\)</span> Tf）的从读关系，因此 T2 只能在 T1 的前面或者 Tf 的后面（这不允许，Tf 是最后一个事务）</li>
+</ul></li>
+<li>结果有环，不是视图可串行化的</li>
+</ul>
+<h4 id="例子-2">例子 2</h4>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525154116982.png" style="zoom:50%;"></p>
+<ul>
+<li>按照上面的算法构造优先图
+<ul>
+<li>标号相同且不为 0 的边，有一条边成立即可</li>
+</ul></li>
+<li>判定
+<ul>
+<li>每个优先图包含标号大于 1 的边对中的一条</li>
+<li>判定准则：只要有一个优先图无环，则调度是视图可串行化的</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525154541252.png" style="zoom:60%;"></p>
+<ul>
+<li>左图无环，是视图可串行化的</li>
+</ul>
+<h3 id="视图可串行化判定示例">视图可串行化判定示例</h3>
+<ul>
+<li>满足上面视图可串行化判断的调度一定是可串行化的</li>
+<li>不满足判断的调度不一定是不可串行化的</li>
+<li>例子
+<ul>
+<li>另外一种判定方法：如下调度与任意一个串行调度都不是视图等价的
+<ul>
+<li>T1, T2</li>
+<li>T2, T1</li>
+</ul></li>
+</ul></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">T1</th>
+<th style="text-align: center;">T2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">read(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">A := A - 50</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">write(A)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">read(B)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">B := B - 10</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">write(B)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">read(B)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">B := B + 50</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">write(B)</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">read(A)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">A := A + 10</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">write(A)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="事务模型">事务模型</h2>
+<h3 id="平面事务">平面事务</h3>
+<ul>
+<li><strong>一层结构</strong></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span> transaction ... <span class="keyword">commit</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>平面事务的缺点
+<ul>
+<li><strong>不能部分回滚</strong></li>
+</ul></li>
+<li>某些应用场合有部分回滚的需求</li>
+</ul>
+<h4 id="部分回滚应用场合">部分回滚应用场合</h4>
+<ul>
+<li>确定旅行路线
+<ul>
+<li>某条线路不通应该回滚到上一个分支点，而不是回滚整个事务</li>
+</ul></li>
+<li>批量更新
+<ul>
+<li>如银行结算利息，可以把更新每个帐号作为一个事务，也可以把更新所有帐号作为一个事务</li>
+<li>一部分记录更新后，做 一个保存点</li>
+</ul></li>
+</ul>
+<h4 id="保存点">保存点</h4>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">begin_transaction()</span><br><span class="line">    S1;</span><br><span class="line">    sp1 :<span class="operator">=</span> create_savepoint();</span><br><span class="line">    ...</span><br><span class="line">    Sn;</span><br><span class="line">    spn:<span class="operator">=</span> create_savepoint();</span><br><span class="line">    ...</span><br><span class="line">    if(condition)&#123;</span><br><span class="line">        <span class="keyword">rollback</span>(spi);</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line"><span class="keyword">commit</span>();</span><br></pre></td></tr></table></figure>
+<ul>
+<li>一个例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span> tran</span><br><span class="line"><span class="comment">----转账部分</span></span><br><span class="line"><span class="keyword">update</span> accounts</span><br><span class="line"><span class="keyword">set</span> amounts<span class="operator">=</span>amounts<span class="number">-100</span></span><br><span class="line"><span class="keyword">where</span> account_id<span class="operator">=</span><span class="string">&#x27;A&#x27;</span></span><br><span class="line"><span class="keyword">update</span> accounts</span><br><span class="line"><span class="keyword">set</span> amounts<span class="operator">=</span>amounts<span class="operator">+</span><span class="number">100</span></span><br><span class="line"><span class="keyword">where</span> account_id<span class="operator">=</span><span class="string">&#x27;A&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">----结算利息, 然后撤销</span></span><br><span class="line">save tran add_interest <span class="comment">--保存点</span></span><br><span class="line"><span class="keyword">update</span> accounts</span><br><span class="line"><span class="keyword">set</span> amounts<span class="operator">=</span>amounts<span class="operator">*</span><span class="number">1.02</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> accounts</span><br><span class="line"><span class="keyword">rollback</span> tranadd_interest</span><br><span class="line"><span class="keyword">commit</span> tran</span><br></pre></td></tr></table></figure>
+<h3 id="分布式事务">分布式事务</h3>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525163716093.png" style="zoom:67%;"></p>
+<h3 id="moss-的嵌套事务模型">Moss 的嵌套事务模型</h3>
+<ul>
+<li>嵌套事务是一棵<strong>事务树</strong>，<strong>子树</strong>可以是<strong>嵌套</strong>的也可以是<strong>平面</strong>的</li>
+<li><strong>叶结点事务是平面事务</strong>，从根结点到各个叶结点的距离可以是不同的</li>
+<li>根结点事务称作<strong>顶层事务</strong>，其他称作<strong>子事务</strong></li>
+<li>子事务可以提交也可以回滚，但它的提交并不起作用，除非它的父事务提交
+<ul>
+<li><strong>只有根结点的提交才会使得所有子事务提交</strong></li>
+</ul></li>
+<li>树中任何一个事务的回滚导致它的所有子事务的回滚</li>
+<li>子事务具有一般事务的 A,C,I 特性，但不具有 D 特性</li>
+<li>实际工作只发生在叶结点事务中，只有它们可以访问数据库，发送消息等
+<ul>
+<li>上层事务只是组织控制流以及决定什么时候该激活哪个子事务</li>
+</ul></li>
+</ul>
+<h4 id="规则">规则</h4>
+<ul>
+<li>提交规则
+<ul>
+<li>当子事务提交时，它的结果只能被它的父事务所访问</li>
+<li>只有当一个子事务提交了，并且它的一直到根的所有祖先也都提交了，该子事务才最终提交</li>
+<li>因此，只有根结点提交了，所有子事务才会提交</li>
+</ul></li>
+<li>回滚规则
+<ul>
+<li>如果任何一个嵌套层次的事务回滚了，它的所有子事务也都要回滚，不管它们当前是否已经提交</li>
+<li>因此，如果根结点回滚，整个嵌套事务也就回滚</li>
+</ul></li>
+<li>可见规则
+<ul>
+<li>当子事务提交后，它的修改对其父事务是可见的，而对其兄弟是不可见的</li>
+<li>父事务的任何对象对其子事务都是可访问的</li>
+</ul></li>
+</ul>
+<h4 id="例子">例子</h4>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> TestNestTrans(Col <span class="type">char</span>(<span class="number">3</span>))</span><br><span class="line"><span class="keyword">create</span> proccedure TransProc <span class="variable">@CharCol</span> <span class="type">char</span>(<span class="number">3</span>)</span><br><span class="line"><span class="keyword">as</span></span><br><span class="line"><span class="keyword">begin</span> transaction InProc</span><br><span class="line">    <span class="keyword">insert</span> <span class="keyword">into</span> TestNestTrans <span class="keyword">values</span>(<span class="variable">@CharCol</span>)</span><br><span class="line"><span class="keyword">commit</span> transaction InProc</span><br><span class="line"></span><br><span class="line"><span class="keyword">begin</span> transaction OutOfProc</span><br><span class="line">    <span class="keyword">exec</span> TransProc <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">rollback</span> transaction OutOfProc</span><br><span class="line"></span><br><span class="line"><span class="keyword">exec</span> TransProc <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> TestTrans</span><br><span class="line"><span class="comment">--最终 TestNestTrans 表中只有元组 bbb</span></span><br></pre></td></tr></table></figure>
+<h3 id="工作流workflow">工作流（workflow）</h3>
+<ul>
+<li>实现某种商业目的的一组相关活动（或步骤）
+<ul>
+<li>银行或保险公司的贷款申请或保险索赔</li>
+<li>一次科技会议的规划(邀请、评论、通知等等)</li>
+<li>购买房地产的行政程序</li>
+<li>病人在医院中的“行程”</li>
+</ul></li>
+<li>工作流使得机构把他们重复的、一成不变的处理自动化，同时保持灵活性，根据不断变化的商业需求来很快调整处理过程</li>
+<li>工作流可能跨越不同的负责人和不同的、独立的信息系统，甚至跨越不同的企业</li>
+<li>银行借贷工作流</li>
+</ul>
+<p><img src="/2021/05/23/DB/CLJ/06-2/image-20210525164238665.png" style="zoom:60%;"></p>
+<h4 id="工作流任务间的依赖关系">工作流任务间的依赖关系</h4>
+<ul>
+<li>其他任务的执行状态
+<ul>
+<li>任务 tj 结束了，任务 ti 才能开始</li>
+</ul></li>
+<li>其他任务的输出值
+<ul>
+<li>如果任务 tj 返回一个大于 20 的值，则任务 ti 可以开始</li>
+<li>如果秘书审批任务返回 OK，则经理审批任务可以开始</li>
+</ul></li>
+<li>外部时间修改的外部变量
+<ul>
+<li>上午9点以后任务 ti 才能开始</li>
+<li>在任务 tj 完成后的 24 小时内必须开始任务 ti</li>
+</ul></li>
+</ul>
+<h4 id="工作流的执行">工作流的执行</h4>
+<ul>
+<li>工作流执行
+<ul>
+<li>提交的可接受终止状态</li>
+<li>中止的可接受终止状态</li>
+</ul></li>
+<li>整个工作流作为一个事务？
+<ul>
+<li>工作流持续时间很长</li>
+<li>每个活动作为一个事务？</li>
+</ul></li>
+<li>如何取消一个活动？补偿事务</li>
+</ul>
+<h3 id="长事务">长事务</h3>
+<ul>
+<li>运行时间过长，不能采用传统的封锁机制</li>
+<li>业务事务：涉及多个相关步骤、运行较长时间</li>
+<li>例如购物包括以下若干步骤
+<ul>
+<li>订购商品、商议价格、确定发货日期、确认发货、开具发票、收到货款、发货、...</li>
+</ul></li>
+<li>不能用普通事务实现，否则锁死很久</li>
+</ul>
+<h4 id="典型例子">典型例子</h4>
+<ul>
+<li>传统的 DBMS 应用
+<ul>
+<li>计算所有银行账户余额</li>
+</ul></li>
+<li>设计系统
+<ul>
+<li>设计被分为不同部分，不同设计者同时工作在不同部分上</li>
+</ul></li>
+<li>工作流系统</li>
+</ul>
+<h4 id="特点">特点</h4>
+<ul>
+<li>持续时间长</li>
+<li>暴露未提交的数据</li>
+<li>子任务
+<ul>
+<li>中止其中某个子任务，而不必中止整个事务</li>
+</ul></li>
+<li>可恢复性
+<ul>
+<li>不要将整个事务撤销，而恢复到系统崩溃之前的某一状态，使丢掉的工作尽量少</li>
+</ul></li>
+<li>性能
+<ul>
+<li>响应时间 vs 事务吞吐量</li>
+</ul></li>
+</ul>
+<h4 id="saga">Saga</h4>
+<ul>
+<li>Saga：构成长事务的一系列动作</li>
+<li>一个图，其结点是动作或中止及完成结点，弧连接结点对
+<ul>
+<li>中止及完成结点称为<strong>终止结点</strong></li>
+</ul></li>
+<li>关于动作从哪个结点开始的指示，称为<strong>开始节点</strong></li>
+<li>Saga 的并发控制
+<ul>
+<li>每个动作是一个一个短事务，采用传统的并发控制</li>
+<li>整个事务的完整性由<strong>补偿事务</strong>来保证
+<ul>
+<li>整个事务，即任何通向终止结点的路径通过补偿事务来管理，也即每个结点上短事务的逆（用于撤销回滚）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="service-broker">Service Broker</h4>
+<ul>
+<li>转化为异步的消息队列</li>
+<li>每个部门处理订单的一部分，每个部分处理完自己的短事务之后，打包成一个消息传递给下一个部门</li>
+<li>可靠的（reliable）、有序的（in order）、异步的（asynchronous）</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/22/CG/YLQ-GAMES202/11/" rel="prev" title="GAMES202.闫令琪.11.基于物理的材质与非真实感渲染">
+                  <i class="fa fa-chevron-left"></i> GAMES202.闫令琪.11.基于物理的材质与非真实感渲染
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/05/24/DB/CLJ/04-8/" rel="next" title="数据库概论.陈立军.04.非关系型数据">
+                  数据库概论.陈立军.04.非关系型数据 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>
