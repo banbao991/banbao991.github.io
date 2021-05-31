@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="实时光线追踪、RTX、RTX 的降噪方法、Temporal(时间上的滤波方法)、TAA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES202.闫令琪.12.实时光线追踪">
+<meta property="og:url" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="实时光线追踪、RTX、RTX 的降噪方法、Temporal(时间上的滤波方法)、TAA">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531212121853.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531213131561.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531214157842.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531214248561.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531223422938.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531223725649.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531224126028.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531234208290.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531234218006.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531234300669.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210601000529916.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210601000906122.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531235727923.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210601000246930.png">
+<meta property="article:published_time" content="2021-05-31T11:01:59.000Z">
+<meta property="article:modified_time" content="2021-05-31T16:15:21.486Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/image-20210531212121853.png">
+
+
+<link rel="canonical" href="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES202.闫令琪.12.实时光线追踪 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#real-time-ray-tracing"><span class="nav-text">Real-Time Ray Tracing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#rtx"><span class="nav-text">RTX</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#spp"><span class="nav-text">SPP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rtx-%E7%9A%84-denoising"><span class="nav-text">RTX 的 denoising</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%8D%E5%99%AA-denosing"><span class="nav-text">降噪 Denosing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%AE%E6%A0%87"><span class="nav-text">目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%B8%9A%E7%95%8C%E7%9A%84%E8%A7%A3%E6%B3%95"><span class="nav-text">工业界的解法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#g-buffer"><span class="nav-text">G-Buffer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#back-projection"><span class="nav-text">Back Projection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#blending"><span class="nav-text">blending</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%88%E6%9E%9C"><span class="nav-text">效果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-text">问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3"><span class="nav-text">问题解决</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98-3"><span class="nav-text">问题 3</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#taa"><span class="nav-text">TAA</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES202.闫令琪.12.实时光线追踪
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-05-31 19:01:59" itemprop="dateCreated datePublished" datetime="2021-05-31T19:01:59+08:00">2021-05-31</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-06-01 00:15:21" itemprop="dateModified" datetime="2021-06-01T00:15:21+08:00">2021-06-01</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES202/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES202</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">实时光线追踪、RTX、RTX 的降噪方法、Temporal(时间上的滤波方法)、TAA</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
+</ul>
+<h1 id="real-time-ray-tracing">Real-Time Ray Tracing</h1>
+<ul>
+<li>一些复杂的材质在这门课上不讲了</li>
+<li>Volumetric / scattering materials
+<ul>
+<li>人脸
+<ul>
+<li>《最终幻想七 重制版》 [Final Fantasy VII Remake]</li>
+</ul></li>
+<li>毛发
+<ul>
+<li>《黑神话：悟空》 [Black Myth: Wukong]</li>
+</ul></li>
+</ul></li>
+<li>背景知识比较多
+<ul>
+<li>RTE：散射介质中光线的传播</li>
+<li>BSSRDF：次表面散射
+<ul>
+<li>出射点和入射点可以不同的 BRDF</li>
+</ul></li>
+<li>毛发内部的一次、多次散射</li>
+</ul></li>
+<li>离线渲染课程
+<ul>
+<li>更复杂的光线传播方法
+<ul>
+<li>delta tracking：在散射介质中做光线的步进</li>
+</ul></li>
+<li>复杂的材质
+<ul>
+<li>dual scattering：毛发渲染的一种方法</li>
+<li>layered materials：分层的材质</li>
+</ul></li>
+</ul></li>
+<li>UE5 发布
+<ul>
+<li>一些技术的可能实现</li>
+<li>Nanite</li>
+<li>Lumen</li>
+</ul></li>
+</ul>
+<h2 id="rtx">RTX</h2>
+<ul>
+<li>实时光线追踪</li>
+<li>早期的观点
+<ul>
+<li>&quot;Ray tracing is the futureand ever will be.&quot;</li>
+</ul></li>
+<li>2018 RTX 系列硬件的推出使得实时光线追踪成为可能
+<ul>
+<li>图灵架构</li>
+<li>NVIDIA announced GeForce RTX series (Turing architecture)</li>
+</ul></li>
+<li>RTRT 的应用场景
+<ul>
+<li>设计：汽车渲染</li>
+<li>影视动画</li>
+<li>...</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531212121853.png" alt="image-20210531212121853" style="zoom: 40%;"></p>
+<ul>
+<li>RTX 做了什么
+<ul>
+<li>做了很多 demo 展示效果：Impressive demos of RTRT
+<ul>
+<li>主要是高亮的场景（glossy）
+<ul>
+<li>一方面 glossy 材质方便求反射光线</li>
+<li>另一方面 diffuse 材质你看不出来与传统方法的区别</li>
+</ul></li>
+</ul></li>
+<li>Advanced ray traced effects：能够实现很多之前比较难做的效果
+<ul>
+<li>Shadows</li>
+<li>Reflections &amp; Specular</li>
+<li>Ambient Occlusion</li>
+<li>Global Illumination</li>
+</ul></li>
+<li>RTX 是一种架构，允许我们 trace 光线</li>
+<li>RTX 是一种硬件上的突破，计算的很快
+<ul>
+<li>tensor core：加速神经网络</li>
+<li>rt core：针对 ray tracing 做的优化</li>
+<li>10 Giga rays per second
+<ul>
+<li>帧数、其他计算的考虑，最终的效果留给 RTRT 的时间能够达到 1spp
+<ul>
+<li>1 sample per pixel (2080Ti)</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>RTX 支持降噪
+<ul>
+<li>1SPP 噪声严重</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="spp">SPP</h3>
+<ul>
+<li>1 SPP path tracing：为了实现全局光照效果，至少 4 条光线
+<ul>
+<li>1 rasterization (primary) +</li>
+<li>1 ray (primary visibility) +</li>
+<li>1 ray (secondary bounce) +</li>
+<li>1 ray (secondary visibility)</li>
+</ul></li>
+<li>primary hitpoint：第一次打中的点</li>
+<li>shadow ray：判断这个点对光源是否可见</li>
+<li>one bounce
+<ul>
+<li>secondary hitpoint</li>
+<li>shadow ray</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531213131561.png" style="zoom:50%;"></p>
+<ul>
+<li>一种优化
+<ul>
+<li>没必要对所有的像素进行一次 ray tracing</li>
+<li>先进行光栅化，可以更快</li>
+</ul></li>
+<li>这样 1SPP 需要考虑的光线少了 1 条（找到 primary hitpoint 的光线光栅化做了）</li>
+<li>1 SPP 效果很差，噪声很严重</li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531214157842.png"></p>
+<h3 id="rtx-的-denoising">RTX 的 denoising</h3>
+<ul>
+<li>State of the Art* Denoising Solution</li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531214248561.png" style="zoom:50%;"></p>
+<ul>
+<li>1SPP 变成这样的效果
+<ul>
+<li>震惊但是这是真的</li>
+</ul></li>
+</ul>
+<h2 id="降噪-denosing">降噪 Denosing</h2>
+<h3 id="目标">目标</h3>
+<ul>
+<li>目标
+<ul>
+<li>输入为 1SPP 的渲染结果</li>
+<li>没有模糊、没有 artifacts、保持所有的细节
+<ul>
+<li>overblur（高斯滤波的结果）</li>
+</ul></li>
+<li>速度要快，降噪只是实时渲染的一小部分
+<ul>
+<li>每一帧降噪所花费的是时间小于 2ms</li>
+</ul></li>
+</ul></li>
+<li>不可能，传统的方法都不行
+<ul>
+<li>Sheared filtering series (SF, AAF, FSF, MAAF, …)</li>
+<li>Other offline filtering methods (IPP, BM3D, APR, …)</li>
+<li>Deep learning series (CNN, Autoencoder, …)
+<ul>
+<li>现在来看，速度太慢了</li>
+<li>跑一个神经网络花费时间在 100 ms 左右</li>
+</ul></li>
+</ul></li>
+<li>Optix：Nvidia 的光追 API</li>
+</ul>
+<h3 id="工业界的解法">工业界的解法</h3>
+<ul>
+<li><strong>Temporal</strong>：时间上的滤波</li>
+<li>关键想法：
+<ul>
+<li>递归的思维</li>
+<li>需要滤波当前帧，我们认为<strong>前一帧是已经滤波好了的</strong></li>
+<li>假设场景的运动是连续的
+<ul>
+<li>利用上一帧的 shading 结果</li>
+</ul></li>
+<li><strong>motion vector</strong>：用于找到对应的 shading point 在上一帧的位置</li>
+<li>结果相当于增加了 SPP（由于递归，SPP的增加是很多的）</li>
+</ul></li>
+<li>motion vector</li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531223422938.png" style="zoom:67%;"></p>
+<ul>
+<li>空间上的降噪
+<ul>
+<li>下一节课</li>
+</ul></li>
+</ul>
+<h3 id="g-buffer">G-Buffer</h3>
+<ul>
+<li>Geometry Buffer
+<ul>
+<li>光栅化得到的</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531223725649.png"></p>
+<ul>
+<li>需要什么，保存什么
+<ul>
+<li>可以保存深度、法向、世界坐标系位置等各种信息</li>
+<li>保存的是屏幕空间的信息</li>
+</ul></li>
+<li>生成 G-Buffer 通常认为是轻量级的</li>
+<li>使用 G-Buffer 是很快的</li>
+</ul>
+<h3 id="back-projection">Back Projection</h3>
+<ul>
+<li>找对应点</li>
+<li>当前帧 <span class="math inline">\(i\)</span> 中的像素点 <span class="math inline">\(x\)</span>，找到这个像素中的内容在上一帧 <span class="math inline">\(i-1\)</span> 中的位置 <span class="math inline">\(x&#39;\)</span>
+<ul>
+<li><span class="math inline">\(x,x&#39;\)</span> 在世界坐标系中具有相同的世界坐标系坐标</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531224126028.png" style="zoom:67%;"></p>
+<ul>
+<li>求出世界坐标系位置 <span class="math inline">\(s\)</span>
+<ul>
+<li>如果有 G-Buffer 中，直接取出 <span class="math inline">\(s\)</span> 即可</li>
+<li>如果没有 G-Buffer，计算得到 <span class="math inline">\(s = M^{-1}V^{-1}P^{-1}E^{-1}x\)</span>
+<ul>
+<li><span class="math inline">\(E\)</span> 视口变换，带 <span class="math inline">\(&#39;\)</span> 表示上一帧结果</li>
+<li>需要用到深度信息，屏幕空间是 2D 的，变换是 3D 的</li>
+</ul></li>
+</ul></li>
+<li>计算上一帧世界坐标系坐标 <span class="math inline">\(s&#39;\)</span> 的位置（已经得到了世界坐标 <span class="math inline">\(s\)</span>）
+<ul>
+<li>我们是知道物体怎么运动的，计算即可，我们拥有整个场景的运动信息</li>
+<li><span class="math inline">\(s&#39;{\buildrel{T}\over\longrightarrow} s,s{\buildrel{T^{-1}}\over\longrightarrow} s&#39;\)</span></li>
+</ul></li>
+<li>计算在上一帧中的位置 <span class="math inline">\(x&#39;\)</span>
+<ul>
+<li><span class="math inline">\(x&#39;=E&#39;P&#39;V&#39;M&#39;s&#39;\)</span></li>
+</ul></li>
+<li>光流：找像素和像素在不同时间上的一个对应 optical flow
+<ul>
+<li>算 motion vector 本质上也是一种 optical flow</li>
+<li>motion vector 是完全物理正确的</li>
+<li>光流是根据内容推理，但是深度学习能够做的很好</li>
+</ul></li>
+</ul>
+<h3 id="blending">blending</h3>
+<ul>
+<li>怎么结合得到的两张图</li>
+<li>符号定义（象形hhh）
+<ul>
+<li><span class="math inline">\(\sim\)</span> ：unfiltered</li>
+<li><span class="math inline">\(-\)</span>：filtered</li>
+</ul></li>
+<li>步骤
+<ul>
+<li>当前帧自己先做一次降噪（空间）
+<ul>
+<li><span class="math inline">\(\bar{C}^{(i)}=Filter[\tilde{C}^{(i)}]\)</span></li>
+<li>1SPP 情况下只依赖当前帧的结果，降噪效果是不可能很好的</li>
+</ul></li>
+<li>Temporal（时间）
+<ul>
+<li><span class="math inline">\(\bar{C}^{(i)}=\alpha\bar{C}^{(i)}+(1-\alpha)\bar{C}^{i-1}\)</span></li>
+<li>对应像素而不是同一个像素</li>
+<li>通常 <span class="math inline">\(\alpha\in[0.1,0.2]\)</span></li>
+<li>说明用的内容主要是上一帧的内容，大胆的设想</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="效果">效果</h3>
+<ul>
+<li>1spp Ray Traced Global Illumination</li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531234208290.png"></p>
+<ul>
+<li>1spp Ray Traced Global Illumination + Denoising</li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531234218006.png"></p>
+<ul>
+<li>Ground Truth</li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531234300669.png"></p>
+<ul>
+<li>滤波绝对不可能让一张有噪声的图变亮或者变暗，保持能量守恒
+<ul>
+<li>带噪声的图，很多噪点的能量可能是很高的，但是会被显示器给截断</li>
+<li>原始的 exr 图片，在 HDR 显示器上显示的结果，denoising 前后亮度应该相差不大</li>
+</ul></li>
+<li>一些问题
+<ul>
+<li>缺失了一些信息，例如左上角圆台体中间条带的 contact shadow</li>
+<li>一些细节由于降噪变得模糊</li>
+</ul></li>
+<li>1SPP 的效果!!!!!!</li>
+</ul>
+<h3 id="问题">问题</h3>
+<ul>
+<li>场景的第一帧怎么渲染？切换了场景？突变的光源（蹦迪）？
+<ul>
+<li>burn-in period：场景突变需要一段时间累计信息</li>
+<li>这是上面的方法是做不到的</li>
+</ul></li>
+<li>向后走场景做不了
+<ul>
+<li>walking backwards in a hallway</li>
+<li>很多点上一帧还不在渲染结果内</li>
+<li>屏幕空间的问题</li>
+</ul></li>
+<li>disocclusion：在新的一帧中从遮挡状态转变为不被遮挡的状态
+<ul>
+<li>这一帧的点在上一帧中被遮挡</li>
+<li>于是在上一帧中找到的对应点并不是真正的对应点，而是<strong>挡住对应点的点</strong></li>
+<li>屏幕空间的问题</li>
+</ul></li>
+<li>detached/lagging shadows
+<ul>
+<li>阴影的拖尾问题（shading 的问题）</li>
+<li>如下场景，场景、像机都不移动，于是任何一个像素 motion vector 为 0</li>
+<li>此时移动光源，造成阴影拖尾的现象</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210601000529916.png"></p>
+<ul>
+<li>glossy 反射的问题
+<ul>
+<li>反射的拖尾（shading 的问题）</li>
+<li>如下场景中，相机、地板、光源保持不动，于是地板的 motin vector 为 0</li>
+<li>移动椅子，我们发现，地板上的反射效果得过一会才能跟上物体的运动</li>
+<li>快速移动有延迟，滞后问题</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210601000906122.png"></p>
+<h3 id="问题解决">问题解决</h3>
+<h4 id="问题-3">问题 3</h4>
+<ul>
+<li>不能用，但是强行使用
+<ul>
+<li>Lagging：拖尾效果，鬼影</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210531235727923.png" style="zoom:60%;"></p>
+<ul>
+<li>巧妙的使用</li>
+<li>Clamping
+<ul>
+<li>把上一帧的值先拉近到这一帧的结果</li>
+</ul></li>
+<li>Detection
+<ul>
+<li>如果检测到不对应，则不使用上一帧的信息</li>
+<li>例如给物体标 ID，如果上一帧的 ID 不一致，则调整 <span class="math inline">\(\alpha\)</span> 的值（使用更少的上一帧信息）</li>
+</ul></li>
+<li>这样的问题：引入了噪声（降噪效果变差）</li>
+</ul>
+<p><img src="/2021/05/31/CG/YLQ-GAMES202/12/image-20210601000246930.png" style="zoom:60%;"></p>
+<h2 id="taa">TAA</h2>
+<ul>
+<li>The temporal accumulation is inspired by Temporal Anti-Aliasing (TAA)</li>
+<li>类似的想法</li>
+<li>论文
+<ul>
+<li>Temporally Reliable Motion Vectors for Real-time Ray Tracing</li>
+<li>[Eurographics]</li>
+<li>实用，能够解决一些问题，更多挖掘可用信息</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/25/DB/CLJ/07/" rel="prev" title="数据库概论.陈立军.07.并发控制">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.07.并发控制
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>
