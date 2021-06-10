@@ -23,18 +23,33 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
-<meta name="description" content="并发控制">
+<meta name="description" content="并发控制、两段锁协议、基本锁类型（排他锁、共享锁、更新锁）、意向锁（I、IS、IX）、SQL Server 的锁模式（码范围锁）、MySQL 的行锁">
 <meta property="og:type" content="article">
 <meta property="og:title" content="数据库概论.陈立军.07.并发控制">
 <meta property="og:url" content="http://example.com/2021/05/25/DB/CLJ/07/index.html">
 <meta property="og:site_name" content="Banbao">
-<meta property="og:description" content="并发控制">
+<meta property="og:description" content="并发控制、两段锁协议、基本锁类型（排他锁、共享锁、更新锁）、意向锁（I、IS、IX）、SQL Server 的锁模式（码范围锁）、MySQL 的行锁">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210603213524078.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210603214644809.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210603221848187.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210603233000188.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604114515233.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604115935940.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604120016324.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604120643062.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604120726693.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604135729531.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604142311541.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604143943619.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604144317013.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210604145703323.png">
 <meta property="article:published_time" content="2021-05-25T08:35:15.000Z">
-<meta property="article:modified_time" content="2021-05-29T03:11:09.153Z">
+<meta property="article:modified_time" content="2021-06-04T06:57:24.703Z">
 <meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="DB">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/25/DB/CLJ/07/image-20210603213524078.png">
 
 
 <link rel="canonical" href="http://example.com/2021/05/25/DB/CLJ/07/">
@@ -187,7 +202,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-text">并发控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E6%AE%B5%E9%94%81%E5%8D%8F%E8%AE%AE"><span class="nav-text">两段锁协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%81%E9%94%81%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">封锁的定义</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%81%E9%94%81%E7%B1%BB%E5%9E%8B"><span class="nav-text">封锁类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%98%BE%E7%A4%BA%E9%94%81%E4%BF%A1%E6%81%AF"><span class="nav-text">显示锁信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%84%E7%A7%8D%E6%93%8D%E4%BD%9C%E4%B8%8B%E7%9A%84%E9%94%81%E6%8E%88%E4%BA%88"><span class="nav-text">各种操作下的锁授予</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-text">并发控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E6%AE%B5%E9%94%81%E5%8D%8F%E8%AE%AE"><span class="nav-text">两段锁协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%81%E9%94%81%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">封锁的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%81%E6%8C%81%E6%9C%89%E6%9C%9F"><span class="nav-text">锁持有期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E6%AE%B5%E9%94%81%E5%8D%8F%E8%AE%AE-1"><span class="nav-text">两段锁协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%A4%E9%98%B6%E6%AE%B5%E5%B0%81%E9%94%81%E5%8D%8F%E8%AE%AE%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-text">两阶段封锁协议的作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%A4%E9%98%B6%E6%AE%B5%E5%B0%81%E9%94%81%E5%8D%8F%E8%AE%AE%E4%BF%9D%E8%AF%81%E5%8F%AF%E4%B8%B2%E8%A1%8C%E5%8C%96"><span class="nav-text">为什么两阶段封锁协议保证可串行化？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%81%E9%94%81%E7%B1%BB%E5%9E%8B"><span class="nav-text">封锁类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E9%94%81%E7%B1%BB%E5%9E%8B%E6%8E%92%E4%BB%96%E9%94%81%E5%85%B1%E4%BA%AB%E9%94%81%E6%9B%B4%E6%96%B0%E9%94%81"><span class="nav-text">基本锁类型（排他锁、共享锁、更新锁）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%92%E4%BB%96%E9%94%81%E4%B8%8E%E5%85%B1%E4%BA%AB%E9%94%81"><span class="nav-text">排他锁与共享锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%88%E8%AF%BB%E5%90%8E%E5%86%99%E5%9C%BA%E5%90%88%E4%B8%AD%E7%9A%84%E9%94%81%E8%BD%AC%E6%8D%A2"><span class="nav-text">先读后写场合中的锁转换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%A6%E6%9C%89%E9%94%81%E8%BD%AC%E6%8D%A2%E7%9A%84%E4%B8%A4%E6%AE%B5%E9%94%81%E5%8D%8F%E8%AE%AE"><span class="nav-text">带有锁转换的两段锁协议</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%94%81%E5%8D%87%E7%BA%A7%E4%B8%8E%E9%87%8D%E6%96%B0%E7%94%B3%E8%AF%B7%E9%94%81"><span class="nav-text">锁升级与重新申请锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%94%81%E8%BD%AC%E5%8C%96%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">锁转化带来的问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E9%81%BF%E5%85%8D%E9%94%81%E8%BD%AC%E6%8D%A2%E5%AF%BC%E8%87%B4%E7%9A%84%E6%AD%BB%E9%94%81"><span class="nav-text">怎么避免锁转换导致的死锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0%E9%94%81"><span class="nav-text">更新锁</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0%E9%94%81%E7%9A%84%E7%9B%B8%E5%AE%B9%E7%9F%A9%E9%98%B5"><span class="nav-text">更新锁的相容矩阵</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%81%E9%94%81%E7%B2%92%E5%BA%A6"><span class="nav-text">封锁粒度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%81%E9%94%81%E7%B2%92%E5%BA%A6%E4%B8%8E%E6%9F%A5%E8%AF%A2%E6%80%A7%E8%83%BD"><span class="nav-text">封锁粒度与查询性能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E7%B2%92%E5%BA%A6%E5%B0%81%E9%94%81%E4%B8%AD%E7%9A%84%E9%9A%90%E5%90%AB%E5%86%B2%E7%AA%81"><span class="nav-text">多粒度封锁中的隐含冲突</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%84%8F%E5%90%91%E9%94%81"><span class="nav-text">意向锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%84%8F%E5%90%91%E9%94%81-iintend"><span class="nav-text">意向锁 I（Intend）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%84%8F%E5%90%91%E9%94%81-i-%E7%9A%84%E7%9B%B8%E5%AE%B9%E6%80%A7"><span class="nav-text">意向锁 I 的相容性</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%84%8F%E5%90%91%E9%94%81-i-%E7%9A%84%E4%B8%8D%E8%B6%B3%E4%B9%8B%E5%A4%84"><span class="nav-text">意向锁 I 的不足之处</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9B%B4%E4%B8%BA%E7%B2%BE%E7%BB%86%E5%8C%96%E7%9A%84%E6%84%8F%E5%90%91%E9%94%81is-%E9%94%81ix-%E9%94%81"><span class="nav-text">更为精细化的意向锁（IS 锁，IX 锁）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%84%8F%E5%90%91%E9%94%81-isix-%E7%9A%84%E7%9B%B8%E5%AE%B9%E6%80%A7"><span class="nav-text">意向锁 IS&#x2F;IX 的相容性</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E9%99%85%E4%BE%8B%E5%AD%90"><span class="nav-text">实际例子</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B1%E4%BA%AB%E4%B8%8E%E6%84%8F%E5%90%91%E6%8E%92%E4%BB%96%E9%94%81-six"><span class="nav-text">共享与意向排他锁 SIX</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%9B%B8%E5%AE%B9%E7%9F%A9%E9%98%B5"><span class="nav-text">相容矩阵</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E7%9A%84%E9%94%81%E6%A8%A1%E5%BC%8F"><span class="nav-text">SQL Server 的锁模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E4%BF%AE%E6%94%B9%E9%94%81sch-m%E9%94%81"><span class="nav-text">模式修改锁（Sch-M锁）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E7%A8%B3%E5%AE%9A%E9%94%81sch-s%E9%94%81"><span class="nav-text">模式稳定锁（Sch-S锁）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sql-server%E4%B8%AD%E7%9A%84%E5%A4%A7%E5%AE%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E9%94%81"><span class="nav-text">SQL Server中的大容量更新锁</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E7%A0%81%E8%8C%83%E5%9B%B4%E9%94%81"><span class="nav-text">SQL Server 码范围锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A0%81%E8%8C%83%E5%9B%B4%E9%94%81%E8%8C%83%E5%9B%B4%E6%89%AB%E6%8F%8F%E6%9F%A5%E8%AF%A2"><span class="nav-text">码范围锁：范围扫描查询</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A0%81%E8%8C%83%E5%9B%B4%E9%94%81%E6%A8%A1%E5%BC%8F"><span class="nav-text">码范围锁模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A0%81%E8%8C%83%E5%9B%B4%E9%94%81%E7%9A%84%E7%9B%B8%E5%AE%B9%E7%9F%A9%E9%98%B5"><span class="nav-text">码范围锁的相容矩阵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="nav-text">一个例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E9%94%81"><span class="nav-text">SQL Server 锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E4%B8%AD%E7%9A%84%E8%A1%8C%E9%94%81%E6%A8%A1%E5%BC%8F"><span class="nav-text">MySQL 中的行锁模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%A9%E9%94%81"><span class="nav-text">闩锁</span></a></li></ol></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -203,7 +218,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-count">81</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -297,7 +312,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2021-05-29 11:11:09" itemprop="dateModified" datetime="2021-05-29T11:11:09+08:00">2021-05-29</time>
+        <time title="Modified: 2021-06-04 14:57:24" itemprop="dateModified" datetime="2021-06-04T14:57:24+08:00">2021-06-04</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -319,7 +334,7 @@
     </span>
 </div>
 
-            <div class="post-description">并发控制</div>
+            <div class="post-description">并发控制、两段锁协议、基本锁类型（排他锁、共享锁、更新锁）、意向锁（I、IS、IX）、SQL Server 的锁模式（码范围锁）、MySQL 的行锁</div>
         </div>
       </header>
 
@@ -337,16 +352,806 @@
 <h3 id="封锁的定义">封锁的定义</h3>
 <ul>
 <li>封锁就是一个事务对某个数据对象加锁，取得对它一定的控制，限制其它事务对该数据对象使用</li>
-<li>要访问一个数据项 R，事务 Ti 必须先申请对 R 的封锁，如果 R 已经被事务 Tj 加了不相容的锁，则 Ti 需要等待，直至 Tj 释放它的封锁</li>
+<li>要访问一个数据项 <span class="math inline">\(R\)</span>，事务 <span class="math inline">\(T_i\)</span> 必须先申请对 <span class="math inline">\(R\)</span> 的封锁，如果 <span class="math inline">\(R\)</span> 已经被事务 <span class="math inline">\(T_j\)</span> 加了不相容的锁，则 <span class="math inline">\(T_i\)</span> 需要等待，直至 <span class="math inline">\(T_j\)</span> 释放它的封锁</li>
+<li>例子：信号灯</li>
 <li>封锁性能
 <ul>
 <li>事务吞吐量</li>
-<li>TPC-C</li>
+<li>TPC-C：测数据库事务性能
+<ul>
+<li>目前的第一：Ocean Base（阿里）</li>
+</ul></li>
+</ul></li>
+<li>一些其他的指标
+<ul>
+<li>TPC-H：测数据库的大数据分析处理能力</li>
+</ul></li>
+<li>数据库追求的目标：在避免冲突的前提下，提高事务吞吐量（提高并发度）</li>
+</ul>
+<h3 id="锁持有期">锁持有期</h3>
+<ul>
+<li>长锁：保持到事务结束时才释放的锁</li>
+<li>短锁：在事务中途就可以释放的锁</li>
+<li>例子
+<ul>
+<li>read uncommitted：不申请锁</li>
+<li>read committed：短 S 锁</li>
+<li>repeatable read：长 S 锁</li>
 </ul></li>
 </ul>
+<h3 id="两段锁协议-1">两段锁协议</h3>
+<ul>
+<li>Two-Phase Locking Protocol</li>
+<li>事务加锁和解锁过程是严格分开的</li>
+<li><strong>增长阶段</strong>（Growing Phase）
+<ul>
+<li>事务可以获得锁，但不能释放锁</li>
+</ul></li>
+<li><strong>缩减阶段</strong>（Shrinking Phase）
+<ul>
+<li>事务可以释放锁，但不能获得锁</li>
+</ul></li>
+<li>图示</li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210603213524078.png" style="zoom:60%;"></p>
+<ul>
+<li>哪个事务隔离性级别不满足 2PL（两段锁协议）
+<ul>
+<li>read committed</li>
+</ul></li>
+</ul>
+<h4 id="两阶段封锁协议的作用">两阶段封锁协议的作用</h4>
+<ul>
+<li>若一组事务均服从两阶段封锁协议，则它们的调度一定是<strong>可串行化</strong>的</li>
+<li><strong>封锁点</strong>：事务获得其最后封锁的时间
+<ul>
+<li>获得最后一个锁的时间</li>
+</ul></li>
+<li><strong>事务调度等价于和其封锁点顺序一致的串行调度</strong></li>
+<li>例子
+<ul>
+<li>如下图，t1, t2, t3 满足 2PL 则等价的串行顺序是 t1, t3, t2</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210603214644809.png" style="zoom: 67%;"></p>
+<h4 id="为什么两阶段封锁协议保证可串行化">为什么两阶段封锁协议保证可串行化？</h4>
+<ul>
+<li>令 <span class="math inline">\(\{T_0,T_1,\cdots,T_n\}\)</span> 是参与调度 <span class="math inline">\(S\)</span> 的事务集</li>
+<li>如果 <span class="math inline">\(T_i\)</span> 对数据项 <span class="math inline">\(R\)</span> 加 <span class="math inline">\(A\)</span> 型锁，<span class="math inline">\(T_j\)</span> 对数据项 <span class="math inline">\(R\)</span> 加 <span class="math inline">\(B\)</span> 型锁，且 <span class="math inline">\(\mathrm{comp(A,B)=false}\)</span>（不相容的锁），若 <span class="math inline">\(T_i\)</span> 先获得锁，则 <span class="math inline">\(T_i\)</span> 先于 <span class="math inline">\(T_j\)</span>，记作 <span class="math inline">\(T_i\to T_j\)</span>，得到一个优先图</li>
+<li>设 <span class="math inline">\(t_i\)</span>是 <span class="math inline">\(T_i\)</span> 的封锁点，若 <span class="math inline">\(T_i\to T_j\)</span>，则必然有 <span class="math inline">\(t_i&lt;t_j\)</span>
+<ul>
+<li>事务 <span class="math inline">\(T_j\)</span> 需要等待 <span class="math inline">\(T_i\)</span> 释放不相容的锁之后，才能获得锁，不妨设这个时间为 <span class="math inline">\(t_m\)</span></li>
+<li><span class="math inline">\(t_i&lt;t_m\le t_j\)</span></li>
+</ul></li>
+<li>若 <span class="math inline">\(\{T_0,T_1,\cdots,T_n\}\)</span> 不可串行化，则在优先图中存在环，不妨设为 <span class="math inline">\(T_0\to T_1\to\cdots\to T_n\to T_0\)</span>，则 <span class="math inline">\(t_0&lt;t_1&lt;\cdots&lt;t_n&lt;t_0\)</span>，时间不可能成环，矛盾</li>
+</ul>
 <h2 id="封锁类型">封锁类型</h2>
-<h2 id="显示锁信息">显示锁信息</h2>
-<h2 id="各种操作下的锁授予">各种操作下的锁授予</h2>
+<ul>
+<li>基本锁类型：X 锁、S 锁、U 锁</li>
+<li>意向锁：IS、IX、IU、SIX</li>
+<li>码范围锁：RangeS_S、RangeI_N…</li>
+<li>其他锁：模式锁、闩锁、BU锁</li>
+</ul>
+<h3 id="基本锁类型排他锁共享锁更新锁">基本锁类型（排他锁、共享锁、更新锁）</h3>
+<h4 id="排他锁与共享锁">排他锁与共享锁</h4>
+<ul>
+<li>排它锁（X 锁，eXclusive lock）
+<ul>
+<li>lock-X(R)：又称写锁，持有 X 锁可以读写数据项</li>
+<li>事务 T 对数据对象 R 加上 X 锁，则其它事务对 R 的<strong>任何封锁请求都不能成功</strong>，直至 T 释放 R 上的 X 锁</li>
+</ul></li>
+<li>共享锁（S 锁，Share lock）
+<ul>
+<li>lock-S(R)：又称读锁，持有 S 锁只能读取数据项</li>
+<li>事务 T 对数据对象 R 加上 S 锁，则其它事务对 R 的 <strong>X 锁请求不能成功</strong>，而对 R 的 <strong>S 锁请求可以成功</strong></li>
+</ul></li>
+<li>封锁的相容矩阵 <span class="math inline">\(\mathrm{comp(A,B)}\)</span></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">请求锁模式A  现有锁模式B</th>
+<th style="text-align: center;">S</th>
+<th style="text-align: center;">X</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">S</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">X</td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+</tbody>
+</table>
+<h4 id="先读后写场合中的锁转换">先读后写场合中的锁转换</h4>
+<ul>
+<li>两个事务 T1, T2
+<ul>
+<li>T1: read(a1); read(a2); ...; read(an); write(a1)</li>
+<li>T2: read(a1); ...</li>
+</ul></li>
+<li>T1 需要对 a1 加 X 锁（因为后面要写）
+<ul>
+<li>这样的方案是不好的，因为 T2 无法执行</li>
+</ul></li>
+<li>更好的并发方式
+<ul>
+<li>T1 在 read(a1) 上加 S 锁，在执行 write(a1) 之前升级锁（upgrade）为 X 锁</li>
+<li>升级的时候要求没有事务在 a1 上持有锁</li>
+</ul></li>
+<li>如下左图等价于串行调度 T1,T2，右图等价于串行调度 T2,T1</li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210603221848187.png"></p>
+<h4 id="带有锁转换的两段锁协议">带有锁转换的两段锁协议</h4>
+<ul>
+<li><strong>增长阶段</strong>
+<ul>
+<li>可获得 lock-S</li>
+<li>可获得 lock-X</li>
+<li><strong>可将 lock-S 升级为 lock-X（upgrade）</strong></li>
+</ul></li>
+<li><strong>缩减阶段</strong>
+<ul>
+<li>可释放 lock-S</li>
+<li>可释放 lock-X</li>
+<li><strong>可将 lock-X 降级为 lock-S（downgrade）</strong></li>
+</ul></li>
+</ul>
+<h4 id="锁升级与重新申请锁">锁升级与重新申请锁</h4>
+<ul>
+<li>升级锁和重新申请锁的区别
+<ul>
+<li>申请锁是维护一个队列的
+<ul>
+<li>重新申请锁则会排在队列的最后</li>
+<li>升级锁则会排在队列的前面，可能更早考虑</li>
+</ul></li>
+</ul></li>
+<li>在那个隔离性级别下会出现锁升级
+<ul>
+<li>repeatable read</li>
+<li>read committed 不会，因为是短 S 锁</li>
+</ul></li>
+</ul>
+<h4 id="锁转化带来的问题">锁转化带来的问题</h4>
+<ul>
+<li>死锁</li>
+<li>两个事务都是<strong>先读后写</strong></li>
+<li><span id="ex1">如下例子</span>
+<ul>
+<li>repeatable read 情况下（read 为长 S 锁）
+<ul>
+<li>T1 在 write(a1) 时需要锁升级，但是如果此时 T2 已经执行到了 read(a1) 之后，此时 T1 等待</li>
+<li>同样的道理 T2 也等待，导致死锁</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210603233000188.png" style="zoom:67%;"></p>
+<h4 id="怎么避免锁转换导致的死锁">怎么避免锁转换导致的死锁</h4>
+<ul>
+<li>引入更新锁（U 锁）</li>
+</ul>
+<h4 id="更新锁">更新锁</h4>
+<ul>
+<li>U 锁，Update lock
+<ul>
+<li><strong>只有读权限</strong></li>
+</ul></li>
+<li>当一个事务查询数据以便将来要进行修改时，可以对数据项施加更新锁
+<ul>
+<li>先读后写的操作申请 U 锁</li>
+<li>只读则申请 S 锁</li>
+</ul></li>
+<li>如果事务修改资源，需将更新锁转换为排它锁（X 锁）</li>
+<li>一次只有一个事务可以获得资源上的更新锁
+<ul>
+<li>这样就避免了死锁</li>
+<li>U 锁和 U 锁不相容，因此<a href="#ex1">上面的例子</a></li>
+</ul></li>
+</ul>
+<h5 id="更新锁的相容矩阵">更新锁的相容矩阵</h5>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">请求锁模式A  现有锁模式B</th>
+<th style="text-align: center;">S</th>
+<th style="text-align: center;">X</th>
+<th style="text-align: center;">U</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">S</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">X</td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">U</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+</tbody>
+</table>
+<h3 id="封锁粒度">封锁粒度</h3>
+<ul>
+<li>封锁对象
+<ul>
+<li>属性值、属性值集合、元组、关系、索引项、整个索引、整个数据库、物理页、块</li>
+</ul></li>
+<li>不同封锁粒度
+<ul>
+<li>封锁粒度大，则并发度低，开销小</li>
+<li>封锁粒度小，则并发度高，开销高</li>
+</ul></li>
+<li>一个锁在数据库中大概占据 100 来个字节</li>
+<li>事务的完整性相关域：
+<ul>
+<li>只封锁与操作有关的的数据对象</li>
+</ul></li>
+</ul>
+<h4 id="封锁粒度与查询性能">封锁粒度与查询性能</h4>
+<ul>
+<li>一份早期的数据，数据表<strong>五道口技工学院</strong>中性别为女的记录非常少</li>
+<li>满足条件的数据非常少时，最佳粒度为<strong>行锁</strong></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> 五道口技工学院</span><br><span class="line"><span class="keyword">where</span> 性别<span class="operator">=</span><span class="string">&#x27;女&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>满足条件的数据非常多时，最佳粒度为<strong>表锁</strong></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> 五道口技工学院</span><br><span class="line"><span class="keyword">where</span> 性别<span class="operator">=</span><span class="string">&#x27;男&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>系统必须支持多粒度锁，根据查询范围选择最佳粒度</li>
+</ul>
+<h4 id="多粒度封锁中的隐含冲突">多粒度封锁中的隐含冲突</h4>
+<ul>
+<li>事务 T1（表锁）</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> 五道口技工学院</span><br><span class="line"><span class="keyword">where</span> 性别<span class="operator">=</span><span class="string">&#x27;男&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>事务 T2（表锁）</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 修改表的属性 */</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> 五道口技工学院</span><br></pre></td></tr></table></figure>
+<ul>
+<li>事务 T3</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> 五道口技工学院</span><br><span class="line"><span class="keyword">where</span> 性别<span class="operator">=</span><span class="string">&#x27;女&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>T1 和 T2 的冲突是能够检测出来的
+<ul>
+<li>锁表中有表的 id</li>
+</ul></li>
+<li>事务 T2 和 T3 的冲突无法检测
+<ul>
+<li>锁表中只有行 id 和表 id，无法检测</li>
+</ul></li>
+<li>冲突无法检测的原因：大集合中包含小集合，存在包含冲突
+<ul>
+<li>在分层封锁中，封锁了上层节点就意味着封锁了所有内层节点</li>
+<li>如果有事务 T3 对某元组加了 S 锁，而事务 T2 对该元组所在的关系加了 X 锁，因而隐含地 X 封锁了该元组，从而造成矛盾</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604114515233.png" style="zoom: 50%;"></p>
+<ul>
+<li>在对某个粒度加锁的同时，在其父节点贴上告示条，表示被占用
+<ul>
+<li>告示条和告示条之间不冲突</li>
+<li>告示条告诉别人不能直接加锁</li>
+<li>告示条只起到提示作用</li>
+</ul></li>
+<li>引入意向锁（起到告示条的作用）</li>
+</ul>
+<h3 id="意向锁">意向锁</h3>
+<h4 id="意向锁-iintend">意向锁 I（Intend）</h4>
+<ul>
+<li>引入意向锁 I（Intend）</li>
+<li>当为某节点加上 I 锁，表明其某些内层节点已发生事实上的封锁，防止其它事务再去显式封锁该节点</li>
+<li>I 锁的实施是<strong>从封锁层次的根开始</strong>，依次占据路径上的所有节点，直至要真正进行显式封锁的节点的<strong>父节点</strong>为止</li>
+</ul>
+<h5 id="意向锁-i-的相容性">意向锁 I 的相容性</h5>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">请求锁模式A  现有锁模式B</th>
+<th style="text-align: center;">S</th>
+<th style="text-align: center;">X</th>
+<th style="text-align: center;">I</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">S</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">X</td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">I</td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+</tr>
+</tbody>
+</table>
+<h5 id="意向锁-i-的不足之处">意向锁 I 的不足之处</h5>
+<ul>
+<li>能够防范读写冲突</li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604115935940.png" style="zoom: 67%;"></p>
+<ul>
+<li>让读读操作变成了不相容</li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604120016324.png" style="zoom:67%;"></p>
+<ul>
+<li>降低了并发度</li>
+<li>根本原因：<strong>I 锁没有告诉我们内层加的锁的类型</strong></li>
+<li>引入意向锁 IS 锁，IX 锁</li>
+</ul>
+<h4 id="更为精细化的意向锁is-锁ix-锁">更为精细化的意向锁（IS 锁，IX 锁）</h4>
+<ul>
+<li><strong>IS 锁</strong>：如果对一个数据对象加 IS 锁，表示它的后裔节点拟（意向）加 S 锁</li>
+<li><strong>IX 锁</strong>：如果对一个数据对象加 IX 锁，表示它的后裔节点拟（意向）加 X 锁</li>
+<li>本质还是意向锁，起到告示条的作用</li>
+</ul>
+<h5 id="意向锁-isix-的相容性">意向锁 IS/IX 的相容性</h5>
+<table>
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 17%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">请求锁模式A  现有锁模式B</th>
+<th style="text-align: center;">S</th>
+<th style="text-align: center;">X</th>
+<th style="text-align: center;">IS</th>
+<th style="text-align: center;">IX</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">S</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">X</td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">IS</td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">IX</td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+</tr>
+</tbody>
+</table>
+<h5 id="实际例子">实际例子</h5>
+<ul>
+<li>能够防范读写冲突</li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604120643062.png" style="zoom:67%;"></p>
+<ul>
+<li>读读操作还是相容的
+<ul>
+<li>解决了简单的意向锁 I 降低了并发度的问题</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604120726693.png" style="zoom:67%;"></p>
+<h4 id="共享与意向排他锁-six">共享与意向排他锁 SIX</h4>
+<ul>
+<li><strong>共享</strong>、<strong>意向排他</strong>
+<ul>
+<li><strong>S + IX</strong></li>
+</ul></li>
+<li>解决如下事务的加锁问题
+<ul>
+<li>在表的级别应该加什么锁呢？</li>
+<li>IX 和 S 单独都不能支持这个操作</li>
+<li>X 锁并发性很低</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> transaction isolation level repeatable read</span><br><span class="line"><span class="keyword">begin</span> tran <span class="string">&#x27;audit&#x27;</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> bigtable</span><br><span class="line"><span class="keyword">update</span> bigtable</span><br><span class="line"><span class="keyword">set</span> col <span class="operator">=</span> <span class="number">0</span></span><br><span class="line"><span class="keyword">where</span> keycolumn <span class="operator">=</span> <span class="number">100</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>在表上加 SIX 锁，则表示该事务要读整个表（S 锁），同时会更新个别元组（IX 锁）</li>
+<li>SIX 锁只和 IS 锁相容
+<ul>
+<li>找同时与 S 锁和 IX 锁相容的锁</li>
+</ul></li>
+</ul>
+<h5 id="相容矩阵">相容矩阵</h5>
+<table>
+<colgroup>
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 13%">
+<col style="width: 7%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">请求锁模式A  现有锁模式B</th>
+<th style="text-align: center;">S</th>
+<th style="text-align: center;">X</th>
+<th style="text-align: center;">U</th>
+<th style="text-align: center;">IS</th>
+<th style="text-align: center;">IX</th>
+<th style="text-align: center;">SIX</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">S</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">X</td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">U</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">IS</td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">IX</td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">SIX</td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+</tr>
+</tbody>
+</table>
+<h3 id="sql-server-的锁模式">SQL Server 的锁模式</h3>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604135729531.png" style="zoom: 67%;"></p>
+<h4 id="模式修改锁sch-m锁">模式修改锁（Sch-M锁）</h4>
+<ul>
+<li>执行表的 DDL 操作时使用模式修改锁</li>
+<li>Sch-M 锁与所有锁模式都不相容</li>
+</ul>
+<h4 id="模式稳定锁sch-s锁">模式稳定锁（Sch-S锁）</h4>
+<ul>
+<li>当编译查询时，使用模式稳定锁</li>
+<li>Sch-S 锁与除了 Sch-M 锁之外所有其它锁模式相容</li>
+<li>此时其它事务都能继续运行，但不能对表执行 DDL 操作</li>
+</ul>
+<h4 id="sql-server中的大容量更新锁">SQL Server中的大容量更新锁</h4>
+<ul>
+<li>BU 锁，Bulk update lock</li>
+<li>当使用 <code>bulk insert</code> 命令或 <code>bcp</code> 工具将数据大容量复制到表，且指定了 <code>TABLOCK</code> 提示或者使用 <code>sp_tableoption</code> 设置了 <code>table lock on bulk</code> 表选项时，将使用大容量更新锁</li>
+<li>大容量更新锁允许多个进程将数据并行地大容量复制到同一表，同时防止其它不进行大容量复制数据的进程访问该表</li>
+</ul>
+<h3 id="sql-server-码范围锁">SQL Server 码范围锁</h3>
+<ul>
+<li>如何避免<strong>幻象</strong>的产生</li>
+<li><strong>只封锁现有数据是无效的</strong></li>
+<li>查询例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> R <span class="keyword">where</span> A<span class="operator">&gt;=</span><span class="number">10</span> <span class="keyword">and</span> A<span class="operator">&lt;=</span><span class="number">20</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>应该防止其他事务往区间 <span class="math inline">\([10,20]\)</span> 插入数据
+<ul>
+<li>如何防止？</li>
+</ul></li>
+<li>如何找到这样一个区间？</li>
+<li>表本身是无序的集合，只能用整个表覆盖这个区间，也即需要申请表级锁，并发度极低</li>
+<li>数据库中什么对象是有序的？
+<ul>
+<li>索引是有序的</li>
+</ul></li>
+<li>如果在 A 上存在索引，则可以找到一个紧凑区间</li>
+</ul>
+<h4 id="码范围锁范围扫描查询">码范围锁：范围扫描查询</h4>
+<ul>
+<li>码范围锁定原理解决了幻像并发问题</li>
+<li>码范围锁通过覆盖索引行和索引行之间的范围来工作，因为第二个事务在该范围内进行任何行插入、更新或删除操作时均需要修改索引，而码范围锁覆盖了索引项，所以在第一个事务完成之前会阻塞第二个事务的进行</li>
+<li>要求（同时满足）
+<ul>
+<li>必须在查询项上存在索引</li>
+<li>隔离性级别为 serializable</li>
+</ul></li>
+</ul>
+<h4 id="码范围锁模式">码范围锁模式</h4>
+<ul>
+<li>码范围锁包括<strong>范围组件</strong>和<strong>行组件</strong>
+<ul>
+<li>前者表示保护两个连续<strong>索引项之间范围的锁模式</strong>（RangeT）</li>
+<li>后者表示保护<strong>索引项的锁模式</strong>（K），这两部分用下划线连接，如 RangeT_K</li>
+</ul></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">范围</th>
+<th style="text-align: center;">行</th>
+<th style="text-align: center;">模式</th>
+<th style="text-align: center;">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">RangeS</td>
+<td style="text-align: center;">S</td>
+<td style="text-align: center;">RangeS_S</td>
+<td style="text-align: center;">共享范围，共享资源锁；可串行范围扫描</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">RangeS</td>
+<td style="text-align: center;">U</td>
+<td style="text-align: center;">RangeS_U</td>
+<td style="text-align: center;">共享范围，更新资源锁；可串行更新扫描</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">RangeI</td>
+<td style="text-align: center;">NULL</td>
+<td style="text-align: center;">RangeI_N</td>
+<td style="text-align: center;">插入范围，空资源锁；用于在索引中插入新码之前测试范围</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">RangeX</td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">RangeX_X</td>
+<td style="text-align: center;">排它范围，排它资源锁；用于更新范围中的码</td>
+</tr>
+</tbody>
+</table>
+<h4 id="码范围锁的相容矩阵">码范围锁的相容矩阵</h4>
+<table>
+<colgroup>
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">请求模式</th>
+<th style="text-align: center;">S</th>
+<th style="text-align: center;">U</th>
+<th style="text-align: center;">X</th>
+<th style="text-align: center;">RangeS_S</th>
+<th style="text-align: center;">RangeS_U</th>
+<th style="text-align: center;">RangeI_N</th>
+<th>RangeX_X</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">共享(S)</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">更新(U)</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">排它(X)</td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">RangeS_S</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">RangeS_U</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">RangeI_N</td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\checkmark}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\({\color{red}\times}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td><span class="math inline">\(\times\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">RangeX_X</td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\times\)</span></td>
+<td><span class="math inline">\(\times\)</span></td>
+</tr>
+</tbody>
+</table>
+<h4 id="一个例子">一个例子</h4>
+<ul>
+<li>employees 表上存在 last_name 上的索引</li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604142311541.png" style="zoom: 70%;"></p>
+<ul>
+<li>在 serializable 隔离性级别上执行如下查询</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> employees</span><br><span class="line"><span class="keyword">where</span> last_name <span class="keyword">between</span> <span class="string">&#x27;Delaney&#x27;</span> <span class="keyword">and</span> <span class="string">&#x27;DuLaney&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>在索引上找到一个覆盖上面范围的最小区间 <span class="math inline">\(\mathrm{(Dallas,Duluth)}\)</span></li>
+<li>如果 Dallas, Donovan 和 Duluth 是叶级的顺序索引码，前两个码将获得码范围锁 RangeS_S
+<ul>
+<li>码范围锁防止任何向以这两个码结束的区间插入数据
+<ul>
+<li>锁住了 Dallas 和 Donovan 后面的区间</li>
+</ul></li>
+<li>没有大于 Dallas 且小于等于 Donovan 的行可以插入，也没有大于 Donovan 且小于等于 Duluth 的行可以插入</li>
+</ul></li>
+<li>能否插入 Dashagua？
+<ul>
+<li><strong><span style="color:red">不能插入</span></strong>，虽然是在查询范围之外，但是在最小覆盖的索引范围内部</li>
+</ul></li>
+</ul>
+<h3 id="sql-server-锁">SQL Server 锁</h3>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604143943619.png" style="zoom:130%;"></p>
+<h3 id="mysql-中的行锁模式">MySQL 中的行锁模式</h3>
+<ul>
+<li>MySQL 的 innode 引擎，在建表的时候，默认会有一个隐含的自增字段，缺省的会在这个字段上建立聚簇索引</li>
+<li>缺省的 MySQL 就是有序的表</li>
+<li>MySQL 中的行锁模式
+<ul>
+<li>lock_rec_not_gap：只锁记录</li>
+<li>lock_gap：间隙锁，锁两个记录之间的gap，防止记录插入</li>
+<li>lock_ordinary：也称为Next-KeyLock，锁一条记录及其之前的间隙</li>
+<li>lock_insert_intension：插入意向gap锁，插入记录时使用，是lock_gap的一种特例</li>
+</ul></li>
+<li>图示</li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604144317013.png"></p>
+<ul>
+<li>相容性</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"></th>
+<th style="text-align: center;">RECORD</th>
+<th style="text-align: center;">GAP</th>
+<th style="text-align: center;">NEXT-KEY</th>
+<th style="text-align: center;">II GAP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">RECORD</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">GAP</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">NEXT-KEY</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">II GAP</td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"><span class="math inline">\(\checkmark\)</span></td>
+</tr>
+</tbody>
+</table>
+<h4 id="闩锁">闩锁</h4>
+<ul>
+<li>lock：保护逻辑对象</li>
+<li>latch：保护内存页</li>
+</ul>
+<p><img src="/2021/05/25/DB/CLJ/07/image-20210604145703323.png" style="zoom:67%;"></p>
 
     </div>
 

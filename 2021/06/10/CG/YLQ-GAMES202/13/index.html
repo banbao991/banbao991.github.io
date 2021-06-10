@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="实时光线追踪、空间上的滤波、大滤波核的实现（拆分、逐步增大滤波核）、outlier removal">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES202.闫令琪.13.实时光线追踪(2)">
+<meta property="og:url" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="实时光线追踪、空间上的滤波、大滤波核的实现（拆分、逐步增大滤波核）、outlier removal">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610164704899.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610165435406.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610170430348.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610173346721.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610205556276.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610205758226.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610212405100.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610214554336.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610232427566.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610234504044.png">
+<meta property="article:published_time" content="2021-06-10T07:18:41.000Z">
+<meta property="article:modified_time" content="2021-06-10T16:05:03.084Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610164704899.png">
+
+
+<link rel="canonical" href="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>GAMES202.闫令琪.13.实时光线追踪(2) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA"><span class="nav-text">实时光线追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E6%BB%A4%E6%B3%A2"><span class="nav-text">空间滤波</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%9B%AE%E6%A0%87"><span class="nav-text">实现目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%85%A5"><span class="nav-text">输入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E6%96%AF%E6%BB%A4%E6%B3%A2"><span class="nav-text">高斯滤波</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%8C%E8%BE%B9%E6%BB%A4%E6%B3%A2"><span class="nav-text">双边滤波</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%81%94%E5%90%88%E5%8F%8C%E8%BE%B9%E6%BB%A4%E6%B3%A2"><span class="nav-text">联合双边滤波</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%81%94%E5%90%88%E5%8F%8C%E8%BE%B9%E6%BB%A4%E6%B3%A2%E4%BE%8B%E5%AD%90"><span class="nav-text">联合双边滤波例子</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%A4%A7%E7%9A%84%E6%BB%A4%E6%B3%A2%E6%A0%B8"><span class="nav-text">实现大的滤波核</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E6%BB%A4%E6%B3%A2%E6%A0%B8%E7%9A%84%E8%A7%A3%E5%86%B3%E6%80%9D%E8%B7%AF"><span class="nav-text">大滤波核的解决思路</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8B%86%E5%88%86separate-passes"><span class="nav-text">(1) 拆分：Separate Passes</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%AB%98%E6%96%AF%E5%87%BD%E6%95%B0%E6%8B%86%E5%88%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86"><span class="nav-text">高斯函数拆分的数学原理</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%90%E6%AD%A5%E5%A2%9E%E5%A4%A7%E6%BB%A4%E6%B3%A2%E6%A0%B8progressively-growing-sizes"><span class="nav-text">(2) 逐步增大滤波核：Progressively Growing Sizes</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-text">原理</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#outlier-removal"><span class="nav-text">Outlier Removal</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E7%A8%8B"><span class="nav-text">过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#taa-%E4%B8%AD%E7%9A%84-outlier-removal"><span class="nav-text">TAA 中的 outlier removal</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">81</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES202.闫令琪.13.实时光线追踪(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-06-10 15:18:41" itemprop="dateCreated datePublished" datetime="2021-06-10T15:18:41+08:00">2021-06-10</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-06-11 00:05:03" itemprop="dateModified" datetime="2021-06-11T00:05:03+08:00">2021-06-11</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES202/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES202</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">实时光线追踪、空间上的滤波、大滤波核的实现（拆分、逐步增大滤波核）、outlier removal</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
+</ul>
+<h1 id="实时光线追踪">实时光线追踪</h1>
+<ul>
+<li>空间滤波
+<ul>
+<li>联合双边滤波</li>
+<li>大 filter 的实现</li>
+<li>outlier removal（离群值去除）</li>
+</ul></li>
+<li>RTRT 中的技术
+<ul>
+<li>SVGF：Spatiotemporal Variance-Guided Filtering</li>
+<li>RAE：Recurrent AutoEncoder</li>
+</ul></li>
+</ul>
+<h2 id="空间滤波">空间滤波</h2>
+<h3 id="实现目标">实现目标</h3>
+<ul>
+<li>实现的效果：降噪
+<ul>
+<li>下图是椒盐噪声利用中值滤波实现的效果</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610164704899.png" style="zoom:80%;"></p>
+<ul>
+<li>这里我们想做的是低通滤波（low-pass）
+<ul>
+<li>去除高频噪声
+<ul>
+<li>高频中也有信号，同时会造成高频信号的丢失</li>
+<li>还存在一些低频的噪声</li>
+</ul></li>
+<li>我们在空间域上进行</li>
+</ul></li>
+</ul>
+<h3 id="输入">输入</h3>
+<ul>
+<li>一张带有噪声的图片 <span class="math inline">\(\tilde{C}\)</span></li>
+<li>以可滤波核 <span class="math inline">\(K\)</span>
+<ul>
+<li>可以每个像素有不一样的滤波核</li>
+</ul></li>
+</ul>
+<h3 id="高斯滤波">高斯滤波</h3>
+<ul>
+<li>高斯滤波核
+<ul>
+<li>周围值得贡献通过离中心点得距离决定</li>
+<li>由高斯函数决定</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610165435406.png"></p>
+<ul>
+<li>简单的伪代码实现
+<ul>
+<li>注意高斯核 <span class="math inline">\(K\)</span> 的归一化（所有权值和为 1）
+<ul>
+<li>伪代码中的 sum_of_weights</li>
+<li>同样的我们之前学到的积分拆解，分母中有一个空积分，这也是为了归一化</li>
+</ul></li>
+<li>高斯核本身是无限大的，但是我们可以只考虑比较大贡献的值，例如 <span class="math inline">\(3\sigma\)</span> 截断</li>
+<li>在有些算法实现的时候，会先判断一下 sum_of_weights 是否为 0（高斯这里不可能为 0，就不判断了）</li>
+<li>颜色可以是多通道的，此时 sum_of_weights、sum_of_weighted_values 都是多通道的</li>
+</ul></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">For each pixel i:</span><br><span class="line">    sum_of_weights = sum_of_weighted_values = <span class="number">0.0</span></span><br><span class="line">    <span class="comment"># include i</span></span><br><span class="line">    For each pixel j around i:</span><br><span class="line">        Calculate the weight w_ij = G(|i - j|, sigma)</span><br><span class="line">        sum_of_weighted_values += w_ij * C^&#123;<span class="built_in">input</span>&#125;[j]</span><br><span class="line">        sum_of_weights += w_ij</span><br><span class="line">        C^&#123;output&#125;[I] = sum_of_weighted_values / sum_of_weights</span><br></pre></td></tr></table></figure>
+<h3 id="双边滤波">双边滤波</h3>
+<ul>
+<li>Bilateral Filtering</li>
+<li>高斯滤波的问题
+<ul>
+<li>图像一些高频细节也同时缺失了，例如边界也被模糊了</li>
+<li>但是我们想要保留边界的信息</li>
+</ul></li>
+<li><a target="_blank" rel="noopener" href="https://www.mathworks.com/help/images/ref/imgaussfilt.html">下图</a>是一个例子</li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610170430348.png" style="zoom: 67%;"></p>
+<ul>
+<li>双边滤波的目的就是在去噪的同时能够保持边界</li>
+<li>基于我们生活中的观察
+<ul>
+<li>边界：颜色变化非常剧烈</li>
+</ul></li>
+<li>idea：如何保持边界
+<ul>
+<li>循环的时候我们看 j 点和 i 点的颜色是不是相差特别大
+<ul>
+<li>如果相差不是特别大，我们使用原来高斯滤波的方式进行</li>
+<li>如果相差特别大，我们就减小贡献值（减小权值）</li>
+</ul></li>
+</ul></li>
+<li><a target="_blank" rel="noopener" href="https://www.mathworks.com/help/images/ref/imgaussfilt.html">一种实现</a>如下
+<ul>
+<li>两个点 <span class="math inline">\((i,j),(k,l)\)</span></li>
+<li>值差别过大的时候，那么贡献就会减小</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+w(i,j,k,l)=\exp\left(-\dfrac{(i-k)^2+(j-l)^2}{2\sigma_d^2}-\dfrac{\Vert I(i,j)-I(k,l)\Vert^2}{2\sigma_r^2}\right)
+\]</span></p>
+<ul>
+<li>效果如下
+<ul>
+<li>能够很好的保留边界信息</li>
+<li>山内部的高频信息被抹掉了，但是边界信息保留了</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610173346721.png"></p>
+<ul>
+<li>问题
+<ul>
+<li>噪声很明显的图会出问题</li>
+<li><strong>分不清噪声和边界</strong></li>
+</ul></li>
+</ul>
+<h3 id="联合双边滤波">联合双边滤波</h3>
+<ul>
+<li>Cross/Joint Bilateral Filtering</li>
+<li>观察
+<ul>
+<li>高斯滤波：position distance</li>
+<li>双边滤波：position distance + color distance</li>
+</ul></li>
+<li>于是我们可以用更多的标准，让结果更加接近我们想要的值</li>
+<li>这就是联合双边滤波</li>
+<li><strong>联合双边滤波对蒙特卡洛路径追踪算法得到图片的降噪效果很好</strong>
+<ul>
+<li><strong>Especially good at denoising path traced rendering results!</strong></li>
+</ul></li>
+<li>使用哪些信息呢？
+<ul>
+<li><strong>G-Buffer</strong>
+<ul>
+<li>世界坐标</li>
+<li>法向</li>
+<li>albedo</li>
+<li>object ID（每种物体标一个数字）：motion vector 中使用过</li>
+</ul></li>
+<li><strong>G-Buffer 本身是完全没有噪声的</strong>
+<ul>
+<li>和多次反射无关</li>
+</ul></li>
+</ul></li>
+<li>和之前的滤波一样，不需要考虑归一化
+<ul>
+<li>在实现的时候对滤波核进行归一化即可，函数不需要归一化</li>
+</ul></li>
+<li>也可以使用其他函数，不一定是高斯函数，只要随着距离有衰减就可以</li>
+<li>高斯函数、指数函数、余弦函数</li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610205556276.png" style="zoom: 50%;"></p>
+<ul>
+<li>高斯也不需要是严格的高斯，系数什么的都可以变</li>
+</ul>
+<h4 id="联合双边滤波例子">联合双边滤波例子</h4>
+<ul>
+<li>我们渲染得到了如下图片，同时得到了 G-Buffer 如下
+<ul>
+<li>Depth</li>
+<li>Normal</li>
+<li>Color</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610205758226.png" style="zoom:67%;"></p>
+<ul>
+<li>如果我们需要保留边界，则可以使用如下信息作为标准（metric）</li>
+<li>A-B：position + depth</li>
+<li>B-C：position + normal</li>
+<li>D-E：position + color
+<ul>
+<li>有噪声的情况下可能会有些问题，color 可能是噪声</li>
+</ul></li>
+<li>具体哪一个标准占的权重大小由 <span class="math inline">\(\sigma\)</span> 调节
+<ul>
+<li>比如上面双边滤波中的 <span class="math inline">\(\sigma_d,\sigma_r\)</span></li>
+</ul></li>
+</ul>
+<h2 id="实现大的滤波核">实现大的滤波核</h2>
+<ul>
+<li>Implementing Large Filters</li>
+<li>我们在滤波的时候，<strong>如果滤波核特别大，计算开销就很大</strong></li>
+</ul>
+<h3 id="大滤波核的解决思路">大滤波核的解决思路</h3>
+<ul>
+<li>FFT（快速傅里叶变化）在 GPU 上的优化做的并不好，因此还是基于空间域上的实现</li>
+</ul>
+<h4 id="拆分separate-passes">(1) 拆分：Separate Passes</h4>
+<ul>
+<li>例如对一个高斯滤波，我们可以先水平方向做一次，然后在竖直方向做一次</li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610212405100.png" style="zoom: 67%;"></p>
+<ul>
+<li>对每一个像素，对周围点的查询次数由 <span class="math inline">\(N^2\)</span> 变成了 <span class="math inline">\(2N\)</span>
+<ul>
+<li><span class="math inline">\(N\)</span> 为滤波核的大小</li>
+</ul></li>
+</ul>
+<h5 id="高斯函数拆分的数学原理">高斯函数拆分的数学原理</h5>
+<ul>
+<li>高斯滤波为什么能这么拆？数学原理如下</li>
+<li>高斯函数有好的定义</li>
+</ul>
+<p><span class="math display">\[
+G_{2D}(x,y)=\exp\left(-\dfrac{x^2+y^2}{2\sigma^2}\right)
+\]</span></p>
+<p><span class="math display">\[
+G_{1D}(x)=\exp\left(-\dfrac{x^2}{2\sigma^2}\right)
+\]</span></p>
+<p><span class="math display">\[
+G_{1D}(y)=\exp\left(-\dfrac{y^2}{2\sigma^2}\right)
+\]</span></p>
+<p><span class="math display">\[
+G_{2D}(x,y)=G_{1D}(x)\cdot G_{1D}(y)
+\]</span></p>
+<ul>
+<li>滤波就是卷积（filtering == convolution）</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+R(x_0,y_0)&amp;=\iint{F(x_0,y_0)G_{2D}(x_0-x,y_0-y)}\;\mathrm{d}x\mathrm{d}y\\
+&amp;=\iint{F(x_0,y_0)G_{1D}(x_0-x)G_{1D}(y_0-y)}\;\mathrm{d}x\mathrm{d}y\\
+&amp;=\int\Big(F(x_0,y_0)G_{1D}(x_0-x)\;\mathrm{d}x\Big)G_{1D}(y_0-y)\mathrm{d}y
+\end{aligned}
+\]</span></p>
+<ul>
+<li>双边高斯滤波就不能这么拆分，因为不具备定义上 2D 拆分为 1D 的性质
+<ul>
+<li>但是在实际工业实现上，都是这么强行拆分的</li>
+</ul></li>
+</ul>
+<h4 id="逐步增大滤波核progressively-growing-sizes">(2) 逐步增大滤波核：Progressively Growing Sizes</h4>
+<ul>
+<li>一个例子：a-trous wavelet</li>
+<li>每一趟都是 <span class="math inline">\(5\times5\)</span> 的大小，但是每一趟像素间的间隔是不一样的</li>
+<li>第 <span class="math inline">\(i\)</span> 趟考虑的点间隔 <span class="math inline">\(2^{i}\)</span>
+<ul>
+<li>第 <span class="math inline">\(1\)</span> 趟（<span class="math inline">\(i=0\)</span>）</li>
+<li>考虑的点示例如下</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610214554336.png" style="zoom:50%;"></p>
+<ul>
+<li>因此我们对于原始 <span class="math inline">\(64\times64\)</span> 的滤波，对于<strong>每一个像素点</strong>访问周围点的次数从 <span class="math inline">\(64\times64\)</span> 降到了 <span class="math inline">\(5^2\times5\)</span>
+<ul>
+<li>第 <span class="math inline">\(5(i=4)\)</span> 层的时候，间隔为 <span class="math inline">\(2^4=16\)</span>，一共 <span class="math inline">\(5\)</span> 个点，<span class="math inline">\(4\)</span> 个间隔，结果占据范围为 <span class="math inline">\(64\)</span></li>
+<li><span class="math inline">\(4096\Rightarrow125\)</span></li>
+</ul></li>
+</ul>
+<h5 id="原理">原理</h5>
+<ul>
+<li>为什么要一开始不直接使用大的 filter？
+<ul>
+<li>使用更大的 filter == 消除更低的频率</li>
+</ul></li>
+<li>跳过一些采样点为什么是可行的？
+<ul>
+<li>更低的频率间隔更大</li>
+<li>空间采样，频域上频谱的搬移
+<ul>
+<li>如果采样频率太低（间隔太大），会导致走样</li>
+<li>采样定理</li>
+</ul></li>
+<li>因为频率变低了，因此可以跳过一些采样点</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610232427566.png" style="zoom:60%;"></p>
+<ul>
+<li>根据上图
+<ul>
+<li>第一个 pass，把<span style="font-weight:bold;color:#2E74BB">蓝色部分</span>的高频信息去掉了</li>
+<li>第二个 pass 间隔较大，可以去掉<span style="font-weight:bold;color:#F59A24">黄色部分</span>的高频信息
+<ul>
+<li>同时不会有走样现象，因为高频信息已经被去掉了</li>
+<li>可以通过计算得到，频谱搬移的时候恰好不会有混叠</li>
+</ul></li>
+</ul></li>
+<li>在实际中是有问题的，高频信息并不是完全被去掉（非理想滤波器）
+<ul>
+<li>能看到一些格子状的 artifact</li>
+</ul></li>
+</ul>
+<h2 id="outlier-removal">Outlier Removal</h2>
+<ul>
+<li>Outlier Removal (and temporal clamping)</li>
+<li>离群值去除</li>
+<li>我们在渲染的过程中可能会出现一些特别亮的点，如<a target="_blank" rel="noopener" href="https://clarissewiki.com/4.0/fireflies-filtering.html">下图</a></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210610234504044.png" style="zoom:67%;"></p>
+<ul>
+<li>这些点在滤波中很难处理，这个点很亮（值很大），在滤波之后会被扩散为一个光晕（比较大的亮斑）
+<ul>
+<li>the filtered results are still noisy, even <strong>blocky</strong></li>
+<li><strong>blocky artifact</strong></li>
+</ul></li>
+<li>这些特别亮的点就被称为是 outlier
+<ul>
+<li>图形学中常被称为是 firefly（火萤）</li>
+</ul></li>
+<li>outlier removal 会导致<strong>能量不守恒</strong>
+<ul>
+<li>RTRT 为了提高效率，这么做是可以接受的</li>
+</ul></li>
+</ul>
+<h3 id="过程">过程</h3>
+<ul>
+<li>在做滤波之前先处理掉（不处理掉会印象滤波）</li>
+<li>outlier 检测
+<ul>
+<li>对于每个像素，查看周围的一个小邻域（<span class="math inline">\(7\times7\)</span>）</li>
+<li>计算邻域内的均值、方差（也可以用中位数）
+<ul>
+<li>简单计算</li>
+<li>用一些数据结构</li>
+</ul></li>
+<li>如果一个点的值在均值加减若干个标准差范围内，如果超出这个范围，我们认为他们就是 outlier
+<ul>
+<li><span class="math inline">\([\mu-k\sigma,\mu+k\sigma]\)</span></li>
+<li>工业界 <span class="math inline">\(k=1\sim3\)</span> 都有</li>
+</ul></li>
+</ul></li>
+<li>outlier removal
+<ul>
+<li>将 outlier 截断（clamp）</li>
+<li>工业界 clamp 的实现比较复杂，可能不是一个简单的区间</li>
+</ul></li>
+</ul>
+<h3 id="taa-中的-outlier-removal">TAA 中的 outlier removal</h3>
+<ul>
+<li><span class="math inline">\(\bar{C}^{(i)}=\alpha\bar{C}^{(i)}+(1-\alpha)\bar{C}^{i-1}\)</span></li>
+<li>我们对上一帧得到的 noise free 的结果进行截断
+<ul>
+<li>如果上一帧的结果和这一帧相差太大，我们做一个截断的操作</li>
+<li>这样的操作是一个 noise 和 lagging 的 tradeoff
+<ul>
+<li>引入了更多噪声</li>
+</ul></li>
+<li>相当于调整 <span class="math inline">\(\alpha\)</span></li>
+</ul></li>
+<li><span class="math inline">\(\bar{C}^{(i)}=\alpha\bar{C}^{(i)}+(1-\alpha)\cdot\mathrm{clamp}(\bar{C}^{i-1},\mu-k\sigma,k+k\sigma)\)</span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/YLQ/" rel="tag"># YLQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/04/DB/CLJ/07-1/" rel="prev" title="数据库概论.陈立军.07.并发控制(2)">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.07.并发控制(2)
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>
