@@ -23,12 +23,12 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
-<meta name="description" content="实时光线追踪、空间上的滤波、大滤波核的实现（拆分、逐步增大滤波核）、outlier removal">
+<meta name="description" content="实时光线追踪、空间上的滤波、大滤波核的实现（拆分、逐步增大滤波核）、outlier removal、SVGF、RAE">
 <meta property="og:type" content="article">
 <meta property="og:title" content="GAMES202.闫令琪.13.实时光线追踪(2)">
 <meta property="og:url" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/index.html">
 <meta property="og:site_name" content="Banbao">
-<meta property="og:description" content="实时光线追踪、空间上的滤波、大滤波核的实现（拆分、逐步增大滤波核）、outlier removal">
+<meta property="og:description" content="实时光线追踪、空间上的滤波、大滤波核的实现（拆分、逐步增大滤波核）、outlier removal、SVGF、RAE">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610164704899.png">
 <meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610165435406.png">
@@ -40,8 +40,9 @@
 <meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610214554336.png">
 <meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610232427566.png">
 <meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210610234504044.png">
+<meta property="og:image" content="http://example.com/2021/06/10/CG/YLQ-GAMES202/13/image-20210613145752902.png">
 <meta property="article:published_time" content="2021-06-10T07:18:41.000Z">
-<meta property="article:modified_time" content="2021-06-10T16:05:03.084Z">
+<meta property="article:modified_time" content="2021-06-13T07:02:45.537Z">
 <meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="CG">
 <meta property="article:tag" content="YLQ">
@@ -199,7 +200,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA"><span class="nav-text">实时光线追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E6%BB%A4%E6%B3%A2"><span class="nav-text">空间滤波</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%9B%AE%E6%A0%87"><span class="nav-text">实现目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%85%A5"><span class="nav-text">输入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E6%96%AF%E6%BB%A4%E6%B3%A2"><span class="nav-text">高斯滤波</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%8C%E8%BE%B9%E6%BB%A4%E6%B3%A2"><span class="nav-text">双边滤波</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%81%94%E5%90%88%E5%8F%8C%E8%BE%B9%E6%BB%A4%E6%B3%A2"><span class="nav-text">联合双边滤波</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%81%94%E5%90%88%E5%8F%8C%E8%BE%B9%E6%BB%A4%E6%B3%A2%E4%BE%8B%E5%AD%90"><span class="nav-text">联合双边滤波例子</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%A4%A7%E7%9A%84%E6%BB%A4%E6%B3%A2%E6%A0%B8"><span class="nav-text">实现大的滤波核</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E6%BB%A4%E6%B3%A2%E6%A0%B8%E7%9A%84%E8%A7%A3%E5%86%B3%E6%80%9D%E8%B7%AF"><span class="nav-text">大滤波核的解决思路</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8B%86%E5%88%86separate-passes"><span class="nav-text">(1) 拆分：Separate Passes</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%AB%98%E6%96%AF%E5%87%BD%E6%95%B0%E6%8B%86%E5%88%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86"><span class="nav-text">高斯函数拆分的数学原理</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%90%E6%AD%A5%E5%A2%9E%E5%A4%A7%E6%BB%A4%E6%B3%A2%E6%A0%B8progressively-growing-sizes"><span class="nav-text">(2) 逐步增大滤波核：Progressively Growing Sizes</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-text">原理</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#outlier-removal"><span class="nav-text">Outlier Removal</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E7%A8%8B"><span class="nav-text">过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#taa-%E4%B8%AD%E7%9A%84-outlier-removal"><span class="nav-text">TAA 中的 outlier removal</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA"><span class="nav-text">实时光线追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E6%BB%A4%E6%B3%A2"><span class="nav-text">空间滤波</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%9B%AE%E6%A0%87"><span class="nav-text">实现目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%85%A5"><span class="nav-text">输入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E6%96%AF%E6%BB%A4%E6%B3%A2"><span class="nav-text">高斯滤波</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%8C%E8%BE%B9%E6%BB%A4%E6%B3%A2"><span class="nav-text">双边滤波</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%81%94%E5%90%88%E5%8F%8C%E8%BE%B9%E6%BB%A4%E6%B3%A2"><span class="nav-text">联合双边滤波</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%81%94%E5%90%88%E5%8F%8C%E8%BE%B9%E6%BB%A4%E6%B3%A2%E4%BE%8B%E5%AD%90"><span class="nav-text">联合双边滤波例子</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%A4%A7%E7%9A%84%E6%BB%A4%E6%B3%A2%E6%A0%B8"><span class="nav-text">实现大的滤波核</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E6%BB%A4%E6%B3%A2%E6%A0%B8%E7%9A%84%E8%A7%A3%E5%86%B3%E6%80%9D%E8%B7%AF"><span class="nav-text">大滤波核的解决思路</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8B%86%E5%88%86separate-passes"><span class="nav-text">(1) 拆分：Separate Passes</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%AB%98%E6%96%AF%E5%87%BD%E6%95%B0%E6%8B%86%E5%88%86%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86"><span class="nav-text">高斯函数拆分的数学原理</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%90%E6%AD%A5%E5%A2%9E%E5%A4%A7%E6%BB%A4%E6%B3%A2%E6%A0%B8progressively-growing-sizes"><span class="nav-text">(2) 逐步增大滤波核：Progressively Growing Sizes</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-text">原理</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#outlier-removal"><span class="nav-text">Outlier Removal</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E7%A8%8B"><span class="nav-text">过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#taa-%E4%B8%AD%E7%9A%84-outlier-removal"><span class="nav-text">TAA 中的 outlier removal</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#svgf"><span class="nav-text">SVGF</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -215,7 +216,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">82</span>
+          <span class="site-state-item-count">87</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -309,7 +310,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2021-06-11 00:05:03" itemprop="dateModified" datetime="2021-06-11T00:05:03+08:00">2021-06-11</time>
+        <time title="Modified: 2021-06-13 15:02:45" itemprop="dateModified" datetime="2021-06-13T15:02:45+08:00">2021-06-13</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -331,7 +332,7 @@
     </span>
 </div>
 
-            <div class="post-description">实时光线追踪、空间上的滤波、大滤波核的实现（拆分、逐步增大滤波核）、outlier removal</div>
+            <div class="post-description">实时光线追踪、空间上的滤波、大滤波核的实现（拆分、逐步增大滤波核）、outlier removal、SVGF、RAE</div>
         </div>
       </header>
 
@@ -681,6 +682,22 @@ R(x_0,y_0)&amp;=\iint{F(x_0,y_0)G_{2D}(x_0-x,y_0-y)}\;\mathrm{d}x\mathrm{d}y\\
 </ul></li>
 <li><span class="math inline">\(\bar{C}^{(i)}=\alpha\bar{C}^{(i)}+(1-\alpha)\cdot\mathrm{clamp}(\bar{C}^{i-1},\mu-k\sigma,k+k\sigma)\)</span></li>
 </ul>
+<h2 id="svgf">SVGF</h2>
+<ul>
+<li><strong>Spatiotemporal</strong> Variance-Guided Filtering
+<ul>
+<li>和之前的基本的时空上的降噪方法类似</li>
+<li>有一些额外的方差分析和 tricks
+<ul>
+<li>每一个像素会记录一个 variance（方差）</li>
+</ul></li>
+</ul></li>
+<li>1spp / 滤波结果 / ground truth
+<ul>
+<li>ground truth 可以通过 path tracing 用一个较高的 spp 得到的基本收敛的结果</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210613145752902.png" style="zoom: 50%;"></p>
 
     </div>
 

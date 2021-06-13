@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="恢复控制、故障恢复、检查点、逻辑日志">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.09.恢复控制(2)">
+<meta property="og:url" content="http://example.com/2021/06/13/DB/CLJ/09-1/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="恢复控制、故障恢复、检查点、逻辑日志">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09-1/image-20210613231700809.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09-1/image-20210613233141824.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09-1/image-20210613233249680.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09-1/image-20210613233943188.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09-1/image-20210613235856513.png">
+<meta property="article:published_time" content="2021-06-13T14:57:18.000Z">
+<meta property="article:modified_time" content="2021-06-13T16:06:39.881Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/13/DB/CLJ/09-1/image-20210613231700809.png">
+
+
+<link rel="canonical" href="http://example.com/2021/06/13/DB/CLJ/09-1/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.09.恢复控制(2) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E6%8E%A7%E5%88%B6"><span class="nav-text">恢复控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D"><span class="nav-text">恢复</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%95%85%E9%9A%9C%E6%81%A2%E5%A4%8D"><span class="nav-text">事务故障恢复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%95%85%E9%9A%9C%E6%81%A2%E5%A4%8D%E8%BF%87%E7%A8%8B"><span class="nav-text">事务故障恢复过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%B1%E5%AF%A8%E7%89%88%E7%B3%BB%E7%BB%9F%E6%95%85%E9%9A%9C%E6%81%A2%E5%A4%8D"><span class="nav-text">山寨版系统故障恢复</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%95%85%E9%9A%9C%E6%81%A2%E5%A4%8D%E8%BF%87%E7%A8%8B"><span class="nav-text">系统故障恢复过程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E9%99%85%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-text">实际数据库</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8B%E8%B4%A8%E6%95%85%E9%9A%9C%E6%81%A2%E5%A4%8D"><span class="nav-text">介质故障恢复</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%8B%E8%B4%A8%E6%95%85%E9%9A%9C%E6%81%A2%E5%A4%8D%E8%BF%87%E7%A8%8B"><span class="nav-text">介质故障恢复过程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A3%80%E6%9F%A5%E7%82%B9checkpoint"><span class="nav-text">检查点(Checkpoint)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%A6%E6%9C%89%E6%A3%80%E6%9F%A5%E7%82%B9%E8%AE%B0%E5%BD%95%E7%9A%84%E6%97%A5%E5%BF%97%E7%94%9F%E6%88%90"><span class="nav-text">带有检查点记录的日志生成</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sql-server%E6%9C%80%E5%B0%8F%E6%81%A2%E5%A4%8Dlsn"><span class="nav-text">SQL Server：最小恢复LSN</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sql-server%E7%94%9F%E6%88%90%E6%A3%80%E6%9F%A5%E7%82%B9"><span class="nav-text">SQL Server：生成检查点</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E8%BF%87%E7%A8%8B"><span class="nav-text">恢复过程</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#recovery-interval"><span class="nav-text">recovery interval</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mysql-%E6%A3%80%E6%9F%A5%E7%82%B9%E6%89%A7%E8%A1%8C%E6%97%B6%E6%9C%BA"><span class="nav-text">MySQL 检查点执行时机</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%82%E9%A1%B9"><span class="nav-text">杂项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6"><span class="nav-text">MySQL 日志文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%97%A5%E5%BF%97%E7%89%A9%E7%90%86%E6%9E%84%E6%9E%B6"><span class="nav-text">事务日志物理构架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%BB%E8%BE%91-undo-%E6%97%A5%E5%BF%97"><span class="nav-text">逻辑 Undo 日志</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">87</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/06/13/DB/CLJ/09-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.09.恢复控制(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-06-13 22:57:18" itemprop="dateCreated datePublished" datetime="2021-06-13T22:57:18+08:00">2021-06-13</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-06-14 00:06:39" itemprop="dateModified" datetime="2021-06-14T00:06:39+08:00">2021-06-14</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">恢复控制、故障恢复、检查点、逻辑日志</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="恢复控制">恢复控制</h1>
+<h2 id="恢复">恢复</h2>
+<h3 id="事务故障恢复">事务故障恢复</h3>
+<ul>
+<li>撤消事务已对数据库所做的修改</li>
+</ul>
+<h3 id="事务故障恢复过程">事务故障恢复过程</h3>
+<ul>
+<li><strong>反向</strong>扫描日志文件，查找该事务的更新操作</li>
+<li>对该事务的更新操作执行 undo 操作，即将事务更新前的<strong>旧值</strong>写入数据库</li>
+<li>继续反向扫描日志文件，查找该事务的其他更新操作，并做同样处理</li>
+<li>直至读到事务的开始标识，结束事务故障恢复过程</li>
+<li><strong>同一事务的日志需要反向链接在一起</strong>
+<ul>
+<li>加速事务的撤销操作</li>
+</ul></li>
+<li>正向撤销会出错
+<ul>
+<li>这是显然的，撤销是写的逆过程</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613231700809.png" style="zoom:67%;"></p>
+<h3 id="山寨版系统故障恢复">山寨版系统故障恢复</h3>
+<ul>
+<li>不一致状态原因
+<ul>
+<li>未完成事务对数据库的更新已写入数据库
+<ul>
+<li>Steal policy</li>
+</ul></li>
+<li>已提交事务对数据库的更新未写入数据库
+<ul>
+<li>还在 OS Buffer 中</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="系统故障恢复过程">系统故障恢复过程</h4>
+<ul>
+<li>正向扫描日志文件，找出圆满事务，记入重做队列；找出夭折事务，记入撤消队列</li>
+<li>反向扫描日志，对撤消队列中事务 Ti 的每一个日志记录执行 undo 操作</li>
+<li>正向扫描日志文件，对重做队列中事务 Ti 的每一个日志记录执行 redo 操作</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613233141824.png" style="zoom:67%;"></p>
+<h5 id="实际数据库">实际数据库</h5>
+<ul>
+<li>对所有操作（不区分成功还是失败），都进行 redo 操作
+<ul>
+<li>连续操作，磁盘 I/O 友好</li>
+</ul></li>
+<li>然后再对夭折事务进行 undo</li>
+</ul>
+<h3 id="介质故障恢复">介质故障恢复</h3>
+<ul>
+<li>磁盘上数据文件和日志文件遭到破坏</li>
+</ul>
+<h4 id="介质故障恢复过程">介质故障恢复过程</h4>
+<ul>
+<li>装入最新的数据库后备副本，使数据库恢复到最近一次转储时的一致性状态</li>
+<li>装入相应的日志文件副本，重做已完成的事务</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613233249680.png" style="zoom: 67%;"></p>
+<ul>
+<li>数据文件和日志文件最好不要放在一个磁盘上</li>
+</ul>
+<h3 id="检查点checkpoint">检查点(Checkpoint)</h3>
+<ul>
+<li>当系统故障发生时，我们必须搜索整个日志，以决定哪些事务需要 redo，哪些需要 undo</li>
+<li>大多数需要被重做的事务其更新已经写入了数据库中（<span class="math inline">\(\mathrm{redo}^2\)</span>）
+<ul>
+<li>因为我们不知道数据是否已经被写入磁盘（异步写缓冲区）</li>
+<li>尽管对它们重做不会造成不良后果，但会使恢复过程变得更长</li>
+</ul></li>
+<li>检查点原理：且行且珍惜
+<ul>
+<li><strong>保证在检查点时刻，日志与数据库的内容是一致的</strong></li>
+</ul></li>
+</ul>
+<h4 id="带有检查点记录的日志生成">带有检查点记录的日志生成</h4>
+<ul>
+<li>将当前日志缓冲区的所有日志记录写入稳存中</li>
+<li>在日志文件中写入一个检查点记录</li>
+<li>将当前数据缓冲区的所有数据记录写入稳存中</li>
+<li>输出检查点时活跃事务的列表 L</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613233943188.png" style="zoom: 67%;"></p>
+<ul>
+<li>我们对检查点之前就已经提交的事务，不需要做 redo 处理</li>
+<li>只需要对检查点时刻还在活跃的事务、检查点之后出现的事务进行 redo 处理</li>
+<li>最小日志序列号
+<ul>
+<li>生成检查点时刻的还在活跃的最小日志记录的序列号</li>
+</ul></li>
+<li>长事务再数据库中危害很大
+<ul>
+<li>并发</li>
+<li>长事务不释放，检查点做的恢复工作不会少
+<ul>
+<li>最小序列号之后、但是在检查点之前已经提交的事务需要重做吗？</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="sql-server最小恢复lsn">SQL Server：最小恢复LSN</h4>
+<ul>
+<li>MinLSN 是下面这些 LSN 中的最小 LSN：
+<ul>
+<li>检查点起点的 LSN</li>
+<li>最旧的活动事务起点的 LSN</li>
+</ul></li>
+</ul>
+<h4 id="sql-server生成检查点">SQL Server：生成检查点</h4>
+<ol type="1">
+<li>将标记检查点起点的记录写入日志文件</li>
+<li>将为检查点记录的信息存储在检查点日志记录链内，将这条链起点的 LSN 写入数据库根页</li>
+<li>将最小恢复 LSN(MinLSN) 保存在检查点记录中</li>
+<li>将所有未完成的活动事务列表保存在检查点记录中</li>
+<li>如果数据库使用的是简单恢复模式，则删除新的 MinLSN 之前的所有日志记录</li>
+<li>将所有脏日志和数据页写入磁盘</li>
+<li>将标记检查点末端的记录写入日志文件</li>
+</ol>
+<h5 id="恢复过程">恢复过程</h5>
+<ul>
+<li>检查点线程遍历缓冲区池，按照缓冲区编号顺序扫描页面，当它发现脏页时，它将查看与该页面<strong>物理(磁盘上)连续的其他页面</strong>是否也是脏的，这样它可以进行大块写操作
+<ul>
+<li>顺序写性能远高于随机写</li>
+</ul></li>
+<li>如果它看到页面5是脏的时，它可能会写入页面10、25、380、500等，这些页面在磁盘上是连续的。这样，缓冲区中非连续的页面可以被一次聚集写入（<strong>gather-write</strong>）磁盘</li>
+<li>以后检查点会到达页面 500，为避免将该页面重复写入磁盘，检查点算法会为每个页面设置标志位，开始时所有的位都相同(都为0或1)。当检查点检查到某个页面时，它将其标志位翻转。如果检查点碰到具有相反位的页面，它就跳过该页面</li>
+<li><strong>对于在检查点期间新近引入的页面，或者已经被检查点输出到磁盘但又重新变脏的页面，都不会被该次检查点操作写入</strong></li>
+</ul>
+<h5 id="recovery-interval">recovery interval</h5>
+<ul>
+<li>recovery interval 选项设置 SQL Server 恢复数据库所需的最大分钟数</li>
+<li>据此 SQL Server 将估计在恢复时间间隔期间可以处理多少更新的数据，从而决定在每一个数据库中 SQL Server 何时生成一次检查点</li>
+<li>SQL Server 根据 10MB 的日志可以在 1 分钟内得到恢复这样一个估计来确定它的恢复间隔</li>
+<li>当最近一个检查点之后数据更新操作达到了 SQL Server 认为可以在恢复时间间隔更新的数量时，它将进行一个检查点操作</li>
+</ul>
+<h4 id="mysql-检查点执行时机">MySQL 检查点执行时机</h4>
+<ul>
+<li>Master Thread Checkpoint
+<ul>
+<li>每秒或每10秒刷出一定比例的脏页</li>
+</ul></li>
+<li>FLUSH_LRU_LIST Checkpoint
+<ul>
+<li>LRU 列表中空闲页不够时淘汰的页面中有脏页</li>
+</ul></li>
+<li>Dirty Page too much Checkpoint
+<ul>
+<li>innodb_max_dirty_pages_pct</li>
+</ul></li>
+<li>Async/Sync Flush Checkpoint
+<ul>
+<li>redo_lsn–checkpoing_lsn 超过日志文件大小75%</li>
+</ul></li>
+</ul>
+<h2 id="杂项">杂项</h2>
+<h3 id="mysql-日志文件">MySQL 日志文件</h3>
+<ul>
+<li>重做日志（redolog）</li>
+<li>回滚日志（undolog）</li>
+<li>二进制日志（binlog）</li>
+<li>错误日志（errorlog）</li>
+<li>慢查询日志（slowquerylog）</li>
+<li>一般查询日志（generallog）</li>
+<li>中继日志（relaylog）</li>
+</ul>
+<h3 id="事务日志物理构架">事务日志物理构架</h3>
+<ul>
+<li>循环使用
+<ul>
+<li>生成检查点的时候，可以释放之前的一些无用日志块</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613235856513.png" style="zoom:67%;"></p>
+<h3 id="逻辑-undo-日志">逻辑 Undo 日志</h3>
+<ul>
+<li><strong>针对索引页</strong></li>
+<li>一般恢复技术要求一旦事务更新了一个数据项，其它事务都不能更新该数据项，直至第一个事务提交或回滚</li>
+<li>严格两阶段封锁协议实施到某些特殊结构如 B+ 树索引页时，并发性极度下降。为提高并发性，可以使锁较早释放
+<ul>
+<li>提早释放会导致问题</li>
+<li>如果是物理日志
+<ul>
+<li>A 事务写页 a，B 事务也写页 a，此时 A 事务出错，回滚，页 a 回滚（页面为单位），此时把事务 B 修改的部分给覆盖了</li>
+</ul></li>
+<li>逻辑日志则没有这个问题</li>
+<li>插入操作必须通过一个逻辑 undo 来完成，即通过执行一次删除操作撤消</li>
+</ul></li>
+<li><strong>闩锁，自旋锁</strong></li>
+<li>如果事务 T 向 B+ 树插入了一项，在插入操作结束后但在事务提交前释放了某些锁，那么在锁释放后，其它事务可执行插入或删除操作，于是造成对 B+ 树结点的进一步改变</li>
+<li>如果使用物理 undo 执行事务回滚，即事务回滚时我们将 B+ 树内部结点(执行插入操作前)的旧值写回，那么其它事务在其后执行的插入或删除操作所做的某些更新可能会丢失</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/13/CG/YLQ-GAMES202/14/" rel="prev" title="GAMES202.闫令琪.14.工业界算法实现">
+                  <i class="fa fa-chevron-left"></i> GAMES202.闫令琪.14.工业界算法实现
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

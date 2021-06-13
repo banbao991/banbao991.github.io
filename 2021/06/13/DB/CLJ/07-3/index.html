@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="并发控制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.07.并发控制(04)">
+<meta property="og:url" content="http://example.com/2021/06/13/DB/CLJ/07-3/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="并发控制">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/07-3/image-20210613110906866.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/07-3/image-20210613111322706.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/07-3/image-20210613112124549.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/07-3/image-20210613112605153.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/07-3/image-20210613115931178.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/07-3/image-20210613120615944.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/07-3/image-20210613122121649.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/07-3/image-20210613121728756.png">
+<meta property="article:published_time" content="2021-06-12T16:20:17.000Z">
+<meta property="article:modified_time" content="2021-06-13T16:13:42.105Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/13/DB/CLJ/07-3/image-20210613110906866.png">
+
+
+<link rel="canonical" href="http://example.com/2021/06/13/DB/CLJ/07-3/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.07.并发控制(04) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-text">并发控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E6%97%B6%E9%97%B4%E6%88%B3%E7%9A%84%E5%8D%8F%E8%AE%AE"><span class="nav-text">基于时间戳的协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AF%E8%83%BD%E7%9A%84%E8%84%8F%E8%AF%BB"><span class="nav-text">可能的脏读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B7%B3%E8%BF%87%E7%9A%84%E5%86%99"><span class="nav-text">跳过的写</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#thomas-%E5%86%99%E8%A7%84%E5%88%99"><span class="nav-text">Thomas 写规则</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E6%97%B6%E9%97%B4%E6%88%B3%E5%8D%8F%E8%AE%AE"><span class="nav-text">执行时间戳协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%BB%E6%93%8D%E4%BD%9C"><span class="nav-text">读操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%87%E6%99%9A%E7%9A%84%E8%AF%BB"><span class="nav-text">过晚的读</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%AD%A3%E5%B8%B8%E7%9A%84%E8%AF%BB"><span class="nav-text">正常的读</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E6%93%8D%E4%BD%9C"><span class="nav-text">写操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%87%E6%99%9A%E7%9A%84%E5%86%99"><span class="nav-text">过晚的写</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%AD%A3%E5%B8%B8%E7%9A%84%E5%86%99"><span class="nav-text">正常的写</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BF%BD%E7%95%A5%E7%9A%84%E5%86%99"><span class="nav-text">忽略的写</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="nav-text">一个例子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%89%E6%95%88%E6%80%A7%E6%A3%80%E6%9F%A5%E5%8D%8F%E8%AE%AE"><span class="nav-text">有效性检查协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E9%98%B6%E6%AE%B5"><span class="nav-text">三阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%BB%E9%98%B6%E6%AE%B5"><span class="nav-text">读阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%89%E6%95%88%E6%80%A7%E6%A3%80%E6%9F%A5%E9%98%B6%E6%AE%B5"><span class="nav-text">有效性检查阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E9%98%B6%E6%AE%B5"><span class="nav-text">写阶段</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E4%B8%AA%E6%97%B6%E9%97%B4%E6%88%B3"><span class="nav-text">三个时间戳</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9D%E5%8F%8D%E4%B8%B2%E8%A1%8C%E6%80%A7%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-text">违反串行性的情况</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%84%E5%88%99-1"><span class="nav-text">规则 1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%84%E5%88%99-2"><span class="nav-text">规则 2</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E6%9C%89%E6%95%88%E6%80%A7%E6%A3%80%E6%9F%A5%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-text">一个有效性检查的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%902"><span class="nav-text">例子2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mvcc"><span class="nav-text">MVCC</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql-%E4%B8%80%E8%87%B4%E6%80%A7%E9%9D%9E%E9%94%81%E5%AE%9A%E8%AF%BB"><span class="nav-text">MySQL 一致性非锁定读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%B4%E6%98%8E"><span class="nav-text">说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E4%B8%AA%E9%9A%90%E8%97%8F%E5%88%97"><span class="nav-text">三个隐藏列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E8%A7%81%E6%80%A7%E7%AE%97%E6%B3%95"><span class="nav-text">可见性算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pg-%E4%B8%8E-mysql-%E5%86%99%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%8D%E5%90%8C"><span class="nav-text">PG 与 MySQL 写操作的不同</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E4%B8%AD%E6%9F%A5%E7%9C%8B%E5%A4%9A%E7%89%88%E6%9C%AC"><span class="nav-text">SQL Server 中查看多版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mvcc-%E8%AE%BA%E6%96%87"><span class="nav-text">MVCC 论文</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql-%E4%B8%80%E8%87%B4%E6%80%A7%E9%94%81%E5%AE%9A%E8%AF%BB"><span class="nav-text">MySQL 一致性锁定读</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">87</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/06/13/DB/CLJ/07-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.07.并发控制(04)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-06-13 00:20:17" itemprop="dateCreated datePublished" datetime="2021-06-13T00:20:17+08:00">2021-06-13</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-06-14 00:13:42" itemprop="dateModified" datetime="2021-06-14T00:13:42+08:00">2021-06-14</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">并发控制</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="并发控制">并发控制</h1>
+<ul>
+<li>传统的数据库，Oracle、SQL Server 都是基于封锁来实现的，但是也有其他的并发控制方式</li>
+</ul>
+<h2 id="基于时间戳的协议">基于时间戳的协议</h2>
+<ul>
+<li><strong>时间戳</strong>
+<ul>
+<li>每个事务 Ti 进入系统被分配一个时间戳 TS(Ti)</li>
+<li>如果 Tj 晚于 Ti 进入系统，TS(Ti)&lt;TS(Tj)</li>
+<li>回滚的事务重新启动，分配新的时间戳</li>
+</ul></li>
+<li>时间戳顺序决定了串行化顺序，<strong>回滚违反发出串行性操作的事务</strong>
+<ul>
+<li><strong>整个调度必须和按照他们的时间戳顺序的串行调度等价</strong></li>
+<li>检测冲突，一旦检测到冲突，则按照上述规则回滚某个事务</li>
+</ul></li>
+<li>每个数据项Q有两个时间戳与之联系
+<ul>
+<li>数据项上的读写时间戳，数据项上的读写时间戳是所有操作该数据项的事务中最大的时间戳</li>
+<li>WT(Q)：执行 write(Q) 的事务中最大的时间戳</li>
+<li>RT(Q)：执行 read(Q) 的事务中最大的时间戳</li>
+</ul></li>
+</ul>
+<h3 id="问题">问题</h3>
+<h4 id="可能的脏读">可能的脏读</h4>
+<ul>
+<li>start1, w1(R), start2, r2(R), abort_t1</li>
+<li>T1 事务回滚了，T2 事务读到的 R 是 T1 写的 R，是脏读（不是正确的数据项）</li>
+<li>解决方案：为每一个数据项设置一个提交位
+<ul>
+<li><strong>提交位</strong> C(R)：拥有 R 上写时间戳的事务是否提交</li>
+<li>r2(R) 发现 R 上的提交位没有被设置为 1（尚未被提交），此时等待</li>
+</ul></li>
+</ul>
+<h4 id="跳过的写">跳过的写</h4>
+<ul>
+<li>start1, start2, w2(R), w1(R)
+<ul>
+<li>与时间戳顺序等价的串行调度为：start1, start2, w1(R), w2(R)</li>
+<li>于是最后会检测到 w1(R) 不满足时间戳的协议，回滚掉事务 T1</li>
+</ul></li>
+<li>实际上我们没有必要回滚事务 T1，把 w1(R) 忽略掉即可
+<ul>
+<li>满足时间戳的串行调度，w1(R) 在前面也会被覆盖，因此只需要把 w1(R) 忽略即可</li>
+</ul></li>
+</ul>
+<h5 id="thomas-写规则">Thomas 写规则</h5>
+<p>写操作在更晚的写操作已经发生时可以跳过</p>
+<h3 id="执行时间戳协议">执行时间戳协议</h3>
+<h4 id="读操作">读操作</h4>
+<ul>
+<li>假定事务 Ti 发出 read(Q)</li>
+</ul>
+<h5 id="过晚的读">过晚的读</h5>
+<ul>
+<li>本来应该是在别人写之前读，但是别人写完你才读</li>
+<li>如果 TS(Ti)&lt;WT(Q)，则 Ti 需读入的值已经被覆盖，read 操作被拒绝，<strong>回滚 Ti</strong></li>
+<li>start1, start2, w2(R), r1(R)
+<ul>
+<li>此时 r1(R) 已经违反了时间戳协议，回滚事务 T1</li>
+</ul></li>
+</ul>
+<h5 id="正常的读">正常的读</h5>
+<ul>
+<li>正常的读 TS(Ti) <span class="math inline">\(\ge\)</span> WT(Q)</li>
+<li>若 C(Q) 为真则执行 read 操作，RT(Q) = max(RT(Q),TS(Ti))，若为假则推迟到 C(Q) 为真或写 Q 的事务中止</li>
+<li>start2, start1, w2(R), r1(R)</li>
+</ul>
+<h4 id="写操作">写操作</h4>
+<ul>
+<li>假定事务 Ti 发出 write(Q)</li>
+</ul>
+<h5 id="过晚的写">过晚的写</h5>
+<ul>
+<li>本来应该是在别人读之前写，但是别人读完你才写</li>
+<li>如果 TS(Ti)&lt;RT(Q)，则 Ti 产生的 Q 值是先前所需要的值，write 操作被拒绝，回滚Ti</li>
+<li>start1, start2, r2(R), w1(R)
+<ul>
+<li>此时 w1(R) 不满足时间戳协议，回滚事务 T1</li>
+</ul></li>
+</ul>
+<h5 id="正常的写">正常的写</h5>
+<ul>
+<li>正常的写：TS(Ti) &gt; RT(Q)</li>
+<li>TS(Ti) &gt; RT(Q)，并且 TS(Ti) &gt; WT(Q)，执行write操作，WT(Q)＝TS(Ti)</li>
+<li>start1, start2, start3, r1(R), w2(R), w3(R)</li>
+</ul>
+<h5 id="忽略的写">忽略的写</h5>
+<ul>
+<li>Thomas 写规则</li>
+<li>TS(Ti) &gt; RT(Q)，但是TS(Ti) &lt; WT(Q)，跳过 write 操作</li>
+<li>start1, start2, start3, w2(R), r3(R), w1(R)</li>
+<li>跳过 w1(R) 操作</li>
+</ul>
+<h3 id="一个例子">一个例子</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">T1</th>
+<th style="text-align: center;">T2</th>
+<th style="text-align: center;">T3</th>
+<th style="text-align: center;">A</th>
+<th style="text-align: center;">B</th>
+<th style="text-align: center;">C</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">200</td>
+<td style="text-align: center;">150</td>
+<td style="text-align: center;">175</td>
+<td style="text-align: center;">RT=0<br>WT=0</td>
+<td style="text-align: center;">RT=0<br>WT=0</td>
+<td style="text-align: center;">RT=0<br>WT=0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">r1(B)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">RT=200</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">r2(A)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">RT=150</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">r3(C)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">RT=175</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">w1(B)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">WT=200</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">w1(A)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">WT=200</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">w2(C)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">RT=0</td>
+<td style="text-align: center;">过晚的写<br>回滚T2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">中止</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">w3(A)</td>
+<td style="text-align: center;">忽略的写</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="有效性检查协议">有效性检查协议</h2>
+<ul>
+<li>把事务的过程分为 3 个阶段
+<ul>
+<li>读阶段、有效性检查阶段、写阶段</li>
+</ul></li>
+</ul>
+<h3 id="三阶段">三阶段</h3>
+<h4 id="读阶段">读阶段</h4>
+<ul>
+<li><p>事务 Ti 在这一阶段中执行</p></li>
+<li><p>各数据项值被读入并保存在 Ti 的<strong>局部变量</strong>中</p></li>
+<li><p><strong>所有 write 操作都是对局部临时变量进行的，并不对数据库进行真正的更新</strong></p></li>
+</ul>
+<h4 id="有效性检查阶段">有效性检查阶段</h4>
+<ul>
+<li>Ti 进行有效性检查，通过与其他事务的读写集合进行比较，来判定是否可以将 write 操作所更新的临时局部变量值拷入数据库而不违反可串行性</li>
+</ul>
+<h4 id="写阶段">写阶段</h4>
+<ul>
+<li>若 Ti 通过有效性检查，则进行实际的数据库更新，否则 Ti 回滚</li>
+</ul>
+<h3 id="三个时间戳">三个时间戳</h3>
+<ul>
+<li>每个事务 Ti 有 <strong>3</strong> 个时间戳与之联系
+<ul>
+<li>Start(Ti)：Ti <strong>开始</strong>执行的时间</li>
+<li>Validation(Ti)：Ti <strong>进入</strong>其有效性检查阶段的时间</li>
+<li>Finish(Ti)：Ti <strong>完成</strong>其写阶段的时间</li>
+</ul></li>
+<li>令TS(Ti) = Validation(Ti)，等价的串行顺序与有效性确认时间戳一致</li>
+</ul>
+<h3 id="违反串行性的情况">违反串行性的情况</h3>
+<h4 id="规则-1">规则 1</h4>
+<ul>
+<li><span class="math inline">\({\color{red}\mathrm{if}}\;\mathrm{finish(U)&gt;start(T)}\;{\color{red}\mathrm{then}}\;\mathrm{RS(T)\bigcap WS(U)=\Phi}\)</span></li>
+<li>避免过早地读</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613110906866.png" style="zoom:67%;"></p>
+<h4 id="规则-2">规则 2</h4>
+<ul>
+<li><span class="math inline">\({\color{red}\mathrm{if}}\;\mathrm{finish(U)&gt;validation(T)}\;{\color{red}\mathrm{then}}\;\mathrm{WS(T)\bigcap WS(U)=\Phi}\)</span></li>
+<li>避免过早的写</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613111322706.png" style="zoom:67%;"></p>
+<h3 id="一个有效性检查的例子">一个有效性检查的例子</h3>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613112124549.png" style="zoom:67%;"></p>
+<ul>
+<li>确认T2：在T1完成写入之前开始，可能先于T1的写入进行读写，需要判断T1的写集合与T2读集合的相交性，同时判断T1的写集合与T2的写集合的相交性
+<ul>
+<li>写判断，防止 T2 的写在 T1 之前</li>
+</ul></li>
+<li>确认T3：在T1完成写入之后开始，不需要判定T3和T1的相交性；在T2完成写入之前开始，需要判断T2的写集合与T3读集合的相交性；T2在T3确认前完成，不需要判定T3的写集合和T2的写集合的相交性</li>
+</ul>
+<h3 id="例子2">例子2</h3>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613112605153.png" style="zoom:67%;"></p>
+<ul>
+<li>确认 U
+<ul>
+<li>最早的确认，通过</li>
+</ul></li>
+<li>确认 T
+<ul>
+<li>U 写、T 读：通过</li>
+<li>U 写、T 写：通过</li>
+</ul></li>
+<li>确认 V
+<ul>
+<li>U 写、V 读：通过</li>
+<li>T 写、V 读：通过</li>
+<li>T 写、V 写：通过</li>
+</ul></li>
+<li>确认 W
+<ul>
+<li>W 读之前，U 已经 finish，不需要比较</li>
+<li>T 写、W 读：<strong>未通过</strong></li>
+<li>V 写、W 写：通过</li>
+<li>V 写、W 读：<strong>未通过</strong></li>
+</ul></li>
+</ul>
+<h2 id="mvcc">MVCC</h2>
+<ul>
+<li>MVCC：Multiple Version Concurrent Control</li>
+<li>以下是 MySQL 对于 MVCC 的实现</li>
+</ul>
+<h2 id="mysql-一致性非锁定读">MySQL 一致性非锁定读</h2>
+<ul>
+<li>一致性非锁定读（consistent nonlocking read）</li>
+<li>多版本实现的并发控制</li>
+</ul>
+<h3 id="说明">说明</h3>
+<ul>
+<li>在 read committed 和 repeatable read 下 InnoDB 使用非锁定的一致性读</li>
+<li>read committed 的非一致性读总是读取被锁定行的<strong>最新</strong>一份快照数据
+<ul>
+<li><strong>语句开始的版本</strong></li>
+</ul></li>
+<li>repeatable read 的非一致性读总是读取<strong>事务开始</strong>时的行数据版本</li>
+</ul>
+<h3 id="三个隐藏列">三个隐藏列</h3>
+<ul>
+<li>InnoDB 为每行数据增加三个隐藏列用于实现 MVCC</li>
+<li>DB_TRX_ID
+<ul>
+<li>插入或更新行的<strong>最后一个事务的事务标识符（</strong>删除视为更新，将其标记为已删除）</li>
+</ul></li>
+<li>DB_ROLL_PTR
+<ul>
+<li>写入回滚段的撤消日志记录（若行已更新，则撤消日志记录包含在更新行之前重建行内容所需的信息）</li>
+<li>将所有的老版本通过一个指针串起来</li>
+</ul></li>
+<li>DB_ROW_ID：行标识（隐藏单调自增id）</li>
+<li><strong>快照存放在日志 undo 段中</strong></li>
+<li>InnoDB 新版本的数据是叶子结点的值，老版本的数据则通过 UNDO 记录存储在回滚段（Rollback Segment）中</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613115931178.png" style="zoom: 40%;"></p>
+<h3 id="可见性算法">可见性算法</h3>
+<ul>
+<li>read-view：事务在进行快照读的时候会创建一个读视图</li>
+<li>在执行读操作的时候，基于读视图判定当前行对于读操作是否可见</li>
+<li>一些数据段
+<ul>
+<li>alive_trx_list：读视图生成时刻系统中正在活跃的事务 id</li>
+<li>up_limit_id：记录上面的 alive_trx_list 中的最小事务 id（最老的事务）</li>
+<li>low_limit_id：读视图生成时刻，目前已出现的事务 ID 的最大值 +1</li>
+</ul></li>
+<li>判定
+<ul>
+<li>判断这条记录的 DB_TRX_ID 是否是小于 up_limit_id 或者等于当前事务 id
+<ul>
+<li>若是，则当前事务能看到这条记录</li>
+</ul></li>
+<li>判断这条记录的 DB_TRX_ID 是否大于等于 low-limit-id
+<ul>
+<li>如果大于等于则说明此事务无法看见该条记录</li>
+</ul></li>
+<li>判断该条记录的 DB_TRX_ID 是否在活跃事务的数组中
+<ul>
+<li>如果在则说明这条记录还未提交，对于当前操作的事务是不可见的</li>
+<li>如果不在则说明已经提交，则是可见的
+<ul>
+<li>这种情况是当前事务一开始之后很短的时间内，开始后很快就提交了</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613120615944.png"></p>
+<ul>
+<li>对于 read committed 来说，每读一次都会生成新的读视图</li>
+<li>对于 repeatable read 来说，读视图时是事务一开始就确定不变的</li>
+</ul>
+<h3 id="pg-与-mysql-写操作的不同">PG 与 MySQL 写操作的不同</h3>
+<ul>
+<li>PG 对写操作也是乐观并发控制
+<ul>
+<li><strong>在表中保存同一行数据记录的多个不同版本</strong>，每次写操作，都是创建，而回避更新
+<ul>
+<li>PG 有表膨胀的问题</li>
+<li>MySQL 把老版本放在回滚段里</li>
+</ul></li>
+<li>在事务提交时，按版本号检查当前事务提交的数据是否存在写冲突，抛异常告知用户，回滚事务</li>
+</ul></li>
+<li>innodb 只对读无锁，写操作仍是上锁的悲观并发控制
+<ul>
+<li>每行数据只在表中保留一份，在更新数据时上行锁，同时将旧版数据写入 undo log</li>
+<li>表和 undo log 中行数据都记录着事务 ID，在检索时，只读取来自当前已提交的事务的行数据</li>
+</ul></li>
+</ul>
+<h3 id="sql-server-中查看多版本">SQL Server 中查看多版本</h3>
+<ul>
+<li>tempdb</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613122121649.png" style="zoom:50%;"></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> database ljchen</span><br><span class="line"><span class="keyword">set</span> allow_snapshot_isolation <span class="keyword">on</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span> faculty</span><br><span class="line"><span class="keyword">set</span> salary<span class="operator">=</span>salary<span class="operator">*</span><span class="number">1.01</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">from</span> sys.dm_tran_version_store</span><br></pre></td></tr></table></figure>
+<h3 id="mvcc-论文">MVCC 论文</h3>
+<ul>
+<li>An Empirical Evaluation of In-Memory Multi-Version Concurrency Control</li>
+<li>设计要点
+<ul>
+<li>并发控制 (ConcurrencyControl)</li>
+<li>版本存储 (VersionStorage)</li>
+<li>垃圾回收 (GarbageCollection)</li>
+<li>索引管理 (Indexmanagement)</li>
+</ul></li>
+</ul>
+<h2 id="mysql-一致性锁定读">MySQL 一致性锁定读</h2>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 对读取的行加 X 锁 */</span></span><br><span class="line"><span class="keyword">select</span> ... <span class="keyword">for</span> <span class="keyword">update</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 对读取的行加 S 锁 */</span></span><br><span class="line"><span class="keyword">select</span> ... lock <span class="keyword">in</span> share mode</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613121728756.png" style="zoom:67%;"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/12/DB/CLJ/07-2/" rel="prev" title="数据库概论.陈立军.07.并发控制(03)">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.07.并发控制(03)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/06/13/DB/CLJ/08/" rel="next" title="数据库概论.陈立军.08.数据挖掘简述">
+                  数据库概论.陈立军.08.数据挖掘简述 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

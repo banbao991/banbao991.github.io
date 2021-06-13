@@ -17919,6 +17919,22 @@ R(x_0,y_0)&amp;=\iint{F(x_0,y_0)G_{2D}(x_0-x,y_0-y)}\;\mathrm{d}x\mathrm{d}y\\
 </ul></li>
 <li><span class="math inline">\(\bar{C}^{(i)}=\alpha\bar{C}^{(i)}+(1-\alpha)\cdot\mathrm{clamp}(\bar{C}^{i-1},\mu-k\sigma,k+k\sigma)\)</span></li>
 </ul>
+<h2 id="svgf">SVGF</h2>
+<ul>
+<li><strong>Spatiotemporal</strong> Variance-Guided Filtering
+<ul>
+<li>和之前的基本的时空上的降噪方法类似</li>
+<li>有一些额外的方差分析和 tricks
+<ul>
+<li>每一个像素会记录一个 variance（方差）</li>
+</ul></li>
+</ul></li>
+<li>1spp / 滤波结果 / ground truth
+<ul>
+<li>ground truth 可以通过 path tracing 用一个较高的 spp 得到的基本收敛的结果</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210613145752902.png" style="zoom: 50%;"></p>
 ]]></content>
       <categories>
         <category>CG.GAMES202</category>
@@ -29921,6 +29937,1383 @@ G(\bar{x})=\dfrac{1}{|L_x\times L_y|}
       <tags>
         <tag>CG</tag>
         <tag>Paper</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据库概论.陈立军.07.并发控制(04)</title>
+    <url>/2021/06/13/DB/CLJ/07-3/</url>
+    <content><![CDATA[<h1 id="并发控制">并发控制</h1>
+<ul>
+<li>传统的数据库，Oracle、SQL Server 都是基于封锁来实现的，但是也有其他的并发控制方式</li>
+</ul>
+<h2 id="基于时间戳的协议">基于时间戳的协议</h2>
+<ul>
+<li><strong>时间戳</strong>
+<ul>
+<li>每个事务 Ti 进入系统被分配一个时间戳 TS(Ti)</li>
+<li>如果 Tj 晚于 Ti 进入系统，TS(Ti)&lt;TS(Tj)</li>
+<li>回滚的事务重新启动，分配新的时间戳</li>
+</ul></li>
+<li>时间戳顺序决定了串行化顺序，<strong>回滚违反发出串行性操作的事务</strong>
+<ul>
+<li><strong>整个调度必须和按照他们的时间戳顺序的串行调度等价</strong></li>
+<li>检测冲突，一旦检测到冲突，则按照上述规则回滚某个事务</li>
+</ul></li>
+<li>每个数据项Q有两个时间戳与之联系
+<ul>
+<li>数据项上的读写时间戳，数据项上的读写时间戳是所有操作该数据项的事务中最大的时间戳</li>
+<li>WT(Q)：执行 write(Q) 的事务中最大的时间戳</li>
+<li>RT(Q)：执行 read(Q) 的事务中最大的时间戳</li>
+</ul></li>
+</ul>
+<h3 id="问题">问题</h3>
+<h4 id="可能的脏读">可能的脏读</h4>
+<ul>
+<li>start1, w1(R), start2, r2(R), abort_t1</li>
+<li>T1 事务回滚了，T2 事务读到的 R 是 T1 写的 R，是脏读（不是正确的数据项）</li>
+<li>解决方案：为每一个数据项设置一个提交位
+<ul>
+<li><strong>提交位</strong> C(R)：拥有 R 上写时间戳的事务是否提交</li>
+<li>r2(R) 发现 R 上的提交位没有被设置为 1（尚未被提交），此时等待</li>
+</ul></li>
+</ul>
+<h4 id="跳过的写">跳过的写</h4>
+<ul>
+<li>start1, start2, w2(R), w1(R)
+<ul>
+<li>与时间戳顺序等价的串行调度为：start1, start2, w1(R), w2(R)</li>
+<li>于是最后会检测到 w1(R) 不满足时间戳的协议，回滚掉事务 T1</li>
+</ul></li>
+<li>实际上我们没有必要回滚事务 T1，把 w1(R) 忽略掉即可
+<ul>
+<li>满足时间戳的串行调度，w1(R) 在前面也会被覆盖，因此只需要把 w1(R) 忽略即可</li>
+</ul></li>
+</ul>
+<h5 id="thomas-写规则">Thomas 写规则</h5>
+<p>写操作在更晚的写操作已经发生时可以跳过</p>
+<h3 id="执行时间戳协议">执行时间戳协议</h3>
+<h4 id="读操作">读操作</h4>
+<ul>
+<li>假定事务 Ti 发出 read(Q)</li>
+</ul>
+<h5 id="过晚的读">过晚的读</h5>
+<ul>
+<li>本来应该是在别人写之前读，但是别人写完你才读</li>
+<li>如果 TS(Ti)&lt;WT(Q)，则 Ti 需读入的值已经被覆盖，read 操作被拒绝，<strong>回滚 Ti</strong></li>
+<li>start1, start2, w2(R), r1(R)
+<ul>
+<li>此时 r1(R) 已经违反了时间戳协议，回滚事务 T1</li>
+</ul></li>
+</ul>
+<h5 id="正常的读">正常的读</h5>
+<ul>
+<li>正常的读 TS(Ti) <span class="math inline">\(\ge\)</span> WT(Q)</li>
+<li>若 C(Q) 为真则执行 read 操作，RT(Q) = max(RT(Q),TS(Ti))，若为假则推迟到 C(Q) 为真或写 Q 的事务中止</li>
+<li>start2, start1, w2(R), r1(R)</li>
+</ul>
+<h4 id="写操作">写操作</h4>
+<ul>
+<li>假定事务 Ti 发出 write(Q)</li>
+</ul>
+<h5 id="过晚的写">过晚的写</h5>
+<ul>
+<li>本来应该是在别人读之前写，但是别人读完你才写</li>
+<li>如果 TS(Ti)&lt;RT(Q)，则 Ti 产生的 Q 值是先前所需要的值，write 操作被拒绝，回滚Ti</li>
+<li>start1, start2, r2(R), w1(R)
+<ul>
+<li>此时 w1(R) 不满足时间戳协议，回滚事务 T1</li>
+</ul></li>
+</ul>
+<h5 id="正常的写">正常的写</h5>
+<ul>
+<li>正常的写：TS(Ti) &gt; RT(Q)</li>
+<li>TS(Ti) &gt; RT(Q)，并且 TS(Ti) &gt; WT(Q)，执行write操作，WT(Q)＝TS(Ti)</li>
+<li>start1, start2, start3, r1(R), w2(R), w3(R)</li>
+</ul>
+<h5 id="忽略的写">忽略的写</h5>
+<ul>
+<li>Thomas 写规则</li>
+<li>TS(Ti) &gt; RT(Q)，但是TS(Ti) &lt; WT(Q)，跳过 write 操作</li>
+<li>start1, start2, start3, w2(R), r3(R), w1(R)</li>
+<li>跳过 w1(R) 操作</li>
+</ul>
+<h3 id="一个例子">一个例子</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">T1</th>
+<th style="text-align: center;">T2</th>
+<th style="text-align: center;">T3</th>
+<th style="text-align: center;">A</th>
+<th style="text-align: center;">B</th>
+<th style="text-align: center;">C</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">200</td>
+<td style="text-align: center;">150</td>
+<td style="text-align: center;">175</td>
+<td style="text-align: center;">RT=0<br>WT=0</td>
+<td style="text-align: center;">RT=0<br>WT=0</td>
+<td style="text-align: center;">RT=0<br>WT=0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">r1(B)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">RT=200</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">r2(A)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">RT=150</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">r3(C)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">RT=175</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">w1(B)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">WT=200</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">w1(A)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">WT=200</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">w2(C)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">RT=0</td>
+<td style="text-align: center;">过晚的写<br>回滚T2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"></td>
+<td style="text-align: center;">中止</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">w3(A)</td>
+<td style="text-align: center;">忽略的写</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="有效性检查协议">有效性检查协议</h2>
+<ul>
+<li>把事务的过程分为 3 个阶段
+<ul>
+<li>读阶段、有效性检查阶段、写阶段</li>
+</ul></li>
+</ul>
+<h3 id="三阶段">三阶段</h3>
+<h4 id="读阶段">读阶段</h4>
+<ul>
+<li><p>事务 Ti 在这一阶段中执行</p></li>
+<li><p>各数据项值被读入并保存在 Ti 的<strong>局部变量</strong>中</p></li>
+<li><p><strong>所有 write 操作都是对局部临时变量进行的，并不对数据库进行真正的更新</strong></p></li>
+</ul>
+<h4 id="有效性检查阶段">有效性检查阶段</h4>
+<ul>
+<li>Ti 进行有效性检查，通过与其他事务的读写集合进行比较，来判定是否可以将 write 操作所更新的临时局部变量值拷入数据库而不违反可串行性</li>
+</ul>
+<h4 id="写阶段">写阶段</h4>
+<ul>
+<li>若 Ti 通过有效性检查，则进行实际的数据库更新，否则 Ti 回滚</li>
+</ul>
+<h3 id="三个时间戳">三个时间戳</h3>
+<ul>
+<li>每个事务 Ti 有 <strong>3</strong> 个时间戳与之联系
+<ul>
+<li>Start(Ti)：Ti <strong>开始</strong>执行的时间</li>
+<li>Validation(Ti)：Ti <strong>进入</strong>其有效性检查阶段的时间</li>
+<li>Finish(Ti)：Ti <strong>完成</strong>其写阶段的时间</li>
+</ul></li>
+<li>令TS(Ti) = Validation(Ti)，等价的串行顺序与有效性确认时间戳一致</li>
+</ul>
+<h3 id="违反串行性的情况">违反串行性的情况</h3>
+<h4 id="规则-1">规则 1</h4>
+<ul>
+<li><span class="math inline">\({\color{red}\mathrm{if}}\;\mathrm{finish(U)&gt;start(T)}\;{\color{red}\mathrm{then}}\;\mathrm{RS(T)\bigcap WS(U)=\Phi}\)</span></li>
+<li>避免过早地读</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613110906866.png" style="zoom:67%;"></p>
+<h4 id="规则-2">规则 2</h4>
+<ul>
+<li><span class="math inline">\({\color{red}\mathrm{if}}\;\mathrm{finish(U)&gt;validation(T)}\;{\color{red}\mathrm{then}}\;\mathrm{WS(T)\bigcap WS(U)=\Phi}\)</span></li>
+<li>避免过早的写</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613111322706.png" style="zoom:67%;"></p>
+<h3 id="一个有效性检查的例子">一个有效性检查的例子</h3>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613112124549.png" style="zoom:67%;"></p>
+<ul>
+<li>确认T2：在T1完成写入之前开始，可能先于T1的写入进行读写，需要判断T1的写集合与T2读集合的相交性，同时判断T1的写集合与T2的写集合的相交性
+<ul>
+<li>写判断，防止 T2 的写在 T1 之前</li>
+</ul></li>
+<li>确认T3：在T1完成写入之后开始，不需要判定T3和T1的相交性；在T2完成写入之前开始，需要判断T2的写集合与T3读集合的相交性；T2在T3确认前完成，不需要判定T3的写集合和T2的写集合的相交性</li>
+</ul>
+<h3 id="例子2">例子2</h3>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613112605153.png" style="zoom:67%;"></p>
+<ul>
+<li>确认 U
+<ul>
+<li>最早的确认，通过</li>
+</ul></li>
+<li>确认 T
+<ul>
+<li>U 写、T 读：通过</li>
+<li>U 写、T 写：通过</li>
+</ul></li>
+<li>确认 V
+<ul>
+<li>U 写、V 读：通过</li>
+<li>T 写、V 读：通过</li>
+<li>T 写、V 写：通过</li>
+</ul></li>
+<li>确认 W
+<ul>
+<li>W 读之前，U 已经 finish，不需要比较</li>
+<li>T 写、W 读：<strong>未通过</strong></li>
+<li>V 写、W 写：通过</li>
+<li>V 写、W 读：<strong>未通过</strong></li>
+</ul></li>
+</ul>
+<h2 id="mvcc">MVCC</h2>
+<ul>
+<li>MVCC：Multiple Version Concurrent Control</li>
+<li>以下是 MySQL 对于 MVCC 的实现</li>
+</ul>
+<h2 id="mysql-一致性非锁定读">MySQL 一致性非锁定读</h2>
+<ul>
+<li>一致性非锁定读（consistent nonlocking read）</li>
+<li>多版本实现的并发控制</li>
+</ul>
+<h3 id="说明">说明</h3>
+<ul>
+<li>在 read committed 和 repeatable read 下 InnoDB 使用非锁定的一致性读</li>
+<li>read committed 的非一致性读总是读取被锁定行的<strong>最新</strong>一份快照数据
+<ul>
+<li><strong>语句开始的版本</strong></li>
+</ul></li>
+<li>repeatable read 的非一致性读总是读取<strong>事务开始</strong>时的行数据版本</li>
+</ul>
+<h3 id="三个隐藏列">三个隐藏列</h3>
+<ul>
+<li>InnoDB 为每行数据增加三个隐藏列用于实现 MVCC</li>
+<li>DB_TRX_ID
+<ul>
+<li>插入或更新行的<strong>最后一个事务的事务标识符（</strong>删除视为更新，将其标记为已删除）</li>
+</ul></li>
+<li>DB_ROLL_PTR
+<ul>
+<li>写入回滚段的撤消日志记录（若行已更新，则撤消日志记录包含在更新行之前重建行内容所需的信息）</li>
+<li>将所有的老版本通过一个指针串起来</li>
+</ul></li>
+<li>DB_ROW_ID：行标识（隐藏单调自增id）</li>
+<li><strong>快照存放在日志 undo 段中</strong></li>
+<li>InnoDB 新版本的数据是叶子结点的值，老版本的数据则通过 UNDO 记录存储在回滚段（Rollback Segment）中</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613115931178.png" style="zoom: 40%;"></p>
+<h3 id="可见性算法">可见性算法</h3>
+<ul>
+<li>read-view：事务在进行快照读的时候会创建一个读视图</li>
+<li>在执行读操作的时候，基于读视图判定当前行对于读操作是否可见</li>
+<li>一些数据段
+<ul>
+<li>alive_trx_list：读视图生成时刻系统中正在活跃的事务 id</li>
+<li>up_limit_id：记录上面的 alive_trx_list 中的最小事务 id（最老的事务）</li>
+<li>low_limit_id：读视图生成时刻，目前已出现的事务 ID 的最大值 +1</li>
+</ul></li>
+<li>判定
+<ul>
+<li>判断这条记录的 DB_TRX_ID 是否是小于 up_limit_id 或者等于当前事务 id
+<ul>
+<li>若是，则当前事务能看到这条记录</li>
+</ul></li>
+<li>判断这条记录的 DB_TRX_ID 是否大于等于 low-limit-id
+<ul>
+<li>如果大于等于则说明此事务无法看见该条记录</li>
+</ul></li>
+<li>判断该条记录的 DB_TRX_ID 是否在活跃事务的数组中
+<ul>
+<li>如果在则说明这条记录还未提交，对于当前操作的事务是不可见的</li>
+<li>如果不在则说明已经提交，则是可见的
+<ul>
+<li>这种情况是当前事务一开始之后很短的时间内，开始后很快就提交了</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613120615944.png"></p>
+<ul>
+<li>对于 read committed 来说，每读一次都会生成新的读视图</li>
+<li>对于 repeatable read 来说，读视图时是事务一开始就确定不变的</li>
+</ul>
+<h3 id="pg-与-mysql-写操作的不同">PG 与 MySQL 写操作的不同</h3>
+<ul>
+<li>PG 对写操作也是乐观并发控制
+<ul>
+<li><strong>在表中保存同一行数据记录的多个不同版本</strong>，每次写操作，都是创建，而回避更新
+<ul>
+<li>PG 有表膨胀的问题</li>
+<li>MySQL 把老版本放在回滚段里</li>
+</ul></li>
+<li>在事务提交时，按版本号检查当前事务提交的数据是否存在写冲突，抛异常告知用户，回滚事务</li>
+</ul></li>
+<li>innodb 只对读无锁，写操作仍是上锁的悲观并发控制
+<ul>
+<li>每行数据只在表中保留一份，在更新数据时上行锁，同时将旧版数据写入 undo log</li>
+<li>表和 undo log 中行数据都记录着事务 ID，在检索时，只读取来自当前已提交的事务的行数据</li>
+</ul></li>
+</ul>
+<h3 id="sql-server-中查看多版本">SQL Server 中查看多版本</h3>
+<ul>
+<li>tempdb</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613122121649.png" style="zoom:50%;"></p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">alter</span> database ljchen</span><br><span class="line"><span class="keyword">set</span> allow_snapshot_isolation <span class="keyword">on</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span> faculty</span><br><span class="line"><span class="keyword">set</span> salary<span class="operator">=</span>salary<span class="operator">*</span><span class="number">1.01</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">from</span> sys.dm_tran_version_store</span><br></pre></td></tr></table></figure>
+<h3 id="mvcc-论文">MVCC 论文</h3>
+<ul>
+<li>An Empirical Evaluation of In-Memory Multi-Version Concurrency Control</li>
+<li>设计要点
+<ul>
+<li>并发控制 (ConcurrencyControl)</li>
+<li>版本存储 (VersionStorage)</li>
+<li>垃圾回收 (GarbageCollection)</li>
+<li>索引管理 (Indexmanagement)</li>
+</ul></li>
+</ul>
+<h2 id="mysql-一致性锁定读">MySQL 一致性锁定读</h2>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 对读取的行加 X 锁 */</span></span><br><span class="line"><span class="keyword">select</span> ... <span class="keyword">for</span> <span class="keyword">update</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 对读取的行加 S 锁 */</span></span><br><span class="line"><span class="keyword">select</span> ... lock <span class="keyword">in</span> share mode</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/13/DB/CLJ/07-3/image-20210613121728756.png" style="zoom:67%;"></p>
+]]></content>
+      <categories>
+        <category>DB.CLJ</category>
+      </categories>
+      <tags>
+        <tag>DB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据库概论.陈立军.09.恢复控制</title>
+    <url>/2021/06/13/DB/CLJ/09/</url>
+    <content><![CDATA[<h1 id="恢复控制">恢复控制</h1>
+<ul>
+<li>目标
+<ul>
+<li>服务可用性
+<ul>
+<li>时间延迟</li>
+</ul></li>
+<li>数据可用性
+<ul>
+<li>数据一致性</li>
+</ul></li>
+</ul></li>
+<li>可能的措施
+<ul>
+<li>备份</li>
+<li>日志</li>
+<li>把内存总的数据刷到稳定存储介质（磁盘等）上（ctrl+S）</li>
+</ul></li>
+</ul>
+<h2 id="故障">故障</h2>
+<h3 id="事务故障">事务故障</h3>
+<ul>
+<li>事务的运行没有到达预期的终点就被终止</li>
+<li>影响范围只在这个事务上</li>
+</ul>
+<h4 id="非预期故障">非预期故障</h4>
+<ul>
+<li>不能由事务程序处理的（异常）</li>
+<li>如运算溢出，发生死锁而被选中撤消该事务</li>
+</ul>
+<h4 id="可预期故障">可预期故障</h4>
+<ul>
+<li>应用程序可以发现的事务故障，并且应用程序可以让事务回滚</li>
+<li>如转帐时发现帐面金额不足</li>
+<li>写了异常处理，那么可以把非预期故障转变为可预期故障</li>
+</ul>
+<h3 id="系统故障">系统故障</h3>
+<ul>
+<li><strong>软故障</strong>（soft crash）</li>
+<li>在硬件故障、软件错误的影响下，虽引起<strong>内存信息丢失</strong>，但未破坏外存中数据</li>
+<li>如CPU故障、突然停电，DBMS、OS、应用程序等异常终止</li>
+</ul>
+<h3 id="介质故障">介质故障</h3>
+<ul>
+<li><strong>硬故障</strong>（hard crash）</li>
+<li>又称<strong>磁盘故障</strong>，破坏<strong>外存上的数据库</strong>，并影响正在存取这部分数据的所有事务</li>
+<li>如磁盘的磁头碰撞、瞬时的强磁场干扰</li>
+<li>只能通过备份等方式恢复</li>
+</ul>
+<h3 id="恢复的定义">恢复的定义</h3>
+<ul>
+<li>恢复是把数据库从错误状态恢复到某一正确状态的功能，从而确保数据库的一致性</li>
+<li>恢复的基本原理是<strong><span style="color:red">冗余</span></strong>，即数据库中任一部分的数据可以根据存储在系统别处的冗余数据来重建</li>
+<li>冗余
+<ul>
+<li>备份（数据）</li>
+<li>日志（事务活动）</li>
+</ul></li>
+</ul>
+<h2 id="备份">备份</h2>
+<h3 id="转储">转储</h3>
+<ul>
+<li>生成备份的过程：<strong>转储</strong>（dump）
+<ul>
+<li>将数据库复制到磁带或另一个磁盘上保存起来的过程</li>
+<li>这些备用数据称为后备（后援）副本</li>
+</ul></li>
+</ul>
+<h3 id="转储类型">转储类型</h3>
+<ul>
+<li>静态转储
+<ul>
+<li>转储期间不允许对数据库进行任何存取、修改活动</li>
+<li><strong>转储期间不向外提供服务</strong></li>
+</ul></li>
+<li>动态转储
+<ul>
+<li>转储期间允许对数据库进行存取或修改</li>
+<li><strong>转储期间数据块还对外提供服务</strong></li>
+</ul></li>
+<li>海量转储
+<ul>
+<li>每次转储<strong>全部数据库</strong></li>
+</ul></li>
+<li>增量转储
+<ul>
+<li>每次只转储上次转储后*<strong>更新过的数据</strong></li>
+</ul></li>
+</ul>
+<h3 id="sql-server-数据库备份">SQL Server 数据库备份</h3>
+<ul>
+<li>完整的数据库备份</li>
+<li>数据库备份创建备份完成时数据库内存在的数据的副本，通常按常规时间间隔调度</li>
+<li>还原数据库备份将重新创建数据库和备份完成时数据库中存在的所有相关文件
+<ul>
+<li>但是，自创建备份后所做的任何数据库修改都将丢失</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">USE master</span><br><span class="line"></span><br><span class="line"><span class="keyword">EXEC</span> sp_addumpdevice <span class="string">&#x27;disk&#x27;</span>, <span class="string">&#x27;MyBKDB&#x27;</span>, DISK <span class="operator">=</span><span class="string">&#x27;c:\MyBKDB.dat&#x27;</span></span><br><span class="line"></span><br><span class="line">BACKUP DATABASE LJCHEN <span class="keyword">TO</span> MyBKDB</span><br><span class="line"></span><br><span class="line">RESTORE DATABASE LJCHEN <span class="keyword">FROM</span> MyBKDB</span><br></pre></td></tr></table></figure>
+<h3 id="sql-server-差异数据库备份">SQL Server 差异数据库备份</h3>
+<ul>
+<li>差异数据库备份（DCM）</li>
+<li>差异数据库备份只记录自上次数据库备份后发生更改的数据，比数据库备份小而且速度快</li>
+<li>使用差异数据库备份将数据库还原到差异数据库备份完成时的那一点</li>
+<li>初始得是一个全量的备份</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 全量备份 */</span></span><br><span class="line">BACKUP DATABASE LJCHEN <span class="keyword">TO</span> MyBKDB <span class="keyword">WITH</span> INIT</span><br><span class="line"><span class="comment">/* 增量备份*/</span></span><br><span class="line">BACKUP DATABASE LJCHEN <span class="keyword">TO</span> MyBKDB <span class="keyword">WITH</span> DIFFERENTIAL</span><br><span class="line"></span><br><span class="line">RESTORE DATABASE LJCHEN <span class="keyword">FROM</span> MyBKDB <span class="keyword">WITH</span> NORECOVERY</span><br><span class="line">RESTORE DATABASE LJCHEN <span class="keyword">FROM</span> MyBKDB <span class="keyword">WITH</span> FILE<span class="operator">=</span><span class="number">2</span>, RECOVERY</span><br></pre></td></tr></table></figure>
+<ul>
+<li>一个位图，每一个页一位，如果修改了则把这个页对应位图上的位置为 1
+<ul>
+<li>增量备份的时候把修改过的备份出去即可</li>
+</ul></li>
+</ul>
+<h3 id="sql-server-事务日志备份">SQL Server 事务日志备份</h3>
+<ul>
+<li>事务日志是自上次备份事务日志后对数据库执行的所有事务的一系列记录，它可以将数据库恢复到特定的即时点或恢复到故障点</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">BACKUP DATABASE MyDB <span class="keyword">TO</span> MyDB_1 <span class="keyword">WITH</span> INIT</span><br><span class="line"></span><br><span class="line">BACKUP LOG MyDB <span class="keyword">TO</span> MyDB_log1</span><br><span class="line"></span><br><span class="line">BACKUP LOG MyDB <span class="keyword">TO</span> MyDB_log2 <span class="keyword">WITH</span> NO_TRUNCATE</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">RESTORE DATABASE MyDB <span class="keyword">FROM</span> MyDB_1 <span class="keyword">WITH</span> NORECOVERY</span><br><span class="line"></span><br><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log1 <span class="keyword">WITH</span> NORECOVERY</span><br><span class="line"></span><br><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log2 <span class="keyword">WITH</span> RECOVERY</span><br></pre></td></tr></table></figure>
+<ul>
+<li>WITH NORECOVERY：<strong>重做所有日志记录</strong></li>
+<li>WITH RECOVERY：<strong>回滚失败事务日志记录</strong></li>
+</ul>
+<h4 id="一个例子">一个例子</h4>
+<ul>
+<li>事务 T 从 A 帐户过户 50 到 B 帐户</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">read(A); A:<span class="operator">=</span>A<span class="number">-50</span>; write(A);</span><br><span class="line">read(B); B:<span class="operator">=</span>B<span class="operator">+</span><span class="number">50</span>; write(B);</span><br><span class="line"><span class="keyword">commit</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>由于某些原因，事务 T 的两个操作被写到两个日志文件 MyDB_log1、MyDB_log2 中了</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">MyDB_log1</span><br><span class="line">&lt;T,A,100,50&gt;</span><br><span class="line"></span><br><span class="line">MyDB_log2</span><br><span class="line">&lt;T,B,100,150&gt;</span><br><span class="line">commit</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如下两种恢复方式的结果不同</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log1 <span class="keyword">WITH</span> NORECOVERY</span><br><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log2 <span class="keyword">WITH</span> RECOVERY</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">A: 50, B: 150</span></span><br><span class="line"><span class="comment">正确的结果</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log1 <span class="keyword">WITH</span> RECOVERY</span><br><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log2 <span class="keyword">WITH</span> RECOVERY</span><br><span class="line"></span><br><span class="line"><span class="comment">/* log1 中没有 commit, 认为是失败的事务, 被回滚 */</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">A: 100, B: 150</span></span><br><span class="line"><span class="comment">错误的结果</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>因此告诉我们，如果我们有多个日志备份文件
+<ul>
+<li>前面的文件应该都是 <code>WITH NORECORERY</code></li>
+<li>只有最后一个日志文件是 <code>WITH RECOVERY</code></li>
+</ul></li>
+</ul>
+<h3 id="sql-server-恢复模型">SQL Server 恢复模型</h3>
+<ul>
+<li>我们期望能够保留下来的工作越多，也就是希望数据库能够恢复到更近的一致性的状态
+<ul>
+<li>这与数据库系统平时付出的代价相关</li>
+</ul></li>
+</ul>
+<h4 id="简单恢复">简单恢复</h4>
+<ul>
+<li>允许将数据库恢复到最新的备份
+<ul>
+<li>简单数据库备份，没有日志，只能恢复到最新的数据库备份那一刻的内容</li>
+</ul></li>
+<li>数据库备份 + 差异备份（可选）</li>
+</ul>
+<h4 id="完全恢复">完全恢复</h4>
+<ul>
+<li>允许将数据库恢复到故障点状态
+<ul>
+<li>完全恢复（恢复到尽可能近的状态），先通过数据库备份恢复，然后通过日志记录恢复</li>
+</ul></li>
+<li>数据库备份 + 差异备份（可选） + 事务日志备份</li>
+</ul>
+<h4 id="大容量日志记录恢复bcm">大容量日志记录恢复（BCM）</h4>
+<ul>
+<li>允许大容量日志记录操作（select into，bcp，bulk insert）
+<ul>
+<li>批量的修改会导致日志文件庞大，对性能造成影响</li>
+<li>这种模式下，日志文件中只记录操作的帧，操作所影响的数据写到其他的数据文件中</li>
+<li>BCM 位图实现，把影响的页面单独写出去，并在位图上做标记</li>
+</ul></li>
+<li>数据库备份 + 差异备份（可选） + 事务日志备份</li>
+</ul>
+<h4 id="切换恢复模型">切换恢复模型</h4>
+<ul>
+<li>可以将数据库从一个恢复模型切换到另一个恢复模型，以满足不断变化的业务要求</li>
+<li>例如，如果系统需要完全的可恢复性，可以在装载和索引操作的过程中，将数据库的恢复模型更改到批量日志记录模型，然后再返回到完全恢复</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 切换恢复模型 */</span></span><br><span class="line"><span class="keyword">alter</span> database <span class="operator">&lt;</span>database_name<span class="operator">&gt;</span></span><br><span class="line"><span class="keyword">set</span> recovery[ <span class="keyword">FULL</span> <span class="operator">|</span> BULK_LOGGED <span class="operator">|</span> SIMPLE ]</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 查看当前数据库所使用的恢复模型 */</span></span><br><span class="line"><span class="keyword">select</span> database propertyex(<span class="string">&#x27;&lt;database_name&gt;&#x27;</span>, <span class="string">&#x27;recovery&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="mysql-备份类型">MySQL 备份类型</h3>
+<ul>
+<li>备份内容
+<ul>
+<li>逻辑备份：从表的角度备份</li>
+<li>裸文件备份：把磁盘上面的数据文件备份出去</li>
+</ul></li>
+<li>备份方法
+<ul>
+<li>热备(Hot Backup)：数据库保持业务工作的同时进行备份</li>
+<li>冷备(Cold Backup)：数据库停下来备份</li>
+<li>温备(Warm Backup)：只允许读操作下执行，不允许写操作执行</li>
+</ul></li>
+<li>备份数据库内容
+<ul>
+<li>完全备份</li>
+<li>增量备份</li>
+<li>日志备份</li>
+</ul></li>
+</ul>
+<h3 id="mysql-备份工具">MySQL 备份工具</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysqldump --databases db1 db2 db3 &gt; dump.sql</span><br><span class="line">mysqldump --no-data -databases db1 db2 &gt; structure.sql</span><br><span class="line">mysqldump <span class="built_in">test</span> t1 t3 t7 &gt; dump.sql</span><br><span class="line"><span class="built_in">source</span> dump.sql</span><br></pre></td></tr></table></figure>
+<ul>
+<li>这种方式同时可用于在不同的数据库之间交换内容</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 导出到文件 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">into</span> outfile <span class="string">&#x27;data.txt&#x27;</span></span><br><span class="line">fields terminated <span class="keyword">by</span> <span class="string">&#x27;,&#x27;</span></span><br><span class="line">lines terminated <span class="keyword">by</span> <span class="string">&#x27;\r\n&#x27;</span></span><br><span class="line"><span class="keyword">from</span> my_table</span><br><span class="line"></span><br><span class="line"><span class="comment">/*从文件中恢复 */</span></span><br><span class="line">load data infile <span class="string">&#x27;data.txt&#x27;</span></span><br><span class="line"><span class="keyword">into</span> <span class="keyword">table</span> my_table</span><br><span class="line">fields terminated <span class="keyword">by</span> <span class="string">&#x27;,&#x27;</span></span><br><span class="line">lines terminated <span class="keyword">by</span> <span class="string">&#x27;\r\n&#x27;</span></span><br></pre></td></tr></table></figure>
+<h3 id="mysql-热备工具">MySQL 热备工具</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">innobackupex --user=root --password=123456 --host=127.0.0.1 /backups/</span><br><span class="line"></span><br><span class="line">innobackupex --apply-log /backups</span><br><span class="line"></span><br><span class="line">innobackupex --copy-back /backups</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在<strong>增量备份</strong>时，比较表空间中每个页的 LSN 是否大于上次备份时的 LSN，若是，则备份</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613171041017.png"></p>
+<h2 id="日志">日志</h2>
+<ul>
+<li>日志文件是<strong>以事务为单位</strong>用来记录数据库的每一次更新活动的文件，由系统自动记录
+<ul>
+<li>增删改，不记录查询</li>
+</ul></li>
+<li>日志内容包括
+<ul>
+<li>记录名、旧记录值、新记录值、事务标识符、操作标识符等</li>
+</ul></li>
+<li>内容如下
+<ul>
+<li>事务 Ti 开始时，写入日志：Tistart</li>
+<li>事务 Ti 执行 write(X) 前，写入日志：&lt;Ti,X,V1,V2&gt;
+<ul>
+<li>V1 是 X 更新前的值，V2 是 X 更新后的值</li>
+</ul></li>
+<li>事务 Ti 结束后，写入日志：Ticommit</li>
+</ul></li>
+<li>日志记录的是值的变换，而不是逻辑的操作
+<ul>
+<li>记录的是物理值的话，不管重复多少次，结果中是一致的</li>
+<li>如果记录具体的逻辑操作，重复多次的结果不一样
+<ul>
+<li>例如一个操作是-10，重复多次则会多次-10</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="事务分类">事务分类</h3>
+<ul>
+<li>基于日志记录对事务进行分类</li>
+<li>圆满事务（成功了）
+<ul>
+<li>日志文件中记录了事务的 commit 标识</li>
+</ul></li>
+<li>夭折事务（失败的）
+<ul>
+<li>日志文件中只有事务的 begin transaction 标识，无 commit</li>
+</ul></li>
+</ul>
+<h3 id="基本的恢复操作">基本的恢复操作</h3>
+<ul>
+<li>对圆满事务所做过的修改应执行 redo 操作，即重新执行该操作，修改对象被赋予<strong>新记录值</strong>
+<ul>
+<li>不管 redo 多少次，结果都是一样的（<span class="math inline">\(\mathrm{redo^2=redo}\)</span>）</li>
+</ul></li>
+<li>对夭折事务所做过的修改应执行undo操作，即撤消该操作，修改对象被赋予<strong>旧记录值</strong>
+<ul>
+<li><span class="math inline">\(\mathrm{undo^2=undo}\)</span></li>
+</ul></li>
+</ul>
+<h3 id="事务的原语操作">事务的原语操作</h3>
+<ul>
+<li>input(X)：将包含数据库元素 X 的<strong>磁盘块</strong>拷贝到<strong>内存缓冲区</strong></li>
+<li>read(X,t)：将<strong>内存缓冲区</strong>的数据库元素 X 拷贝到事务的<strong>局部变量</strong> t</li>
+<li>write(X,t)：将<strong>局部变量</strong> t 的值拷贝到<strong>内存缓冲区</strong>中的数据库元素 X</li>
+<li>output(X)：将包含 X 的<strong>缓冲区</strong>拷贝回<strong>磁盘</strong></li>
+<li>发出者不同
+<ul>
+<li>read 和 write 由<strong>事务</strong>发出</li>
+<li>input 和 output 由<strong>缓冲区管理器</strong>（或<strong>日志管理器</strong>）发出</li>
+</ul></li>
+</ul>
+<h3 id="先写日志的原则wal">先写日志的原则(WAL)</h3>
+<ul>
+<li>保证原子性（<strong>all or not</strong>）
+<ul>
+<li>文件系统 xv6 的日志系统也是如此</li>
+</ul></li>
+<li>日志记录将要发生何种修改</li>
+<li>写入 DB 表示实际发生何种修改</li>
+<li>Write Ahead Log（WAL）
+<ul>
+<li>对于尚未提交的事务，在将DB缓冲区写到外存之前，必须先将日志缓冲区内容写到外存去</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613172816406.png" style="zoom:67%;"></p>
+<ul>
+<li>如果先写 DB，则可能在写的中途发生系统崩溃，导致内存缓冲区内容丢失，而外存 DB 处于不一致状态，由于日志缓冲区内容已破坏，导致无法对 DB 恢复</li>
+<li>如果先写数据库再写日志记录的话
+<ul>
+<li>假设这样的一种情况，日志记录还没写完，系统崩溃了</li>
+<li>此时日志中只有 A 的记录</li>
+<li>故障恢复的时候，由于缺少 commit，认为是夭折事务，执行 undo</li>
+<li>此时 B 的结果没有修改回去，造成错误（不一致）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613221235500.png" style="zoom:67%;"></p>
+<ul>
+<li>先写日志则能够恢复到一致的状态
+<ul>
+<li>以下是写 B 日志的时候系统崩溃了的情况</li>
+<li>此时 redo 操作能够撤销 A 的修改，虽然 B 没有修改，但是 redo 也不会将其改成错误数据</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613221653647.png" style="zoom:67%;"></p>
+<ul>
+<li>日志写完了，但是磁盘没写完，此时系统崩溃了，通过 redo 操作实现一致</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613221940870.png" style="zoom:67%;"></p>
+<h3 id="写时机">写时机</h3>
+<ul>
+<li>日志缓冲区和数据库缓冲区的写时机不同</li>
+<li><strong>同步（synchronous）写日志</strong>
+<ul>
+<li>只有事务的相关日志已经完全在磁盘上了，才会向进程发送该事务已提交的确认消息</li>
+<li>事务提交驱动</li>
+</ul></li>
+<li><strong>异步（asynchronous）写缓冲区</strong>
+<ul>
+<li>只需要将数据页的写入操作投递给操作系统即可，不需要等待其完成</li>
+<li>不是事务提交驱动的</li>
+</ul></li>
+</ul>
+<h3 id="buffer-managerbm">Buffer Manager(BM)</h3>
+<ul>
+<li>不同策略（当然要求先写日志）
+<ul>
+<li>Steal policy
+<ul>
+<li>对内存页面的更改可以随意同步回硬盘而<strong>不需要等待事务提交</strong></li>
+</ul></li>
+<li>Force policy
+<ul>
+<li>事务在提交前，它所有更改的页面必须写回到硬盘</li>
+</ul></li>
+</ul></li>
+<li>ARIES 的 BM 遵循 “Non-Force，Steal”</li>
+<li>如果必须等待所有更改过页面的事务都提交了才同步这个内存页到磁盘会如何？
+<ul>
+<li>如果需要支持行锁，那么一个页面可能有多个行被不同的 Tx 更改，这个页面必须等待所有的 Tx 都 Commit，但是如果不断有新的 Tx 来更改这个页面，这个页面就迟迟无法同步回物理页面</li>
+</ul></li>
+</ul>
+<h3 id="读取一个页面的过程">读取一个页面的过程</h3>
+<ul>
+<li>感觉这里的日志和之前的不一样，内容不一样
+<ul>
+<li>OS Buffer</li>
+</ul></li>
+<li>不过写日志的目的是一样的，为了故障恢复</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613223550791.png" style="zoom:67%;"></p>
+<h3 id="mysql-日志刷写时机">MySQL 日志刷写时机</h3>
+<ul>
+<li>在主线程<strong>每秒一次</strong>的循环中，将重做日志缓冲器的内容刷新到重做日志文件中，即便某个事务尚未提交</li>
+<li>由参数 innodb_flush_log_at_trx_commit 控制
+<ul>
+<li>0 代表提交事务时，并不立即刷出日志，而是等待主线程每秒的刷新
+<ul>
+<li>1 秒之内失败的话，事务结果会丢失</li>
+</ul></li>
+<li>1 代表提交事务时，将重做日志同步写磁盘，也即伴有 fsync() 的调用
+<ul>
+<li>磁盘 IO 开销比较大</li>
+</ul></li>
+<li>2 代表提交事务时，将重做日志异步写磁盘，也即写入文件系统缓存中
+<ul>
+<li>可能操作系统没有把他落盘</li>
+</ul></li>
+</ul></li>
+<li>有两个缓冲区
+<ul>
+<li>数据库缓冲区、操作系统缓冲区</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613225205691.png" style="zoom: 45%;"></p>
+<h3 id="mysql-组提交">MySQL 组提交</h3>
+<ul>
+<li>磁盘 I/O 开销大</li>
+<li>fsync 是昂贵的操作，MySQL 一次事务提交最多会导致 3 次 fsync</li>
+<li>组提交通过将多个并发需要提交的事务共享一次 fsync 操作来进行数据的持久化</li>
+<li>binlog_group_commit_sync_delay=N
+<ul>
+<li>在等待 N 微秒后，进行 binlog 刷盘操作</li>
+</ul></li>
+<li>binlog_group_commit_sync_no_delay_count=N
+<ul>
+<li>达到最大事务等待数量，开始 binlog 刷盘</li>
+</ul></li>
+</ul>
+]]></content>
+      <categories>
+        <category>DB.CLJ</category>
+      </categories>
+      <tags>
+        <tag>DB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据库概论.陈立军.09.恢复控制(2)</title>
+    <url>/2021/06/13/DB/CLJ/09-1/</url>
+    <content><![CDATA[<h1 id="恢复控制">恢复控制</h1>
+<h2 id="恢复">恢复</h2>
+<h3 id="事务故障恢复">事务故障恢复</h3>
+<ul>
+<li>撤消事务已对数据库所做的修改</li>
+</ul>
+<h3 id="事务故障恢复过程">事务故障恢复过程</h3>
+<ul>
+<li><strong>反向</strong>扫描日志文件，查找该事务的更新操作</li>
+<li>对该事务的更新操作执行 undo 操作，即将事务更新前的<strong>旧值</strong>写入数据库</li>
+<li>继续反向扫描日志文件，查找该事务的其他更新操作，并做同样处理</li>
+<li>直至读到事务的开始标识，结束事务故障恢复过程</li>
+<li><strong>同一事务的日志需要反向链接在一起</strong>
+<ul>
+<li>加速事务的撤销操作</li>
+</ul></li>
+<li>正向撤销会出错
+<ul>
+<li>这是显然的，撤销是写的逆过程</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613231700809.png" style="zoom:67%;"></p>
+<h3 id="山寨版系统故障恢复">山寨版系统故障恢复</h3>
+<ul>
+<li>不一致状态原因
+<ul>
+<li>未完成事务对数据库的更新已写入数据库
+<ul>
+<li>Steal policy</li>
+</ul></li>
+<li>已提交事务对数据库的更新未写入数据库
+<ul>
+<li>还在 OS Buffer 中</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="系统故障恢复过程">系统故障恢复过程</h4>
+<ul>
+<li>正向扫描日志文件，找出圆满事务，记入重做队列；找出夭折事务，记入撤消队列</li>
+<li>反向扫描日志，对撤消队列中事务 Ti 的每一个日志记录执行 undo 操作</li>
+<li>正向扫描日志文件，对重做队列中事务 Ti 的每一个日志记录执行 redo 操作</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613233141824.png" style="zoom:67%;"></p>
+<h5 id="实际数据库">实际数据库</h5>
+<ul>
+<li>对所有操作（不区分成功还是失败），都进行 redo 操作
+<ul>
+<li>连续操作，磁盘 I/O 友好</li>
+</ul></li>
+<li>然后再对夭折事务进行 undo</li>
+</ul>
+<h3 id="介质故障恢复">介质故障恢复</h3>
+<ul>
+<li>磁盘上数据文件和日志文件遭到破坏</li>
+</ul>
+<h4 id="介质故障恢复过程">介质故障恢复过程</h4>
+<ul>
+<li>装入最新的数据库后备副本，使数据库恢复到最近一次转储时的一致性状态</li>
+<li>装入相应的日志文件副本，重做已完成的事务</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613233249680.png" style="zoom: 67%;"></p>
+<ul>
+<li>数据文件和日志文件最好不要放在一个磁盘上</li>
+</ul>
+<h3 id="检查点checkpoint">检查点(Checkpoint)</h3>
+<ul>
+<li>当系统故障发生时，我们必须搜索整个日志，以决定哪些事务需要 redo，哪些需要 undo</li>
+<li>大多数需要被重做的事务其更新已经写入了数据库中（<span class="math inline">\(\mathrm{redo}^2\)</span>）
+<ul>
+<li>因为我们不知道数据是否已经被写入磁盘（异步写缓冲区）</li>
+<li>尽管对它们重做不会造成不良后果，但会使恢复过程变得更长</li>
+</ul></li>
+<li>检查点原理：且行且珍惜
+<ul>
+<li><strong>保证在检查点时刻，日志与数据库的内容是一致的</strong></li>
+</ul></li>
+</ul>
+<h4 id="带有检查点记录的日志生成">带有检查点记录的日志生成</h4>
+<ul>
+<li>将当前日志缓冲区的所有日志记录写入稳存中</li>
+<li>在日志文件中写入一个检查点记录</li>
+<li>将当前数据缓冲区的所有数据记录写入稳存中</li>
+<li>输出检查点时活跃事务的列表 L</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613233943188.png" style="zoom: 67%;"></p>
+<ul>
+<li>我们对检查点之前就已经提交的事务，不需要做 redo 处理</li>
+<li>只需要对检查点时刻还在活跃的事务、检查点之后出现的事务进行 redo 处理</li>
+<li>最小日志序列号
+<ul>
+<li>生成检查点时刻的还在活跃的最小日志记录的序列号</li>
+</ul></li>
+<li>长事务再数据库中危害很大
+<ul>
+<li>并发</li>
+<li>长事务不释放，检查点做的恢复工作不会少
+<ul>
+<li>最小序列号之后、但是在检查点之前已经提交的事务需要重做吗？</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="sql-server最小恢复lsn">SQL Server：最小恢复LSN</h4>
+<ul>
+<li>MinLSN 是下面这些 LSN 中的最小 LSN：
+<ul>
+<li>检查点起点的 LSN</li>
+<li>最旧的活动事务起点的 LSN</li>
+</ul></li>
+</ul>
+<h4 id="sql-server生成检查点">SQL Server：生成检查点</h4>
+<ol type="1">
+<li>将标记检查点起点的记录写入日志文件</li>
+<li>将为检查点记录的信息存储在检查点日志记录链内，将这条链起点的 LSN 写入数据库根页</li>
+<li>将最小恢复 LSN(MinLSN) 保存在检查点记录中</li>
+<li>将所有未完成的活动事务列表保存在检查点记录中</li>
+<li>如果数据库使用的是简单恢复模式，则删除新的 MinLSN 之前的所有日志记录</li>
+<li>将所有脏日志和数据页写入磁盘</li>
+<li>将标记检查点末端的记录写入日志文件</li>
+</ol>
+<h5 id="恢复过程">恢复过程</h5>
+<ul>
+<li>检查点线程遍历缓冲区池，按照缓冲区编号顺序扫描页面，当它发现脏页时，它将查看与该页面<strong>物理(磁盘上)连续的其他页面</strong>是否也是脏的，这样它可以进行大块写操作
+<ul>
+<li>顺序写性能远高于随机写</li>
+</ul></li>
+<li>如果它看到页面5是脏的时，它可能会写入页面10、25、380、500等，这些页面在磁盘上是连续的。这样，缓冲区中非连续的页面可以被一次聚集写入（<strong>gather-write</strong>）磁盘</li>
+<li>以后检查点会到达页面 500，为避免将该页面重复写入磁盘，检查点算法会为每个页面设置标志位，开始时所有的位都相同(都为0或1)。当检查点检查到某个页面时，它将其标志位翻转。如果检查点碰到具有相反位的页面，它就跳过该页面</li>
+<li><strong>对于在检查点期间新近引入的页面，或者已经被检查点输出到磁盘但又重新变脏的页面，都不会被该次检查点操作写入</strong></li>
+</ul>
+<h5 id="recovery-interval">recovery interval</h5>
+<ul>
+<li>recovery interval 选项设置 SQL Server 恢复数据库所需的最大分钟数</li>
+<li>据此 SQL Server 将估计在恢复时间间隔期间可以处理多少更新的数据，从而决定在每一个数据库中 SQL Server 何时生成一次检查点</li>
+<li>SQL Server 根据 10MB 的日志可以在 1 分钟内得到恢复这样一个估计来确定它的恢复间隔</li>
+<li>当最近一个检查点之后数据更新操作达到了 SQL Server 认为可以在恢复时间间隔更新的数量时，它将进行一个检查点操作</li>
+</ul>
+<h4 id="mysql-检查点执行时机">MySQL 检查点执行时机</h4>
+<ul>
+<li>Master Thread Checkpoint
+<ul>
+<li>每秒或每10秒刷出一定比例的脏页</li>
+</ul></li>
+<li>FLUSH_LRU_LIST Checkpoint
+<ul>
+<li>LRU 列表中空闲页不够时淘汰的页面中有脏页</li>
+</ul></li>
+<li>Dirty Page too much Checkpoint
+<ul>
+<li>innodb_max_dirty_pages_pct</li>
+</ul></li>
+<li>Async/Sync Flush Checkpoint
+<ul>
+<li>redo_lsn–checkpoing_lsn 超过日志文件大小75%</li>
+</ul></li>
+</ul>
+<h2 id="杂项">杂项</h2>
+<h3 id="mysql-日志文件">MySQL 日志文件</h3>
+<ul>
+<li>重做日志（redolog）</li>
+<li>回滚日志（undolog）</li>
+<li>二进制日志（binlog）</li>
+<li>错误日志（errorlog）</li>
+<li>慢查询日志（slowquerylog）</li>
+<li>一般查询日志（generallog）</li>
+<li>中继日志（relaylog）</li>
+</ul>
+<h3 id="事务日志物理构架">事务日志物理构架</h3>
+<ul>
+<li>循环使用
+<ul>
+<li>生成检查点的时候，可以释放之前的一些无用日志块</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09-1/image-20210613235856513.png" style="zoom:67%;"></p>
+<h3 id="逻辑-undo-日志">逻辑 Undo 日志</h3>
+<ul>
+<li><strong>针对索引页</strong></li>
+<li>一般恢复技术要求一旦事务更新了一个数据项，其它事务都不能更新该数据项，直至第一个事务提交或回滚</li>
+<li>严格两阶段封锁协议实施到某些特殊结构如 B+ 树索引页时，并发性极度下降。为提高并发性，可以使锁较早释放
+<ul>
+<li>提早释放会导致问题</li>
+<li>如果是物理日志
+<ul>
+<li>A 事务写页 a，B 事务也写页 a，此时 A 事务出错，回滚，页 a 回滚（页面为单位），此时把事务 B 修改的部分给覆盖了</li>
+</ul></li>
+<li>逻辑日志则没有这个问题</li>
+<li>插入操作必须通过一个逻辑 undo 来完成，即通过执行一次删除操作撤消</li>
+</ul></li>
+<li><strong>闩锁，自旋锁</strong></li>
+<li>如果事务 T 向 B+ 树插入了一项，在插入操作结束后但在事务提交前释放了某些锁，那么在锁释放后，其它事务可执行插入或删除操作，于是造成对 B+ 树结点的进一步改变</li>
+<li>如果使用物理 undo 执行事务回滚，即事务回滚时我们将 B+ 树内部结点(执行插入操作前)的旧值写回，那么其它事务在其后执行的插入或删除操作所做的某些更新可能会丢失</li>
+</ul>
+]]></content>
+      <categories>
+        <category>DB.CLJ</category>
+      </categories>
+      <tags>
+        <tag>DB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据库概论.陈立军.08.数据挖掘简述</title>
+    <url>/2021/06/13/DB/CLJ/08/</url>
+    <content><![CDATA[<h1 id="数据挖掘">数据挖掘</h1>
+<ul>
+<li>一个广为流传的例子：啤酒和尿布</li>
+<li>数据挖掘是识别数据中<strong>有效的</strong>、<strong>新颖的</strong>、<strong>潜在有用的</strong>、<strong>最终可被理解的模式</strong>的非平凡过程</li>
+</ul>
+<h2 id="预测型工具">预测型工具</h2>
+<ul>
+<li>有效的
+<ul>
+<li>该模式具有足够的通用性，即对于新数据，该模式同样适用</li>
+</ul></li>
+<li>新颖的
+<ul>
+<li>该模式是深层次的，事先无法预料的</li>
+</ul></li>
+<li>潜在有用的
+<ul>
+<li>该模式可以指导一些有效的行为，不仅仅是检索有效的新颖的模式，可以指导决策人员进行科学决策</li>
+</ul></li>
+<li>最终可被理解的
+<ul>
+<li>该模式必须简单易懂</li>
+</ul></li>
+</ul>
+<h2 id="数据挖掘方法论">数据挖掘方法论</h2>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613132636291.png" style="zoom: 67%;"></p>
+<h2 id="数据挖掘的任务与方法">数据挖掘的任务与方法</h2>
+<table>
+<colgroup>
+<col style="width: 9%">
+<col style="width: 45%">
+<col style="width: 45%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">数据挖掘任务</th>
+<th style="text-align: center;">描述</th>
+<th style="text-align: center;">相关技术</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">数据划分</td>
+<td style="text-align: center;">聚类分析: 在预先没有确定类别的情况下，根据数据的不同属性，将数据分成不同的类别。<br>分类分析：将数据映射到预先定义的数据类别中</td>
+<td style="text-align: center;">聚类分析<br>Bayesian分类<br>决策树或分类树<br>人工神经网络</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">依赖分析</td>
+<td style="text-align: center;">找出各个属性之间的依赖关系</td>
+<td style="text-align: center;">Bayesian网络<br>关联分析</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">奇异点分析</td>
+<td style="text-align: center;">找出与一般数据行为不一致的数据项</td>
+<td style="text-align: center;">聚类分析<br>奇异点检测</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">趋势检测</td>
+<td style="text-align: center;">通常在时间序列上，对数据库中的数据利用线性回归或曲线拟合等方式进行综合分析</td>
+<td style="text-align: center;">回归分析<br>序列模式分析</td>
+</tr>
+</tbody>
+</table>
+<h2 id="查询分析">查询分析</h2>
+<ul>
+<li>查询哪些商品经常被购买</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Select</span> item, <span class="built_in">count</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">From</span> trans</span><br><span class="line"><span class="keyword">Where</span> <span class="keyword">condition</span></span><br><span class="line"><span class="keyword">Group</span> <span class="keyword">by</span> item</span><br><span class="line"><span class="keyword">Having</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="operator">&gt;</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>查询哪两个商品经常一起被购买</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Select</span> t1.item, t2.item, <span class="built_in">count</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">From</span> trans t1, trans t2</span><br><span class="line"><span class="keyword">Where</span> t1.bucket_id <span class="operator">=</span> t2.bucket_id</span><br><span class="line"><span class="keyword">Group</span> <span class="keyword">by</span> t1.item, t2.item</span><br><span class="line"><span class="keyword">Having</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="operator">&gt;</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>上面简单的连接，效果很差，运行很慢</li>
+</ul>
+<h2 id="关联分析">关联分析</h2>
+<ul>
+<li>目的：发现数据间的相互关联</li>
+<li>购物篮分析：给定一组商品，一个交易集合，通过分析交易记录集合，推导出商品间的相关性</li>
+<li>基本形式
+<ul>
+<li>给定：一组事务集，每一个事务中包含若干个数据项</li>
+<li>挖掘：各个数据项之间的关联</li>
+</ul></li>
+<li>结论：98% 的顾客在购买电动剃须刀的同时会购买一些电池</li>
+</ul>
+<h3 id="关联分析支持度support">关联分析支持度（support）</h3>
+<ul>
+<li>在关联分析中表示满足规则的记录数与总记录数的比</li>
+<li>它表明了规则的模式在数据库中出现的频度</li>
+<li>对于规则：<span class="math inline">\(X\to Y\)</span>，其支持度表示为</li>
+</ul>
+<p>$$</p>
+<p>$$</p>
+<h3 id="关联分析置信度confidence">关联分析置信度（confidence）</h3>
+<ul>
+<li>在关联分析中表示为满足规则的记录数与出现被分析数据项的记录数之比</li>
+<li>对于规则：<span class="math inline">\(X\to Y\)</span>，其置信度表示为</li>
+</ul>
+<p><span class="math display">\[
+C=\dfrac{同时购买商品\;X\;和\;Y\;的交易数}{购买商品\;X\;的交易数}
+\]</span></p>
+<h3 id="关联分析核心发现频繁项集">关联分析核心：发现频繁项集</h3>
+<ul>
+<li>频繁项集：出现频率超过<strong>预设支持度</strong>的项集</li>
+<li><strong>关联分析就是发现频繁项集的过程</strong></li>
+<li>不能够先生成商品组合然后逐一过滤，这样候选集太大了</li>
+</ul>
+<h4 id="先验apriori法则">先验（Apriori）法则</h4>
+<ul>
+<li><p><strong>一个频繁项集的任何非空子集肯定也是频繁项集</strong></p></li>
+<li><span class="math inline">\(\{A,B\}\)</span> 为频繁项集，那么其子集 <span class="math inline">\(\{A\}\)</span>、<span class="math inline">\(\{B\}\)</span> 也都为频繁项集</li>
+<li><strong>反单调</strong>
+<ul>
+<li>一个集合如果不是频繁的，则它的任何超集也不是频繁的</li>
+</ul></li>
+<li><p><strong>由低阶频繁项集构造高阶频繁项集</strong></p></li>
+</ul>
+<h3 id="关联分析示例">关联分析示例</h3>
+<ul>
+<li>表格如下</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">TID</th>
+<th style="text-align: center;">项集</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">面包，牛奶</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">面包，啤酒，鸡蛋，尿布</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">牛奶，啤酒，尿布，可乐</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">面包，牛奶，啤酒，尿布</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">面包，牛奶，尿布，可乐</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>结果
+<ul>
+<li>尿布 <span class="math inline">\(\to\)</span> 啤酒 支持度 <span class="math inline">\(\dfrac35\)</span>，置信度 <span class="math inline">\(\dfrac34\)</span> 啤酒 <span class="math inline">\(\to\)</span> 尿布 支持度 <span class="math inline">\(\dfrac35\)</span>，置信度 <span class="math inline">\(\dfrac33\)</span></li>
+</ul></li>
+</ul>
+<h4 id="先验法则求解">先验法则求解</h4>
+<ul>
+<li>设定最小支持度为 3</li>
+<li>依次寻找一阶项、二阶项、三阶项</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">1阶项</th>
+<th style="text-align: center;">计数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">啤酒</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">面包</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">可乐</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">尿布</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">牛奶</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">鸡蛋</td>
+<td style="text-align: center;">1</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">2阶项</th>
+<th style="text-align: center;">计数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">啤酒, 面包</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">啤酒, 尿布</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">啤酒, 牛奶</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">面包, 尿布</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">面包, 牛奶</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">尿布, 牛奶</td>
+<td style="text-align: center;">3</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">3阶项</th>
+<th style="text-align: center;">计数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">面包, 尿布, 牛奶</td>
+<td style="text-align: center;">3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="关联分析算法过程">关联分析算法过程</h3>
+<h4 id="连接步">连接步</h4>
+<ul>
+<li>对 K-1 阶频繁项集 Lk-1 做 Self-Join 操作，形成 K 阶频繁项集的候选集 Ck
+<ul>
+<li>前 K-1 项相同，第 K 项 p&lt;q（避免重复）</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> Ck</span><br><span class="line"><span class="keyword">select</span> p.item1, p.item2, ... , p.itemk<span class="number">-1</span>, q.itemk<span class="number">-1</span></span><br><span class="line"><span class="keyword">from</span> Lk<span class="number">-1</span>p,Lk<span class="number">-1</span>q</span><br><span class="line"><span class="keyword">where</span> p.item1<span class="operator">=</span>q.item1, ... , p.itemk<span class="number">-2</span><span class="operator">=</span>q.itemk<span class="number">-2</span>, p.itemk<span class="number">-1</span><span class="operator">&lt;</span>q.itemk<span class="number">-1</span></span><br></pre></td></tr></table></figure>
+<h4 id="剪枝步">剪枝步</h4>
+<ul>
+<li>任何 K-1 阶非频繁项集，则其不可能为 K 阶频繁项集的子集</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="built_in">all</span> itemsets c <span class="keyword">in</span> Ck do:</span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">all</span> (k-<span class="number">1</span>)-subsets s of c do:</span><br><span class="line">        <span class="keyword">if</span>(s <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">in</span> Lk-<span class="number">1</span>):</span><br><span class="line">            then delete c <span class="keyword">from</span> Ck</span><br></pre></td></tr></table></figure>
+<h3 id="关联分析算法例子">关联分析算法例子</h3>
+<ul>
+<li>3 阶高频项目集：L3={ abc, abd, acd, ace, bcd }</li>
+<li>连接步
+<ul>
+<li>Self-joining:L3*L3</li>
+<li>abc, abd <span class="math inline">\(\to\)</span> abcd</li>
+<li>acd, ace <span class="math inline">\(\to\)</span> acde</li>
+</ul></li>
+<li>剪枝步 acde 移出，因为 ade 不包含在 L3 中</li>
+<li>4 阶候选集：C4={ abcd }
+<ul>
+<li>还得在数据库中验证之后才能称为 4 阶高频项目集</li>
+</ul></li>
+</ul>
+<h3 id="sql-实现">SQL 实现</h3>
+<ul>
+<li>最核心的问题：<strong>如何实现对候选集的计数</strong></li>
+<li>论文：Integrating Association Rule Mining with Relational Database Systems: Alternatives and Implications</li>
+</ul>
+<h4 id="基于连接实现">基于连接实现</h4>
+<ul>
+<li>K-ways joins</li>
+<li>代码</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613140959356.png"></p>
+<ul>
+<li>图示</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613141012312.png"></p>
+<h4 id="基于子查询实现">基于子查询实现</h4>
+<ul>
+<li>subquery</li>
+<li>代码</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613141317487.png"></p>
+<ul>
+<li>图示</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613141337247.png"></p>
+<h4 id="基于面向对象的-sql-实现">基于面向对象的 SQL 实现</h4>
+<ul>
+<li>代码</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613141413985.png"></p>
+<ul>
+<li>图示</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613141506870.png"></p>
+<h3 id="关联分析和相关性分析">关联分析和相关性分析</h3>
+<ul>
+<li>实际可能是负相关</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613142232147.png" style="zoom:67%;"></p>
+<h3 id="关联分析的辛普森悖论">关联分析的辛普森悖论</h3>
+<ul>
+<li>数据子集显示出来的结果和数据集本身相反</li>
+<li>数据集</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613142457403.png" style="zoom:67%;"></p>
+<ul>
+<li>数据子集</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/08/image-20210613142538884.png" alt="image-20210613142600824" style="zoom:67%;"></p>
+<ul>
+<li>原因</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\dfrac{a}{b}&amp;&lt;\dfrac{c}{d}\\
+\dfrac{p}{q}&amp;&lt;\dfrac{r}{s}\\
+\dfrac{a+p}{b+q}&amp;&lt;\dfrac{c+r}{d+s}\\
+\end{align}
+\]</span></p>
+<ul>
+<li>提示：数据子集的划分要仔细，否则可能得出相反结论
+<ul>
+<li>连锁超市的购物篮应按商店位置分层</li>
+<li>病人医疗记录应按年龄、性别等分层</li>
+</ul></li>
+</ul>
+<h4 id="序列关联分析">序列关联分析</h4>
+<h3 id="分类分析">分类分析</h3>
+<ul>
+<li>决策树</li>
+<li>朴素贝叶斯</li>
+<li>支持向量机 SVM</li>
+</ul>
+<h3 id="聚类分析">聚类分析</h3>
+<ul>
+<li>无监督学习</li>
+<li>基于划分</li>
+<li>K-means</li>
+</ul>
+]]></content>
+      <categories>
+        <category>DB.CLJ</category>
+      </categories>
+      <tags>
+        <tag>DB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>GAMES202.闫令琪.14.工业界算法实现</title>
+    <url>/2021/06/13/CG/YLQ-GAMES202/14/</url>
+    <content><![CDATA[<ul>
+<li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
+</ul>
+<figure>
+<img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210613145024654.png" alt="image-20210613145024654"><figcaption>image-20210613145024654</figcaption>
+</figure>
+<h1 id="工业界算法实现">工业界算法实现</h1>
+<ul>
+<li>A Glimpse of Industrial Solutions</li>
+</ul>
+]]></content>
+      <categories>
+        <category>CG.GAMES202</category>
+      </categories>
+      <tags>
+        <tag>CG</tag>
+        <tag>YLQ</tag>
       </tags>
   </entry>
 </search>

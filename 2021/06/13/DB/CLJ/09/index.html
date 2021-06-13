@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="恢复控制、故障、备份（恢复模型）、日志（先写日志后写数据库WAL）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.09.恢复控制">
+<meta property="og:url" content="http://example.com/2021/06/13/DB/CLJ/09/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="恢复控制、故障、备份（恢复模型）、日志（先写日志后写数据库WAL）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09/image-20210613171041017.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09/image-20210613172816406.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09/image-20210613221235500.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09/image-20210613221653647.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09/image-20210613221940870.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09/image-20210613223550791.png">
+<meta property="og:image" content="http://example.com/2021/06/13/DB/CLJ/09/image-20210613225205691.png">
+<meta property="article:published_time" content="2021-06-13T06:38:17.000Z">
+<meta property="article:modified_time" content="2021-06-13T15:36:32.198Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/13/DB/CLJ/09/image-20210613171041017.png">
+
+
+<link rel="canonical" href="http://example.com/2021/06/13/DB/CLJ/09/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>数据库概论.陈立军.09.恢复控制 | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E6%8E%A7%E5%88%B6"><span class="nav-text">恢复控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%85%E9%9A%9C"><span class="nav-text">故障</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%95%85%E9%9A%9C"><span class="nav-text">事务故障</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%9E%E9%A2%84%E6%9C%9F%E6%95%85%E9%9A%9C"><span class="nav-text">非预期故障</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AF%E9%A2%84%E6%9C%9F%E6%95%85%E9%9A%9C"><span class="nav-text">可预期故障</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%95%85%E9%9A%9C"><span class="nav-text">系统故障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8B%E8%B4%A8%E6%95%85%E9%9A%9C"><span class="nav-text">介质故障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">恢复的定义</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%87%E4%BB%BD"><span class="nav-text">备份</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AC%E5%82%A8"><span class="nav-text">转储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AC%E5%82%A8%E7%B1%BB%E5%9E%8B"><span class="nav-text">转储类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%87%E4%BB%BD"><span class="nav-text">SQL Server 数据库备份</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E5%B7%AE%E5%BC%82%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%87%E4%BB%BD"><span class="nav-text">SQL Server 差异数据库备份</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E4%BA%8B%E5%8A%A1%E6%97%A5%E5%BF%97%E5%A4%87%E4%BB%BD"><span class="nav-text">SQL Server 事务日志备份</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E4%BE%8B%E5%AD%90"><span class="nav-text">一个例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E6%81%A2%E5%A4%8D%E6%A8%A1%E5%9E%8B"><span class="nav-text">SQL Server 恢复模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E6%81%A2%E5%A4%8D"><span class="nav-text">简单恢复</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%8C%E5%85%A8%E6%81%A2%E5%A4%8D"><span class="nav-text">完全恢复</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E5%AE%B9%E9%87%8F%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E6%81%A2%E5%A4%8Dbcm"><span class="nav-text">大容量日志记录恢复（BCM）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%87%E6%8D%A2%E6%81%A2%E5%A4%8D%E6%A8%A1%E5%9E%8B"><span class="nav-text">切换恢复模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E5%A4%87%E4%BB%BD%E7%B1%BB%E5%9E%8B"><span class="nav-text">MySQL 备份类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E5%A4%87%E4%BB%BD%E5%B7%A5%E5%85%B7"><span class="nav-text">MySQL 备份工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E7%83%AD%E5%A4%87%E5%B7%A5%E5%85%B7"><span class="nav-text">MySQL 热备工具</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97"><span class="nav-text">日志</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E5%88%86%E7%B1%BB"><span class="nav-text">事务分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%9A%84%E6%81%A2%E5%A4%8D%E6%93%8D%E4%BD%9C"><span class="nav-text">基本的恢复操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E5%8E%9F%E8%AF%AD%E6%93%8D%E4%BD%9C"><span class="nav-text">事务的原语操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%88%E5%86%99%E6%97%A5%E5%BF%97%E7%9A%84%E5%8E%9F%E5%88%99wal"><span class="nav-text">先写日志的原则(WAL)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E6%97%B6%E6%9C%BA"><span class="nav-text">写时机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#buffer-managerbm"><span class="nav-text">Buffer Manager(BM)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%BB%E5%8F%96%E4%B8%80%E4%B8%AA%E9%A1%B5%E9%9D%A2%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="nav-text">读取一个页面的过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E6%97%A5%E5%BF%97%E5%88%B7%E5%86%99%E6%97%B6%E6%9C%BA"><span class="nav-text">MySQL 日志刷写时机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E7%BB%84%E6%8F%90%E4%BA%A4"><span class="nav-text">MySQL 组提交</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">87</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/06/13/DB/CLJ/09/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.09.恢复控制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2021-06-13 14:38:17 / Modified: 23:36:32" itemprop="dateCreated datePublished" datetime="2021-06-13T14:38:17+08:00">2021-06-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">恢复控制、故障、备份（恢复模型）、日志（先写日志后写数据库WAL）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="恢复控制">恢复控制</h1>
+<ul>
+<li>目标
+<ul>
+<li>服务可用性
+<ul>
+<li>时间延迟</li>
+</ul></li>
+<li>数据可用性
+<ul>
+<li>数据一致性</li>
+</ul></li>
+</ul></li>
+<li>可能的措施
+<ul>
+<li>备份</li>
+<li>日志</li>
+<li>把内存总的数据刷到稳定存储介质（磁盘等）上（ctrl+S）</li>
+</ul></li>
+</ul>
+<h2 id="故障">故障</h2>
+<h3 id="事务故障">事务故障</h3>
+<ul>
+<li>事务的运行没有到达预期的终点就被终止</li>
+<li>影响范围只在这个事务上</li>
+</ul>
+<h4 id="非预期故障">非预期故障</h4>
+<ul>
+<li>不能由事务程序处理的（异常）</li>
+<li>如运算溢出，发生死锁而被选中撤消该事务</li>
+</ul>
+<h4 id="可预期故障">可预期故障</h4>
+<ul>
+<li>应用程序可以发现的事务故障，并且应用程序可以让事务回滚</li>
+<li>如转帐时发现帐面金额不足</li>
+<li>写了异常处理，那么可以把非预期故障转变为可预期故障</li>
+</ul>
+<h3 id="系统故障">系统故障</h3>
+<ul>
+<li><strong>软故障</strong>（soft crash）</li>
+<li>在硬件故障、软件错误的影响下，虽引起<strong>内存信息丢失</strong>，但未破坏外存中数据</li>
+<li>如CPU故障、突然停电，DBMS、OS、应用程序等异常终止</li>
+</ul>
+<h3 id="介质故障">介质故障</h3>
+<ul>
+<li><strong>硬故障</strong>（hard crash）</li>
+<li>又称<strong>磁盘故障</strong>，破坏<strong>外存上的数据库</strong>，并影响正在存取这部分数据的所有事务</li>
+<li>如磁盘的磁头碰撞、瞬时的强磁场干扰</li>
+<li>只能通过备份等方式恢复</li>
+</ul>
+<h3 id="恢复的定义">恢复的定义</h3>
+<ul>
+<li>恢复是把数据库从错误状态恢复到某一正确状态的功能，从而确保数据库的一致性</li>
+<li>恢复的基本原理是<strong><span style="color:red">冗余</span></strong>，即数据库中任一部分的数据可以根据存储在系统别处的冗余数据来重建</li>
+<li>冗余
+<ul>
+<li>备份（数据）</li>
+<li>日志（事务活动）</li>
+</ul></li>
+</ul>
+<h2 id="备份">备份</h2>
+<h3 id="转储">转储</h3>
+<ul>
+<li>生成备份的过程：<strong>转储</strong>（dump）
+<ul>
+<li>将数据库复制到磁带或另一个磁盘上保存起来的过程</li>
+<li>这些备用数据称为后备（后援）副本</li>
+</ul></li>
+</ul>
+<h3 id="转储类型">转储类型</h3>
+<ul>
+<li>静态转储
+<ul>
+<li>转储期间不允许对数据库进行任何存取、修改活动</li>
+<li><strong>转储期间不向外提供服务</strong></li>
+</ul></li>
+<li>动态转储
+<ul>
+<li>转储期间允许对数据库进行存取或修改</li>
+<li><strong>转储期间数据块还对外提供服务</strong></li>
+</ul></li>
+<li>海量转储
+<ul>
+<li>每次转储<strong>全部数据库</strong></li>
+</ul></li>
+<li>增量转储
+<ul>
+<li>每次只转储上次转储后*<strong>更新过的数据</strong></li>
+</ul></li>
+</ul>
+<h3 id="sql-server-数据库备份">SQL Server 数据库备份</h3>
+<ul>
+<li>完整的数据库备份</li>
+<li>数据库备份创建备份完成时数据库内存在的数据的副本，通常按常规时间间隔调度</li>
+<li>还原数据库备份将重新创建数据库和备份完成时数据库中存在的所有相关文件
+<ul>
+<li>但是，自创建备份后所做的任何数据库修改都将丢失</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">USE master</span><br><span class="line"></span><br><span class="line"><span class="keyword">EXEC</span> sp_addumpdevice <span class="string">&#x27;disk&#x27;</span>, <span class="string">&#x27;MyBKDB&#x27;</span>, DISK <span class="operator">=</span><span class="string">&#x27;c:\MyBKDB.dat&#x27;</span></span><br><span class="line"></span><br><span class="line">BACKUP DATABASE LJCHEN <span class="keyword">TO</span> MyBKDB</span><br><span class="line"></span><br><span class="line">RESTORE DATABASE LJCHEN <span class="keyword">FROM</span> MyBKDB</span><br></pre></td></tr></table></figure>
+<h3 id="sql-server-差异数据库备份">SQL Server 差异数据库备份</h3>
+<ul>
+<li>差异数据库备份（DCM）</li>
+<li>差异数据库备份只记录自上次数据库备份后发生更改的数据，比数据库备份小而且速度快</li>
+<li>使用差异数据库备份将数据库还原到差异数据库备份完成时的那一点</li>
+<li>初始得是一个全量的备份</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 全量备份 */</span></span><br><span class="line">BACKUP DATABASE LJCHEN <span class="keyword">TO</span> MyBKDB <span class="keyword">WITH</span> INIT</span><br><span class="line"><span class="comment">/* 增量备份*/</span></span><br><span class="line">BACKUP DATABASE LJCHEN <span class="keyword">TO</span> MyBKDB <span class="keyword">WITH</span> DIFFERENTIAL</span><br><span class="line"></span><br><span class="line">RESTORE DATABASE LJCHEN <span class="keyword">FROM</span> MyBKDB <span class="keyword">WITH</span> NORECOVERY</span><br><span class="line">RESTORE DATABASE LJCHEN <span class="keyword">FROM</span> MyBKDB <span class="keyword">WITH</span> FILE<span class="operator">=</span><span class="number">2</span>, RECOVERY</span><br></pre></td></tr></table></figure>
+<ul>
+<li>一个位图，每一个页一位，如果修改了则把这个页对应位图上的位置为 1
+<ul>
+<li>增量备份的时候把修改过的备份出去即可</li>
+</ul></li>
+</ul>
+<h3 id="sql-server-事务日志备份">SQL Server 事务日志备份</h3>
+<ul>
+<li>事务日志是自上次备份事务日志后对数据库执行的所有事务的一系列记录，它可以将数据库恢复到特定的即时点或恢复到故障点</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">BACKUP DATABASE MyDB <span class="keyword">TO</span> MyDB_1 <span class="keyword">WITH</span> INIT</span><br><span class="line"></span><br><span class="line">BACKUP LOG MyDB <span class="keyword">TO</span> MyDB_log1</span><br><span class="line"></span><br><span class="line">BACKUP LOG MyDB <span class="keyword">TO</span> MyDB_log2 <span class="keyword">WITH</span> NO_TRUNCATE</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">RESTORE DATABASE MyDB <span class="keyword">FROM</span> MyDB_1 <span class="keyword">WITH</span> NORECOVERY</span><br><span class="line"></span><br><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log1 <span class="keyword">WITH</span> NORECOVERY</span><br><span class="line"></span><br><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log2 <span class="keyword">WITH</span> RECOVERY</span><br></pre></td></tr></table></figure>
+<ul>
+<li>WITH NORECOVERY：<strong>重做所有日志记录</strong></li>
+<li>WITH RECOVERY：<strong>回滚失败事务日志记录</strong></li>
+</ul>
+<h4 id="一个例子">一个例子</h4>
+<ul>
+<li>事务 T 从 A 帐户过户 50 到 B 帐户</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">read(A); A:<span class="operator">=</span>A<span class="number">-50</span>; write(A);</span><br><span class="line">read(B); B:<span class="operator">=</span>B<span class="operator">+</span><span class="number">50</span>; write(B);</span><br><span class="line"><span class="keyword">commit</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>由于某些原因，事务 T 的两个操作被写到两个日志文件 MyDB_log1、MyDB_log2 中了</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">MyDB_log1</span><br><span class="line">&lt;T,A,100,50&gt;</span><br><span class="line"></span><br><span class="line">MyDB_log2</span><br><span class="line">&lt;T,B,100,150&gt;</span><br><span class="line">commit</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如下两种恢复方式的结果不同</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log1 <span class="keyword">WITH</span> NORECOVERY</span><br><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log2 <span class="keyword">WITH</span> RECOVERY</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">A: 50, B: 150</span></span><br><span class="line"><span class="comment">正确的结果</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log1 <span class="keyword">WITH</span> RECOVERY</span><br><span class="line">RESTORE LOG MyDB <span class="keyword">FROM</span> MyDB_log2 <span class="keyword">WITH</span> RECOVERY</span><br><span class="line"></span><br><span class="line"><span class="comment">/* log1 中没有 commit, 认为是失败的事务, 被回滚 */</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">A: 100, B: 150</span></span><br><span class="line"><span class="comment">错误的结果</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>因此告诉我们，如果我们有多个日志备份文件
+<ul>
+<li>前面的文件应该都是 <code>WITH NORECORERY</code></li>
+<li>只有最后一个日志文件是 <code>WITH RECOVERY</code></li>
+</ul></li>
+</ul>
+<h3 id="sql-server-恢复模型">SQL Server 恢复模型</h3>
+<ul>
+<li>我们期望能够保留下来的工作越多，也就是希望数据库能够恢复到更近的一致性的状态
+<ul>
+<li>这与数据库系统平时付出的代价相关</li>
+</ul></li>
+</ul>
+<h4 id="简单恢复">简单恢复</h4>
+<ul>
+<li>允许将数据库恢复到最新的备份
+<ul>
+<li>简单数据库备份，没有日志，只能恢复到最新的数据库备份那一刻的内容</li>
+</ul></li>
+<li>数据库备份 + 差异备份（可选）</li>
+</ul>
+<h4 id="完全恢复">完全恢复</h4>
+<ul>
+<li>允许将数据库恢复到故障点状态
+<ul>
+<li>完全恢复（恢复到尽可能近的状态），先通过数据库备份恢复，然后通过日志记录恢复</li>
+</ul></li>
+<li>数据库备份 + 差异备份（可选） + 事务日志备份</li>
+</ul>
+<h4 id="大容量日志记录恢复bcm">大容量日志记录恢复（BCM）</h4>
+<ul>
+<li>允许大容量日志记录操作（select into，bcp，bulk insert）
+<ul>
+<li>批量的修改会导致日志文件庞大，对性能造成影响</li>
+<li>这种模式下，日志文件中只记录操作的帧，操作所影响的数据写到其他的数据文件中</li>
+<li>BCM 位图实现，把影响的页面单独写出去，并在位图上做标记</li>
+</ul></li>
+<li>数据库备份 + 差异备份（可选） + 事务日志备份</li>
+</ul>
+<h4 id="切换恢复模型">切换恢复模型</h4>
+<ul>
+<li>可以将数据库从一个恢复模型切换到另一个恢复模型，以满足不断变化的业务要求</li>
+<li>例如，如果系统需要完全的可恢复性，可以在装载和索引操作的过程中，将数据库的恢复模型更改到批量日志记录模型，然后再返回到完全恢复</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 切换恢复模型 */</span></span><br><span class="line"><span class="keyword">alter</span> database <span class="operator">&lt;</span>database_name<span class="operator">&gt;</span></span><br><span class="line"><span class="keyword">set</span> recovery[ <span class="keyword">FULL</span> <span class="operator">|</span> BULK_LOGGED <span class="operator">|</span> SIMPLE ]</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 查看当前数据库所使用的恢复模型 */</span></span><br><span class="line"><span class="keyword">select</span> database propertyex(<span class="string">&#x27;&lt;database_name&gt;&#x27;</span>, <span class="string">&#x27;recovery&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="mysql-备份类型">MySQL 备份类型</h3>
+<ul>
+<li>备份内容
+<ul>
+<li>逻辑备份：从表的角度备份</li>
+<li>裸文件备份：把磁盘上面的数据文件备份出去</li>
+</ul></li>
+<li>备份方法
+<ul>
+<li>热备(Hot Backup)：数据库保持业务工作的同时进行备份</li>
+<li>冷备(Cold Backup)：数据库停下来备份</li>
+<li>温备(Warm Backup)：只允许读操作下执行，不允许写操作执行</li>
+</ul></li>
+<li>备份数据库内容
+<ul>
+<li>完全备份</li>
+<li>增量备份</li>
+<li>日志备份</li>
+</ul></li>
+</ul>
+<h3 id="mysql-备份工具">MySQL 备份工具</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mysqldump --databases db1 db2 db3 &gt; dump.sql</span><br><span class="line">mysqldump --no-data -databases db1 db2 &gt; structure.sql</span><br><span class="line">mysqldump <span class="built_in">test</span> t1 t3 t7 &gt; dump.sql</span><br><span class="line"><span class="built_in">source</span> dump.sql</span><br></pre></td></tr></table></figure>
+<ul>
+<li>这种方式同时可用于在不同的数据库之间交换内容</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 导出到文件 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">into</span> outfile <span class="string">&#x27;data.txt&#x27;</span></span><br><span class="line">fields terminated <span class="keyword">by</span> <span class="string">&#x27;,&#x27;</span></span><br><span class="line">lines terminated <span class="keyword">by</span> <span class="string">&#x27;\r\n&#x27;</span></span><br><span class="line"><span class="keyword">from</span> my_table</span><br><span class="line"></span><br><span class="line"><span class="comment">/*从文件中恢复 */</span></span><br><span class="line">load data infile <span class="string">&#x27;data.txt&#x27;</span></span><br><span class="line"><span class="keyword">into</span> <span class="keyword">table</span> my_table</span><br><span class="line">fields terminated <span class="keyword">by</span> <span class="string">&#x27;,&#x27;</span></span><br><span class="line">lines terminated <span class="keyword">by</span> <span class="string">&#x27;\r\n&#x27;</span></span><br></pre></td></tr></table></figure>
+<h3 id="mysql-热备工具">MySQL 热备工具</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">innobackupex --user=root --password=123456 --host=127.0.0.1 /backups/</span><br><span class="line"></span><br><span class="line">innobackupex --apply-log /backups</span><br><span class="line"></span><br><span class="line">innobackupex --copy-back /backups</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在<strong>增量备份</strong>时，比较表空间中每个页的 LSN 是否大于上次备份时的 LSN，若是，则备份</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613171041017.png"></p>
+<h2 id="日志">日志</h2>
+<ul>
+<li>日志文件是<strong>以事务为单位</strong>用来记录数据库的每一次更新活动的文件，由系统自动记录
+<ul>
+<li>增删改，不记录查询</li>
+</ul></li>
+<li>日志内容包括
+<ul>
+<li>记录名、旧记录值、新记录值、事务标识符、操作标识符等</li>
+</ul></li>
+<li>内容如下
+<ul>
+<li>事务 Ti 开始时，写入日志：Tistart</li>
+<li>事务 Ti 执行 write(X) 前，写入日志：&lt;Ti,X,V1,V2&gt;
+<ul>
+<li>V1 是 X 更新前的值，V2 是 X 更新后的值</li>
+</ul></li>
+<li>事务 Ti 结束后，写入日志：Ticommit</li>
+</ul></li>
+<li>日志记录的是值的变换，而不是逻辑的操作
+<ul>
+<li>记录的是物理值的话，不管重复多少次，结果中是一致的</li>
+<li>如果记录具体的逻辑操作，重复多次的结果不一样
+<ul>
+<li>例如一个操作是-10，重复多次则会多次-10</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="事务分类">事务分类</h3>
+<ul>
+<li>基于日志记录对事务进行分类</li>
+<li>圆满事务（成功了）
+<ul>
+<li>日志文件中记录了事务的 commit 标识</li>
+</ul></li>
+<li>夭折事务（失败的）
+<ul>
+<li>日志文件中只有事务的 begin transaction 标识，无 commit</li>
+</ul></li>
+</ul>
+<h3 id="基本的恢复操作">基本的恢复操作</h3>
+<ul>
+<li>对圆满事务所做过的修改应执行 redo 操作，即重新执行该操作，修改对象被赋予<strong>新记录值</strong>
+<ul>
+<li>不管 redo 多少次，结果都是一样的（<span class="math inline">\(\mathrm{redo^2=redo}\)</span>）</li>
+</ul></li>
+<li>对夭折事务所做过的修改应执行undo操作，即撤消该操作，修改对象被赋予<strong>旧记录值</strong>
+<ul>
+<li><span class="math inline">\(\mathrm{undo^2=undo}\)</span></li>
+</ul></li>
+</ul>
+<h3 id="事务的原语操作">事务的原语操作</h3>
+<ul>
+<li>input(X)：将包含数据库元素 X 的<strong>磁盘块</strong>拷贝到<strong>内存缓冲区</strong></li>
+<li>read(X,t)：将<strong>内存缓冲区</strong>的数据库元素 X 拷贝到事务的<strong>局部变量</strong> t</li>
+<li>write(X,t)：将<strong>局部变量</strong> t 的值拷贝到<strong>内存缓冲区</strong>中的数据库元素 X</li>
+<li>output(X)：将包含 X 的<strong>缓冲区</strong>拷贝回<strong>磁盘</strong></li>
+<li>发出者不同
+<ul>
+<li>read 和 write 由<strong>事务</strong>发出</li>
+<li>input 和 output 由<strong>缓冲区管理器</strong>（或<strong>日志管理器</strong>）发出</li>
+</ul></li>
+</ul>
+<h3 id="先写日志的原则wal">先写日志的原则(WAL)</h3>
+<ul>
+<li>保证原子性（<strong>all or not</strong>）
+<ul>
+<li>文件系统 xv6 的日志系统也是如此</li>
+</ul></li>
+<li>日志记录将要发生何种修改</li>
+<li>写入 DB 表示实际发生何种修改</li>
+<li>Write Ahead Log（WAL）
+<ul>
+<li>对于尚未提交的事务，在将DB缓冲区写到外存之前，必须先将日志缓冲区内容写到外存去</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613172816406.png" style="zoom:67%;"></p>
+<ul>
+<li>如果先写 DB，则可能在写的中途发生系统崩溃，导致内存缓冲区内容丢失，而外存 DB 处于不一致状态，由于日志缓冲区内容已破坏，导致无法对 DB 恢复</li>
+<li>如果先写数据库再写日志记录的话
+<ul>
+<li>假设这样的一种情况，日志记录还没写完，系统崩溃了</li>
+<li>此时日志中只有 A 的记录</li>
+<li>故障恢复的时候，由于缺少 commit，认为是夭折事务，执行 undo</li>
+<li>此时 B 的结果没有修改回去，造成错误（不一致）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613221235500.png" style="zoom:67%;"></p>
+<ul>
+<li>先写日志则能够恢复到一致的状态
+<ul>
+<li>以下是写 B 日志的时候系统崩溃了的情况</li>
+<li>此时 redo 操作能够撤销 A 的修改，虽然 B 没有修改，但是 redo 也不会将其改成错误数据</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613221653647.png" style="zoom:67%;"></p>
+<ul>
+<li>日志写完了，但是磁盘没写完，此时系统崩溃了，通过 redo 操作实现一致</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613221940870.png" style="zoom:67%;"></p>
+<h3 id="写时机">写时机</h3>
+<ul>
+<li>日志缓冲区和数据库缓冲区的写时机不同</li>
+<li><strong>同步（synchronous）写日志</strong>
+<ul>
+<li>只有事务的相关日志已经完全在磁盘上了，才会向进程发送该事务已提交的确认消息</li>
+<li>事务提交驱动</li>
+</ul></li>
+<li><strong>异步（asynchronous）写缓冲区</strong>
+<ul>
+<li>只需要将数据页的写入操作投递给操作系统即可，不需要等待其完成</li>
+<li>不是事务提交驱动的</li>
+</ul></li>
+</ul>
+<h3 id="buffer-managerbm">Buffer Manager(BM)</h3>
+<ul>
+<li>不同策略（当然要求先写日志）
+<ul>
+<li>Steal policy
+<ul>
+<li>对内存页面的更改可以随意同步回硬盘而<strong>不需要等待事务提交</strong></li>
+</ul></li>
+<li>Force policy
+<ul>
+<li>事务在提交前，它所有更改的页面必须写回到硬盘</li>
+</ul></li>
+</ul></li>
+<li>ARIES 的 BM 遵循 “Non-Force，Steal”</li>
+<li>如果必须等待所有更改过页面的事务都提交了才同步这个内存页到磁盘会如何？
+<ul>
+<li>如果需要支持行锁，那么一个页面可能有多个行被不同的 Tx 更改，这个页面必须等待所有的 Tx 都 Commit，但是如果不断有新的 Tx 来更改这个页面，这个页面就迟迟无法同步回物理页面</li>
+</ul></li>
+</ul>
+<h3 id="读取一个页面的过程">读取一个页面的过程</h3>
+<ul>
+<li>感觉这里的日志和之前的不一样，内容不一样
+<ul>
+<li>OS Buffer</li>
+</ul></li>
+<li>不过写日志的目的是一样的，为了故障恢复</li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613223550791.png" style="zoom:67%;"></p>
+<h3 id="mysql-日志刷写时机">MySQL 日志刷写时机</h3>
+<ul>
+<li>在主线程<strong>每秒一次</strong>的循环中，将重做日志缓冲器的内容刷新到重做日志文件中，即便某个事务尚未提交</li>
+<li>由参数 innodb_flush_log_at_trx_commit 控制
+<ul>
+<li>0 代表提交事务时，并不立即刷出日志，而是等待主线程每秒的刷新
+<ul>
+<li>1 秒之内失败的话，事务结果会丢失</li>
+</ul></li>
+<li>1 代表提交事务时，将重做日志同步写磁盘，也即伴有 fsync() 的调用
+<ul>
+<li>磁盘 IO 开销比较大</li>
+</ul></li>
+<li>2 代表提交事务时，将重做日志异步写磁盘，也即写入文件系统缓存中
+<ul>
+<li>可能操作系统没有把他落盘</li>
+</ul></li>
+</ul></li>
+<li>有两个缓冲区
+<ul>
+<li>数据库缓冲区、操作系统缓冲区</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/DB/CLJ/09/image-20210613225205691.png" style="zoom: 45%;"></p>
+<h3 id="mysql-组提交">MySQL 组提交</h3>
+<ul>
+<li>磁盘 I/O 开销大</li>
+<li>fsync 是昂贵的操作，MySQL 一次事务提交最多会导致 3 次 fsync</li>
+<li>组提交通过将多个并发需要提交的事务共享一次 fsync 操作来进行数据的持久化</li>
+<li>binlog_group_commit_sync_delay=N
+<ul>
+<li>在等待 N 微秒后，进行 binlog 刷盘操作</li>
+</ul></li>
+<li>binlog_group_commit_sync_no_delay_count=N
+<ul>
+<li>达到最大事务等待数量，开始 binlog 刷盘</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/13/DB/CLJ/08/" rel="prev" title="数据库概论.陈立军.08.数据挖掘简述">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.08.数据挖掘简述
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/06/13/CG/YLQ-GAMES202/14/" rel="next" title="GAMES202.闫令琪.14.工业界算法实现">
+                  GAMES202.闫令琪.14.工业界算法实现 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>
