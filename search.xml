@@ -17884,7 +17884,7 @@ R(x_0,y_0)&amp;=\iint{F(x_0,y_0)G_{2D}(x_0-x,y_0-y)}\;\mathrm{d}x\mathrm{d}y\\
 </ul>
 <h3 id="过程">过程</h3>
 <ul>
-<li>在做滤波之前先处理掉（不处理掉会印象滤波）</li>
+<li>在做滤波之前先处理掉（不处理掉会影响滤波）</li>
 <li>outlier 检测
 <ul>
 <li>对于每个像素，查看周围的一个小邻域（<span class="math inline">\(7\times7\)</span>）</li>
@@ -17921,6 +17921,10 @@ R(x_0,y_0)&amp;=\iint{F(x_0,y_0)G_{2D}(x_0-x,y_0-y)}\;\mathrm{d}x\mathrm{d}y\\
 </ul>
 <h2 id="svgf">SVGF</h2>
 <ul>
+<li>Nvidia 2017 年的论文
+<ul>
+<li><a href="https://research.nvidia.com/sites/default/files/pubs/2017-07_Spatiotemporal-Variance-Guided-Filtering%3A//svgf_preprint.pdf">Spatiotemporal Variance-Guided Filtering: Real-Time Reconstruction for Path-Traced Global Illumination</a></li>
+</ul></li>
 <li><strong>Spatiotemporal</strong> Variance-Guided Filtering
 <ul>
 <li>和之前的基本的时空上的降噪方法类似</li>
@@ -17935,6 +17939,177 @@ R(x_0,y_0)&amp;=\iint{F(x_0,y_0)G_{2D}(x_0-x,y_0-y)}\;\mathrm{d}x\mathrm{d}y\\
 </ul></li>
 </ul>
 <p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210613145752902.png" style="zoom: 50%;"></p>
+<h3 id="个标准">3 个标准</h3>
+<h4 id="depth">depth</h4>
+<ul>
+<li>深度</li>
+<li><span class="math inline">\(q\)</span> 对 <span class="math inline">\(p\)</span> 的贡献</li>
+</ul>
+<p><span class="math display">\[
+w_z=\exp\Big(-\dfrac{|z(p)-z(q)|}{\sigma_z|\nabla z_p\cdot(p-q)|+\epsilon}\Big)
+\]</span></p>
+<ul>
+<li>不是高斯，分子是一次方（有衰减即可）</li>
+<li>分母的 <span class="math inline">\(\epsilon=10^{-6}\)</span> 防止除零的发生（<span class="math inline">\(p=q\)</span>）</li>
+<li><span class="math inline">\(\nabla z\)</span> is the gradient of clip-space depth with respect to <strong>screenspace coordinates</strong></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210614103832074.png" style="zoom:67%;"></p>
+<ul>
+<li>图上的 A、B 两点在同一个平面上，直观上感觉应该 A 对 B 的贡献不小
+<ul>
+<li>但是由于这个平面是侧向我们的，深度上有差异，简单的使用深度值的话，计算得到的贡献偏小</li>
+<li>我们使用<strong>深度在法线上差异</strong>作为一个标准（切平面上的深度差异）</li>
+<li>分母计算出来的结果就是按照 <span class="math inline">\(p\)</span> 点的变化率，深度应该变化的值
+<ul>
+<li>如果共平面，值和分子相同，计算得到的结果使得贡献值变大</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="normal">normal</h4>
+<ul>
+<li>法线</li>
+</ul>
+<p><span class="math display">\[
+w_n=\max\Big(0,n(p)\cdot n(q)\Big)^{\sigma_n}
+\]</span></p>
+<ul>
+<li>指数控制衰减的快慢（之前的 Blinn-Phong 模型的镜面叶）</li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210614110024367.png" style="zoom:67%;"></p>
+<ul>
+<li>如果场景应用了法线贴图，我们使用的是没有法线贴图之前的法线（marco normals）
+<ul>
+<li>法线贴图干扰很大</li>
+</ul></li>
+</ul>
+<h4 id="luminance">luminance</h4>
+<ul>
+<li>luminance（灰度的颜色值）</li>
+<li>如果两个点的灰度值相差过大，则贡献值要减小
+<ul>
+<li>例如：A 不应该贡献到 B，B 不应该贡献到 C</li>
+</ul></li>
+<li>但是由于噪声的存在，会让我们的判断有些干扰</li>
+<li>我们通过方差来判断噪声
+<ul>
+<li>如果方差较大（噪声严重），则不应该过多的相信这两个点之间的差异</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210614110631154.png" style="zoom: 67%;"></p>
+<ul>
+<li>表达式如下</li>
+</ul>
+<p><span class="math display">\[
+w_l=\exp\Big(-\dfrac{|l_i(p)-l_i(q)|}{\sigma_l\sqrt{g_{3\times3}\Big(\mathrm{Var}\big(l_i(p)\big)\Big)}+\epsilon}\Big)
+\]</span></p>
+<ul>
+<li>方差具体计算
+<ul>
+<li>spatial：我们对当前帧待判断像素点周围 <span class="math inline">\(7\times7\)</span> 区域方差值（实际上的标准差）</li>
+<li>temporal：通过 motion vector 找到上一帧中的对应点，求一个方差的平均（带权）</li>
+<li>spatial：在使用的时候，我们在周围取一个 <span class="math inline">\(3\times3\)</span> 区域内求一个平均值</li>
+</ul></li>
+</ul>
+<h3 id="评价">评价</h3>
+<ul>
+<li>方差项会导致在做 over blur 和 noise 之间的 trade off 的时候，会倾向于 over blur</li>
+<li>改进：ASVGF
+<ul>
+<li>更加精准的判断 temporal上的连续情况</li>
+<li>overblur 的不要这么厉害（相对噪声会严重些）</li>
+</ul></li>
+<li>motion vector 同样会导致拖尾的结果</li>
+</ul>
+<h2 id="rae">RAE</h2>
+<ul>
+<li>Nvidia 2017 年的论文
+<ul>
+<li><a href="https://research.nvidia.com/publication/interactive-reconstruction-monte-carlo-image-sequences-using-recurrent-denoising">Interactive Reconstruction of Monte Carlo Image Sequences using a Recurrent denoising AutoEncoder</a></li>
+</ul></li>
+<li>后处理的神经网络
+<ul>
+<li>目标：noisy <span class="math inline">\(\to\)</span> clean</li>
+<li>使用到一些 G-Buffer 的内容</li>
+</ul></li>
+<li>关键结构
+<ul>
+<li>Recurrent block 的结构能够保存上一帧的信息</li>
+<li>AutoEncoder（U-net）结构（漏斗形）</li>
+</ul></li>
+</ul>
+<h3 id="网络结构">网络结构</h3>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210614112743145.png"></p>
+<ul>
+<li>输入为 G-Buffer</li>
+<li>AutoEncoder
+<ul>
+<li>对称的</li>
+<li>skip connection：faster and better training</li>
+</ul></li>
+<li>Recurrent Block
+<ul>
+<li>实际跑的时候，保留前几帧的信息</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/10/CG/YLQ-GAMES202/13/image-20210614140956345.png" style="zoom: 67%;"></p>
+<ul>
+<li>训练的时候也需要用一些连续帧（不能只有单张渲染结果）</li>
+<li>没有使用 motion vector
+<ul>
+<li>具体使用是什么内容，是神经网络学习出来的结果</li>
+</ul></li>
+<li>当时：50ms 一帧</li>
+</ul>
+<h3 id="问题">问题</h3>
+<ul>
+<li>overblur</li>
+<li>残影</li>
+<li>RAE 场景偏暗（亮了 artifacts 会增多）</li>
+</ul>
+<h3 id="svgf-vs-rae">SVGF vs RAE</h3>
+<ul>
+<li>帧间抖动，一些低频噪声，看起来像沸腾的水，boiling artifacts</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"></th>
+<th style="text-align: center;">Quality</th>
+<th style="text-align: center;">Artifact</th>
+<th style="text-align: center;">Performance</th>
+<th style="text-align: center;">Explanability</th>
+<th style="text-align: center;">Where did the paper go</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">SVGF</td>
+<td style="text-align: center;"><strong>Clean</strong></td>
+<td style="text-align: center;">Ghosting</td>
+<td style="text-align: center;"><strong>Fast</strong></td>
+<td style="text-align: center;"><strong>Yes</strong></td>
+<td style="text-align: center;">HPG</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">RAE <br>(when first invented)</td>
+<td style="text-align: center;">Overblur</td>
+<td style="text-align: center;">Ghosting</td>
+<td style="text-align: center;">Slow</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;"><strong>SIGGRAPH</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="好处">好处</h3>
+<ul>
+<li>RAE 在不同输入情况下， performance 是固定的（网络固定、计算耗时固定）</li>
+<li>Nvidia 把 RAE 中的 Recurrent Block 去掉了，放到了 Optix 的光追降噪中
+<ul>
+<li>对于稍微高一点的 spp 降噪效果非常好</li>
+<li>针对单张图片（去掉了 Recurrent Block）</li>
+</ul></li>
+<li>在 tensor core 提出之后，RAE 效果变好了</li>
+</ul>
 ]]></content>
       <categories>
         <category>CG.GAMES202</category>
@@ -31274,13 +31449,13 @@ C=\dfrac{同时购买商品\;X\;和\;Y\;的交易数}{购买商品\;X\;的交易
 </ul></li>
 </ul>
 <h4 id="序列关联分析">序列关联分析</h4>
-<h3 id="分类分析">分类分析</h3>
+<h2 id="分类分析">分类分析</h2>
 <ul>
 <li>决策树</li>
 <li>朴素贝叶斯</li>
 <li>支持向量机 SVM</li>
 </ul>
-<h3 id="聚类分析">聚类分析</h3>
+<h2 id="聚类分析">聚类分析</h2>
 <ul>
 <li>无监督学习</li>
 <li>基于划分</li>
@@ -31300,13 +31475,384 @@ C=\dfrac{同时购买商品\;X\;和\;Y\;的交易数}{购买商品\;X\;的交易
     <content><![CDATA[<ul>
 <li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
 </ul>
-<figure>
-<img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210613145024654.png" alt="image-20210613145024654"><figcaption>image-20210613145024654</figcaption>
-</figure>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210613145024654.png" style="zoom:50%;"></p>
 <h1 id="工业界算法实现">工业界算法实现</h1>
 <ul>
-<li>A Glimpse of Industrial Solutions</li>
+<li>A Glimpse of Industrial Solutions (from the scientific perspective)</li>
 </ul>
+<h2 id="aa">AA</h2>
+<ul>
+<li>Anti-Aliasing：反走样</li>
+</ul>
+<h3 id="taa">TAA</h3>
+<ul>
+<li>Temporal Anti-Aliasing</li>
+<li>TAA 算法的成功，才有了 temporal 思想在 RTRT 中的应用</li>
+<li>走样的来源：对于每个像素的采样数不够（采样定理）</li>
+<li>解决思路：使用更多的样本</li>
+<li>temporal AA：使用更多的样本，但是是使用更多上一帧（以及之前帧）的样本
+<ul>
+<li>思路和 RTRT 中是一样的</li>
+</ul></li>
+</ul>
+<h4 id="静止场景">静止场景</h4>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614143611181.png" style="zoom:50%;"></p>
+<ul>
+<li>怎么复用上一帧的样本？</li>
+<li>一种想法，每一帧采不同的区域
+<ul>
+<li>连续 4 帧，分别采样 左上、右上、右下、左下（移动的 sampling pattern）</li>
+<li>复用上一帧，递归形成复用之前所有的样本的 sampling</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/rec.png"></p>
+<ul>
+<li>为什么不随机生成呢？
+<ul>
+<li>相对均匀分布</li>
+<li>如果随机会引入一些额外的高频信息，效果可能不太好</li>
+</ul></li>
+</ul>
+<h4 id="运动场景">运动场景</h4>
+<ul>
+<li>motion vector</li>
+<li>temporal 信息不可用的时候，也是使用 clamping 的方法
+<ul>
+<li>基本上和 RTRT 中的思路一致</li>
+</ul></li>
+</ul>
+<h3 id="msaa-和-ssaa">MSAA 和 SSAA</h3>
+<ul>
+<li>SSAA：Supersampling
+<ul>
+<li>渲染的时候，使用更高的分辨率，在渲染结束后，降采样到要求的分辨率</li>
+<li>正确的，效果非常好，但是开销非常大</li>
+</ul></li>
+<li>MSAA：Multisampling AA
+<ul>
+<li>一个 primitive 只会进行一次 shading</li>
+<li>下图中，SSAA 需要做 4 次 shading，MSAA 只需要做两次</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614145047754.png" style="zoom:50%;"></p>
+<ul>
+<li>MSAA 支持空间上的复用
+<ul>
+<li>(1)(2) 中间的两个采样点可以被视为对 (1) 的贡献，也能被当作对 (2) 的贡献</li>
+<li>复用了中间两个点</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614145220883.png" style="zoom: 80%;"></p>
+<ul>
+<li>https://www.sapphirenation.net/anti-aliasing-comparison-performance-quality</li>
+</ul>
+<h3 id="图像上的-aa">图像上的 AA</h3>
+<ul>
+<li>先渲染得到带锯齿的结果图，然后在图像上进行反走样处理</li>
+<li>最流行的方法：SMAA（Enhanced subpixelmorphological AA）</li>
+<li>发展历史：FXAA <span class="math inline">\(\to\)</span> MLAA（Morphological AA）<span class="math inline">\(\to\)</span> SMAA</li>
+</ul>
+<h4 id="smaa">SMAA</h4>
+<ul>
+<li>http://www.iryoku.com/smaa/</li>
+<li>先检测出来边界，然后根据找出来的边界，根据占比上色
+<ul>
+<li>矢量化的过程</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614145953181.png" style="zoom: 67%;"></p>
+<ul>
+<li>效果非常快</li>
+<li>不能对 G-Buffer 做反走样，反走样了则失去了原来的意义</li>
+</ul>
+<h2 id="temporal-super-resolution">Temporal Super Resolution</h2>
+<ul>
+<li>超分辨率：Super Resolution（Super Sampling）
+<ul>
+<li>字面理解：提高分辨率</li>
+</ul></li>
+</ul>
+<h3 id="dlss">DLSS</h3>
+<ul>
+<li>Nvidia</li>
+<li>DLSS 1.0：硬猜，通过神经网络学习到一些结果，将模糊的边缘换成不模糊的边缘
+<ul>
+<li>完全数据驱动</li>
+</ul></li>
+<li>DLSS 2.0：使用更多 Temporal 的信息
+<ul>
+<li>分辨率提高，变模糊，等价于是采样不足，试从上一帧中获取信息</li>
+</ul></li>
+<li>核心思想就是利用 TAA
+<ul>
+<li>Temporally reuse samples to increase resolution</li>
+</ul></li>
+<li>DLSS 面临的另外一个问题，如果时间的信息不可用，不能使用 clamping 的方法
+<ul>
+<li>对 temporal 的信息利用更加严格</li>
+<li>我们实际上需要的是一个增大了分辨率的结果，我们需要知道一些更细致分辨率的值，如果我们不能够在时间上获取到这些信息，盲目的使用周围的值去猜，这样会导致模糊的结果
+<ul>
+<li>也就是说新的值和原来的值本质上是不同的，更细致的分辨率有更多细节</li>
+</ul></li>
+<li>因此我们需要找一个比 clamp 更好的方案（当 temporal failure 的时候）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151204493.png" style="zoom:50%;"></p>
+<ul>
+<li>当前帧和上一帧的采样信号 <span class="math inline">\(\to\)</span> 得到一个当前帧增加了采样点的值
+<ul>
+<li>DLSS 的网络没有输出具体的颜色值，而是告诉我们应该怎么去使用上一帧的信息</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151247397.png" style="zoom:50%;"></p>
+<h4 id="效果对比">效果对比</h4>
+<ul>
+<li>540p Bicubic Upsampled to 1080p</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151725046.png"></p>
+<ul>
+<li>540p to 1080p DLSS2.0</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151801326.png"></p>
+<ul>
+<li>1080p with TAA</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151819215.png"></p>
+<ul>
+<li>DLSS 2.0 的效果可能更加锐利，因为 Temporal 的复用可能提高的分辨率不止 2x</li>
+</ul>
+<h4 id="其他">其他</h4>
+<ul>
+<li>DLSS 网络跑得快，具体怎么实现不清楚
+<ul>
+<li>Network inference performance optimization (classified)</li>
+</ul></li>
+<li>AMD 也有 DLSS
+<ul>
+<li>AMD：FidelityFX Super Resolution</li>
+<li>同样性能的 <strong>CPU</strong>，AMD 的价格大概在 Nvidia 的一半价格</li>
+</ul></li>
+<li>Facebook：Neural Supersampling for Real-time Rendering [Xiao et al.]
+<ul>
+<li>效果不太好，实现上更像 DLSS 1.0，工业界不好用</li>
+</ul></li>
+</ul>
+<h2 id="避免没有意义的-shading">避免没有意义的 shading</h2>
+<h3 id="deferred-shading">Deferred Shading</h3>
+<ul>
+<li>延迟渲染</li>
+<li>让 shading 变得更加高效，速度更快</li>
+<li>传统的光栅化渲染管线
+<ul>
+<li>Triangles -&gt; fragments -&gt; depth test -&gt; shade -&gt; pixel</li>
+</ul></li>
+<li>延迟渲染的想法
+<ul>
+<li>在传统的光栅化渲染管线下，只有对视点可见的点的 shading 才是真正有效的，其他点的渲染本质上都是是无用功</li>
+</ul></li>
+<li>最坏的情况
+<ul>
+<li>对于每一个 fragment，都是<strong>从远到近</strong>渲染的，这样做了很多无用功</li>
+<li>这样每一个点都得做 shading</li>
+<li>复杂度：O(#fragment <span class="math inline">\(\times\)</span> #light)</li>
+</ul></li>
+<li>延迟渲染的基本想法
+<ul>
+<li>大部分的 fragment 在最终的 image 中是不可见的</li>
+<li>我们只需要渲染在最终的 image 中可见的 fragment</li>
+</ul></li>
+</ul>
+<h4 id="思路">思路</h4>
+<ul>
+<li>光栅化两次</li>
+<li>第一次光栅化
+<ul>
+<li>只生成 depth-buffer</li>
+<li>不做 shading</li>
+</ul></li>
+<li>第二次光栅化
+<ul>
+<li>给通过深度测试的 fragment 进行 shading</li>
+<li>因为对于每一个像素，能够通过深度测试的 fragment 只会有 1 个</li>
+</ul></li>
+<li>延迟渲染的基本想法
+<ul>
+<li>一次光栅化的开销比对大量不必要点的 shading 计算开销要小</li>
+<li>assume rasterizing the scene is way faster than shading all unseen fragments (<strong>usually true</strong>)</li>
+</ul></li>
+<li>复杂度：O(#vis. fragment <span class="math inline">\(\times\)</span> #light)</li>
+<li>问题
+<ul>
+<li>我们做不了 AA（G-Buffer 不能做 AA）</li>
+<li>但是可以通过 TAA 或者图像空间上的 AA，AA 的问题能够被很好的解决</li>
+</ul></li>
+<li>因此延迟渲染成为工业界的标配</li>
+</ul>
+<h3 id="tiled-shading">Tiled Shading</h3>
+<ul>
+<li><strong>优化光源</strong></li>
+<li>把屏幕切分为若干个 tile（大概每个 <span class="math inline">\(32\times32\)</span>），每个小块单独做 shading</li>
+<li>这样子的方法可以<strong>减少每一个小块需要考虑的光源数目</strong></li>
+<li>如下是 frustum 的俯视图</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614164138654.png" style="zoom:50%;"></p>
+<ul>
+<li>对于每一个小条，不是所有光源都会影响到它
+<ul>
+<li>光源的平方衰减
+<ul>
+<li>上面的圆圈表示每一个光源的覆盖范围（球投影成圆）</li>
+</ul></li>
+<li>上面的数字表示影响到这个光源的光源个数</li>
+</ul></li>
+<li>复杂度：O(#vis. frag. <span class="math inline">\(\times\)</span> avg #light per tile)</li>
+</ul>
+<h3 id="clustered-shading">Clustered shading</h3>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614164138654.png" style="zoom:50%;"></p>
+<ul>
+<li>想法和 tiled shading 类似</li>
+<li>深度上也切片</li>
+<li>一个格子可能包含多个像素，前面可能不会把后面整个各自都遮挡住</li>
+</ul>
+<h2 id="level-of-detail">Level of Detail</h2>
+<ul>
+<li>LoD
+<ul>
+<li>例如 mipmap 就是一个 level of detail</li>
+</ul></li>
+<li>在具体使用的时候，选择正确的层级去使用，这样能够节省计算的效率</li>
+<li>RTR 工业界中把这种在对不同层级细节的使用称为 <strong>cascaded</strong></li>
+<li>shadow map 可以用来做 LoD</li>
+</ul>
+<h3 id="cascaded-shadow-map">Cascaded Shadow Map</h3>
+<ul>
+<li>[Dimitrov et al., Cascaded Shadow Maps]</li>
+<li>离视点近的物体使用高分辨率的 SM，离视点远的物体使用低分辨率的 SM
+<ul>
+<li>下图中，三角形为 frustum，红色使用高分辨率 SM，蓝色使用低分辨率 SM</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614182849481.png" style="zoom:50%;"></p>
+<ul>
+<li>实际应用中我们很难生成一张变分辨率的 SM，因此实际应用会生成多张不同分辨率的 SM</li>
+<li>针对不同距离，我们使用不同分辨率的 SM</li>
+<li>范围会有一些重叠
+<ul>
+<li>保证切换 SM 时能够平滑过渡</li>
+<li>重叠区域使用两个 SM 混合的效果</li>
+</ul></li>
+</ul>
+<h3 id="cascaded-lpv">Cascaded LPV</h3>
+<ul>
+<li>[Anton Kaplanyan, Light Propagation Volumes in CryEngine 3]</li>
+<li>近处比较小，远处比较大</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614183357657.png" style="zoom:67%;"></p>
+<h3 id="geometric-lod">Geometric LoD</h3>
+<ul>
+<li>高模（三角形多的模型）、低模（三角形少的模型）</li>
+<li>预先生成一系列的不同三角形数的模型</li>
+<li>可以对一个物体的不同部分使用不同精细程度的模型细节</li>
+<li>UE5 的 Nanite 就是利用这些原理实现</li>
+<li>对于引擎来说，技术实现是难点</li>
+</ul>
+<h3 id="cascaded-的问题">Cascaded 的问题</h3>
+<ul>
+<li>在不同层级之间切换的时候可能会有问题（popping artifactss）
+<ul>
+<li>通常的方法可以在边界的地方使用 blending 的方法</li>
+<li>Popping artifacts
+<ul>
+<li>TAA 处理（复用上一帧的信息）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="引擎实现的难点">引擎实现的难点</h3>
+<ul>
+<li>一个物体的不同部分使用不同层级的 LoD，怎么保证相接的地方是没有缝的？</li>
+<li>如何动态加载和调度不同层级的资源？
+<ul>
+<li>GPU 容量有限</li>
+</ul></li>
+<li>Representing geometry using triangles or geometry textures?
+<ul>
+<li>怎么表示几何形体？三角形？几何纹理？</li>
+</ul></li>
+<li>引擎实现的加速
+<ul>
+<li>clipping 裁剪</li>
+<li>culling 剔除（背面剔除）</li>
+</ul></li>
+</ul>
+<h2 id="全局光照的解决方法">全局光照的解决方法</h2>
+<ul>
+<li>SSR 屏幕空间光线跟踪</li>
+<li>没有一种简单的 GI 方法能够解决所有的场景
+<ul>
+<li>RTRT可以，但是现在还是太慢了</li>
+</ul></li>
+<li>工业界经常把多种方法混合起来使用</li>
+<li>一个 GI 的解决方案
+<ul>
+<li>SSR 得到近似的 GI</li>
+<li>对于 SSR 失败的地方，是用其他方式补充
+<ul>
+<li>hardware (RTRT) or software ray tracing</li>
+</ul></li>
+</ul></li>
+<li>软件光追
+<ul>
+<li><span style="color:red">HQ SDF for individual objects that are close-by</span>
+<ul>
+<li>高质量的有向距离场</li>
+</ul></li>
+<li><span style="color:red">LQ SDF for the entire scene</span></li>
+<li><span style="color:red">RSM if there are strong directional / point lights</span>
+<ul>
+<li>手电筒</li>
+</ul></li>
+<li>Dynamic Diffuse GI(<strong>DDGI</strong>)
+<ul>
+<li>Probes that stores irradiance in a 3D grid</li>
+<li>利用这些探针去照亮整个场景</li>
+</ul></li>
+</ul></li>
+<li>硬件光追
+<ul>
+<li><span style="color:red">Doesn’t have to use the original geometry, but low-poly proxies</span>
+<ul>
+<li>使用简化的模型</li>
+</ul></li>
+<li>Probes（RTXGI）</li>
+</ul></li>
+<li>以上<span style="color:red">红色部分</span>是 UE5 的 Lumen 实现</li>
+</ul>
+<h2 id="课程没有涉及的部分">课程没有涉及的部分</h2>
+<ul>
+<li>Texturing an SDF</li>
+<li>Transparent material and order-independent transparency</li>
+<li>Particle rendering</li>
+<li>Post processing (depth of field, motion blur, etc.)</li>
+<li>Random seed and blue noise
+<ul>
+<li>蓝噪声：</li>
+</ul></li>
+<li>Foveated rendering
+<ul>
+<li>注视点投入更多渲染的算力</li>
+</ul></li>
+<li>Probe based global illumination</li>
+<li>ReSTIR, Neural Radiance Caching, etc.</li>
+<li>Many-light theory and light cuts</li>
+<li>Participating media, SSSSS
+<ul>
+<li>参与介质</li>
+<li>次表面散射</li>
+</ul></li>
+<li>Hair appearance</li>
+<li>......</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614192555110.png" style="zoom:67%;"></p>
 ]]></content>
       <categories>
         <category>CG.GAMES202</category>

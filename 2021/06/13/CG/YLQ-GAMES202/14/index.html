@@ -23,16 +23,31 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
-<meta name="description" content="工业界算法实现">
+<meta name="description" content="TAA、MSAA、SSAA、图像上的 AA 算法（SMAA）、DLSS、Deferred Shading（延迟渲染）、Tiled Shading、Clustered shading、LoD、全局光照的解决方法（UE5 Nanite、UE5 Lumen）、课程总结">
 <meta property="og:type" content="article">
 <meta property="og:title" content="GAMES202.闫令琪.14.工业界算法实现">
 <meta property="og:url" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/index.html">
 <meta property="og:site_name" content="Banbao">
-<meta property="og:description" content="工业界算法实现">
+<meta property="og:description" content="TAA、MSAA、SSAA、图像上的 AA 算法（SMAA）、DLSS、Deferred Shading（延迟渲染）、Tiled Shading、Clustered shading、LoD、全局光照的解决方法（UE5 Nanite、UE5 Lumen）、课程总结">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210613145024654.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614143611181.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/rec.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614145047754.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614145220883.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614145953181.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151204493.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151247397.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151725046.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151801326.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151819215.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614164138654.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614164138654.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614182849481.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614183357657.png">
+<meta property="og:image" content="http://example.com/2021/06/13/CG/YLQ-GAMES202/14/image-20210614192555110.png">
 <meta property="article:published_time" content="2021-06-13T06:48:44.000Z">
-<meta property="article:modified_time" content="2021-06-13T06:53:34.530Z">
+<meta property="article:modified_time" content="2021-06-14T11:33:51.307Z">
 <meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="CG">
 <meta property="article:tag" content="YLQ">
@@ -190,7 +205,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B7%A5%E4%B8%9A%E7%95%8C%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="nav-text">工业界算法实现</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B7%A5%E4%B8%9A%E7%95%8C%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="nav-text">工业界算法实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#aa"><span class="nav-text">AA</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#taa"><span class="nav-text">TAA</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%AD%A2%E5%9C%BA%E6%99%AF"><span class="nav-text">静止场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%90%E5%8A%A8%E5%9C%BA%E6%99%AF"><span class="nav-text">运动场景</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#msaa-%E5%92%8C-ssaa"><span class="nav-text">MSAA 和 SSAA</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BE%E5%83%8F%E4%B8%8A%E7%9A%84-aa"><span class="nav-text">图像上的 AA</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#smaa"><span class="nav-text">SMAA</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#temporal-super-resolution"><span class="nav-text">Temporal Super Resolution</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dlss"><span class="nav-text">DLSS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%88%E6%9E%9C%E5%AF%B9%E6%AF%94"><span class="nav-text">效果对比</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-text">其他</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%BF%E5%85%8D%E6%B2%A1%E6%9C%89%E6%84%8F%E4%B9%89%E7%9A%84-shading"><span class="nav-text">避免没有意义的 shading</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#deferred-shading"><span class="nav-text">Deferred Shading</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF"><span class="nav-text">思路</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tiled-shading"><span class="nav-text">Tiled Shading</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#clustered-shading"><span class="nav-text">Clustered shading</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#level-of-detail"><span class="nav-text">Level of Detail</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#cascaded-shadow-map"><span class="nav-text">Cascaded Shadow Map</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cascaded-lpv"><span class="nav-text">Cascaded LPV</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#geometric-lod"><span class="nav-text">Geometric LoD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cascaded-%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">Cascaded 的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E6%93%8E%E5%AE%9E%E7%8E%B0%E7%9A%84%E9%9A%BE%E7%82%B9"><span class="nav-text">引擎实现的难点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E5%85%89%E7%85%A7%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95"><span class="nav-text">全局光照的解决方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BE%E7%A8%8B%E6%B2%A1%E6%9C%89%E6%B6%89%E5%8F%8A%E7%9A%84%E9%83%A8%E5%88%86"><span class="nav-text">课程没有涉及的部分</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -292,10 +307,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2021-06-13 14:48:44 / Modified: 14:53:34" itemprop="dateCreated datePublished" datetime="2021-06-13T14:48:44+08:00">2021-06-13</time>
+      <time title="Created: 2021-06-13 14:48:44" itemprop="dateCreated datePublished" datetime="2021-06-13T14:48:44+08:00">2021-06-13</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-06-14 19:33:51" itemprop="dateModified" datetime="2021-06-14T19:33:51+08:00">2021-06-14</time>
+      </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-folder"></i>
@@ -316,7 +337,7 @@
     </span>
 </div>
 
-            <div class="post-description">工业界算法实现</div>
+            <div class="post-description">TAA、MSAA、SSAA、图像上的 AA 算法（SMAA）、DLSS、Deferred Shading（延迟渲染）、Tiled Shading、Clustered shading、LoD、全局光照的解决方法（UE5 Nanite、UE5 Lumen）、课程总结</div>
         </div>
       </header>
 
@@ -327,13 +348,384 @@
         <ul>
 <li>https://www.bilibili.com/video/BV1YK4y1T7yY</li>
 </ul>
-<figure>
-<img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210613145024654.png" alt="image-20210613145024654"><figcaption>image-20210613145024654</figcaption>
-</figure>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210613145024654.png" style="zoom:50%;"></p>
 <h1 id="工业界算法实现">工业界算法实现</h1>
 <ul>
-<li>A Glimpse of Industrial Solutions</li>
+<li>A Glimpse of Industrial Solutions (from the scientific perspective)</li>
 </ul>
+<h2 id="aa">AA</h2>
+<ul>
+<li>Anti-Aliasing：反走样</li>
+</ul>
+<h3 id="taa">TAA</h3>
+<ul>
+<li>Temporal Anti-Aliasing</li>
+<li>TAA 算法的成功，才有了 temporal 思想在 RTRT 中的应用</li>
+<li>走样的来源：对于每个像素的采样数不够（采样定理）</li>
+<li>解决思路：使用更多的样本</li>
+<li>temporal AA：使用更多的样本，但是是使用更多上一帧（以及之前帧）的样本
+<ul>
+<li>思路和 RTRT 中是一样的</li>
+</ul></li>
+</ul>
+<h4 id="静止场景">静止场景</h4>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614143611181.png" style="zoom:50%;"></p>
+<ul>
+<li>怎么复用上一帧的样本？</li>
+<li>一种想法，每一帧采不同的区域
+<ul>
+<li>连续 4 帧，分别采样 左上、右上、右下、左下（移动的 sampling pattern）</li>
+<li>复用上一帧，递归形成复用之前所有的样本的 sampling</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/rec.png"></p>
+<ul>
+<li>为什么不随机生成呢？
+<ul>
+<li>相对均匀分布</li>
+<li>如果随机会引入一些额外的高频信息，效果可能不太好</li>
+</ul></li>
+</ul>
+<h4 id="运动场景">运动场景</h4>
+<ul>
+<li>motion vector</li>
+<li>temporal 信息不可用的时候，也是使用 clamping 的方法
+<ul>
+<li>基本上和 RTRT 中的思路一致</li>
+</ul></li>
+</ul>
+<h3 id="msaa-和-ssaa">MSAA 和 SSAA</h3>
+<ul>
+<li>SSAA：Supersampling
+<ul>
+<li>渲染的时候，使用更高的分辨率，在渲染结束后，降采样到要求的分辨率</li>
+<li>正确的，效果非常好，但是开销非常大</li>
+</ul></li>
+<li>MSAA：Multisampling AA
+<ul>
+<li>一个 primitive 只会进行一次 shading</li>
+<li>下图中，SSAA 需要做 4 次 shading，MSAA 只需要做两次</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614145047754.png" style="zoom:50%;"></p>
+<ul>
+<li>MSAA 支持空间上的复用
+<ul>
+<li>(1)(2) 中间的两个采样点可以被视为对 (1) 的贡献，也能被当作对 (2) 的贡献</li>
+<li>复用了中间两个点</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614145220883.png" style="zoom: 80%;"></p>
+<ul>
+<li>https://www.sapphirenation.net/anti-aliasing-comparison-performance-quality</li>
+</ul>
+<h3 id="图像上的-aa">图像上的 AA</h3>
+<ul>
+<li>先渲染得到带锯齿的结果图，然后在图像上进行反走样处理</li>
+<li>最流行的方法：SMAA（Enhanced subpixelmorphological AA）</li>
+<li>发展历史：FXAA <span class="math inline">\(\to\)</span> MLAA（Morphological AA）<span class="math inline">\(\to\)</span> SMAA</li>
+</ul>
+<h4 id="smaa">SMAA</h4>
+<ul>
+<li>http://www.iryoku.com/smaa/</li>
+<li>先检测出来边界，然后根据找出来的边界，根据占比上色
+<ul>
+<li>矢量化的过程</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614145953181.png" style="zoom: 67%;"></p>
+<ul>
+<li>效果非常快</li>
+<li>不能对 G-Buffer 做反走样，反走样了则失去了原来的意义</li>
+</ul>
+<h2 id="temporal-super-resolution">Temporal Super Resolution</h2>
+<ul>
+<li>超分辨率：Super Resolution（Super Sampling）
+<ul>
+<li>字面理解：提高分辨率</li>
+</ul></li>
+</ul>
+<h3 id="dlss">DLSS</h3>
+<ul>
+<li>Nvidia</li>
+<li>DLSS 1.0：硬猜，通过神经网络学习到一些结果，将模糊的边缘换成不模糊的边缘
+<ul>
+<li>完全数据驱动</li>
+</ul></li>
+<li>DLSS 2.0：使用更多 Temporal 的信息
+<ul>
+<li>分辨率提高，变模糊，等价于是采样不足，试从上一帧中获取信息</li>
+</ul></li>
+<li>核心思想就是利用 TAA
+<ul>
+<li>Temporally reuse samples to increase resolution</li>
+</ul></li>
+<li>DLSS 面临的另外一个问题，如果时间的信息不可用，不能使用 clamping 的方法
+<ul>
+<li>对 temporal 的信息利用更加严格</li>
+<li>我们实际上需要的是一个增大了分辨率的结果，我们需要知道一些更细致分辨率的值，如果我们不能够在时间上获取到这些信息，盲目的使用周围的值去猜，这样会导致模糊的结果
+<ul>
+<li>也就是说新的值和原来的值本质上是不同的，更细致的分辨率有更多细节</li>
+</ul></li>
+<li>因此我们需要找一个比 clamp 更好的方案（当 temporal failure 的时候）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151204493.png" style="zoom:50%;"></p>
+<ul>
+<li>当前帧和上一帧的采样信号 <span class="math inline">\(\to\)</span> 得到一个当前帧增加了采样点的值
+<ul>
+<li>DLSS 的网络没有输出具体的颜色值，而是告诉我们应该怎么去使用上一帧的信息</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151247397.png" style="zoom:50%;"></p>
+<h4 id="效果对比">效果对比</h4>
+<ul>
+<li>540p Bicubic Upsampled to 1080p</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151725046.png"></p>
+<ul>
+<li>540p to 1080p DLSS2.0</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151801326.png"></p>
+<ul>
+<li>1080p with TAA</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614151819215.png"></p>
+<ul>
+<li>DLSS 2.0 的效果可能更加锐利，因为 Temporal 的复用可能提高的分辨率不止 2x</li>
+</ul>
+<h4 id="其他">其他</h4>
+<ul>
+<li>DLSS 网络跑得快，具体怎么实现不清楚
+<ul>
+<li>Network inference performance optimization (classified)</li>
+</ul></li>
+<li>AMD 也有 DLSS
+<ul>
+<li>AMD：FidelityFX Super Resolution</li>
+<li>同样性能的 <strong>CPU</strong>，AMD 的价格大概在 Nvidia 的一半价格</li>
+</ul></li>
+<li>Facebook：Neural Supersampling for Real-time Rendering [Xiao et al.]
+<ul>
+<li>效果不太好，实现上更像 DLSS 1.0，工业界不好用</li>
+</ul></li>
+</ul>
+<h2 id="避免没有意义的-shading">避免没有意义的 shading</h2>
+<h3 id="deferred-shading">Deferred Shading</h3>
+<ul>
+<li>延迟渲染</li>
+<li>让 shading 变得更加高效，速度更快</li>
+<li>传统的光栅化渲染管线
+<ul>
+<li>Triangles -&gt; fragments -&gt; depth test -&gt; shade -&gt; pixel</li>
+</ul></li>
+<li>延迟渲染的想法
+<ul>
+<li>在传统的光栅化渲染管线下，只有对视点可见的点的 shading 才是真正有效的，其他点的渲染本质上都是是无用功</li>
+</ul></li>
+<li>最坏的情况
+<ul>
+<li>对于每一个 fragment，都是<strong>从远到近</strong>渲染的，这样做了很多无用功</li>
+<li>这样每一个点都得做 shading</li>
+<li>复杂度：O(#fragment <span class="math inline">\(\times\)</span> #light)</li>
+</ul></li>
+<li>延迟渲染的基本想法
+<ul>
+<li>大部分的 fragment 在最终的 image 中是不可见的</li>
+<li>我们只需要渲染在最终的 image 中可见的 fragment</li>
+</ul></li>
+</ul>
+<h4 id="思路">思路</h4>
+<ul>
+<li>光栅化两次</li>
+<li>第一次光栅化
+<ul>
+<li>只生成 depth-buffer</li>
+<li>不做 shading</li>
+</ul></li>
+<li>第二次光栅化
+<ul>
+<li>给通过深度测试的 fragment 进行 shading</li>
+<li>因为对于每一个像素，能够通过深度测试的 fragment 只会有 1 个</li>
+</ul></li>
+<li>延迟渲染的基本想法
+<ul>
+<li>一次光栅化的开销比对大量不必要点的 shading 计算开销要小</li>
+<li>assume rasterizing the scene is way faster than shading all unseen fragments (<strong>usually true</strong>)</li>
+</ul></li>
+<li>复杂度：O(#vis. fragment <span class="math inline">\(\times\)</span> #light)</li>
+<li>问题
+<ul>
+<li>我们做不了 AA（G-Buffer 不能做 AA）</li>
+<li>但是可以通过 TAA 或者图像空间上的 AA，AA 的问题能够被很好的解决</li>
+</ul></li>
+<li>因此延迟渲染成为工业界的标配</li>
+</ul>
+<h3 id="tiled-shading">Tiled Shading</h3>
+<ul>
+<li><strong>优化光源</strong></li>
+<li>把屏幕切分为若干个 tile（大概每个 <span class="math inline">\(32\times32\)</span>），每个小块单独做 shading</li>
+<li>这样子的方法可以<strong>减少每一个小块需要考虑的光源数目</strong></li>
+<li>如下是 frustum 的俯视图</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614164138654.png" style="zoom:50%;"></p>
+<ul>
+<li>对于每一个小条，不是所有光源都会影响到它
+<ul>
+<li>光源的平方衰减
+<ul>
+<li>上面的圆圈表示每一个光源的覆盖范围（球投影成圆）</li>
+</ul></li>
+<li>上面的数字表示影响到这个光源的光源个数</li>
+</ul></li>
+<li>复杂度：O(#vis. frag. <span class="math inline">\(\times\)</span> avg #light per tile)</li>
+</ul>
+<h3 id="clustered-shading">Clustered shading</h3>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614164138654.png" style="zoom:50%;"></p>
+<ul>
+<li>想法和 tiled shading 类似</li>
+<li>深度上也切片</li>
+<li>一个格子可能包含多个像素，前面可能不会把后面整个各自都遮挡住</li>
+</ul>
+<h2 id="level-of-detail">Level of Detail</h2>
+<ul>
+<li>LoD
+<ul>
+<li>例如 mipmap 就是一个 level of detail</li>
+</ul></li>
+<li>在具体使用的时候，选择正确的层级去使用，这样能够节省计算的效率</li>
+<li>RTR 工业界中把这种在对不同层级细节的使用称为 <strong>cascaded</strong></li>
+<li>shadow map 可以用来做 LoD</li>
+</ul>
+<h3 id="cascaded-shadow-map">Cascaded Shadow Map</h3>
+<ul>
+<li>[Dimitrov et al., Cascaded Shadow Maps]</li>
+<li>离视点近的物体使用高分辨率的 SM，离视点远的物体使用低分辨率的 SM
+<ul>
+<li>下图中，三角形为 frustum，红色使用高分辨率 SM，蓝色使用低分辨率 SM</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614182849481.png" style="zoom:50%;"></p>
+<ul>
+<li>实际应用中我们很难生成一张变分辨率的 SM，因此实际应用会生成多张不同分辨率的 SM</li>
+<li>针对不同距离，我们使用不同分辨率的 SM</li>
+<li>范围会有一些重叠
+<ul>
+<li>保证切换 SM 时能够平滑过渡</li>
+<li>重叠区域使用两个 SM 混合的效果</li>
+</ul></li>
+</ul>
+<h3 id="cascaded-lpv">Cascaded LPV</h3>
+<ul>
+<li>[Anton Kaplanyan, Light Propagation Volumes in CryEngine 3]</li>
+<li>近处比较小，远处比较大</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614183357657.png" style="zoom:67%;"></p>
+<h3 id="geometric-lod">Geometric LoD</h3>
+<ul>
+<li>高模（三角形多的模型）、低模（三角形少的模型）</li>
+<li>预先生成一系列的不同三角形数的模型</li>
+<li>可以对一个物体的不同部分使用不同精细程度的模型细节</li>
+<li>UE5 的 Nanite 就是利用这些原理实现</li>
+<li>对于引擎来说，技术实现是难点</li>
+</ul>
+<h3 id="cascaded-的问题">Cascaded 的问题</h3>
+<ul>
+<li>在不同层级之间切换的时候可能会有问题（popping artifactss）
+<ul>
+<li>通常的方法可以在边界的地方使用 blending 的方法</li>
+<li>Popping artifacts
+<ul>
+<li>TAA 处理（复用上一帧的信息）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="引擎实现的难点">引擎实现的难点</h3>
+<ul>
+<li>一个物体的不同部分使用不同层级的 LoD，怎么保证相接的地方是没有缝的？</li>
+<li>如何动态加载和调度不同层级的资源？
+<ul>
+<li>GPU 容量有限</li>
+</ul></li>
+<li>Representing geometry using triangles or geometry textures?
+<ul>
+<li>怎么表示几何形体？三角形？几何纹理？</li>
+</ul></li>
+<li>引擎实现的加速
+<ul>
+<li>clipping 裁剪</li>
+<li>culling 剔除（背面剔除）</li>
+</ul></li>
+</ul>
+<h2 id="全局光照的解决方法">全局光照的解决方法</h2>
+<ul>
+<li>SSR 屏幕空间光线跟踪</li>
+<li>没有一种简单的 GI 方法能够解决所有的场景
+<ul>
+<li>RTRT可以，但是现在还是太慢了</li>
+</ul></li>
+<li>工业界经常把多种方法混合起来使用</li>
+<li>一个 GI 的解决方案
+<ul>
+<li>SSR 得到近似的 GI</li>
+<li>对于 SSR 失败的地方，是用其他方式补充
+<ul>
+<li>hardware (RTRT) or software ray tracing</li>
+</ul></li>
+</ul></li>
+<li>软件光追
+<ul>
+<li><span style="color:red">HQ SDF for individual objects that are close-by</span>
+<ul>
+<li>高质量的有向距离场</li>
+</ul></li>
+<li><span style="color:red">LQ SDF for the entire scene</span></li>
+<li><span style="color:red">RSM if there are strong directional / point lights</span>
+<ul>
+<li>手电筒</li>
+</ul></li>
+<li>Dynamic Diffuse GI(<strong>DDGI</strong>)
+<ul>
+<li>Probes that stores irradiance in a 3D grid</li>
+<li>利用这些探针去照亮整个场景</li>
+</ul></li>
+</ul></li>
+<li>硬件光追
+<ul>
+<li><span style="color:red">Doesn’t have to use the original geometry, but low-poly proxies</span>
+<ul>
+<li>使用简化的模型</li>
+</ul></li>
+<li>Probes（RTXGI）</li>
+</ul></li>
+<li>以上<span style="color:red">红色部分</span>是 UE5 的 Lumen 实现</li>
+</ul>
+<h2 id="课程没有涉及的部分">课程没有涉及的部分</h2>
+<ul>
+<li>Texturing an SDF</li>
+<li>Transparent material and order-independent transparency</li>
+<li>Particle rendering</li>
+<li>Post processing (depth of field, motion blur, etc.)</li>
+<li>Random seed and blue noise
+<ul>
+<li>蓝噪声：</li>
+</ul></li>
+<li>Foveated rendering
+<ul>
+<li>注视点投入更多渲染的算力</li>
+</ul></li>
+<li>Probe based global illumination</li>
+<li>ReSTIR, Neural Radiance Caching, etc.</li>
+<li>Many-light theory and light cuts</li>
+<li>Participating media, SSSSS
+<ul>
+<li>参与介质</li>
+<li>次表面散射</li>
+</ul></li>
+<li>Hair appearance</li>
+<li>......</li>
+</ul>
+<p><img src="/2021/06/13/CG/YLQ-GAMES202/14/image-20210614192555110.png" style="zoom:67%;"></p>
 
     </div>
 
