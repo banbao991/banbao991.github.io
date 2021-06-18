@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="SM、PCF、PCSS、VSM)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="阴影算法的实现(SM、PCF、PCSS、VSM)">
+<meta property="og:url" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="SM、PCF、PCSS、VSM)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210407175007126.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210618203106841.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210618203601043.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210407175256445.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210407181810295.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.00.50.30.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.28.17.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.30.75.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210407160246926.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.10.09.72.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.33.02.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.34.97.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.37.04.png">
+<meta property="og:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.52.38.86.png">
+<meta property="article:published_time" content="2021-06-18T04:12:13.000Z">
+<meta property="article:modified_time" content="2021-06-18T15:57:04.572Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="CG-Algorithm">
+<meta property="article:tag" content="Shadow">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210407175007126.png">
+
+
+<link rel="canonical" href="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>阴影算法的实现(SM、PCF、PCSS、VSM) | Banbao</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Banbao</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%98%B4%E5%BD%B1%E7%AE%97%E6%B3%95%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">阴影算法的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%B4%E6%98%8E"><span class="nav-text">说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E4%BB%8B%E7%BB%8D"><span class="nav-text">算法介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sm"><span class="nav-text">SM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pcf"><span class="nav-text">PCF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pcss"><span class="nav-text">PCSS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vsm"><span class="nav-text">VSM</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E8%AF%B4%E6%98%8E"><span class="nav-text">场景说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="nav-text">算法实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9D%80%E8%89%B2%E6%A8%A1%E5%9E%8B"><span class="nav-text">着色模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sm-1"><span class="nav-text">SM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pcf-1"><span class="nav-text">PCF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pcss-1"><span class="nav-text">PCSS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vsm-1"><span class="nav-text">VSM</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-text">其他</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E8%AF%B4%E6%98%8E"><span class="nav-text">文件说明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E6%96%87%E4%BB%B6"><span class="nav-text">执行文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-text">参考资料</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">89</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          阴影算法的实现(SM、PCF、PCSS、VSM)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2021-06-18 12:12:13 / Modified: 23:57:04" itemprop="dateCreated datePublished" datetime="2021-06-18T12:12:13+08:00">2021-06-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Algorithm/" itemprop="url" rel="index"><span itemprop="name">CG.Algorithm</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">SM、PCF、PCSS、VSM)</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="阴影算法的实现">阴影算法的实现</h1>
+<ul>
+<li>我们实现了从最经典的 Shadow Map 算法开始，实现了一系列的软阴影算法，包括 PCF、PCSS、VSM 三种软阴影算法</li>
+<li>如下是我们的算法实现过程以及结果展示</li>
+</ul>
+<h2 id="说明">说明</h2>
+<ul>
+<li>环境
+<ul>
+<li>VS2017 <span style="color:red;font-weight:bold">x86</span></li>
+<li>OpenGL 4.6（版本设置成了 3.3，之后的都行）</li>
+</ul></li>
+<li>依赖库
+<ul>
+<li>glad 0.1.34</li>
+<li>glfw 3.3</li>
+<li>glm 0.9.9.8</li>
+</ul></li>
+<li>代码
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/banbao990/OpenGL/tree/main/Demo/Codes/project/SM-PCF-PCSS-VSM">Github</a>，需要按照 <a target="_blank" rel="noopener" href="https://github.com/banbao990/OpenGL/blob/main/README.md">README</a> 配置</li>
+<li><a target="_blank" rel="noopener" href="https://banbao991.github.io/resources/CG/Algorithm/SM-PCF-PCSS-VSM/SM-PCF-PCSS-VSM.zip">打包好的源代码</a></li>
+</ul></li>
+</ul>
+<h2 id="算法介绍">算法介绍</h2>
+<h3 id="sm">SM</h3>
+<ul>
+<li>Shadow Mapping</li>
+<li>传统的 two-pass 阴影算法
+<ul>
+<li>第一个 pass，切换到以光源为视点的观察坐标系中，利用帧缓冲生成一张深度图 DepthMap</li>
+<li>第二个 pass，正常渲染，对渲染的每一个 fragment 做可见性判断，得到一个<strong>非零即一</strong>的 visibility
+<ul>
+<li>将 shading point 通过第一个 pass 的变换得到的深度值和 DepthMap 中记录的对应位置的深度值作比较</li>
+<li>如果 DepthMap 中记录的值小，说明当前的点对光源不可见，visibility=0</li>
+<li>否则 visibility=1</li>
+<li>用 visibility 乘上当前点的直接光照，进行遮蔽效果</li>
+</ul></li>
+</ul></li>
+<li>在实现上可以使用定向光做平行投影生成 DepthMap，也可以使用点光源做透视投影生成 DepthMap</li>
+</ul>
+<h3 id="pcf">PCF</h3>
+<ul>
+<li>Percentage Closer Filter</li>
+<li>由于 SM 得到的阴影结果是非零即一的值，这样子我们得到的边界就是一个很生硬的过渡（硬阴影），而实际生活中我们看到的阴影是有一个比较平滑的过渡（软阴影），这是由于我们定向光和点光源的假设在生活中是不成立的。生活中的光源是占据一块区域的，而不是只有一个点</li>
+<li>为了模拟这种软阴影的效果，我们在 SM 第二个 pass 的时候做如下处理
+<ul>
+<li>对于每一个 shading point，我们将其变换到以光源为视点的观察坐标系中的深度值和它对应的周围的 N 个点进行深度比较，求出一个 visibility 值</li>
+<li><span class="math inline">\(\mathrm{visibility}=\dfrac{深度比当前点深度值大的采样点数目}{\mathrm{N}}\)</span></li>
+<li>这样子我们得到的 visibility 的值就不是简单的非零即一的值，于是在边界产生过渡的效果</li>
+</ul></li>
+<li>上面的周围我们一般是给定半径 R，在半径为 R 的圆形区域内采样</li>
+</ul>
+<h3 id="pcss">PCSS</h3>
+<ul>
+<li>我们在生活中还观察到另外一种现象，物体越靠近投射出阴影的平面，阴影越偏向于硬边界，物体越远离投射出阴影的平面的时候，阴影越偏向于软边界</li>
+<li>如下图中，笔尖部分的阴影更硬，远离笔尖部分的阴影更软</li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210407175007126.png" style="zoom:50%;"></p>
+<ul>
+<li>这原因很简单，物体里成阴影平面越近，阴影过渡区域（半影）越小</li>
+<li>下图中
+<ul>
+<li>红色区域表示半影区域</li>
+<li>黄色部分表示全影区域</li>
+<li>显然在阴影平面 1 上半影区域比阴影平面 2 更小</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210618203106841.png" style="zoom: 67%;"></p>
+<ul>
+<li>我们加一条蓝色的辅助线，我们发现阴影平面1上半影区域占全影区域的比例也更小</li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210618203601043.png" style="zoom: 67%;"></p>
+<ul>
+<li>也就是说我们要通过物体到阴影平面的距离来决定阴影的软硬程度，也就是采样半径 R 的大小</li>
+<li>我们从上图中也了解到，半影区域也就是阴影过渡的区域，因此我们可以通过半影的大小估计采样半径 R</li>
+<li><span id="anchor2">估计方式</span>如下图所示</li>
+</ul>
+<p><span class="math display">\[
+w_{penumbra}=\dfrac{d_{Receiver}-d_{Blocker}}{d_{Blocker}}\cdot w_{Light}
+\]</span></p>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210407175256445.png" style="zoom: 33%;"></p>
+<ul>
+<li>但是同时这里出现了另外一个问题，<span class="math inline">\(d_{Blocker}\)</span> 的计算问题，可以通过给定固定范围的计算得到，或者<span id="anchor1">启发式的计算</span>得到</li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210407181810295.png" style="zoom: 33%;"></p>
+<h3 id="vsm">VSM</h3>
+<ul>
+<li>Variance Shadow Mapping</li>
+<li>VSM 算法试图使用计算的方式避免采样，因为采样是一个很慢的过程</li>
+<li>我们对 shading point 周围的点进行深度的采样，计算得到的 visibility 本质上就是在估计周围有百分之多少的点深度值比当前点大，也就是说如果我们能够获取到这个百分比，就不需要采样了</li>
+<li>切比雪夫不等式可以实现这一点</li>
+</ul>
+<p><span class="math display">\[
+P(x&gt;t)\le\dfrac{\sigma^2}{\sigma^2+(t-\mu)^2}
+\]</span></p>
+<ul>
+<li>切比雪夫不等式的条件是 <span class="math inline">\(t&gt;\mu\)</span> 以及分布是一个单峰的分布</li>
+<li>给定一个深度值 t，我们可以通过其周围的深度均值与方差估计出当前点深度的排名</li>
+<li>当然实时渲染中我们不等式直接当等式使用</li>
+</ul>
+<h2 id="场景说明">场景说明</h2>
+<ul>
+<li>我们的场景比较简单
+<ul>
+<li>一个点光源</li>
+<li>一个跳动的小球和一排方柱子</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.00.50.30.png" style="zoom:67%;"></p>
+<h2 id="算法实现">算法实现</h2>
+<h3 id="着色模型">着色模型</h3>
+<ul>
+<li>使用 Blinn-Phong 着色模型，由 diffuse + specular + ambient 三部分组成</li>
+<li>shader 主要代码如下</li>
+</ul>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> main() &#123;</span><br><span class="line">    <span class="comment">// 环境光 ambient</span></span><br><span class="line">    <span class="type">vec3</span> ambient = <span class="number">0.2</span> * color;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 漫发射光 diffuse</span></span><br><span class="line">    <span class="type">vec3</span> lightDir = <span class="built_in">normalize</span>(lightPos - fs_in.FragPos);</span><br><span class="line">    <span class="type">vec3</span> normal = <span class="built_in">normalize</span>(fs_in.Normal);</span><br><span class="line">    <span class="type">float</span> diff = <span class="built_in">max</span>(<span class="built_in">dot</span>(lightDir, normal), <span class="number">0.0</span>);</span><br><span class="line">    <span class="type">vec3</span> diffuse = diff * color;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 镜面高光 specular</span></span><br><span class="line">    <span class="type">vec3</span> viewDir = <span class="built_in">normalize</span>(viewPos - fs_in.FragPos);</span><br><span class="line">    <span class="type">vec3</span> reflectDir = <span class="built_in">reflect</span>(-lightDir, normal);</span><br><span class="line">    <span class="type">float</span> spec = <span class="number">0.0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Blinn-Phong 模型考虑法线和半角矢量的夹角</span></span><br><span class="line">    <span class="type">vec3</span> halfwayDir = <span class="built_in">normalize</span>(lightDir + viewDir);</span><br><span class="line">    spec = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="built_in">dot</span>(normal, halfwayDir), <span class="number">0.0</span>), <span class="number">32.0</span>);</span><br><span class="line">    <span class="type">vec3</span> specular = <span class="type">vec3</span>(<span class="number">0.3</span>) * spec;</span><br><span class="line">    </span><br><span class="line">    <span class="type">float</span> visibility = <span class="number">1.0</span>f;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 阴影算法</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    </span><br><span class="line">    FragColor = <span class="type">vec4</span>(ambient + visibility*(diffuse + specular), <span class="number">1.0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>没有阴影的效果如下，缺乏真实感</li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.28.17.png" style="zoom:67%;"></p>
+<h3 id="sm-1">SM</h3>
+<ul>
+<li>第一趟利用 OpenGL 的帧缓冲生成一张 DepthMap</li>
+<li>第二趟比较即可</li>
+<li>shader 代码如下
+<ul>
+<li>注意这里的 DepthMap 中虽然你保存的是透视投影的深度，但是我们不需要变换成线性深度，因为只需要知道相对大小即可</li>
+</ul></li>
+</ul>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 处于阴影之中: 0.0</span></span><br><span class="line"><span class="comment">// 否则返回 1.0</span></span><br><span class="line"><span class="type">float</span> ShadowCalculation(<span class="type">vec4</span> fragPosLightSpace) &#123;</span><br><span class="line">    <span class="comment">// 转化为标准齐次坐标, z:[-1, 1]</span></span><br><span class="line">    <span class="type">vec3</span> projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;</span><br><span class="line">    <span class="comment">// xyz:[-1, 1] =&gt; [0,1]</span></span><br><span class="line">    projCoords = projCoords * <span class="number">0.5</span> + <span class="number">0.5</span>;</span><br><span class="line">    <span class="comment">// 在深度图中获取深度信息</span></span><br><span class="line">    <span class="type">float</span> closestDepth = <span class="built_in">texture</span>(depthMap, projCoords.xy).r; </span><br><span class="line">    <span class="comment">// 当前片元的深度</span></span><br><span class="line">    <span class="type">float</span> currentDepth = projCoords.z;</span><br><span class="line">    <span class="comment">// 判断是否处于阴影当中</span></span><br><span class="line">    <span class="type">float</span> shadow = currentDepth-BIAS &gt; closestDepth  ? <span class="number">1.0</span> : <span class="number">0.0</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1.0</span> - shadow;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> main() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    visibility = ShadowCalculation(fs_in.FragPosLightSpace);</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>效果如下，是我们想象中的硬阴影</li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.30.75.png" style="zoom:67%;"></p>
+<ul>
+<li>注意上面的 BIAS 是为了解决自遮挡现象（黑白条纹）
+<ul>
+<li>由于 Z-Buffer 分辨率有限导致的</li>
+<li>下图形象说明了这点，蓝色的点竟然不可见了</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/image-20210407160246926.png" style="zoom: 67%;"></p>
+<ul>
+<li>不加 BIAS 的效果</li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.10.09.72.png" style="zoom:67%;"></p>
+<h3 id="pcf-1">PCF</h3>
+<ul>
+<li>PCF 的实现和 SM 类似，只需要对周围点多采样几个即可，我们直接对周围 R <span class="math inline">\(\times\)</span> R 的点进行一个遍历</li>
+</ul>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PCF 算法</span></span><br><span class="line"><span class="type">float</span> PCF(<span class="type">vec4</span> fragPosLightSpace, <span class="type">float</span> radius) &#123;</span><br><span class="line">    <span class="comment">// 采样距离修正</span></span><br><span class="line">    radius *= PCF_SampleRadius;</span><br><span class="line"></span><br><span class="line">    <span class="type">vec3</span> projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;</span><br><span class="line">    projCoords = projCoords * <span class="number">0.5</span> + <span class="number">0.5</span>;</span><br><span class="line">    <span class="type">float</span> shadow = <span class="number">0.0</span>;</span><br><span class="line">    <span class="type">float</span> currentDepth = projCoords.z;</span><br><span class="line">    <span class="type">vec2</span> texelSize = <span class="number">1.0</span> / <span class="built_in">textureSize</span>(depthMap, <span class="number">0</span>); <span class="comment">// 0 级纹理相邻纹素的距离</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> x = -PCF_RADIUS; x &lt;= PCF_RADIUS; ++x) &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> y = -PCF_RADIUS; y &lt;= PCF_RADIUS; ++y) &#123;</span><br><span class="line">            <span class="type">float</span> shadowMapDepth = <span class="built_in">texture</span>(depthMap, projCoords.xy + radius*<span class="type">vec2</span>(x, y) * texelSize).r; </span><br><span class="line">            shadow += currentDepth-BIAS &gt; shadowMapDepth  ? <span class="number">1.0</span> : <span class="number">0.0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">float</span> total = (<span class="number">2</span>*PCF_RADIUS+<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1.0</span> - shadow/(total*total);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> main() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    visibility = PCF(fs_in.FragPosLightSpace, <span class="number">1.0</span>);</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>PCF_SampleRadius 修正是服务于 PCSS 的，试图让阴影扩散
+<ul>
+<li>因为我们不想让采样数过多，但是又需要考虑一个相对比较大的半径时，增大采样间隔</li>
+</ul></li>
+<li>效果如下，阴影变成了软阴影，但是所有阴影的边界模糊程度是相似的</li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.33.02.png" style="zoom:67%;"></p>
+<h3 id="pcss-1">PCSS</h3>
+<ul>
+<li>PCSS 分为 3 个步骤
+<ul>
+<li>Step 1: Blocker search
+<ul>
+<li>在某个区域内计算平均遮挡深度</li>
+</ul></li>
+<li>Step 2: Penumbra estimation
+<ul>
+<li>通过计算出来的平均遮挡深度来计算半影的大小</li>
+</ul></li>
+<li>Step 3: Percentage Closer Filtering
+<ul>
+<li>根据 Step 2 计算出来的大小进行 PCF</li>
+</ul></li>
+</ul></li>
+<li>主体思路如下，由于我们需要进行深度的平均计算，这里必须使用<strong>线性深度</strong></li>
+</ul>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> PCSS(<span class="type">vec4</span> fragPosLightSpace)&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// depthMap 中的坐标</span></span><br><span class="line">    <span class="comment">// =&gt; [-1, 1]</span></span><br><span class="line">    <span class="type">vec3</span> projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;</span><br><span class="line">    <span class="comment">// 转换为线性深度</span></span><br><span class="line">    <span class="type">float</span> depth = getLinearizeDepth(projCoords.z);</span><br><span class="line">    <span class="comment">// [-1, 1] =&gt; [0, 1]</span></span><br><span class="line">    projCoords = projCoords * <span class="number">0.5</span> + <span class="number">0.5</span>;</span><br><span class="line">    <span class="comment">// STEP 1: avgblocker depth</span></span><br><span class="line">    <span class="type">float</span> avgDepth = findBlocker(projCoords.xy, depth);</span><br><span class="line">    <span class="comment">// 没有遮挡物</span></span><br><span class="line">    <span class="keyword">if</span>(avgDepth == <span class="number">-1.0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1.0</span>; </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// STEP 2: penumbra size</span></span><br><span class="line">    <span class="type">float</span> penumbra = (depth - avgDepth) / avgDepth * lightWidth;</span><br><span class="line">    <span class="type">float</span> filterRadius = penumbra * NEAR_PLANE / (depth);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// STEP 3: filtering</span></span><br><span class="line">    <span class="keyword">return</span> PCF(fs_in.FragPosLightSpace, filterRadius);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> main() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    visibility = PCSS(fs_in.FragPosLightSpace);</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>第一步我们根据上面提到的<a href="#anchor1">启发式估计方法</a>计算得到
+<ul>
+<li>这里的弥散参数修正是用于控制软阴影的边界，如果小了会被原来硬阴影的边界限制住（外面的都是可见）</li>
+</ul></li>
+</ul>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* uv: depthMap 中的坐标</span></span><br><span class="line"><span class="comment">* zRecerver: 计算得到的线性深度值 [0, 1]</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">float</span> findBlocker(<span class="type">vec2</span> uv, <span class="type">float</span> zReceiver) &#123;</span><br><span class="line">    <span class="type">int</span> blockers = <span class="number">0</span>;</span><br><span class="line">    <span class="type">float</span> ret = <span class="number">0.0</span>;</span><br><span class="line">    <span class="type">float</span> r = lightWidth * (zReceiver - NEAR_PLANE/FAR_PLANE) / zReceiver;</span><br><span class="line">    <span class="comment">// 弥散参数修正</span></span><br><span class="line">    r *= SMDiffuse;</span><br><span class="line">    <span class="type">vec2</span> texelSize = <span class="number">1.0</span> / <span class="built_in">textureSize</span>(depthMap, <span class="number">0</span>); <span class="comment">// 0 级纹理相邻纹素的距离</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> x = -BLOCK_RADIUS; x &lt;= BLOCK_RADIUS; ++x) &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> y = -BLOCK_RADIUS; y &lt;= BLOCK_RADIUS; ++y) &#123;</span><br><span class="line">            <span class="comment">// [0, 1]</span></span><br><span class="line">            <span class="type">float</span> shadowMapDepth = <span class="built_in">texture</span>(depthMap, uv + r*<span class="type">vec2</span>(x, y) * texelSize).r;</span><br><span class="line">            <span class="comment">// [0, 1] =&gt; [-1, 1]</span></span><br><span class="line">            shadowMapDepth = getLinearizeDepth(shadowMapDepth * <span class="number">2.0</span> - <span class="number">1.0</span>);</span><br><span class="line">            <span class="keyword">if</span>(zReceiver - BIAS &gt; shadowMapDepth) &#123;</span><br><span class="line">                ret += shadowMapDepth;</span><br><span class="line">                ++blockers;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 没有 blocker </span></span><br><span class="line">    <span class="keyword">if</span>(blockers == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1.0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ret/blockers;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>当第一步找到的平均遮挡物深度为 0 的时候，我们认为当前点可见，返回 visibility=1</li>
+<li>第二步根据上面的<a href="#anchor">相似三角形</a>计算出 PCF 的采样半径即可</li>
+<li>第三步就是 PCF</li>
+<li>效果如下，明显看到软阴影和硬阴影的结果都有</li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.34.97.png" style="zoom:67%;"></p>
+<h3 id="vsm-1">VSM</h3>
+<ul>
+<li>我们需要生成两张图记录当前点对应点周围区域内的方差和均值</li>
+<li>我们知道 <span class="math inline">\(\mathrm{var=E(X^2)-E^2X}\)</span>，因此我们只需要记录两张图，分别记录当前点周围区域的 <span class="math inline">\(\mathrm{EX,EX^2}\)</span> 即可</li>
+<li>第一个 pass 我们使用帧缓冲生成一张颜色缓冲，R 通道记录深度值 <span class="math inline">\(\mathrm{d}\)</span>，G 通道记录 <span class="math inline">\(\mathrm{d^2}\)</span></li>
+<li>然后我们需要生成一张周围点的均值和方差
+<ul>
+<li>利用两趟 pass 对周围的周围的点求平均值实现</li>
+<li>两趟 pass 可以把每一个点的复杂度从 <span class="math inline">\((2R+1)^2\)</span> 降到 <span class="math inline">\((4R+2)\)</span></li>
+</ul></li>
+</ul>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#define R 5</span></span><br><span class="line"><span class="meta">#define R21 11</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> main() &#123;</span><br><span class="line">    <span class="type">vec2</span> d = <span class="type">vec2</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="type">vec2</span> texelSize = <span class="number">1.0</span> / <span class="built_in">textureSize</span>(d_d2, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(vertical) &#123;</span><br><span class="line">        <span class="type">float</span> r = texelSize.y;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = -R; i &lt;= R; ++i) &#123;</span><br><span class="line">            d += <span class="built_in">texture</span>(d_d2, <span class="type">vec2</span>(TexCoords.x, TexCoords.y + i*r)).rg;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="type">float</span> r = texelSize.x;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = -R; i &lt;= R; ++i) &#123;</span><br><span class="line">            d += <span class="built_in">texture</span>(d_d2, <span class="type">vec2</span>(TexCoords.x + i*r, TexCoords.y)).rg;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FragColor.rg = d/R21;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>最后一个 pass 的可见性估计如下
+<ul>
+<li>注意这里如果不满足切比雪夫不等式的条件的话，直接返回可见即可（深度值比平均深度小）</li>
+</ul></li>
+</ul>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// VSM 算法</span></span><br><span class="line"><span class="type">float</span> VSM(<span class="type">vec4</span> fragPosLightSpace) &#123;</span><br><span class="line">    <span class="type">vec3</span> projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;</span><br><span class="line">    <span class="comment">// 转换为线性深度</span></span><br><span class="line">    <span class="type">float</span> depth = getLinearizeDepth(projCoords.z);</span><br><span class="line">    <span class="comment">// [-1, 1] =&gt; [0, 1]</span></span><br><span class="line">    projCoords = projCoords * <span class="number">0.5</span> + <span class="number">0.5</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">vec2</span> d_d2 = <span class="built_in">texture</span>(d_d2_filter, projCoords.xy).rg;</span><br><span class="line">    <span class="type">float</span> var = d_d2.y - d_d2.x * d_d2.x; <span class="comment">// E(X-EX)^2 = EX^2-E^2X</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 不满足不等式, 直接可见</span></span><br><span class="line">    <span class="keyword">if</span>(depth - BIAS &lt; d_d2.x)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1.0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="type">float</span> t_minus_mu = depth - d_d2.x;</span><br><span class="line">        <span class="keyword">return</span> var/(var + t_minus_mu*t_minus_mu);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> main() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    visibility = VSM(fs_in.FragPosLightSpace);</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>效果如下，很好的软硬阴影结果，和 PCSS 的区别是，柱子的底部阴影更小了</li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.06.37.04.png" style="zoom:67%;"></p>
+<ul>
+<li>VSM 存在一个很大的问题，漏光，当不满足单峰的长尾分布时，估计不准确
+<ul>
+<li>球的阴影漏光了</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/18/CG/Algorithm/SM-PCF-PCSS-VSM/2021.06.18-21.52.38.86.png" style="zoom:67%;"></p>
+<h2 id="其他">其他</h2>
+<ul>
+<li>小球运动的实现
+<ul>
+<li>利用物理公式计算出来位置即可</li>
+</ul></li>
+<li>小球的实现，类似于经纬度，切分成三角形
+<ul>
+<li>注意外面看进去得都是逆时针（OpenGL 逆时针为正向面）</li>
+</ul></li>
+</ul>
+<h2 id="文件说明">文件说明</h2>
+<ul>
+<li>include 文件夹
+<ul>
+<li>一些依赖头文件</li>
+<li>myUtils/basicModel.h：渲染一些基本模型</li>
+</ul></li>
+<li>lib 文件夹
+<ul>
+<li>库文件</li>
+</ul></li>
+<li>shaders 文件夹
+<ul>
+<li>gen_SM.vert, genSM_perspective.frag：pass 1 生成 DepthMap（<span class="math inline">\(d, d^2\)</span>）</li>
+<li>light.vert, light.frag：pass 2 渲染光源</li>
+<li>BlinnPhong.vert, BlinnPhong_perspective.frag：pass 2 渲染场景</li>
+<li>gen_d_d2.vert, gen_d_d2.frag：生成均值（<span class="math inline">\(d, d^2\)</span>）</li>
+</ul></li>
+<li>Demo.exe
+<ul>
+<li>可执行文件</li>
+</ul></li>
+</ul>
+<h3 id="执行文件">执行文件</h3>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Demo.exe</span><br></pre></td></tr></table></figure>
+<ul>
+<li>功能如下
+<ul>
+<li>W/A/S/D 和鼠标：切换视角</li>
+<li>空格：可以让小球开始/停止运动</li>
+<li>P/L： 增大/减小光源宽度（影响PCSS）</li>
+<li>O/K：增大/减小平均深度的寻找半径，限制 PCSS 的阴影范围</li>
+<li>I/J：增大/减小 PCF 采样半径，阴影弥散参数（影响 PCF、PCSS）</li>
+<li>0/1/2/3/4：选择阴影种类
+<ul>
+<li>0(No Shadow), 1(Shadow Map), 2(PCF), 3(PCSS), 4(VSM)</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/">LearnOpenGL 框架性代码</a></li>
+<li>GAMES202 课程：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1YK4y1T7yY?p=3">PCSS</a>、<a href="PCSS/VSM" class="uri">PCSS/VSM</a></li>
+<li><a target="_blank" rel="noopener" href="http://developer.download.nvidia.com/whitepapers/2007/SDK10/VarianceShadowMapping.pdf">Nvidia VSM 白皮书</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/mrdoob/three.js/blob/master/examples/webgl_shadowmap_pcss.html">PCSS 的平行投影实现</a></li>
+<li>论文：<a target="_blank" rel="noopener" href="https://software.intel.com/content/dam/develop/external/us/en/documents/vsm-paper-182629.pdf">Variance Shadow Maps</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/CG-Algorithm/" rel="tag"># CG-Algorithm</a>
+              <a href="/tags/Shadow/" rel="tag"># Shadow</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/16/Code/code/" rel="prev" title="代码练习">
+                  <i class="fa fa-chevron-left"></i> 代码练习
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>
