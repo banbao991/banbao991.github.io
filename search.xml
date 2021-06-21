@@ -32245,4 +32245,1325 @@ w_{v,s,t}(\bar{\mathrm{x}})=\dfrac{n_v^\beta p_{v,s,t}^\beta(\bar{\mathrm{x}})}{
         <tag>Paper</tag>
       </tags>
   </entry>
+  <entry>
+    <title>操作系统复习.陈向群（03-05）（进程线程）</title>
+    <url>/2021/06/20/OS/CXQ/Review-1/</url>
+    <content><![CDATA[<h1 id="操作系统复习03-05">操作系统复习（03-05）</h1>
+<h2 id="chapter-03进程线程模型">Chapter 03：进程线程模型</h2>
+<h3 id="关键词">关键词</h3>
+<ul>
+<li>进程、进程状态及状态转换、进程控制、进程控制块、进程地址空间、进程上下文、线程、线程属性、Web 服务器、用户级线程、Pthreads、核心级线程 、原语、可再入程序</li>
+</ul>
+<h3 id="思考题">思考题</h3>
+<ul>
+<li>怎样理解 “进程是对 CPU 的抽象” 这句话？</li>
+<li>一个程序要经过哪些准备工作才能运行(程序怎样变成进程) ？</li>
+<li>进程有哪些状态？状态之间转换的条件以及对应的操作？</li>
+<li>一个进程在生命周期内都由哪些要素组成？</li>
+<li>从静态和动态两个角度，怎样观察进程？</li>
+<li>进程与程序是一样的吗？你能用日常生活中的例子解释什么是进程、什么是程序吗？</li>
+<li>什么是可再入程序？为什么进程执行的程序要具备可再入特性？</li>
+<li>哪些应用场景需要多线程支持？</li>
+<li>线程的基本概念是什么？与进程是什么关系？</li>
+<li>线程有哪些属性？为什么线程要有自己的栈？</li>
+<li>线程实现机制有哪几种？</li>
+<li>典型的操作系统都是怎样支持线程的？</li>
+<li>Linux 是怎样支持线程的？ Linux内核是否区分进程和线程？</li>
+</ul>
+<h3 id="内容">内容</h3>
+<h4 id="基本概念">基本概念</h4>
+<ul>
+<li>多道程序设计</li>
+<li>并发环境与并发程序
+<ul>
+<li>如下都可以认为是并发</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620152710803.png" style="zoom:67%;"></p>
+<ul>
+<li>进程
+<ul>
+<li>进程是具有独立功能的程序关于某个数据集合上的<strong>一次运行活动</strong>，是系统进行资源分配和调度的独立单位</li>
+</ul></li>
+</ul>
+<h4 id="进程模型">进程模型</h4>
+<ul>
+<li>三状态
+<ul>
+<li>运行态（Running）、就绪态（Ready）、等待态（Waiting/Blocked）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620153101230.png" style="zoom:50%;"></p>
+<ul>
+<li>5 状态
+<ul>
+<li>创建（New）、终止（Terminated）、挂起（Suspended）
+<ul>
+<li>挂起：把一个进程从内存转到<strong>磁盘</strong></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620153216549.png" style="zoom:50%;"></p>
+<ul>
+<li>7 状态</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620153624993.png" style="zoom: 50%;"></p>
+<ul>
+<li>Linux 进程模型</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620153824357.png" style="zoom: 67%;"></p>
+<ul>
+<li>数据结构 PCB
+<ul>
+<li>PCB 是系统感知进程存在的唯一标志</li>
+</ul></li>
+<li>PCB 内容
+<ul>
+<li>进程描述信息、进程控制信息、所拥有的资源和使用情况、CPU 现场信息</li>
+</ul></li>
+<li>进程地址空间</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620155652222.png" style="zoom:50%;"></p>
+<ul>
+<li>上下文切换</li>
+<li>进程表
+<ul>
+<li>每类进程维护一个或者多个队列</li>
+</ul></li>
+</ul>
+<h4 id="进程控制">进程控制</h4>
+<ul>
+<li>原语
+<ul>
+<li>原子操作</li>
+</ul></li>
+<li>进程的创建</li>
+<li>进程的撤销</li>
+<li>进程阻塞与进程唤醒</li>
+<li>UNIX 系统设计的进程控制操作
+<ul>
+<li>fork、exec、wait、exit</li>
+</ul></li>
+<li>copy-on-write 技术</li>
+<li>进程的分类
+<ul>
+<li>系统进程、用户进程</li>
+<li>前台进程、后台进程</li>
+<li>CPU 密集型进程、I/O 密集型进程</li>
+</ul></li>
+<li>进程的层次结构
+<ul>
+<li>UNIX进程家族树：init 为根</li>
+<li>Windows：地位相同</li>
+</ul></li>
+</ul>
+<h4 id="线程模型">线程模型</h4>
+<ul>
+<li>为什么在进程中再派生线程？
+<ul>
+<li>应用的需要
+<ul>
+<li>web 服务器</li>
+</ul></li>
+<li>开销的考虑
+<ul>
+<li>创建、撤销、通信、切换</li>
+</ul></li>
+<li>性能的考虑
+<ul>
+<li>并行</li>
+<li>多处理器</li>
+</ul></li>
+</ul></li>
+<li>Web 服务器的 3 种实现方式</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">模型</th>
+<th style="text-align: center;">特性</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">多线程</td>
+<td style="text-align: center;">并行性、阻塞系统调用</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">单线程进程</td>
+<td style="text-align: center;">无并行性、阻塞系统调用</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">有限状态机</td>
+<td style="text-align: center;">并行性、非阻塞系统调用、中断</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>线程：进程中一个运行实体，是 CPU 的调度单位
+<ul>
+<li>轻量级进程</li>
+</ul></li>
+<li>单线程进程模型、多线程进程模型</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620162653610.png" style="zoom: 67%;"></p>
+<ul>
+<li>线程的实现
+<ul>
+<li>用户级线程：Linux
+<ul>
+<li>大多数系统调用是阻塞的，因此，由于内核阻塞进程，故进程中所有线程也被阻塞
+<ul>
+<li>修改系统调用为非阻塞的</li>
+<li>重新实现对应系统调用的I/O库函数</li>
+</ul></li>
+</ul></li>
+<li>核心级线程：Windows</li>
+<li>混合：Solaris
+<ul>
+<li>用户空间创建、核心态调度</li>
+<li>多个用户级线程多路复用多个内核级线程</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620163606724.png" style="zoom:50%;"></p>
+<ul>
+<li>Solaris
+<ul>
+<li>Solaris 的多线程模型中包括四种实体
+<ul>
+<li>进程，内核线程，用户线程、轻量级进程（LWP）</li>
+<li>LWP 把用户线程和内核线程绑定到一起</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620163756995.png" style="zoom: 60%;"></p>
+<ul>
+<li>可再入程序（可重入）
+<ul>
+<li>可被多个进程同时调用的程序，具有下列性质
+<ul>
+<li>它是纯代码的，即在执行过程中自身不改变</li>
+<li>调用它的进程应该提供数据区</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="chapter-04进程线程调度">Chapter 04：进程线程调度</h2>
+<h3 id="关键词-1">关键词</h3>
+<ul>
+<li>调度层次、调度时机、进程切换、调度算法设计原则、抢占与非抢占、时间片、饥饿、调度算法、优先级反转、吞吐量、周转时间、响应时间、Linux调度算法、Windows 线程调度</li>
+</ul>
+<h3 id="思考题-1">思考题</h3>
+<ul>
+<li>所谓调度仅仅是指的CPU(处理器)调度吗？</li>
+<li>怎样描述进程的优先级？</li>
+<li>就绪队列有哪些组织方式？</li>
+<li>有哪些引发调度的原因？</li>
+<li>衡量调度算法的指标有哪些？怎样选取？</li>
+<li>怎样区分抢占式和非抢占式调度思想？</li>
+<li>操作系统内核怎么实现抢占式调度策略的？</li>
+<li>时间片轮转算法是抢占式调度算法吗？</li>
+<li>操作系统的调度机制很好地体现了机制和策略分离 的原则，请举例说明这一点</li>
+<li>请同学们上网查一查, 1997年，美国发射的探测器‘探路者号”在火星上究竟发生了什么？请回答：
+<ul>
+<li>这个故事涉及到进程调度的哪个知识点？</li>
+<li>故事中涉及到的是哪一个操作系统？</li>
+<li>运行过程中“ 探路者号” 遇到了什么问题？</li>
+<li>这个问题产生的原因是什么？</li>
+<li>工程师们是怎么解决这个问题的？</li>
+<li>这件事给我们什么启示？</li>
+</ul></li>
+</ul>
+<h3 id="内容-1">内容</h3>
+<ul>
+<li>调度的 3 个层次
+<ul>
+<li>长程调度：作业调度或宏观调度</li>
+<li>中程调度：进程在内外存之间的交换</li>
+<li>短程调度：微观调度（毫秒级）</li>
+</ul></li>
+<li>处理器调度
+<ul>
+<li>系统空闲进程、idle 进程</li>
+<li>调度程序</li>
+</ul></li>
+<li>三个问题：<strong>调度算法、调度时机、调度过程</strong></li>
+<li><strong>调度时机</strong>：事件发生
+<ul>
+<li>内核对中断/异常/系统调用处理后返回到用户态前最后时刻</li>
+</ul></li>
+<li><strong>调度过程</strong>：进程切换
+<ul>
+<li>全局页目录</li>
+<li>内核栈、硬件上下文</li>
+<li>保存旧的，恢复新的</li>
+</ul></li>
+<li>上下文切换开销
+<ul>
+<li>直接开销</li>
+<li>间接开销：高速缓存 Cache、Buffer Cache、TLB</li>
+</ul></li>
+</ul>
+<h4 id="调度算法">调度算法</h4>
+<ul>
+<li>目标
+<ul>
+<li>交互式进程（interactive process）：响应时间、均衡性</li>
+<li>批处理进程（batch process）：吞吐量、周转时间、CPU利用率</li>
+<li>实时进程（real-time process）：最后期限、可预测性</li>
+</ul></li>
+<li>评价指标
+<ul>
+<li>公平性 Fairness</li>
+<li>吞吐量 Throughput</li>
+<li>周转时间 TT (Turnaround Time)：提出请求到完成</li>
+<li>响应时间 RT (Response Time)</li>
+<li>CPU 利用率 (CPU Utilization)</li>
+<li>等待时间 (Waiting time)</li>
+</ul></li>
+</ul>
+<h5 id="调度算法要点">调度算法要点</h5>
+<ul>
+<li>进程优先级</li>
+<li>进程就绪队列组织
+<ul>
+<li>按优先级排队、多级队列</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620171014692.png" style="zoom: 67%;"></p>
+<ul>
+<li>抢占与非抢占</li>
+<li>I/O 密集型与 CPU 密集型进程</li>
+<li>时间片
+<ul>
+<li>长短、长短是否一致、是否可变</li>
+</ul></li>
+</ul>
+<h5 id="批处理系统中采用的调度算法">批处理系统中采用的调度算法</h5>
+<ul>
+<li>先来先服务（FCFS-First Come First Serve）</li>
+<li>最短作业优先（SJF-Shortest Job First）</li>
+<li>最短剩余时间优先（SRTN-Shortest Remaining Time Next）
+<ul>
+<li>SJF 的抢占版本</li>
+</ul></li>
+<li>最高响应比优先（HRRN-Highest Response Ratio Next）
+<ul>
+<li>响应比 R = 作业周转时间 / 作业处理时间 = 1 +（作业等待时间 / 作业处理时间）</li>
+<li>抢占版本、不可抢占版本</li>
+</ul></li>
+</ul>
+<h5 id="交互式系统中采用的调度算法">交互式系统中采用的调度算法</h5>
+<ul>
+<li>轮转调度（RR-Round Robin）
+<ul>
+<li>对于相同大小的进程不利（平均周转时间）</li>
+</ul></li>
+<li>优先级调度（HPF-Highest Priority First）
+<ul>
+<li>通常而言
+<ul>
+<li><strong>系统进程优先级</strong> 高于 用户进程</li>
+<li><strong>前台进程优先级</strong> 高于 后台进程操作</li>
+<li>系统更偏好 I/O 型进程</li>
+</ul></li>
+<li>优先级反转问题（抢占才会出现）
+<ul>
+<li>设置优先级上限（优先级天花板协议 priority ceiling protocol）</li>
+<li>优先级继承
+<ul>
+<li><strong>阻挡了谁就继承谁</strong></li>
+</ul></li>
+<li>使用中断禁止</li>
+</ul></li>
+</ul></li>
+<li>多级队列（Multiple queues）与多级反馈队列（Multiple feedback queue）</li>
+<li>最短进程优先（Shortest Process Next）</li>
+</ul>
+<h5 id="windows-调度算法">Windows 调度算法</h5>
+<ul>
+<li>动态优先级、抢占式</li>
+<li>具体算法</li>
+<li>线程优先级提升与时间配额调整</li>
+</ul>
+<h5 id="linux-调度算法">Linux 调度算法</h5>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620192211811.png" style="zoom:67%;"></p>
+<h5 id="多处理器调度">多处理器调度</h5>
+<ul>
+<li>负载均衡、迁移开销（直接、间接）</li>
+<li>静态进程分配、动态进程分配</li>
+</ul>
+<h2 id="chapter-05进程线程同步模型">Chapter 05：进程线程同步模型</h2>
+<h3 id="关键词-2">关键词</h3>
+<ul>
+<li>临界区、进程互斥、进程同步、信号量、PV 操作、管程、生产者消费者问题、读者写者问题、 条件变量、wait/signal、锁、Pthreads、Hoare 管程</li>
+</ul>
+<h3 id="思考题-2">思考题</h3>
+<ul>
+<li>课件第 17 页，如果把判断标志然后谖置标志实现为 lock()，则lock() 应该满足 什么性质？</li>
+<li>当有进程在临界区时，有两种处理方式: (1) 一直占用 CPU 等待进入临界区; (2) 阻塞等待。试问前者的效率一定比后者的效率低吗？</li>
+<li>课件 25-26 页， “睡眠” 与“唤醒”操作都是原语操作，为什么用它们解决生产者消费者问题时依然可能出错？在什么场景下会出错？简单思考一下如何解决？</li>
+<li>课件32页上给出的 PV 操作的定义与参考书《现代操作系统》或 ICS 课上的定义不同，但效果是否一样？请解释一下</li>
+<li>请简单总结一下JAVA语言对管程的支持
+<ul>
+<li>如何解决互斥问题？</li>
+<li>如何解决同步问题？</li>
+</ul></li>
+<li>课件第 80 页上锁的实现代码是否正确？为什么？第 81 页的解决方案是不是对的？第 82 页的呢？请解释一下 83 页的方案</li>
+<li>阅读一下课件第 91 页上的例子，总结一下在用消息传递实现生产者消费者问题时，send 和 receive 的作用</li>
+<li>请举一个简单的例子，说明 Linux 的共享内存机制的应用</li>
+</ul>
+<h3 id="内容-2">内容</h3>
+<ul>
+<li>进程：并发、共享、不确定性</li>
+<li>顺序环境：程序执行的顺序性</li>
+<li>并发环境</li>
+<li>进程前趋图</li>
+<li>竞争条件（race）</li>
+<li>进程互斥
+<ul>
+<li>临界资源（critical resource）</li>
+<li>临界区（critical section/region）</li>
+</ul></li>
+<li>临界区使用规则
+<ul>
+<li>有空让进、无空等待、有限等待</li>
+<li>多中择一、让权等待</li>
+</ul></li>
+<li>进程的同步
+<ul>
+<li>某种时序关系</li>
+</ul></li>
+<li>实现进程互斥的方案
+<ul>
+<li>软件解法：Dekker、Peterson</li>
+<li>硬件解法：中断屏蔽方法、测试并加锁（TSL）</li>
+</ul></li>
+<li>生产者消费者问题（有界缓冲区）</li>
+</ul>
+<h4 id="信号量及-pv-操作">信号量及 PV 操作</h4>
+<ul>
+<li>PV 操作是原语操作</li>
+<li>信号量
+<ul>
+<li>初始化（非负数），P 操作、V 操作</li>
+</ul></li>
+<li>生产者消费者问题（有界缓冲区）</li>
+<li>读者写者问题
+<ul>
+<li>读者优先</li>
+</ul></li>
+</ul>
+<h4 id="管程">管程</h4>
+<ul>
+<li>由关于<strong>共享资源的数据结构</strong>及<strong>在其上操作的一组过程</strong>组成</li>
+<li>进程<strong>只能</strong>通过<strong>调用管程中的过程</strong>来<strong>间接访问</strong>管程中的数据结构</li>
+<li>两个问题：同步、互斥</li>
+</ul>
+<h5 id="hoare-管程">Hoare 管程</h5>
+<ul>
+<li>管程中的两个进程，P 唤醒 Q：P 等待，Q 运行</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-1/image-20210620204847938.png" style="zoom:67%;"></p>
+<ul>
+<li>条件变量：在管程内部说明和使用的一种特殊类型的变量
+<ul>
+<li>var c:condition;</li>
+<li>对于条件变量，可以执行 wait 和 signal 操作</li>
+</ul></li>
+<li>wait(c)
+<ul>
+<li>如果紧急等待队列非空，则唤醒第一个等待者，否则释放管程的互斥权</li>
+<li>执行此操作的进程进入c 链尾部</li>
+</ul></li>
+<li>signal(c)
+<ul>
+<li>如果 c 链为空，则相当于空操作，执行此操作的进程继续执行</li>
+<li>否则唤醒第一个等待者，执行此操作的进程进入紧急等待队列的尾部</li>
+</ul></li>
+</ul>
+<h5 id="mesa-管程">Mesa 管程</h5>
+<ul>
+<li>signal <span class="math inline">\(\to\)</span> notify
+<ul>
+<li>notify：当一个正在管程中的进程执行 notify(x) 时，它使得 x 条件队列得到通知，发信号的进程继续执行</li>
+</ul></li>
+<li>notify 的结果：位于条件队列头的进程在将来合适的时候且当处理器可用时恢复执行
+<ul>
+<li>得用 while 再次判断条件</li>
+</ul></li>
+<li>超时则改为就绪（优化），但是还是得判断条件
+<ul>
+<li>避免 notify 的程序炸掉导致无法被唤醒</li>
+</ul></li>
+<li>broadcast 原语：全唤醒成就绪</li>
+</ul>
+]]></content>
+      <categories>
+        <category>OS.CXQ</category>
+      </categories>
+      <tags>
+        <tag>OS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>操作系统复习.陈向群（03-05）（存储管理）</title>
+    <url>/2021/06/20/OS/CXQ/Review-2/</url>
+    <content><![CDATA[<h1 id="操作系统复习06-07">操作系统复习（06-07）</h1>
+<h2 id="chapter-06存储管理概述">Chapter 06：存储管理概述</h2>
+<h3 id="关键词">关键词</h3>
+<ul>
+<li>地址重定位、逻辑地址、物理地址、存储保护、存储共享、单一连续区、固定分区、覆盖技术、可变分区、页式、段式、虚拟内存、虚拟存储空间、虚拟地址、物理地址、页表/页表项、快表 TLB、驻留集、工作集、页面置换算法、清除策略、交换技术、段页式、Page Fault、加载控制、页缓冲技术、地址转换、地址变换、地址翻译、地址映射</li>
+</ul>
+<h3 id="思考题">思考题</h3>
+<ul>
+<li>怎样理解 “进程地址空间是对内存的抽象” 这句话？</li>
+<li>结合课件 21 页的图、 22 页上的图说明采用的是哪一种内存分配算法？</li>
+<li>课件 32 页上提到紧缩时要考虑的问题包括系统开销和移动时机两方面，请具体说明为什么要考虑这两个问题？</li>
+<li>采用交换技术后，被换出内存后再换入内存的进程是否必须回到原处？如果不是，通过什么方式(技术或机制)可以做到</li>
+<li>请给出一种管理磁盘交换区的方案。</li>
+<li>课件 50 页上提出了两种解决进程空间增长的解决方案，请比较它们。你倾向哪一种解决方案，为什么？</li>
+</ul>
+<h3 id="内容">内容</h3>
+<ul>
+<li>连续性 — 离散性</li>
+<li>驻留性 — 交换性</li>
+<li>一次性 — 多次性</li>
+<li>地址重定位：将用户程序中的逻辑地址转换为运行时可由机器直接寻址的物理地址的过程
+<ul>
+<li>静态地址重定位：加载到内存时</li>
+<li>动态地址重定位：逐条指令执行时
+<ul>
+<li>MMU</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="物理内存管理方案">物理内存管理方案</h4>
+<ul>
+<li>空闲物理内存管理
+<ul>
+<li>位图、空闲区表（已分配区表）、空闲块链表</li>
+</ul></li>
+<li>内存分配算法
+<ul>
+<li>首次适配（first fit）</li>
+<li>下次适配（next fit）
+<ul>
+<li>从上次找到的空闲区处接着查找，其他和首次适配相同</li>
+</ul></li>
+<li>最佳适配（best fit）</li>
+<li>最差适配（worst ft）</li>
+</ul></li>
+<li>回收问题
+<ul>
+<li>合并空闲块</li>
+<li>上相邻、下相邻、上下都相邻、上下都不相邻</li>
+</ul></li>
+</ul>
+<h5 id="伙伴系统">伙伴系统</h5>
+<ul>
+<li>Linux 底层内存管理采用</li>
+<li>例子
+<ul>
+<li>整块分配</li>
+<li>只有伙伴才合并</li>
+<li>最佳适配</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621102110784.png" style="zoom:67%;"></p>
+<h4 id="基本内存管理方案">基本内存管理方案</h4>
+<ul>
+<li>单一用户连续区</li>
+<li>固定分区</li>
+<li>可变分区
+<ul>
+<li>碎片
+<ul>
+<li>紧缩技术（memory compaction）：在内存移动程序，将所有小的空闲区合并为较大的空闲区</li>
+</ul></li>
+</ul></li>
+<li>页式
+<ul>
+<li>内存块（物理页面、页框、页帧、page frame）</li>
+<li>页表、页表项</li>
+<li>逻辑地址：页号、页内偏移</li>
+<li><strong>内碎片</strong></li>
+</ul></li>
+<li>段式
+<ul>
+<li>段内连续，段间可以不连续</li>
+<li><strong>用户程序地址空间</strong>：按程序自身的<strong>逻辑关系</strong>划分为若干个程序段，每个程序段都有一个段名</li>
+<li><strong>内存空间</strong>被<strong>动态</strong>的划分为若干个长度不相同的区域，称为物理段，每个物理段由起始地址和长度确定</li>
+<li>逻辑地址：段号、段内地址</li>
+</ul></li>
+<li>段页式
+<ul>
+<li>用户程序划分：按段式划分（对用户来讲，按段的逻辑关系进行划分；对系统讲，按页划分每一段）</li>
+<li><strong>每一段有一个页表</strong></li>
+</ul></li>
+</ul>
+<h4 id="内存-扩充">内存 “扩充”</h4>
+<ul>
+<li>覆盖技术（Overlaying）：早期操作系统
+<ul>
+<li>程序执行过程中，<strong>程序的不同部分在内存中相互替代</strong>
+<ul>
+<li>按照其自身的逻辑结构将那些不会同时执行的程序段共享同一块内存区域</li>
+<li>要求程序各模块之间有明确的调用结构</li>
+</ul></li>
+<li>程序员声明覆盖结构，操作系统完成自动覆盖</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621105758541.png" style="zoom: 50%;"></p>
+<ul>
+<li>交换技术（Swapping）
+<ul>
+<li>交换区：一般系统会指定一块<strong>特殊的磁盘区域</strong>作为交换空间（swap space），包含<strong>连续的磁道</strong>，操作系统可以使用底层的磁盘读写操作对其<strong>高效访问</strong></li>
+</ul></li>
+</ul>
+<h2 id="chapter-07虚拟存储管理">Chapter 07：虚拟存储管理</h2>
+<h3 id="关键词-1">关键词</h3>
+<ul>
+<li>虚拟存储管理、硬件机制（地址转换）、页表/页表项、页错误处理、各种软件策略（读取策略、放置策略、置换策略、驻留集策略、清除策略、装载控制策略）</li>
+</ul>
+<h3 id="思考题-1">思考题</h3>
+<ul>
+<li>进程地址空间是对内存的抽象，请解读一下课件第 3 页上的图</li>
+<li>虚拟内存、虚拟地址空间、虔拟地址、虔拟存储技术四个术语的解释</li>
+<li>怎样理解操作系统中的资源转换技术？举例说明</li>
+<li>结合课件 23-24 页的内容和图，梳理一下 CPU 取到虚拟地址并把转换为物理地址的过程</li>
+<li>课件 30 页的图表示的是什么流程？请总结一下该流程的每一个步骤</li>
+<li>OPT 置换算法的作用是什么？在什么条件下可以实现它？</li>
+<li>请比较老化算法（Aging）与 LRU 算法</li>
+<li>课件 36 页上给出了设计页面置换算法时的典型思路:基于过去的行为来预测将来的行为。请列举日常生活中运用这一思路的例子</li>
+<li>课件第 48 页的置换算法是一种简单的使用特殊硬件实现 LRU 的方法，请解释理由</li>
+<li>实现工作集模型需要考虑哪些因素？开放性探讨一下：是否可以采用机器学习等方法实现工作集模型？有没有使用场录？利弊各是什么？</li>
+<li>TLB 什么时候刷新？怎么刷新？</li>
+</ul>
+<h3 id="内容-1">内容</h3>
+<ul>
+<li>主要是虚拟页式存储管理</li>
+<li>概念区分
+<ul>
+<li><strong>虚拟内存</strong>：物理内存和磁盘</li>
+<li><strong>虚拟地址空间</strong>：分配给进程的虚拟内存</li>
+<li><strong>虚拟地址</strong>：虚拟内存中某一位置的地址</li>
+<li><strong>虚拟存储技术</strong>：当进程运行时，先将其一部分装入内存，另一部分暂时保存在磁盘；当要执行的指令或访问的数据不在内存时，由操作系统自动完成将它们从磁盘调入内存的工作</li>
+</ul></li>
+<li>lazy allocation</li>
+<li>交换技术</li>
+<li>请求调页（demand paging）、预先调页（prepaging）</li>
+<li>MMU</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621114558663.png" style="zoom:50%;"></p>
+<ul>
+<li>页表表项设计
+<ul>
+<li>页框号</li>
+<li>有效位（valid、present）</li>
+<li>访问位（referenced、accessed）</li>
+<li>修改位（dirty、modified）</li>
+<li>保护位：读 / 写 / 执行（protection）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621115053925.png" style="zoom: 45%;"></p>
+<ul>
+<li><strong>多级页表</strong></li>
+<li>二级页表
+<ul>
+<li>页目录</li>
+</ul></li>
+<li>四级页表示例</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210509193047497.png" alt="image-20210621120928868" style="zoom: 67%;"></p>
+<ul>
+<li>反转页表（节省内存）
+<ul>
+<li>从物理地址空间出发，系统建立一张页表</li>
+<li>页表项记录进程i的某虚拟地址(虚页号) 与页框号的映射关系</li>
+<li>虚拟地址翻译：哈希表（拉链法解决冲突问题）</li>
+</ul></li>
+<li>地址转换
+<ul>
+<li>虚拟页面不在内存、页面非法、或者被保护 <span class="math inline">\(\Rightarrow\)</span> Page Fault</li>
+</ul></li>
+<li>快表 TLB
+<ul>
+<li>相联存储器</li>
+<li>保存正在运行进程的页表的子集（部分表项）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621125731348.png" style="zoom:80%;"></p>
+<ul>
+<li>TLB 和 高速缓存</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621125923726.png" style="zoom:80%;"></p>
+<ul>
+<li>缺页异常：一种 page fault</li>
+<li>驻留集管理
+<ul>
+<li>固定分配策略、可变分配策略（通过缺页率评估）</li>
+</ul></li>
+</ul>
+<h4 id="页面置换算法">页面置换算法</h4>
+<ul>
+<li>置换策略
+<ul>
+<li>局部置换策略：缺页进程的驻留集</li>
+<li>全局置换策略：内存中所有未锁定的页框</li>
+</ul></li>
+<li>置换策略
+<ul>
+<li>目标：<strong>置换最近最不可能访问的页</strong></li>
+<li>局部性原理：基于过去预测未来</li>
+</ul></li>
+<li>页框锁定
+<ul>
+<li>操作系统核心代码、关键数据结构、<strong>I/O 缓冲区</strong></li>
+</ul></li>
+</ul>
+<h5 id="页面置换算法-replacement">页面置换算法 replacement</h5>
+<h6 id="理想最佳最优置换算法opt">理想（最佳、最优）置换算法（OPT）</h6>
+<h6 id="先进先出页面置换算法fifo">先进先出页面置换算法（FIFO）</h6>
+<ul>
+<li>页面链表实现</li>
+</ul>
+<h6 id="第二次机会置换算法scr">第二次机会置换算法（SCR）</h6>
+<ul>
+<li>按照先进先出算法选择某一页面，检查其访问位 R
+<ul>
+<li>如果为 0，则置换该页</li>
+<li>如果为 1，则给第二次机会，并将访问位置 0，把该页面放到链表的尾端（新放入一样）</li>
+</ul></li>
+</ul>
+<h6 id="时钟算法clock">时钟算法（Clock）</h6>
+<ul>
+<li>循环链表</li>
+<li>不移动页面位置</li>
+</ul>
+<h6 id="最近未使用算法nru">最近未使用算法（NRU）</h6>
+<ul>
+<li>选择在最近一段时间内未使用过的一页并置换</li>
+<li>算法
+<ul>
+<li>访问位（R）、修改位（M）</li>
+<li>分类
+<ul>
+<li>第 0 类：无访问，无修改</li>
+<li>第 1 类：无访问，有修改</li>
+<li>第 2 类：有访问，无修改</li>
+<li>第 3 类：有访问，有修改</li>
+</ul></li>
+<li>随机从编号最小的非空类中选择一页置换</li>
+</ul></li>
+<li>实现
+<ul>
+<li><ol type="1">
+<li>从指针的当前位置开始，扫描页框缓冲区，选择遇到的第一个页框（r=0；m=0）用于置换（本扫描过程中，对访问位不做任何修改）</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>如果第 1 步失败，则重新扫描，选择第一个（r=0；m=1）的页框（本次扫描过程中，对每个跳过的页框，将其访问位设置成 0）</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>如果第 2 步失败，指针将回到它的最初位置，并且集合中所有页框的访问位均为 0。重复第 1 步，并且，如果有必要，重复第 2 步</li>
+</ol></li>
+</ul></li>
+<li>实现的区别就是修改了访问位
+<ul>
+<li>如果只跑一次这个算法结果是一样的</li>
+</ul></li>
+<li><strong>NRU 不带时间戳</strong></li>
+</ul>
+<h6 id="最近少使用算法-lru">最近少使用算法 (LRU)</h6>
+<ul>
+<li>LRU 性能接近 OPT</li>
+<li>实现：时间戳、维护一个访问页的栈
+<ul>
+<li>开销大</li>
+</ul></li>
+<li>一种硬件实现
+<ul>
+<li>访问：行置为 1，列置为 0</li>
+<li>置换：把和最小的行替换掉</li>
+</ul></li>
+<li>一个例子：页面访问顺序 0, 1, 2, 3, 2, 1, 0, 3, 2, 3</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621134821834.png" style="zoom:40%;"></p>
+<h6 id="最不经常使用算法nfu">最不经常使用算法（NFU）</h6>
+<ul>
+<li>选择访问次数最少的页面置换</li>
+<li>实现：
+<ul>
+<li>软件计数器，一页一个，初值为 0</li>
+<li>每次时钟中断时，计数器加 R</li>
+<li>发生缺页中断时，选择计数器值最小的一页置换</li>
+</ul></li>
+</ul>
+<h6 id="老化算法aging">老化算法（Aging）</h6>
+<ul>
+<li>改进（模拟LRU）：计数器在加 R 前先右移一位，R 位加到计数器的最左端</li>
+<li>感觉和 LRU 相似，但是计数器的位数是有限的，会把较早的访问情况冲掉</li>
+</ul>
+<h6 id="页面置换例子">页面置换例子</h6>
+<ul>
+<li>注意 FIFO 访问已经缓存的页的时候不移动链表（相当于不修改时间戳）</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621135801334.png" style="zoom:150%;"></p>
+<ul>
+<li>LRU</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621135939814.png" style="zoom:150%;"></p>
+<ul>
+<li>OPT</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621135958374.png" style="zoom:150%;"></p>
+<h5 id="belady-现象">Belady 现象</h5>
+<ul>
+<li>FIFO：当分配给进程的物理页面数增加时，缺页次数反而增加</li>
+</ul>
+<h5 id="影响缺页次数的因素">影响缺页次数的因素</h5>
+<ul>
+<li>因素
+<ul>
+<li>页面置换算法</li>
+<li>页面本身的大小
+<ul>
+<li>最佳页面大小：<span class="math inline">\(\sqrt{2se}\)</span></li>
+</ul></li>
+<li>程序的编制方法</li>
+<li>分配给进程的物理页面数</li>
+</ul></li>
+<li>颠簸（Thrashing，抖动）
+<ul>
+<li>虚存中，页面在内存与磁盘之间频繁调度，使得调度页面所需的时间比进程实际运行的时间还多，这样导致系统效率急剧下降，这种现象称为颠簸或抖动</li>
+</ul></li>
+</ul>
+<h5 id="工作集模型">工作集模型</h5>
+<ul>
+<li>活跃页面</li>
+<li>工作集 <span class="math inline">\(W(t,\Delta)\)</span>
+<ul>
+<li>该进程在过去的 <span class="math inline">\(\Delta\)</span> 个虚拟时间单位中使用的虚拟页面集合</li>
+</ul></li>
+<li>驻留集：当前时刻，进程实际驻留在内存当中的页框集合</li>
+<li>思路：找出一个不在工作集中的页面并置换它
+<ul>
+<li>判定：每个页表项中有一个字段记录该页面最后一次被访问的时间</li>
+</ul></li>
+<li>算法实现
+<ul>
+<li>扫描所有页表项，执行操作</li>
+<li><ol type="1">
+<li>如果一个页面的 R 位是 1，则将该页面的最后一次访问时间设为当前时间，将 R 位清零</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>如果一个页面的 R 位是 0，则检查该页面的访问时间是否在 “当前时间 - T” 之前</li>
+</ol>
+<ol start="2" type="1">
+<li>[1] 如果是，则该页面为被置换的页面；</li>
+<li>[2] 如果不是，记录当前所有被扫描过页面的最后访问时间里面的最小值。扫描下一个页面并重复 (1)、(2)</li>
+</ol></li>
+</ul></li>
+</ul>
+<ol start="2" type="1">
+<li>类似的思想：监视缺页率增减驻留集大小</li>
+</ol>
+<h5 id="清除策略">清除策略</h5>
+<ul>
+<li>保存一定数目的页框供给比使用所有内存并在需要时搜索一个页框有更好的性能</li>
+<li>一个置换出去但是还未被覆盖的页面，当他再次被访问的时候，直接将其移出空闲缓冲池即可</li>
+<li>分页守护进程：检查内存状态，保证有大量空闲页框</li>
+<li>双指针时钟：前指针由分页守护进程控制</li>
+<li><strong>页缓冲技术</strong>
+<ul>
+<li>空闲页链表</li>
+<li>修改页链表：簇的方式写回（减少 I/O）</li>
+</ul></li>
+</ul>
+<h5 id="加载控制">加载控制</h5>
+<ul>
+<li>系统并发度：驻留在内存中的进程数目</li>
+<li><strong>通过调节并发进程数进行系统负载控制</strong>
+<ul>
+<li>交换到磁盘</li>
+</ul></li>
+</ul>
+<h4 id="内存映射文件">内存映射文件</h4>
+<ul>
+<li>mmap()</li>
+<li>lazy 读入</li>
+<li>共享库文件中的共享对象</li>
+<li>私有的写时拷贝对象</li>
+</ul>
+<h4 id="策略与机制分离">策略与机制分离</h4>
+<ul>
+<li>Mach</li>
+<li>存储管理系统被分为三个部分
+<ul>
+<li>底层MMU处理程序（与机器相关）</li>
+<li>作为内核一部分的缺页中断处理程序（与机器无关）</li>
+<li>运行在<strong>用户空间</strong>中的外部页面调度程序（策略）</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621144545558.png" style="zoom:50%;"></p>
+<h2 id="chapter-07-2windows-虚拟内存管理技术">Chapter 07-2：Windows 虚拟内存管理技术</h2>
+<h3 id="思考题-2">思考题</h3>
+<ul>
+<li>进程虚拟地址空间的大小由谁决定？</li>
+<li>进程虚拟地址空间的布局由谁确定？</li>
+<li>创建一个进程，加载相应的可执行文件并且执行的过程是怎样的？</li>
+<li>当捕获到缺页错误时，操作系统如何知道程序当前所需要的页在可执行文件中的哪一个位置？</li>
+<li>总结 Windows 自映射机制的实现原理</li>
+<li>总结 Windows 的物理内存管理</li>
+</ul>
+<h3 id="内容-2">内容</h3>
+<h4 id="intel-x86-虚拟内存机制">Intel x86 虚拟内存机制</h4>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621145153555.png" style="zoom:50%;"></p>
+<h4 id="windows-虚拟内存管理">Windows 虚拟内存管理</h4>
+<h5 id="内存管理器的组成部分">内存管理器的组成部分</h5>
+<ul>
+<li>工作集管理器（MmWorkingSetManager）</li>
+<li>进程/栈交换器（KeSwapProcessOrStack）</li>
+<li>修改页面写出器（MiModifiedPageWriter）</li>
+<li>映射页面写出器（MiMappedPageWriter）</li>
+<li>零页线程（MmZeroPageThread）</li>
+</ul>
+<h5 id="缺页异常处理">缺页异常处理</h5>
+<ul>
+<li>CPU 翻译的时候发现页表项无效 <span class="math inline">\(\Rightarrow\)</span> 缺页中断</li>
+<li>发生缺页中断时， CPU 自动将引发异常时访问的虚拟地址存入寄存器 <strong>CR2</strong></li>
+<li>走中断异常处理流程</li>
+<li><p>根据操作系统提供的异常处理程序开始处理</p></li>
+<li>页目录与自映射机制
+<ul>
+<li>专用寄存器（x86 中为 <strong>CR3</strong>）用于保存页目录的物理地址</li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621152121351.png" style="zoom:67%;"></p>
+<h5 id="工作集">工作集</h5>
+<ul>
+<li>基于工作集模型的页面置换算法</li>
+</ul>
+<h5 id="用户空间内存分配方式">用户空间内存分配方式</h5>
+<ul>
+<li>以页为单位的虚拟内存分配方式
+<ul>
+<li>两阶段：<strong>保留</strong>、<strong>提交</strong></li>
+<li>如何判断保留/提交
+<ul>
+<li>页表可以判断提交，但是无法判断保留</li>
+<li>VAD 虚拟地址描述符，平衡二叉树</li>
+</ul></li>
+</ul></li>
+<li>内存映射文件</li>
+<li>内存堆方法
+<ul>
+<li>适用于大量的小型内存申请</li>
+</ul></li>
+</ul>
+<h5 id="物理内存管理">物理内存管理</h5>
+<ul>
+<li>页框的状态
+<ul>
+<li>活动（Active）/ 有效（Valid ）：在工作集中</li>
+<li>过渡（Transition）：读入页框 / 从页框写出</li>
+<li>空闲（Free）</li>
+<li>零初始化（zeroed）：空闲且被零初始化</li>
+<li>坏（Bad ）：硬件坏了</li>
+<li>后备（standby）：页框内容未修改，invalid、transition，但是内容还在</li>
+<li>修改（Modified）：页框内容修改过，invalid、transition，但是内容还在</li>
+</ul></li>
+<li>页表与页框号数据库</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621154155412.png" style="zoom:67%;"></p>
+<ul>
+<li>了解每一条线是为什么
+<ul>
+<li>进程的工作集出来：页框不够用得回收（看是否被修改）、<strong>进程结束</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review-2/image-20210621154246683.png" style="zoom:67%;"></p>
+]]></content>
+      <categories>
+        <category>OS.CXQ</category>
+      </categories>
+      <tags>
+        <tag>OS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>操作系统复习.陈向群（文件系统）</title>
+    <url>/2021/06/21/OS/CXQ/Review-3/</url>
+    <content><![CDATA[<h1 id="操作系统复习">操作系统复习</h1>
+<h2 id="文件系统">文件系统</h2>
+<h3 id="关键词">关键词</h3>
+<ul>
+<li>文件系统、文件、文件分类、文件控制块 FCB、文件目录、目录文件、文件系统布局 、文件逻辑结构、文件物理结构、文件描述符 / 文件句柄、FAT / UNIX、文件基本操作、内存结构、文件共享、磁盘空间管理</li>
+</ul>
+<h3 id="思考题">思考题</h3>
+<ul>
+<li>怎样理解 “文件是对磁盘的抽象”？</li>
+<li>文件系统提供了哪些 “接口”</li>
+<li>怎样实现 “文件的按名存取” ？</li>
+<li>文件系统的 “最后一公里”是什么？</li>
+<li>怎样设计 “文件的属性”？</li>
+<li>怎样理解 “文件的逻辑结构和物理结构” ？</li>
+<li>文件目录、目录文件和目录项之间的关联？目录项和文件控制块(FCB)的区别和相同点？</li>
+<li>实现文件系统需要考虑磁盘与内存中的内容布局，UNIX、FAT 和 NTFS几个文件系统都是怎样设计的？</li>
+<li>怎样理解 “目录文件的组织方式：顺序、散列、B+树” ？</li>
+<li>“文件目录检索” 的步骤有哪两步？每一步达到什么目的？如何加快这一步骤？</li>
+<li>文件系统在内存中需要数据结构，为什么？</li>
+<li>FAT16文件系统的局限性是什么？</li>
+<li>怎样实现系统调用rename (给文件重命名) ？</li>
+<li>怎样实现系统调用copy (复制文件) ？</li>
+<li>为什么提供 “硬链接” 和 “软链接” ？</li>
+</ul>
+<h3 id="内容">内容</h3>
+<h4 id="文件系统基本概念">文件系统基本概念</h4>
+<ul>
+<li>文件是什么
+<ul>
+<li>文件是对磁盘的抽象</li>
+<li>所谓文件是指一组带标识（标识即为文件名）的、在逻辑上有完整意义的<strong>信息项的序列</strong></li>
+<li><strong>信息项</strong></li>
+<li>文件内容的意义：<strong>由文件建立者和使用者解释</strong></li>
+</ul></li>
+<li>文件系统</li>
+<li>文件的分类：普通文件、目录文件、特殊文件(设备文件)、管道文件、套接字、符号链接文件</li>
+<li>文件的逻辑结构
+<ul>
+<li>字节序列（流式文件）、记录序列（记录式文件）、树</li>
+<li>堆、顺序、索引、散列、索引顺序</li>
+</ul></li>
+<li>文件存取方式
+<ul>
+<li>顺序访问、随机存取</li>
+</ul></li>
+<li>存储介质</li>
+<li>磁盘：扇区 <span class="math inline">\(\to\)</span> 物理块</li>
+<li>磁盘结构</li>
+</ul>
+<p><img src="/2021/06/21/OS/CXQ/Review-3/image-20210621161552239.png" style="zoom:67%;"></p>
+<ul>
+<li>磁盘访问
+<ul>
+<li><strong>寻道</strong>（时间）：磁头移动定位到指定磁道</li>
+<li><strong>旋转延迟</strong>（时间）：等待指定扇区从磁头下旋转经过</li>
+<li><strong>数据传输</strong>（时间）：数据在磁盘与内存之间的实际传输</li>
+</ul></li>
+<li>文件属性
+<ul>
+<li>文件控制块 FCB</li>
+<li>常用属性</li>
+</ul></li>
+<li>文件操作
+<ul>
+<li>create、delete、open、...</li>
+</ul></li>
+</ul>
+<p><span style="color:red;font-weight:bold">TODO</span></p>
+]]></content>
+      <categories>
+        <category>OS.CXQ</category>
+      </categories>
+      <tags>
+        <tag>OS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>操作系统复习.陈向群（00-02）（概述、中断异常）</title>
+    <url>/2021/06/20/OS/CXQ/Review/</url>
+    <content><![CDATA[<h1 id="操作系统复习00-02">操作系统复习（00-02）</h1>
+<h2 id="chapter-00课程简介">Chapter 00：课程简介</h2>
+<h3 id="内容">内容</h3>
+<ul>
+<li>执行一个可执行文件的时候，操作系统做了什么？</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt; </span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span> </span>&#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;hello world&quot;</span>); <span class="keyword">return</span> <span class="number">0</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>两种观点
+<ul>
+<li>用户程序：OS 功能调用、返回</li>
+<li>进程调度：调度、返回</li>
+</ul></li>
+<li>操作系统的主要工作
+<ul>
+<li>执行程序、个性（硬件相关）、共性、其他问题（性能、安全、健壮性等）</li>
+</ul></li>
+</ul>
+<h2 id="chapter-01操作系统概述">Chapter 01：操作系统概述</h2>
+<h3 id="关键词">关键词</h3>
+<ul>
+<li>操作系统定义、并发性、共享性、虚拟性、随机性、SPOOLing、多道程序设计、OS/360、MULTICS、典型操作系统</li>
+</ul>
+<h3 id="思考题">思考题</h3>
+<ul>
+<li>一个应用程序的执行流程是怎样的？ 涉及到哪些功能模块？</li>
+<li>请问 Windows 操作系统中的设备驱动程序具体提 供了什么功能？有具体的例子吗？为什么说它不直接与硬件打交道？ 可不可以理解为设备驱动程序是建立在 HAL 之上的更高层的抽象，所以是通过HAL与硬件打交道 ？</li>
+<li>课件上 “UNIX操作系统”
+<ul>
+<li>文件子系统与块设备之间的 Buffer Cache 的作用是什么？</li>
+<li>简要小结一下 Buffer Cache 的工作原理</li>
+</ul></li>
+<li>UNIX 的名字来历的猜测</li>
+<li>SPOOLing 技术过时了吗？</li>
+<li>传统的分时系统在今天有什么意义？</li>
+</ul>
+<h3 id="内容-1">内容</h3>
+<ul>
+<li><p>Windows 架构、Unix 架构、Linux 架构、Android 架构</p></li>
+<li><p>层次：应用程序、系统功能调用、操作系统、计算机硬件</p></li>
+<li><p>操作系统是什么？</p>
+<ul>
+<li><p>系统软件</p>
+<p>软硬件资源管理（<strong>有效</strong>、<strong>合理</strong>）</p></li>
+<li><p>程序执行控制，对外提供服务</p></li>
+<li><p>用户<strong>方便</strong>使用</p></li>
+<li><p>机器的<strong>扩展</strong></p></li>
+</ul></li>
+<li><p>设计与实现目标：抽象、模块化、性能、应用之间、隔离性、可靠性、节能、安全性、移动性</p></li>
+<li><p>什么是操作系统（不同角度）？</p>
+<ul>
+<li>作为软件来看的观点</li>
+<li>资源管理的观点</li>
+<li>进程的观点</li>
+<li>虚机器观点（<strong>分层结构</strong>）</li>
+</ul></li>
+<li><p>操作系统的特征：<strong>并发</strong>、<strong>共享</strong>、<strong>虚拟</strong>、<strong>随机</strong></p></li>
+<li><p>操作系统发展史</p>
+<ul>
+<li>第1阶段 （1948 -1970 ）：硬件昂贵，人工便宜
+<ul>
+<li>SPOOLing（假脱机）</li>
+</ul></li>
+<li>第2阶段 （1970 -1985 ）：硬件便宜，人工昂贵
+<ul>
+<li>第一个分时操作系统 CTSS</li>
+</ul></li>
+<li>第3阶段 （1981 -）：硬件非常便宜，人工昂贵</li>
+<li>第4阶段 （1981 -）：分布式</li>
+<li>第5阶段 （1995 -）：移动计算时代</li>
+<li>第6阶段 （2006 -）：云计算时代</li>
+<li>第7阶段 （200？ -）：泛在计算 / 普适计算 / 物联网</li>
+</ul></li>
+<li><p>操作系统分类</p>
+<ul>
+<li>批处理操作系统（多道）</li>
+<li>分时系统</li>
+<li>实时操作系统
+<ul>
+<li>硬实时系统、软实时系统</li>
+</ul></li>
+<li>个人计算机操作系统</li>
+<li>网络操作系统</li>
+<li>分布式操作系统</li>
+<li>嵌入式操作系统</li>
+</ul></li>
+<li><p>操作系统的另一种分类（Tanenbaum）</p>
+<ul>
+<li>大型机操作系统</li>
+<li>服务器操作系统</li>
+<li>多处理机操作系统</li>
+<li>个人计算机操作系统</li>
+<li>实时操作系统</li>
+<li>嵌入式操作系统</li>
+<li>智能卡操作系统</li>
+</ul></li>
+</ul>
+<h2 id="chapter-02运行环境和运行机制">Chapter 02：运行环境和运行机制</h2>
+<h3 id="关键词-1">关键词</h3>
+<ul>
+<li>CPU 状态 (模式 )、特权指令、非特权指令、内核态/用户态、管态/目态、R0/R3、中断与异常、中断向量表、中断描述符、系统调用、机制与策略</li>
+</ul>
+<h3 id="思考题-1">思考题</h3>
+<ul>
+<li>怎样理解 ”操作系统是由中断/异常/事件驱动的” 这句话？</li>
+<li>中断/异常的来源有什么不同？ 处理方式是一样的吗？</li>
+<li>中断/异常机制中，哪些是硬件(体系结构)负责的？ 哪些是软件(操作系统)负责的？</li>
+<li>从中断响应(硬件)到中断处理程序(软件)执行结束，计算机系统经过了哪些流程？</li>
+<li>操作系统初始化与中断/异常有哪些关联？</li>
+<li>怎样理解应用程序是如何与操作系统交互的？</li>
+<li>什么是软件异常？ 它是如何工作的？</li>
+<li>X86 在 Peniuml1300 之后提供了 sysantcr/sysexit 指令，为什么？与int0x80/iret有什么不同？</li>
+<li>关于基于 x86 体系结构的 Linux 的系统调用实现:
+<ul>
+<li>系统调用入口程序 system_ call() 与中断描述符表是什么关系？与系统调用表是什么关系？</li>
+<li>系统调用处理结束后，处理器转去执行哪个模块？</li>
+</ul></li>
+<li>系统调用与 C 函数调用的区别？</li>
+</ul>
+<h3 id="内容-2">内容</h3>
+<h4 id="cpu">CPU</h4>
+<ul>
+<li>CPU 与内存</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review/image-20210620130725590.png" style="zoom: 50%;"></p>
+<ul>
+<li>两类寄存器
+<ul>
+<li>用户可见寄存器
+<ul>
+<li>数据寄存器、地址寄存器、条件码寄存器</li>
+</ul></li>
+<li>控制和状态寄存器
+<ul>
+<li>程序计数器（PC）、指令寄存器（IR）、程序状态字（PSW）</li>
+</ul></li>
+</ul></li>
+<li>内核态与用户态</li>
+<li>特权指令与非特权指令</li>
+<li>x86 系列处理器
+<ul>
+<li>R0 <span class="math inline">\(\to\)</span> R3：特权高 <span class="math inline">\(\to\)</span> 低</li>
+</ul></li>
+<li>CPU 状态之间的切换
+<ul>
+<li>进入内核态：中断/异常/陷入机制</li>
+<li>返回用户态：设置程序状态字 PSW</li>
+</ul></li>
+</ul>
+<h4 id="中断机制">中断机制</h4>
+<ul>
+<li>中断与异常的引入原因
+<ul>
+<li>中断的引入：为了支持 CPU 和设备之间的并行操作</li>
+<li>异常的引入：表示 CPU 执行指令时本身出现的问题</li>
+</ul></li>
+<li>中断与异常</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">类别</th>
+<th style="text-align: center;">原因</th>
+<th style="text-align: center;">异步/同步</th>
+<th style="text-align: center;">返回行为</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">中断<br>Interrupt</td>
+<td style="text-align: center;">来自 I/O 设备、其他硬件部件</td>
+<td style="text-align: center;">异步</td>
+<td style="text-align: center;">总是返回到下一条指令</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">陷入<br>Trap</td>
+<td style="text-align: center;">有意识安排的</td>
+<td style="text-align: center;">同步</td>
+<td style="text-align: center;">返回到下一条指令</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">故障<br>Fault</td>
+<td style="text-align: center;">可恢复的错误</td>
+<td style="text-align: center;">同步</td>
+<td style="text-align: center;">返回到当前指令</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">终止<br>Abort</td>
+<td style="text-align: center;">不可恢复的错误</td>
+<td style="text-align: center;">同步</td>
+<td style="text-align: center;">不会返回</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>中断/异常机制工作原理
+<ul>
+<li><strong>软硬件配合</strong></li>
+</ul></li>
+<li>中断响应（中断硬件部件完成）
+<ul>
+<li>在每条指令执行周期的<strong>最后时刻</strong>扫描中断寄存器，查看是否有中断信号</li>
+<li>若有中断，中断硬件将该中断触发器内容按规定编码送入 PSW 的相应位，称为中断码，通过交换<strong>中断向量</strong>引出中断处理程序</li>
+</ul></li>
+<li>中断向量与中断向量表</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review/image-20210620133337993.png" style="zoom:67%;"></p>
+<ul>
+<li>中断处理程序</li>
+<li><strong>中断/异常机制中软硬件分工</strong>
+<ul>
+<li>以设备 IO 中断为例</li>
+</ul></li>
+</ul>
+<h5 id="ia32-体系结构对中断的支持">IA32 体系结构对中断的支持</h5>
+<ul>
+<li>中断控制器</li>
+<li>实模式（正常情况）：中断向量表</li>
+<li>保护模式（刚启动）：中断描述符表</li>
+<li>门描述符</li>
+<li>IDTR 寄存器、GDTR 寄存器</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review/image-20210620135745915.png" style="zoom: 67%;"></p>
+<ul>
+<li>整个流程</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review/image-20210620140055338.png" style="zoom:67%;"></p>
+<h4 id="存储系统">存储系统</h4>
+<ul>
+<li>容量、速度、成本</li>
+<li>寄存器、高速缓存、主存、磁盘</li>
+<li>局部性原理</li>
+</ul>
+<h4 id="io-访问技术">I/O 访问技术</h4>
+<ul>
+<li>程序控制方式
+<ul>
+<li>I/O 处理单元</li>
+<li>CPU 定期<strong>轮询</strong> I/O 单元的状态，直到处理完毕</li>
+</ul></li>
+<li>中断驱动方式
+<ul>
+<li>每个数据需要传输时中断 CPU</li>
+<li>I/O 操作与指令并行</li>
+</ul></li>
+<li>直接存储器存取（DMA）方式
+<ul>
+<li>一批数据需要传输时中断 CPU</li>
+<li>DMA 控制</li>
+</ul></li>
+</ul>
+<h4 id="时钟">时钟</h4>
+<ul>
+<li>绝对时钟、相对时钟</li>
+<li>硬件时钟、软件时钟</li>
+</ul>
+<h5 id="x86-体系结构的定时硬件">x86 体系结构的定时硬件</h5>
+<ul>
+<li>4 种定时硬件
+<ul>
+<li>实时时钟（RTC）</li>
+<li>时间戳计数器（TSC）</li>
+<li>可编程间隔定时器（PIT）</li>
+<li>SMP系统中的本地APIC定时器</li>
+</ul></li>
+</ul>
+<h4 id="系统调用">系统调用</h4>
+<ul>
+<li>系统调用、库函数、API、内核函数</li>
+</ul>
+<p><img src="/2021/06/20/OS/CXQ/Review/image-20210620144410952.png" style="zoom:67%;"></p>
+<ul>
+<li>系统调用机制的设计
+<ul>
+<li>利用中断/异常机制</li>
+</ul></li>
+<li>如何实现参数传递
+<ul>
+<li>陷入指令自带参数</li>
+<li><strong>通用寄存器</strong></li>
+<li>专用堆栈区</li>
+</ul></li>
+</ul>
+<h4 id="内核的进入与退出">内核的进入与退出</h4>
+<p><img src="/2021/06/20/OS/CXQ/Review/image-20210620150546175.png" style="zoom:67%;"></p>
+]]></content>
+      <categories>
+        <category>OS.CXQ</category>
+      </categories>
+      <tags>
+        <tag>OS</tag>
+      </tags>
+  </entry>
 </search>
