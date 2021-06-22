@@ -33566,4 +33566,174 @@ w_{v,s,t}(\bar{\mathrm{x}})=\dfrac{n_v^\beta p_{v,s,t}^\beta(\bar{\mathrm{x}})}{
         <tag>OS</tag>
       </tags>
   </entry>
+  <entry>
+    <title>SQL Server 递归查询.狼羊过河问题</title>
+    <url>/2021/06/22/DB/SQLServer/Wolf.Sheep.Vegetable.River/</url>
+    <content><![CDATA[<h1 id="狼羊过河问题">狼羊过河问题</h1>
+<h2 id="问题描述">问题描述</h2>
+<ul>
+<li>一个人带着一只狼、一只羊、一棵白菜要过河，小船一次只能容下一个人和一样动植物</li>
+<li>人不在场的时候，狼要吃掉羊、羊要吃掉白菜</li>
+<li>问应当如何渡河？</li>
+</ul>
+<h2 id="sql-server-求解">SQL Server 求解</h2>
+<ul>
+<li>新建数据库</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> database River;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用数据库</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">use River;</span><br></pre></td></tr></table></figure>
+<h3 id="状态表">状态表</h3>
+<ul>
+<li>新建一个数据库表 <code>STATE</code> 用于存储可行的状态，state 表示当前河岸的状态</li>
+<li>使用一个 4 位的二级制数表示状态</li>
+<li>低 4 位分别表示人（3）、狼（2）、羊（1）、菜（0）</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> STATE (</span><br><span class="line">    state tinyint</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用循环把可行的状态插入表中</li>
+<li>可行的状态，满足以下一个条件即可
+<ul>
+<li>人在</li>
+<li>人不在，但是不存在狼羊或羊菜同时存在的情况</li>
+</ul></li>
+<li>最大的状态为 0b1111 = 15
+<ul>
+<li>判断人不在：state &lt; 0b1000
+<ul>
+<li>0b1000 = 8</li>
+</ul></li>
+<li>判断狼羊都在：state &amp; 0b0110 == 0b0110
+<ul>
+<li>0b0110 = 6</li>
+</ul></li>
+<li>判断羊菜都在：state &amp; 0b0011 == 0b0011
+<ul>
+<li>0b0011 = 3</li>
+</ul></li>
+</ul></li>
+<li>同时对岸也得满足这个条件</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">declare</span> <span class="variable">@i</span> <span class="type">int</span></span><br><span class="line"><span class="keyword">declare</span> <span class="variable">@j</span> <span class="type">int</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span> <span class="variable">@i</span><span class="operator">=</span><span class="number">0</span></span><br><span class="line">while <span class="variable">@i</span><span class="operator">&lt;=</span><span class="number">15</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">	<span class="keyword">set</span> <span class="variable">@j</span><span class="operator">=</span><span class="number">15</span><span class="operator">-</span><span class="variable">@i</span></span><br><span class="line">	<span class="comment">/* 当前岸 */</span></span><br><span class="line">	if ((<span class="variable">@i</span> <span class="operator">&gt;=</span> <span class="number">8</span>) <span class="keyword">or</span> <span class="keyword">not</span> ((<span class="variable">@i</span> <span class="operator">&amp;</span> <span class="number">6</span> <span class="operator">=</span> <span class="number">6</span>) <span class="keyword">or</span> (<span class="variable">@i</span> <span class="operator">&amp;</span> <span class="number">3</span> <span class="operator">=</span> <span class="number">3</span>))) </span><br><span class="line">	<span class="keyword">and</span></span><br><span class="line">	<span class="comment">/* 对岸 */</span></span><br><span class="line">	((<span class="variable">@j</span> <span class="operator">&gt;=</span> <span class="number">8</span>) <span class="keyword">or</span> <span class="keyword">not</span> ((<span class="variable">@j</span> <span class="operator">&amp;</span> <span class="number">6</span> <span class="operator">=</span> <span class="number">6</span>) <span class="keyword">or</span> (<span class="variable">@j</span> <span class="operator">&amp;</span> <span class="number">3</span> <span class="operator">=</span> <span class="number">3</span>)))</span><br><span class="line">	<span class="keyword">begin</span></span><br><span class="line">   		<span class="keyword">insert</span> STATE <span class="keyword">values</span> (<span class="variable">@i</span>)</span><br><span class="line">   	<span class="keyword">end</span></span><br><span class="line">    <span class="keyword">set</span> <span class="variable">@i</span><span class="operator">=</span><span class="variable">@i</span><span class="operator">+</span><span class="number">1</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过如下指令，我们可以看到一共有 10 个状态</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> STATE</span><br></pre></td></tr></table></figure>
+<h3 id="路径表">路径表</h3>
+<ul>
+<li>新建一个表，用于表示相邻边</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> PATH(</span><br><span class="line">    state_from  tinyint,</span><br><span class="line">    state_to    tinyint,</span><br><span class="line">    path        <span class="type">varchar</span>(<span class="number">100</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对 STATE 表做笛卡尔积，挑选出可行边，保存在 PATH 中，path 字段记录中间节点</li>
+<li>可行边，同时满足以下所有条件
+<ul>
+<li>满足下列两个条件之一
+<ul>
+<li>state_from - state_to 中有人，且最多有一件物品，同时 state_to 中不能有 state_from 没有的东西
+<ul>
+<li>人过河</li>
+</ul></li>
+<li>state_to - state_from 中有人，且最多有一件物品，同时 state_from 中不能有 state_to 没有的东西
+<ul>
+<li>人从对岸回来</li>
+</ul></li>
+</ul></li>
+<li>state_from、state_to 都是合法的
+<ul>
+<li>这个由 STATE 表保证了</li>
+</ul></li>
+</ul></li>
+<li>实际解决
+<ul>
+<li>state_from - state_to 中有人（最高位为 1）
+<ul>
+<li>打表：1-0=1，1-1=0，0-1=0，0-0=0
+<ul>
+<li>state_from - state_to = state_from &amp; ~state_to &gt;= 0b1000 = 8</li>
+</ul></li>
+</ul></li>
+<li>最多只有一件物品
+<ul>
+<li>state_from - state_to 的低三位只有一位为 1，或者全为 0</li>
+</ul></li>
+<li>state_to 中不能有 state_from 没有的东西
+<ul>
+<li>state_to &amp; ~state_from == 0</li>
+</ul></li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">insert</span> PATH</span><br><span class="line"><span class="keyword">select</span> S1.state, S2.state, &quot;&quot;</span><br><span class="line"><span class="keyword">from</span> STATE S1, STATE S2</span><br><span class="line"><span class="keyword">where</span> (</span><br><span class="line">    (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">&gt;=</span> <span class="number">8</span>)</span><br><span class="line">    <span class="keyword">and</span></span><br><span class="line">    (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">=</span> <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">and</span> (</span><br><span class="line">        (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">&amp;</span> <span class="number">7</span> <span class="operator">=</span> <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">or</span> (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">&amp;</span> <span class="number">7</span> <span class="operator">=</span> <span class="number">1</span>) </span><br><span class="line">        <span class="keyword">or</span> (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">&amp;</span> <span class="number">7</span> <span class="operator">=</span> <span class="number">2</span>) </span><br><span class="line">        <span class="keyword">or</span> (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">&amp;</span> <span class="number">7</span> <span class="operator">=</span> <span class="number">4</span>)</span><br><span class="line">    )</span><br><span class="line">) <span class="keyword">or</span> (</span><br><span class="line">    (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">&gt;=</span> <span class="number">8</span>) </span><br><span class="line">    <span class="keyword">and</span></span><br><span class="line">    (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">=</span> <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">and</span> (</span><br><span class="line">        (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">&amp;</span> <span class="number">7</span> <span class="operator">=</span> <span class="number">0</span>) </span><br><span class="line">        <span class="keyword">or</span> (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">&amp;</span> <span class="number">7</span> <span class="operator">=</span> <span class="number">1</span>) </span><br><span class="line">        <span class="keyword">or</span> (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">&amp;</span> <span class="number">7</span> <span class="operator">=</span> <span class="number">2</span>) </span><br><span class="line">        <span class="keyword">or</span> (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">&amp;</span> <span class="number">7</span> <span class="operator">=</span> <span class="number">4</span>)</span><br><span class="line">    )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>可以做一个简单的优化</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">insert</span> PATH</span><br><span class="line"><span class="keyword">select</span> S1.state, S2.state, &quot;&quot;</span><br><span class="line"><span class="keyword">from</span> STATE S1, STATE S2</span><br><span class="line"><span class="keyword">where</span> (</span><br><span class="line">    (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">=</span> <span class="number">0</span>) </span><br><span class="line">    <span class="keyword">and</span> (</span><br><span class="line">        (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">=</span> <span class="number">8</span>) </span><br><span class="line">        <span class="keyword">or</span>(S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">=</span> <span class="number">9</span>) </span><br><span class="line">        <span class="keyword">or</span> (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">=</span> <span class="number">10</span>) </span><br><span class="line">        <span class="keyword">or</span> (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">=</span> <span class="number">12</span>)</span><br><span class="line">    )</span><br><span class="line">) <span class="keyword">or</span> (</span><br><span class="line">    (S1.state <span class="operator">&amp;</span> <span class="operator">~</span>S2.state <span class="operator">=</span> <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">and</span> (</span><br><span class="line">        (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">=</span> <span class="number">8</span>) </span><br><span class="line">        <span class="keyword">or</span>(S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">=</span> <span class="number">9</span>) </span><br><span class="line">        <span class="keyword">or</span> (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">=</span> <span class="number">10</span>) </span><br><span class="line">        <span class="keyword">or</span> (S2.state <span class="operator">&amp;</span> <span class="operator">~</span>S1.state <span class="operator">=</span> <span class="number">12</span>)</span><br><span class="line">    )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="求解">求解</h3>
+<ul>
+<li>我们简单的用一个表 <code>ANSWER</code> 记录结果</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> ANSWER(</span><br><span class="line">    path    <span class="type">varchar</span>(<span class="number">100</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>找一条路径满足起始点为 0b1111=15，终点为 0b0000=0，输出这条路径</li>
+<li>我们需要进行一个环路检测，我们简单的使用一个变量记录路径，不允许路径上的点重复出现</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">with</span> MultiBouncePath(state_from, state_to, path) <span class="keyword">as</span> (</span><br><span class="line">    <span class="keyword">select</span> state_from, state_to, <span class="built_in">cast</span>(path <span class="keyword">as</span> <span class="type">varchar</span>)</span><br><span class="line">    <span class="keyword">from</span> PATH</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 注意顺序 M,P, 末尾增长边 */</span></span><br><span class="line">    <span class="keyword">select</span> M.state_from , P.state_to, <span class="built_in">cast</span>(M.path <span class="operator">+</span> <span class="string">&#x27;,&#x27;</span> <span class="operator">+</span> <span class="built_in">cast</span>(M.state_to <span class="keyword">as</span> <span class="type">varchar</span>) <span class="keyword">as</span> <span class="type">varchar</span>)</span><br><span class="line">    <span class="keyword">from</span> MultiBouncePath M, PATH P</span><br><span class="line">    <span class="comment">/* M.path 中找不到子串 P.state_t 说明路径上没有这个点 */</span></span><br><span class="line">    <span class="keyword">where</span> M.state_to <span class="operator">=</span> P.state_from <span class="keyword">and</span> CHARINDEX(<span class="built_in">cast</span>(P.state_to <span class="keyword">as</span> <span class="type">varchar</span>) ,M.path) <span class="operator">=</span> <span class="number">0</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">insert</span> ANSWER</span><br><span class="line"><span class="keyword">select</span> (<span class="built_in">cast</span>(state_from <span class="keyword">as</span> <span class="type">varchar</span>) <span class="operator">+</span> path <span class="operator">+</span> &quot;,&quot; <span class="operator">+</span> <span class="built_in">cast</span>(state_to <span class="keyword">as</span> <span class="type">varchar</span>))</span><br><span class="line"><span class="keyword">from</span> MultiBouncePath</span><br><span class="line"><span class="keyword">where</span> state_from <span class="operator">=</span> <span class="number">15</span> <span class="keyword">and</span> state_to <span class="operator">=</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>我们可以查看具体的路径</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> ANSWER</span><br></pre></td></tr></table></figure>
+<ul>
+<li>结果如下
+<ul>
+<li>15,5,13,4,14,2,10,0</li>
+<li>15,5,13,1,11,2,10,0</li>
+</ul></li>
+<li>我们将其转化为我们能够直接读得懂的内容</li>
+<li>增加一个标识 ID</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> ANSWER <span class="keyword">add</span> ID <span class="type">int</span> <span class="keyword">identity</span>(<span class="number">1</span>,<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>辅助实现</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">update</span> ANSWER</span><br><span class="line"><span class="keyword">set</span> path <span class="operator">=</span> path <span class="operator">+</span> <span class="string">&#x27;,&#x27;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>定义一个从数字到状态的转换函数</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 架构名.函数名 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">function</span> dbo.to_zh(</span><br><span class="line"><span class="variable">@num1</span> <span class="type">int</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">returns</span> <span class="type">varchar</span>(<span class="number">100</span>)</span><br><span class="line"><span class="keyword">as</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">	<span class="keyword">declare</span> <span class="variable">@ans1</span> <span class="type">varchar</span>(<span class="number">100</span>)</span><br><span class="line">    <span class="keyword">declare</span> <span class="variable">@ans2</span> <span class="type">varchar</span>(<span class="number">100</span>)</span><br><span class="line">	<span class="keyword">declare</span> <span class="variable">@disc</span> <span class="type">varchar</span>(<span class="number">10</span>)</span><br><span class="line">	<span class="keyword">declare</span> <span class="variable">@index</span> <span class="type">varchar</span>(<span class="number">10</span>)</span><br><span class="line">    <span class="keyword">set</span> <span class="variable">@disc</span> <span class="operator">=</span> &quot;人狼羊菜&quot;</span><br><span class="line">    <span class="keyword">set</span> <span class="variable">@index</span> <span class="operator">=</span> &quot;8421&quot;</span><br><span class="line">	<span class="keyword">set</span> <span class="variable">@ans1</span> <span class="operator">=</span> &quot;&quot;</span><br><span class="line">	<span class="keyword">set</span> <span class="variable">@ans2</span> <span class="operator">=</span> &quot;&quot;</span><br><span class="line">	<span class="keyword">declare</span> <span class="variable">@i</span> <span class="type">int</span></span><br><span class="line">	<span class="keyword">set</span> <span class="variable">@i</span> <span class="operator">=</span> <span class="number">1</span></span><br><span class="line">	while(<span class="variable">@i</span> <span class="operator">&lt;=</span> <span class="number">4</span>)</span><br><span class="line">	<span class="keyword">begin</span></span><br><span class="line">        if ((<span class="variable">@num1</span> <span class="operator">&amp;</span> (ASCII(<span class="built_in">SUBSTRING</span>(<span class="variable">@index</span>, <span class="variable">@i</span>, <span class="number">1</span>)) <span class="operator">-</span> ASCII(&quot;0&quot;))) <span class="operator">&gt;</span> <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">begin</span></span><br><span class="line">            <span class="keyword">set</span> <span class="variable">@ans1</span> <span class="operator">=</span> <span class="variable">@ans1</span> <span class="operator">+</span> <span class="built_in">SUBSTRING</span>(<span class="variable">@disc</span>, <span class="variable">@i</span>, <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">begin</span></span><br><span class="line">            <span class="keyword">set</span> <span class="variable">@ans2</span> <span class="operator">=</span> <span class="variable">@ans2</span> <span class="operator">+</span> <span class="built_in">SUBSTRING</span>(<span class="variable">@disc</span>, <span class="variable">@i</span>, <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">        <span class="keyword">set</span> <span class="variable">@i</span> <span class="operator">=</span> <span class="variable">@i</span> <span class="operator">+</span> <span class="number">1</span></span><br><span class="line">	<span class="keyword">end</span></span><br><span class="line">	<span class="keyword">return</span> <span class="variable">@ans1</span> <span class="operator">+</span> &quot;|&quot; <span class="operator">+</span> <span class="variable">@ans2</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>取出一个结果进行输出
+<ul>
+<li>master..spt_values 是系统中一个表</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> dbo.to_zh(M.item) <span class="keyword">from</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="built_in">SUBSTRING</span>(ans.path, number, CHARINDEX(<span class="string">&#x27;,&#x27;</span>, ans.path <span class="operator">+</span> <span class="string">&#x27;,&#x27;</span>, number) <span class="operator">-</span> number) <span class="keyword">as</span> item</span><br><span class="line">    <span class="keyword">from</span> ANSWER ans, master..spt_values</span><br><span class="line">	<span class="comment">/* 查第 1 条记录*/</span></span><br><span class="line">    <span class="keyword">where</span> ID <span class="operator">=</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">and</span> number <span class="operator">&gt;=</span> <span class="number">1</span> </span><br><span class="line">    <span class="keyword">and</span> number <span class="operator">&lt;</span> len(ans.path)</span><br><span class="line">    <span class="keyword">and</span> type <span class="operator">=</span> <span class="string">&#x27;p&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> <span class="built_in">SUBSTRING</span>(<span class="string">&#x27;,&#x27;</span> <span class="operator">+</span> ans.path, number, <span class="number">1</span>)<span class="operator">=</span><span class="string">&#x27;,&#x27;</span></span><br><span class="line">) M</span><br></pre></td></tr></table></figure>
+<ul>
+<li>输出结果如下</li>
+<li>15,5,13,4,14,2,10,0</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">人狼羊菜|</span><br><span class="line">狼菜|人羊</span><br><span class="line">人狼菜|羊</span><br><span class="line">狼|人羊菜</span><br><span class="line">人狼羊|菜</span><br><span class="line">羊|人狼菜</span><br><span class="line">人羊|狼菜</span><br><span class="line">|人狼羊菜</span><br></pre></td></tr></table></figure>
+<ul>
+<li>15,5,13,1,11,2,10,0</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">人狼羊菜<span class="operator">|</span></span><br><span class="line">狼菜<span class="operator">|</span>人羊</span><br><span class="line">人狼菜<span class="operator">|</span>羊</span><br><span class="line">菜<span class="operator">|</span>人狼羊</span><br><span class="line">人羊菜<span class="operator">|</span>狼</span><br><span class="line">羊<span class="operator">|</span>人狼菜</span><br><span class="line">人羊<span class="operator">|</span>狼菜</span><br><span class="line"><span class="operator">|</span>人狼羊菜</span><br></pre></td></tr></table></figure>
+<h2 id="其他-sql-server-相关">其他 SQL Server 相关</h2>
+<ul>
+<li>删除整个表中的条目</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">truncate</span> <span class="keyword">table</span> STATE</span><br></pre></td></tr></table></figure>
+<ul>
+<li>删除函数</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">function</span> dbo.to_zh</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>DB.SQLServer</category>
+      </categories>
+      <tags>
+        <tag>DB</tag>
+        <tag>SQLServer</tag>
+      </tags>
+  </entry>
 </search>
