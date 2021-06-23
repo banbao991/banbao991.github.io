@@ -33578,6 +33578,10 @@ w_{v,s,t}(\bar{\mathrm{x}})=\dfrac{n_v^\beta p_{v,s,t}^\beta(\bar{\mathrm{x}})}{
 </ul>
 <h2 id="sql-server-求解">SQL Server 求解</h2>
 <ul>
+<li>安装之后命令行直接输入如下命令便可进入 SQL Server 命令行模式</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sqlcmd</span><br></pre></td></tr></table></figure>
+<ul>
 <li>新建数据库</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> database River;</span><br></pre></td></tr></table></figure>
@@ -33727,6 +33731,248 @@ w_{v,s,t}(\bar{\mathrm{x}})=\dfrac{n_v^\beta p_{v,s,t}^\beta(\bar{\mathrm{x}})}{
 <li>删除函数</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">function</span> dbo.to_zh</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>DB.SQLServer</category>
+      </categories>
+      <tags>
+        <tag>DB</tag>
+        <tag>SQLServer</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL 聚合成 json 格式化输出</title>
+    <url>/2021/06/23/DB/MySQL/json_format/</url>
+    <content><![CDATA[<h1 id="json-格式化输出">Json 格式化输出</h1>
+<h2 id="mysql-实现">MySQL 实现</h2>
+<ul>
+<li>将我们的数据库按照 json 的格式，格式化输出</li>
+<li>管理员模式开启 MySQL 服务</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 名字和安装时相关</span></span><br><span class="line">net <span class="built_in">start</span> MYSQL80</span><br></pre></td></tr></table></figure>
+<ul>
+<li>进入命令行模式</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 得输入密码</span></span><br><span class="line">mysql <span class="literal">-u</span> root <span class="literal">-p</span></span><br></pre></td></tr></table></figure>
+<h3 id="建表">建表</h3>
+<ul>
+<li>新建数据库并使用</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> database json_format;</span><br><span class="line">use json_format;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>导入数据
+<ul>
+<li><a href="/resources/DB/code/elective_create_insert.sql">代码</a></li>
+<li>一些修改
+<ul>
+<li>约束条件在插入数据之后</li>
+<li>一些数据补全，缺省的补为 null</li>
+<li>第 3 个约束条件笔误，最后面是 tno</li>
+</ul></li>
+</ul></li>
+<li>查看有哪些表</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">show</span> tables;</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/23/DB/MySQL/json_format/image-20210623161121083.png"></p>
+<h3 id="输出为-json">输出为 json</h3>
+<ul>
+<li>新建一个表，用于输出结果</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> stu_info (</span><br><span class="line">	info json</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>原始数据</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> student;</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/23/DB/MySQL/json_format/image-20210623161033888.png"></p>
+<ul>
+<li>如下指令可以生成除了课程之外的 json 数据</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> CONCAT(<span class="string">&#x27;&#123;&#x27;</span>,</span><br><span class="line">              <span class="string">&#x27;&quot;sno&quot;: &quot;&#x27;</span>, s.sno, <span class="string">&#x27;&quot;,&#x27;</span>, </span><br><span class="line">              <span class="string">&#x27;&quot;name&quot;: &quot;&#x27;</span>, s.sname, <span class="string">&#x27;&quot;,&#x27;</span>,</span><br><span class="line">              <span class="string">&#x27;&quot;course&quot;: &#x27;</span>, <span class="string">&#x27;[]&#x27;</span>,</span><br><span class="line">              <span class="string">&#x27;&#125;&#x27;</span>) info</span><br><span class="line"><span class="keyword">from</span> student s</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/23/DB/MySQL/json_format/image-20210623155952954.png"></p>
+<ul>
+<li>接着只需要生成课程数据即可</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">    s.sno,</span><br><span class="line">    group_concat(</span><br><span class="line">        CONCAT(<span class="string">&#x27;&#123;&#x27;</span>,</span><br><span class="line">               <span class="string">&#x27;&quot;cname&quot;: &quot;&#x27;</span>, c.cname, <span class="string">&#x27;&quot;,&#x27;</span>,</span><br><span class="line">               <span class="string">&#x27;&quot;grade&quot;: &#x27;</span>, sc.grade,</span><br><span class="line">               <span class="string">&#x27;&#125;&#x27;</span>)</span><br><span class="line">    ) course_info</span><br><span class="line"><span class="keyword">from</span> student s, sc, course c</span><br><span class="line"><span class="keyword">where</span> s.sno <span class="operator">=</span> sc.sno <span class="keyword">and</span> sc.cno <span class="operator">=</span> c.cno</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> sno;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>结果如下</li>
+</ul>
+<figure>
+<img src="/2021/06/23/DB/MySQL/json_format/image-20210623155429773.png" alt="image-20210623160857468"><figcaption>image-20210623160857468</figcaption>
+</figure>
+<ul>
+<li>接着我们把上面两个结合在一起即可</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- 插入数据部分</span></span><br><span class="line"><span class="comment">-- insert stu_info</span></span><br><span class="line"><span class="keyword">select</span> CONCAT(<span class="string">&#x27;&#123;&#x27;</span>,</span><br><span class="line">              <span class="string">&#x27;&quot;sno&quot;: &quot;&#x27;</span>, s.sno, <span class="string">&#x27;&quot;,&#x27;</span>, </span><br><span class="line">              <span class="string">&#x27;&quot;name&quot;: &quot;&#x27;</span>, s.sname, <span class="string">&#x27;&quot;,&#x27;</span>,</span><br><span class="line">              <span class="string">&#x27;&quot;course&quot;: &#x27;</span>, <span class="string">&#x27;[&#x27;</span> , M.course_info, <span class="string">&#x27;]&#x27;</span>,</span><br><span class="line">              <span class="string">&#x27;&#125;&#x27;</span>) info</span><br><span class="line"><span class="keyword">from</span> student s, (</span><br><span class="line">    <span class="keyword">select</span></span><br><span class="line">    s.sno,</span><br><span class="line">    group_concat(</span><br><span class="line">        CONCAT(<span class="string">&#x27;&#123;&#x27;</span>,</span><br><span class="line">               <span class="string">&#x27;&quot;cname&quot;: &quot;&#x27;</span>, c.cname, <span class="string">&#x27;&quot;,&#x27;</span>,</span><br><span class="line">               <span class="string">&#x27;&quot;grade&quot;: &#x27;</span>, sc.grade,</span><br><span class="line">               <span class="string">&#x27;&#125;&#x27;</span>)</span><br><span class="line">    ) course_info</span><br><span class="line">    <span class="keyword">from</span> student s, sc, course c</span><br><span class="line">    <span class="keyword">where</span> s.sno <span class="operator">=</span> sc.sno <span class="keyword">and</span> sc.cno <span class="operator">=</span> c.cno</span><br><span class="line">    <span class="keyword">group</span> <span class="keyword">by</span> sno</span><br><span class="line">) M</span><br><span class="line"><span class="keyword">where</span> s.sno <span class="operator">=</span> M.sno;</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/23/DB/MySQL/json_format/image-20210623155754129.png"></p>
+<ul>
+<li>我们可以把上面的数据插入到一个表里，然后输出成 json 文件即可
+<ul>
+<li>上面代码取消第二行的注释即可</li>
+</ul></li>
+<li>输出结果
+<ul>
+<li>如下命令得开权限，否则会报错</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> CONCAT(</span><br><span class="line">    <span class="string">&#x27;&#123;&#x27;</span>, <span class="string">&#x27;\&quot;students\&quot;: &#x27;</span>, <span class="string">&#x27;[&#x27;</span> , group_concat(info), <span class="string">&#x27;]&#x27;</span>, <span class="string">&#x27;&#125;&#x27;</span></span><br><span class="line">) stu_infos </span><br><span class="line"><span class="keyword">from</span> stu_info</span><br><span class="line"><span class="keyword">into</span> outfile <span class="string">&#x27;D:MyTemp/stu_infos.json&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>会有字符串缺失的问题
+<ul>
+<li>可以修改最长字符串大小</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- 设置最长字符串大小</span></span><br><span class="line"><span class="keyword">set</span> SESSION group_concat_max_len<span class="operator">=</span><span class="number">10000</span>;</span><br><span class="line"><span class="comment">-- 查看最长字符串大小</span></span><br><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;group_concat_max_len&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>可以直接在外面执行命令，直接命令行
+<ul>
+<li><code>-N</code> 表示取消表头</li>
+<li>另外一种解决方法是输出的时候，每行一条 json 数据</li>
+</ul></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql -N -h 127.0.0.1 -u root -p  --default-character-set&#x3D;UTF8 -e &quot;set SESSION group_concat_max_len&#x3D;10000; select CONCAT(&#39;&#123;&#39;, &#39;\&quot;students\&quot;: &#39;, &#39;[&#39; , group_concat(info), &#39;]&#39;, &#39;&#125;&#39;) stu_infos from stu_info&quot; json_format &gt; D:&#x2F;MyTemp&#x2F;stu_infos.json</span><br></pre></td></tr></table></figure>
+<ul>
+<li>结果如下</li>
+</ul>
+<p><img src="/2021/06/23/DB/MySQL/json_format/image-20210623165125466.png"></p>
+<ul>
+<li>格式化结果如下</li>
+</ul>
+<p><img src="/2021/06/23/DB/MySQL/json_format/image-20210623165357814.png"></p>
+]]></content>
+      <categories>
+        <category>DB.MySQL</category>
+      </categories>
+      <tags>
+        <tag>DB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SQL Server json 查询练习</title>
+    <url>/2021/06/22/DB/SQLServer/json.practice/</url>
+    <content><![CDATA[<h1 id="json-查询">Json 查询</h1>
+<ul>
+<li><a href="https://docs.microsoft.com/zh-cn/sql/relational-databases/json/json-data-sql-server?view=sql-server-ver15">官网教程</a></li>
+</ul>
+<h2 id="sql-server-json-功能使用">SQL Server json 功能使用</h2>
+<ul>
+<li>新建数据库 <code>json_test</code> 并使用</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> database json_test</span><br><span class="line">use json_test</span><br></pre></td></tr></table></figure>
+<ul>
+<li>每一条 json 的格式如下</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123; <span class="attr">&quot;_id&quot;</span> : <span class="string">&quot;01001&quot;</span>, <span class="attr">&quot;city&quot;</span> : <span class="string">&quot;AGAWAM&quot;</span>, <span class="attr">&quot;loc&quot;</span> : [ <span class="number">-72.622739</span>, <span class="number">42.070206</span> ], <span class="attr">&quot;pop&quot;</span> : <span class="number">15338</span>, <span class="attr">&quot;state&quot;</span> : <span class="string">&quot;MA&quot;</span> &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将 json 文件修改为标准格式
+<ul>
+<li>逗号分隔，最外面加上大括号</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123; &quot;_id&quot; : &quot;01001&quot;, &quot;city&quot; : &quot;AGAWAM&quot;, &quot;loc&quot; : [ -72.622739, 42.070206 ], &quot;pop&quot; : 15338, &quot;state&quot; : &quot;MA&quot; &#125;,</span><br><span class="line">    &#123; &quot;_id&quot; : &quot;99950&quot;, &quot;city&quot; : &quot;KETCHIKAN&quot;, &quot;loc&quot; : [ -133.18479, 55.942471 ], &quot;pop&quot; : 422, &quot;state&quot; : &quot;AK&quot; &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<h3 id="读成数据项">读成数据项</h3>
+<ul>
+<li>按照格式新建一个表用于存储</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test(</span><br><span class="line">    id <span class="type">int</span>,</span><br><span class="line">    city nvarchar(<span class="number">20</span>),</span><br><span class="line">    locx <span class="type">float</span>,</span><br><span class="line">    locy <span class="type">float</span>,</span><br><span class="line">    pop <span class="type">int</span>,</span><br><span class="line">    state <span class="type">char</span>(<span class="number">10</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>使用如下命令将数据读入表中
+<ul>
+<li>OPENJSON</li>
+<li>OPENROWSET</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">declare</span> <span class="variable">@json</span> NVARCHAR(MAX)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="variable">@json</span> <span class="operator">=</span> BulkColumn</span><br><span class="line"><span class="keyword">from</span> OPENROWSET (BULK <span class="string">&#x27;D:/MyTemp/zips.json&#x27;</span>, SINGLE_CLOB) <span class="keyword">as</span> j</span><br><span class="line"></span><br><span class="line"><span class="keyword">insert</span> test</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> OPENJSON(<span class="variable">@json</span>)</span><br><span class="line"><span class="keyword">with</span> (</span><br><span class="line">    id <span class="type">int</span> <span class="string">&#x27;strict $._id&#x27;</span>,</span><br><span class="line">    city nvarchar(<span class="number">30</span>) <span class="string">&#x27;$.city&#x27;</span>,</span><br><span class="line">    locx <span class="type">float</span> <span class="string">&#x27;$.loc[0]&#x27;</span>,</span><br><span class="line">    locy <span class="type">float</span> <span class="string">&#x27;$.loc[1]&#x27;</span>,</span><br><span class="line">    pop <span class="type">int</span> <span class="string">&#x27;$.pop&#x27;</span>,</span><br><span class="line">    state <span class="type">char</span>(<span class="number">10</span>) <span class="string">&#x27;$.state&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>导入数据库之后便可以使用之前简单的查询方式执行了</li>
+</ul>
+<h4 id="简单查询">简单查询</h4>
+<h5 id="查询-1">查询 1</h5>
+<ul>
+<li>简单查看数据库有多少行</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> test</span><br><span class="line"><span class="comment">-- 29353</span></span><br></pre></td></tr></table></figure>
+<h5 id="查询-2">查询 2</h5>
+<ul>
+<li>查询前 6 条记录
+<ul>
+<li>SQL Server 不支持 limit，使用 top 查询</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> top <span class="number">6</span> <span class="operator">*</span> <span class="keyword">from</span> test</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/22/DB/SQLServer/json.practice/image-20210623130431989.png"></p>
+<h5 id="查询-3">查询 3</h5>
+<ul>
+<li>统计不同状态（state）的条目</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> state, <span class="built_in">count</span>(<span class="operator">*</span>) num</span><br><span class="line"><span class="keyword">from</span> test</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> state</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> num <span class="keyword">desc</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>结果如下
+<ul>
+<li>一共有 51 种状态</li>
+<li>其中最多的是 TX（1671条），最少的是 DC（24）条</li>
+<li>（条目太多了，这里只显示首尾几条）</li>
+</ul></li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">state      num</span><br><span class="line">---------- -----------</span><br><span class="line">TX                1671</span><br><span class="line">NY                1595</span><br><span class="line">CA                1516</span><br><span class="line">PA                1458</span><br><span class="line">...                ...</span><br><span class="line">HI                  80</span><br><span class="line">RI                  69</span><br><span class="line">DE                  53</span><br><span class="line">DC                  24</span><br><span class="line"></span><br><span class="line">(51 行受影响)</span><br></pre></td></tr></table></figure>
+<h5 id="查询-4">查询 4</h5>
+<ul>
+<li>找到 pop 值最大的 6 个城市</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> top <span class="number">6</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> test</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> pop <span class="keyword">desc</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>pop 值最大的是 CHICAGO，值为 112047</li>
+</ul>
+<p><img src="/2021/06/22/DB/SQLServer/json.practice/image-20210623132642510.png"></p>
+<h3 id="读成-json-格式">读成 json 格式</h3>
+<ul>
+<li>新建数据表</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test2 (</span><br><span class="line">    info nvarchar(max)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将每一条按照 json 的格式读入</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">declare</span> <span class="variable">@json</span> nvarchar(max)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="variable">@json</span> <span class="operator">=</span> BulkColumn</span><br><span class="line"><span class="keyword">from</span> OPENROWSET (BULK <span class="string">&#x27;D:/MyTemp/zips.json&#x27;</span>, SINGLE_CLOB) <span class="keyword">as</span> j</span><br><span class="line"></span><br><span class="line"><span class="keyword">insert</span> test2</span><br><span class="line"><span class="keyword">select</span> <span class="keyword">value</span> <span class="keyword">as</span> info</span><br><span class="line"><span class="keyword">from</span> OPENJSON(<span class="variable">@json</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>重复上面的查询</li>
+</ul>
+<h5 id="查询-1-1">查询 1</h5>
+<ul>
+<li>简单查看数据库有多少行</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> test2</span><br><span class="line"><span class="comment">-- 29353</span></span><br></pre></td></tr></table></figure>
+<h5 id="查询-2-1">查询 2</h5>
+<ul>
+<li>查询前 6 条记录</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> top <span class="number">6</span> <span class="operator">*</span> <span class="keyword">from</span> test2</span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/22/DB/SQLServer/json.practice/image-20210623135414634.png"></p>
+<h5 id="查询-3-1">查询 3</h5>
+<ul>
+<li>统计不同状态（state）的条目</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">JSON_VALUE</span>(info, <span class="string">&#x27;$.state&#x27;</span>) state, <span class="built_in">count</span>(<span class="operator">*</span>) num</span><br><span class="line"><span class="keyword">from</span> test2</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> <span class="built_in">JSON_VALUE</span>(info, <span class="string">&#x27;$.state&#x27;</span>)</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> num <span class="keyword">desc</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>结果是一样的，不过由于格式的原因，显示出来看起来很奇怪</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">state      num</span><br><span class="line"><span class="comment">---------- -----------</span></span><br><span class="line">TX                <span class="number">1671</span></span><br><span class="line">NY                <span class="number">1595</span></span><br><span class="line">CA                <span class="number">1516</span></span><br><span class="line">PA                <span class="number">1458</span></span><br><span class="line">...                ...</span><br><span class="line">HI                  <span class="number">80</span></span><br><span class="line">RI                  <span class="number">69</span></span><br><span class="line">DE                  <span class="number">53</span></span><br><span class="line">DC                  <span class="number">24</span></span><br><span class="line"></span><br><span class="line">(<span class="number">51</span> 行受影响)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>以上的查询方法很慢</li>
+<li>优化查询如下（输出是一样的）</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> state, <span class="built_in">count</span>(<span class="operator">*</span>) num</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="built_in">JSON_VALUE</span>(info, <span class="string">&#x27;$.state&#x27;</span>) state</span><br><span class="line">    <span class="keyword">from</span> test2</span><br><span class="line">) M</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> state</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> num <span class="keyword">desc</span></span><br></pre></td></tr></table></figure>
+<h5 id="查询-4-1">查询 4</h5>
+<ul>
+<li>找到 pop 值最大的 6 个城市</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> top <span class="number">6</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> test2</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> <span class="built_in">JSON_VALUE</span>(info, <span class="string">&#x27;$.pop&#x27;</span>) <span class="keyword">desc</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2021/06/22/DB/SQLServer/json.practice/image-20210623140626496.png"></p>
+<ul>
+<li>格式化输出如下
+<ul>
+<li>注意这里需要使用 cast 把 pop 转化为 int，否在会被当作字符串，排序失效</li>
+</ul></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> top <span class="number">6</span> city, pop</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="built_in">JSON_VALUE</span>(info, <span class="string">&#x27;$.city&#x27;</span>) city, <span class="built_in">cast</span>(<span class="built_in">JSON_VALUE</span>(info, <span class="string">&#x27;$.pop&#x27;</span>) <span class="keyword">as</span> <span class="type">int</span>) pop</span><br><span class="line">    <span class="keyword">from</span> test2</span><br><span class="line">) M</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> pop <span class="keyword">desc</span></span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>DB.SQLServer</category>
