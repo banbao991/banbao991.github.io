@@ -23,21 +23,23 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
-<meta name="description" content="排序、枚举、搜索（DFS）、动态规划（DP）、Floyd 最短路、表达式求和">
+<meta name="description" content="排序、枚举、搜索（DFS）、动态规划（DP）、Floyd 最短路、表达式求和、倍增法求最近公共祖先">
 <meta property="og:type" content="article">
 <meta property="og:title" content="代码练习">
 <meta property="og:url" content="http://example.com/2021/06/16/Code/code/index.html">
 <meta property="og:site_name" content="Banbao">
-<meta property="og:description" content="排序、枚举、搜索（DFS）、动态规划（DP）、Floyd 最短路、表达式求和">
+<meta property="og:description" content="排序、枚举、搜索（DFS）、动态规划（DP）、Floyd 最短路、表达式求和、倍增法求最近公共祖先">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-06-16T10:20:43.000Z">
-<meta property="article:modified_time" content="2021-06-16T13:42:27.724Z">
+<meta property="article:modified_time" content="2021-07-17T08:40:17.773Z">
 <meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="Code">
 <meta property="article:tag" content="STL">
 <meta property="article:tag" content="DFS">
 <meta property="article:tag" content="DP">
 <meta property="article:tag" content="Floyd">
+<meta property="article:tag" content="LCA">
+<meta property="article:tag" content="tree">
 <meta name="twitter:card" content="summary">
 
 
@@ -191,7 +193,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE"><span class="nav-text">题目</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E8%AF%8D%E6%8E%92%E5%BA%8F"><span class="nav-text">单词排序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9E%83%E5%9C%BE%E7%82%B8%E5%BC%B9"><span class="nav-text">垃圾炸弹</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%BE%E8%8B%B9%E6%9E%9C"><span class="nav-text">放苹果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#red-and-black"><span class="nav-text">Red and Black</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E7%9A%84%E6%95%B4%E6%95%B0%E5%88%92%E5%88%86%E9%97%AE%E9%A2%98"><span class="nav-text">复杂的整数划分问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%94%E5%AD%90%E4%B8%8E%E6%A8%B1%E8%8A%B1"><span class="nav-text">兔子与樱花</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E8%BE%BE%E5%BC%8F%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%A0%91%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC"><span class="nav-text">表达式·表达式树·表达式求值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#distance-queries"><span class="nav-text">Distance Queries</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE"><span class="nav-text">题目</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E8%AF%8D%E6%8E%92%E5%BA%8F"><span class="nav-text">单词排序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9E%83%E5%9C%BE%E7%82%B8%E5%BC%B9"><span class="nav-text">垃圾炸弹</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%BE%E8%8B%B9%E6%9E%9C"><span class="nav-text">放苹果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#red-and-black"><span class="nav-text">Red and Black</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E7%9A%84%E6%95%B4%E6%95%B0%E5%88%92%E5%88%86%E9%97%AE%E9%A2%98"><span class="nav-text">复杂的整数划分问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%94%E5%AD%90%E4%B8%8E%E6%A8%B1%E8%8A%B1"><span class="nav-text">兔子与樱花</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E8%BE%BE%E5%BC%8F%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%A0%91%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC"><span class="nav-text">表达式·表达式树·表达式求值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#distance-queries"><span class="nav-text">Distance Queries</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%80%8D%E5%A2%9E%E6%B3%95"><span class="nav-text">倍增法</span></a></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -207,20 +209,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">96</span>
+          <span class="site-state-item-count">104</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-count">18</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">32</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -293,10 +295,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2021-06-16 18:20:43 / Modified: 21:42:27" itemprop="dateCreated datePublished" datetime="2021-06-16T18:20:43+08:00">2021-06-16</time>
+      <time title="Created: 2021-06-16 18:20:43" itemprop="dateCreated datePublished" datetime="2021-06-16T18:20:43+08:00">2021-06-16</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-07-17 16:40:17" itemprop="dateModified" datetime="2021-07-17T16:40:17+08:00">2021-07-17</time>
+      </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-folder"></i>
@@ -317,7 +325,7 @@
     </span>
 </div>
 
-            <div class="post-description">排序、枚举、搜索（DFS）、动态规划（DP）、Floyd 最短路、表达式求和</div>
+            <div class="post-description">排序、枚举、搜索（DFS）、动态规划（DP）、Floyd 最短路、表达式求和、倍增法求最近公共祖先</div>
         </div>
       </header>
 
@@ -389,12 +397,71 @@
 <h2 id="表达式表达式树表达式求值">表达式·表达式树·表达式求值</h2>
 <ul>
 <li><a href="/resources/Code/code/7.cpp">代码</a></li>
-<li><span style="color:red;font-weight:bold">TODO</span></li>
+<li>输出格式比较麻烦
+<ul>
+<li>计算</li>
+</ul></li>
+<li>中缀转后缀
+<ul>
+<li>准备一个栈</li>
+<li>遇到操作数，直接输出</li>
+<li>遇到左括号，将左括号压栈</li>
+<li>遇到右括号，弹栈输出，直到遇到左括号停止
+<ul>
+<li>遇不到左括号则输入序列有问题</li>
+</ul></li>
+<li>遇到操作符，重复如下操作，直至条件不成立，最后将当前操作符压栈
+<ul>
+<li>同时满足：栈非空、栈顶不为左括号、栈顶操作符优先级小于等于当前操作符</li>
+</ul></li>
+<li>最后弹空栈输出</li>
+</ul></li>
 </ul>
 <h2 id="distance-queries">Distance Queries</h2>
 <ul>
+<li>Floyd 算法 <span class="math inline">\(O(N^3)\)</span>，TLE</li>
 <li><a href="/resources/Code/code/8.cpp">代码</a></li>
-<li><span style="color:red;font-weight:bold">TODO</span></li>
+<li>一些条件
+<ul>
+<li>无向无环图
+<ul>
+<li>No two roads cross, and precisely one path.</li>
+</ul></li>
+<li>连通图
+<ul>
+<li>precisely one path (sequence of roads) links every pair of farms.</li>
+</ul></li>
+</ul></li>
+<li>构建一棵树
+<ul>
+<li>dist[x] 记录 x 结点到根的距离</li>
+<li>如果两个结点 <span class="math inline">\(a,b\)</span> 的存在<strong>最近公共祖先</strong> <span class="math inline">\(c\)</span>
+<ul>
+<li>结果为 <span class="math inline">\(\mathrm{dist[a]+dist[b]-2\times dist[c]}\)</span></li>
+</ul></li>
+<li>利用并查集优化判断是否在同一棵树中，或者增加一个虚拟结点</li>
+</ul></li>
+<li>基本思路
+<ul>
+<li>深度大的点先找他的父结点，直到两个结点的深度一样</li>
+<li>然后一起向上找父结点，直到找到相同的父结点</li>
+</ul></li>
+<li>lca：Least Common Ancestors</li>
+</ul>
+<h3 id="倍增法">倍增法</h3>
+<ul>
+<li>倍增法求最近公共祖先</li>
+<li>第一步，先让 x，y 跳到相同深度（不妨假设 x 深度更大）
+<ul>
+<li>x 与 y 的深度差可以表示为若干 2 的幂次的和，每次跳跃 <span class="math inline">\(2^i\)</span> 个点，复杂度 <span class="math inline">\(\log(x-y)=O(\log N)\)</span></li>
+<li>这个差可以显式获取到</li>
+</ul></li>
+<li>第二步，要么是同一个点，要么一起往上跳
+<ul>
+<li>同样的思路，lca(x, y) 与现在的深度差可以也可以可以表示为若干 2 的幂次的和，复杂度 <span class="math inline">\(O(\log N)\)</span></li>
+<li>这个差不能显示获取到，但是可以通过深度比较试出来</li>
+</ul></li>
+<li>具体实现见代码</li>
 </ul>
 
     </div>
@@ -410,6 +477,8 @@
               <a href="/tags/DFS/" rel="tag"># DFS</a>
               <a href="/tags/DP/" rel="tag"># DP</a>
               <a href="/tags/Floyd/" rel="tag"># Floyd</a>
+              <a href="/tags/LCA/" rel="tag"># LCA</a>
+              <a href="/tags/tree/" rel="tag"># tree</a>
           </div>
 
         
