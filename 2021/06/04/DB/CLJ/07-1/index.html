@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>数据库概论.陈立军.07.并发控制(2) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="并发控制、显式锁类型、各种操作下的锁授予（锁持有分析）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.07.并发控制(2)">
+<meta property="og:url" content="http://example.com/2021/06/04/DB/CLJ/07-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="并发控制、显式锁类型、各种操作下的锁授予（锁持有分析）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612173334329.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612173417287.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612173903573.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612173624408.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612174447634.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612174503222.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612174657367.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612174853968.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612195145842.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612195357141.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612195530118.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612200436574.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612201349846.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612203132870.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612203151601.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612205745033.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612210128618.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612210240187.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612210313852.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612210408732.png">
+<meta property="og:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612210600528.png">
+<meta property="article:published_time" content="2021-06-04T07:00:04.000Z">
+<meta property="article:modified_time" content="2021-06-12T13:09:54.538Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/04/DB/CLJ/07-1/07-1/image-20210612173334329.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-DB/CLJ/07-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/04/DB/CLJ/07-1/" class="article-date">
+  <time class="dt-published" datetime="2021-06-04T07:00:04.000Z" itemprop="datePublished">2021-06-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/DB-CLJ/">DB.CLJ</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      数据库概论.陈立军.07.并发控制(2)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="并发控制"><a href="#并发控制" class="headerlink" title="并发控制"></a>并发控制</h1><h2 id="显示锁类型"><a href="#显示锁类型" class="headerlink" title="显示锁类型"></a>显示锁类型</h2><h3 id="SQL-Server-查询"><a href="#SQL-Server-查询" class="headerlink" title="SQL Server 查询"></a>SQL Server 查询</h3><ul>
+<li>使用 sp_lock 或者查询 sys.dm_tran_locks 视图</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">VIEW</span> DBlocks <span class="keyword">AS</span></span><br><span class="line"><span class="keyword">SELECT</span> request_session_id <span class="keyword">as</span> spid,</span><br><span class="line">    db_name(resource_database_id) <span class="keyword">as</span> dbname,</span><br><span class="line">    <span class="keyword">CASE</span> <span class="keyword">WHEN</span> resource_type<span class="operator">=</span><span class="string">&#x27;OBJECT&#x27;</span></span><br><span class="line">            <span class="keyword">THEN</span> object_name(resource_associated_entity_id)</span><br><span class="line">        <span class="keyword">WHEN</span> resource_associated_entity_id<span class="operator">=</span><span class="number">0</span></span><br><span class="line">            <span class="keyword">THEN</span><span class="string">&#x27;n/a&#x27;</span></span><br><span class="line">        <span class="keyword">ELSE</span> object_name(p.object_id) <span class="keyword">END</span> <span class="keyword">as</span> entity_name,</span><br><span class="line">    index_id,resource_type <span class="keyword">as</span> resource, resource_description <span class="keyword">as</span> description,</span><br><span class="line">    request_mode <span class="keyword">as</span> mode,</span><br><span class="line">    request_status <span class="keyword">as</span> status</span><br><span class="line"><span class="keyword">FROM</span> sys.dm_tran_locks t LEFTJOIN sys.partitions p</span><br><span class="line">    <span class="keyword">ON</span> p.hobt_id <span class="operator">=</span> t.resource_associated_entity_id</span><br><span class="line"><span class="keyword">WHERE</span> resource_database_id<span class="operator">=</span>db_id()</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="repeatable-read"><a href="#repeatable-read" class="headerlink" title="repeatable read"></a>repeatable read</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">USE student</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> TRANSACTION ISOLATION LEVEL REPEATABLE READ</span><br><span class="line"></span><br><span class="line"><span class="keyword">BEGIN</span> TRAN</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> S</span><br><span class="line"><span class="keyword">WHERE</span> AGE<span class="operator">&gt;</span><span class="number">20</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 查询当前进程的锁 */</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> Dblocks</span><br><span class="line"><span class="keyword">WHERE</span> spid<span class="operator">=</span>@<span class="variable">@spid</span></span><br><span class="line"><span class="keyword">AND</span> entity_name<span class="operator">=</span><span class="string">&#x27;S&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span> TRAN</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="read-committed"><a href="#read-committed" class="headerlink" title="read committed"></a>read committed</h4><ul>
+<li>read committed 是短锁，执行完就释放了</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">USE student</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> TRANSACTION ISOLATION LEVEL READ COMMITTED</span><br><span class="line"></span><br><span class="line"><span class="keyword">BEGIN</span> TRAN</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> S</span><br><span class="line"><span class="keyword">WHERE</span> AGE<span class="operator">&gt;</span><span class="number">20</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXEC</span> sp_lock@<span class="variable">@spid</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span> TRAN</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>只有数据库上有一个读锁</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">spid</th>
+<th align="center">Database</th>
+<th align="center">ObjId</th>
+<th align="center">IndId</th>
+<th align="center">Type</th>
+<th align="center">Resource</th>
+<th align="center">Mode</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">DB</td>
+<td align="center"></td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+</tbody></table>
+<h4 id="repeatabel-read"><a href="#repeatabel-read" class="headerlink" title="repeatabel read"></a>repeatabel read</h4><ul>
+<li>长锁</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">USE student</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> TRANSACTION ISOLATION LEVEL REPEATABLE READ</span><br><span class="line"></span><br><span class="line"><span class="keyword">BEGIN</span> TRAN</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> S</span><br><span class="line"><span class="keyword">WHERE</span> AGE<span class="operator">&gt;</span><span class="number">20</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXEC</span> sp_lock @<span class="variable">@spid</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span> TRAN</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>自己加读锁，祖先节点加意向读锁<ul>
+<li>聚簇索引，主码上有索引，KEY 来标一条记录</li>
+</ul>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">spid</th>
+<th align="center">Database</th>
+<th align="center">ObjId</th>
+<th align="center">IndId</th>
+<th align="center">Type</th>
+<th align="center">Resource</th>
+<th align="center">Mode</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">DB</td>
+<td align="center"></td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">2</td>
+<td align="center">PAG</td>
+<td align="center">1:31</td>
+<td align="center">IS</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">1</td>
+<td align="center">PAG</td>
+<td align="center">1:30</td>
+<td align="center">IS</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">1</td>
+<td align="center">KEY</td>
+<td align="center">(930085dfee46)</td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">0</td>
+<td align="center">TAB</td>
+<td align="center"></td>
+<td align="center">IS</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">2</td>
+<td align="center">KEY</td>
+<td align="center">(a8007c139223)</td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">2</td>
+<td align="center">KEY</td>
+<td align="center">(ab008cdbe580)</td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">1</td>
+<td align="center">KEY</td>
+<td align="center">(930022f0d614)</td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+</tbody></table>
+<h4 id="serializable"><a href="#serializable" class="headerlink" title="serializable"></a>serializable</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">USE student</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> TRANSACTION ISOLATION LEVEL SERIALIZABLE</span><br><span class="line"></span><br><span class="line"><span class="keyword">BEGIN</span> TRAN</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> S</span><br><span class="line"><span class="keyword">WHERE</span> AGE<span class="operator">&gt;</span><span class="number">20</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXEC</span> sp_lock@<span class="variable">@spid</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span> TRAN</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>为了防止幻象，得加码范围锁</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">spid</th>
+<th align="center">Database</th>
+<th align="center">ObjId</th>
+<th align="center">IndId</th>
+<th align="center">Type</th>
+<th align="center">Resource</th>
+<th align="center">Mode</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">DB</td>
+<td align="center"></td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">2</td>
+<td align="center">PAG</td>
+<td align="center">1:31</td>
+<td align="center">IS</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">1</td>
+<td align="center">PAG</td>
+<td align="center">1:30</td>
+<td align="center">IS</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">1</td>
+<td align="center">KEY</td>
+<td align="center">(930085dfee46)</td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">0</td>
+<td align="center">TAB</td>
+<td align="center"></td>
+<td align="center">IS</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">2</td>
+<td align="center">KEY</td>
+<td align="center">(a8007c139223)</td>
+<td align="center">RangeS-S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">2</td>
+<td align="center">KEY</td>
+<td align="center">(ab008cdbe580)</td>
+<td align="center">RangeS-S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">2</td>
+<td align="center">KEY</td>
+<td align="center">(ffffffffffff)</td>
+<td align="center">RangeS-S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">51</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">1</td>
+<td align="center">KEY</td>
+<td align="center">(930022f0d614)</td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+</tbody></table>
+<h3 id="SQL-Server-更新"><a href="#SQL-Server-更新" class="headerlink" title="SQL Server 更新"></a>SQL Server 更新</h3><h4 id="read-committed-1"><a href="#read-committed-1" class="headerlink" title="read committed"></a>read committed</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">USE student</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> TRANSACTION ISOLATION LEVEL READ COMMITTED</span><br><span class="line"></span><br><span class="line"><span class="keyword">BEGIN</span> TRAN</span><br><span class="line"></span><br><span class="line"><span class="keyword">UPDATE</span> S</span><br><span class="line"><span class="keyword">SET</span> SEX<span class="operator">=</span><span class="number">0</span></span><br><span class="line"><span class="keyword">WHERE</span> AGE<span class="operator">&gt;</span><span class="number">20</span></span><br><span class="line"><span class="keyword">EXEC</span> sp_lock@<span class="variable">@spid</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ROLLBACK</span> TRAN</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="center">spid</th>
+<th align="center">Database</th>
+<th align="center">ObjId</th>
+<th align="center">IndId</th>
+<th align="center">Type</th>
+<th align="center">Resource</th>
+<th align="center">Mode</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">52</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">DB</td>
+<td align="center"></td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">52</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">1</td>
+<td align="center">PAG</td>
+<td align="center">1:30</td>
+<td align="center">IX</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">52</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">1</td>
+<td align="center">KEY</td>
+<td align="center">(930085dfee46)</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">52</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">0</td>
+<td align="center">TAB</td>
+<td align="center"></td>
+<td align="center">IX</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">52</td>
+<td align="center">student</td>
+<td align="center">2025058250</td>
+<td align="center">1</td>
+<td align="center">KEY</td>
+<td align="center">(930022f0d614)</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+</tbody></table>
+<h3 id="SQL-Server-创建表"><a href="#SQL-Server-创建表" class="headerlink" title="SQL Server 创建表"></a>SQL Server 创建表</h3><h4 id="read-committed-2"><a href="#read-committed-2" class="headerlink" title="read committed"></a>read committed</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">USE student</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> TRANSACTION ISOLATION LEVEL READ COMMITTED</span><br><span class="line"></span><br><span class="line"><span class="keyword">BEGIN</span> TRAN</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">INTO</span> OldS</span><br><span class="line"><span class="keyword">FROM</span> S</span><br><span class="line"><span class="keyword">WHERE</span> AGE<span class="operator">&gt;</span><span class="number">20</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXEC</span> sp_lock2@<span class="variable">@spid</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span> TRAN</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>创建表加写锁</li>
+<li>Sch-M 模式修改锁，避免在建表的时候其他事务访问它</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">spid</th>
+<th align="center">Database</th>
+<th align="center">ObjId</th>
+<th align="center">IndId</th>
+<th align="center">Type</th>
+<th align="center">Resource</th>
+<th align="center">Mode</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">54</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center"><strong>EXT</strong></td>
+<td align="center">1:112</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">54</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">PAG</td>
+<td align="center">1:127</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">54</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">PAG</td>
+<td align="center">1:124</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">54</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">PAG</td>
+<td align="center">1:125</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">54</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">PAG</td>
+<td align="center">1:122</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">54</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">PAG</td>
+<td align="center">1:123</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">54</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">PAG</td>
+<td align="center">1:120</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">54</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">PAG</td>
+<td align="center">1:121</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">54</td>
+<td align="center">student</td>
+<td align="center">2041058307</td>
+<td align="center">0</td>
+<td align="center"><strong>TAB</strong></td>
+<td align="center"></td>
+<td align="center"><strong>Sch-M</strong></td>
+<td align="center">GRANT</td>
+</tr>
+</tbody></table>
+<h3 id="SQL-Server-行锁"><a href="#SQL-Server-行锁" class="headerlink" title="SQL Server 行锁"></a>SQL Server 行锁</h3><h4 id="read-committed-3"><a href="#read-committed-3" class="headerlink" title="read committed"></a>read committed</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">USE student</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span> TRANSACTION ISOLATION LEVEL READ COMMITTED</span><br><span class="line"></span><br><span class="line"><span class="keyword">BEGIN</span> TRAN</span><br><span class="line"><span class="keyword">UPDATE</span> OldS</span><br><span class="line"><span class="keyword">SET</span> SNAME<span class="operator">=</span><span class="string">&#x27;王非&#x27;</span></span><br><span class="line"><span class="keyword">WHERE</span> S# <span class="operator">=</span> <span class="string">&#x27;s1&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXEC</span> sp_lock@<span class="variable">@spid</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span> TRAN</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>SQL Server 没有指定主码，则不会建立聚簇索引，是一个无序的堆表<ul>
+<li>Row ID<ul>
+<li>文件号：文件里面的页面号：页面内的偏移</li>
+</ul>
+</li>
+<li>MySQL 会默认有一个自增的字段</li>
+</ul>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">spid</th>
+<th align="center">Database</th>
+<th align="center">ObjId</th>
+<th align="center">IndId</th>
+<th align="center">Type</th>
+<th align="center">Resource</th>
+<th align="center">Mode</th>
+<th align="center">Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">52</td>
+<td align="center">student</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">DB</td>
+<td align="center"></td>
+<td align="center">S</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">52</td>
+<td align="center">student</td>
+<td align="center">2073058421</td>
+<td align="center">0</td>
+<td align="center">PAG</td>
+<td align="center">1:96</td>
+<td align="center">IX</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">52</td>
+<td align="center">student</td>
+<td align="center">2073058421</td>
+<td align="center">0</td>
+<td align="center"><strong><span style="color:red">RID</span></strong></td>
+<td align="center">1:96:0</td>
+<td align="center">X</td>
+<td align="center">GRANT</td>
+</tr>
+<tr>
+<td align="center">52</td>
+<td align="center">student</td>
+<td align="center">2073058421</td>
+<td align="center">0</td>
+<td align="center">TAB</td>
+<td align="center"></td>
+<td align="center">IX</td>
+<td align="center">GRANT</td>
+</tr>
+</tbody></table>
+<h3 id="MySQL-的锁字典表"><a href="#MySQL-的锁字典表" class="headerlink" title="MySQL 的锁字典表"></a>MySQL 的锁字典表</h3><h4 id="innodb-trx"><a href="#innodb-trx" class="headerlink" title="innodb_trx"></a>innodb_trx</h4><table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">trx_id</td>
+<td align="center">事务id</td>
+</tr>
+<tr>
+<td align="center">trx_state</td>
+<td align="center">事务状态</td>
+</tr>
+<tr>
+<td align="center">trx_started</td>
+<td align="center">事务开始时间</td>
+</tr>
+<tr>
+<td align="center">trx_requested_lock_id</td>
+<td align="center">等待事务的锁id</td>
+</tr>
+<tr>
+<td align="center">trx_wait_started</td>
+<td align="center">事务等待开始的时间</td>
+</tr>
+<tr>
+<td align="center">trx_weight</td>
+<td align="center">事务的权重，锁住的行数，死锁时回滚权重最小的事务</td>
+</tr>
+<tr>
+<td align="center">trx_mysql_thread_id</td>
+<td align="center">线程id</td>
+</tr>
+<tr>
+<td align="center">trx_query</td>
+<td align="center">事务运行的sql语句</td>
+</tr>
+</tbody></table>
+<h4 id="innodb-locks"><a href="#innodb-locks" class="headerlink" title="innodb_locks"></a>innodb_locks</h4><table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">lock_id</td>
+<td align="center">锁id</td>
+</tr>
+<tr>
+<td align="center">lock_trx_id</td>
+<td align="center">事务id</td>
+</tr>
+<tr>
+<td align="center">lock_mode</td>
+<td align="center">锁模式</td>
+</tr>
+<tr>
+<td align="center">lock_type</td>
+<td align="center">锁类型，表锁还是行锁</td>
+</tr>
+<tr>
+<td align="center">lock_table</td>
+<td align="center">锁定的表</td>
+</tr>
+<tr>
+<td align="center">lock_index</td>
+<td align="center">锁定的索引</td>
+</tr>
+<tr>
+<td align="center">lock_space</td>
+<td align="center">锁对象的space id</td>
+</tr>
+<tr>
+<td align="center">lock_page</td>
+<td align="center">锁定的页</td>
+</tr>
+<tr>
+<td align="center">lock_rec</td>
+<td align="center">锁定的行</td>
+</tr>
+<tr>
+<td align="center">lock_data</td>
+<td align="center">锁定行的主码</td>
+</tr>
+</tbody></table>
+<h4 id="innodb-lock-waits"><a href="#innodb-lock-waits" class="headerlink" title="innodb_lock_waits"></a>innodb_lock_waits</h4><table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">requesting_trx_id</td>
+<td align="center">申请锁资源的事务id</td>
+</tr>
+<tr>
+<td align="center">requesting_lock_id</td>
+<td align="center">事务正在申请的锁的id</td>
+</tr>
+<tr>
+<td align="center">blocking_trx_id</td>
+<td align="center">阻塞的事务id</td>
+</tr>
+<tr>
+<td align="center">blocking_lock_id</td>
+<td align="center">阻塞的锁的id</td>
+</tr>
+</tbody></table>
+<h2 id="各种操作下的锁授予"><a href="#各种操作下的锁授予" class="headerlink" title="各种操作下的锁授予"></a>各种操作下的锁授予</h2><ul>
+<li>以查询为例<ul>
+<li>当你发出一个查询请求之后，数据库会先经过一个查询优化器，确定一个执行计划（直接扫描表&#x2F;借助某个索引），系统会对执行计划的每一个路径加锁</li>
+</ul>
+</li>
+</ul>
+<h3 id="聚簇表和堆表的不同（SQL-Server）"><a href="#聚簇表和堆表的不同（SQL-Server）" class="headerlink" title="聚簇表和堆表的不同（SQL Server）"></a>聚簇表和堆表的不同（SQL Server）</h3><ul>
+<li>ClusterOrders：基于 OrderID 的聚簇表<ul>
+<li>在 ClusterOrders 的 ShipName 上建有非聚簇索引</li>
+</ul>
+</li>
+<li>HeapOrders：堆表<ul>
+<li>在 HeapOrders 的 EmployeeID 上建有非聚簇索引</li>
+</ul>
+</li>
+</ul>
+<h4 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h4><h5 id="聚簇表：基于聚簇索引的查找"><a href="#聚簇表：基于聚簇索引的查找" class="headerlink" title="聚簇表：基于聚簇索引的查找"></a>聚簇表：基于聚簇索引的查找</h5><ul>
+<li>索引</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> ClusterOrders</span><br><span class="line"><span class="keyword">where</span> OrderID<span class="operator">=</span><span class="number">10250</span></span><br></pre></td></tr></table></figure>
+
+<img src="07-1/image-20210612173334329.png" style="zoom:150%;" />
+
+
+
+<h5 id="堆表：基于非索引项的查找"><a href="#堆表：基于非索引项的查找" class="headerlink" title="堆表：基于非索引项的查找"></a>堆表：基于非索引项的查找</h5><ul>
+<li>RID</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> HeapOrders</span><br><span class="line"><span class="keyword">where</span> OrderID<span class="operator">=</span><span class="number">10250</span></span><br></pre></td></tr></table></figure>
+
+<img src="07-1/image-20210612173417287.png" style="zoom:150%;" />
+
+
+
+<h5 id="堆表：基于非聚簇索引的查找"><a href="#堆表：基于非聚簇索引的查找" class="headerlink" title="堆表：基于非聚簇索引的查找"></a>堆表：基于非聚簇索引的查找</h5><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> HeapOrders</span><br><span class="line"><span class="keyword">where</span> EmploeeID <span class="operator">=</span> <span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>执行计划如下<ul>
+<li>先在非聚簇索引上查找，找到满足条件的索引码之后再到原表中查找</li>
+<li>现在满足条件的非聚簇索引上加锁，然后在 RID 上加锁</li>
+</ul>
+</li>
+</ul>
+<img src="07-1/image-20210612173903573.png" style="zoom:150%;" />
+
+<img src="07-1/image-20210612173624408.png" style="zoom:150%;" />
+
+
+
+<ul>
+<li>当修改查询语句如下时，查询计划改变了<ul>
+<li>为什么？</li>
+<li>系统发现在索引中有很多满足条件的项，基于索引反而是低效的</li>
+<li>转变为基于<strong>表扫描</strong>的查找</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> HeapOrders</span><br><span class="line"><span class="keyword">where</span> EmploeeID<span class="operator">=</span><span class="number">4</span></span><br></pre></td></tr></table></figure>
+
+<img src="07-1/image-20210612174447634.png" style="zoom:150%;" />
+
+<img src="07-1/image-20210612174503222.png" style="zoom:150%;" />
+
+
+
+<h4 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h4><h5 id="堆表：删除行操作（非索引）"><a href="#堆表：删除行操作（非索引）" class="headerlink" title="堆表：删除行操作（非索引）"></a>堆表：删除行操作（非索引）</h5><ul>
+<li>RID 加写锁</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> HeapOrders</span><br><span class="line"><span class="keyword">where</span> orderID<span class="operator">=</span><span class="number">10253</span></span><br></pre></td></tr></table></figure>
+
+<img src="07-1/image-20210612174657367.png" style="zoom:150%;" />
+
+
+
+
+
+<h5 id="堆表：删除行操作（索引、非聚簇索引）"><a href="#堆表：删除行操作（索引、非聚簇索引）" class="headerlink" title="堆表：删除行操作（索引、非聚簇索引）"></a>堆表：删除行操作（索引、非聚簇索引）</h5><ul>
+<li>索引码、原表中对应的行都得加写锁</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> HeapOrders</span><br><span class="line"><span class="keyword">where</span> EmployeeID <span class="operator">=</span> <span class="number">9</span></span><br></pre></td></tr></table></figure>
+
+<img src="07-1/image-20210612174853968.png" style="zoom:150%;" />
+
+
+
+<h4 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h4><h5 id="堆表：基于非聚簇索引的更新操作"><a href="#堆表：基于非聚簇索引的更新操作" class="headerlink" title="堆表：基于非聚簇索引的更新操作"></a>堆表：基于非聚簇索引的更新操作</h5><ul>
+<li>索引、RID 加写锁</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> HeapOrders</span><br><span class="line"><span class="keyword">set</span> ShipVia <span class="operator">=</span> <span class="number">3</span></span><br><span class="line"><span class="keyword">where</span> EmployeeID <span class="operator">=</span> <span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<img src="07-1/image-20210612195145842.png" style="zoom:150%;" />
+
+<img src="07-1/image-20210612195357141.png" style="zoom:150%;" />
+
+
+
+<h5 id="聚簇表：更新操作"><a href="#聚簇表：更新操作" class="headerlink" title="聚簇表：更新操作"></a>聚簇表：更新操作</h5><ul>
+<li>只有索引表需要加锁<ul>
+<li>因为 ShipName 上有非聚簇索引，同时需要给这些记录加写锁</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> ClusterOrders</span><br><span class="line"><span class="keyword">set</span> ShipName <span class="operator">=</span> <span class="string">&#x27;tatatata&#x27;</span></span><br><span class="line"><span class="keyword">where</span> OrderID <span class="operator">=</span> <span class="number">10255</span></span><br></pre></td></tr></table></figure>
+
+<img src="07-1/image-20210612195530118.png" style="zoom:150%;" />
+
+
+
+<h3 id="缺少索引而引起的阻塞（SQL-Server）"><a href="#缺少索引而引起的阻塞（SQL-Server）" class="headerlink" title="缺少索引而引起的阻塞（SQL Server）"></a>缺少索引而引起的阻塞（SQL Server）</h3><ul>
+<li><strong>建立索引能够减少减少阻塞的情况，能够提高索引的并发度</strong></li>
+</ul>
+<h4 id="没有索引的情况"><a href="#没有索引的情况" class="headerlink" title="没有索引的情况"></a>没有索引的情况</h4><ul>
+<li>建立两个表 T1、T2</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> T1(id <span class="type">int</span>, col1 <span class="type">char</span>(<span class="number">10</span>))</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> T2(id <span class="type">int</span>, col2 <span class="type">char</span>(<span class="number">10</span>))</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> T1 <span class="keyword">values</span> (<span class="number">101</span>,<span class="string">&#x27;A&#x27;</span>), (<span class="number">102</span>,<span class="string">&#x27;B&#x27;</span>), (<span class="number">103</span>,<span class="string">&#x27;C&#x27;</span>)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> T2 <span class="keyword">values</span> (<span class="number">201</span>,<span class="string">&#x27;A&#x27;</span>), (<span class="number">202</span>,<span class="string">&#x27;B&#x27;</span>), (<span class="number">203</span>,<span class="string">&#x27;C&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>事务 1</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span> tran</span><br><span class="line"><span class="keyword">update</span> T1</span><br><span class="line"><span class="keyword">set</span> col1 <span class="operator">=</span> <span class="string">&#x27;a&#x27;</span></span><br><span class="line"><span class="keyword">where</span> id <span class="operator">=</span> <span class="number">101</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>事务 2</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span> tran</span><br><span class="line"><span class="keyword">update</span> T1</span><br><span class="line"><span class="keyword">set</span> col1 <span class="operator">=</span> <span class="string">&#x27;a&#x27;</span></span><br><span class="line"><span class="keyword">where</span> id <span class="operator">=</span> <span class="number">103</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>实际过程中，事务 2 被事务 1 阻塞了<ul>
+<li>事务 1 加了写锁，更新事务在更新完整个表之后才会释放所有的锁<ul>
+<li>这样的原因如下<ul>
+<li>举个例子，如果更新完一条记录就释放这条记录上的锁，事务 1 更新完 A 记录后马上释放锁，此时事务 2 也更新 A 记录，但是事务 2 出现错误，需要回滚，此时出现问题，回滚之后把事务 2 的更新也回滚掉了</li>
+</ul>
+</li>
+<li>SQL Server 的更新操作<ul>
+<li>先把所有满足条件的行找出来，此时会申请 U 锁（先读后写），满足条件的行被更新时升级为写锁</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>事务 2 在通过 where 查询整个表的时候，查询被事务 1 锁住的记录的时候，被阻塞</li>
+</ul>
+</li>
+<li>输出两个进程持有锁的情况</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 事务 1 */</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> Dblocks</span><br><span class="line"><span class="keyword">WHERE</span> spid<span class="operator">=</span><span class="number">52</span></span><br><span class="line"><span class="keyword">AND</span> entity_name<span class="operator">=</span><span class="string">&#x27;T1&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<img src="07-1/image-20210612200436574.png" style="zoom: 67%;" />
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 事务 2 */</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> Dblocks</span><br><span class="line"><span class="keyword">WHERE</span> spid<span class="operator">=</span><span class="number">54</span></span><br><span class="line"><span class="keyword">AND</span> entity_name<span class="operator">=</span><span class="string">&#x27;T1&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<img src="07-1/image-20210612201349846.png" style="zoom:67%;" />
+
+<ul>
+<li>注意上面事务 2 的行探查阶段申请的是 U 锁</li>
+</ul>
+<h4 id="在-id-上建立索引"><a href="#在-id-上建立索引" class="headerlink" title="在 id 上建立索引"></a>在 id 上建立索引</h4><ul>
+<li>在更新的时候不需要扫描所有行，可以通过索引直接定位到行</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> index idx_T1_id <span class="keyword">on</span> T1(id)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>此时不会出现事务 2 被事务 1 挂起的情况，锁持有情况如下<ul>
+<li>先加 U 锁，更新的时候再升级为写锁</li>
+</ul>
+</li>
+</ul>
+<img src="07-1/image-20210612203132870.png" style="zoom:150%;" />
+
+<img src="07-1/image-20210612203151601.png" style="zoom:150%;" />
+
+
+
+<h3 id="MySQL-的当前读"><a href="#MySQL-的当前读" class="headerlink" title="MySQL 的当前读"></a>MySQL 的当前读</h3><ul>
+<li><strong>当前读</strong>：特殊的读操作，需要加锁</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> <span class="keyword">table</span> <span class="keyword">where</span> ? lock <span class="keyword">in</span> share mode</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> <span class="keyword">table</span> <span class="keyword">where</span> ? <span class="keyword">for</span> <span class="keyword">update</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">table</span> <span class="keyword">values</span>(...)</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span> <span class="keyword">table</span> <span class="keyword">set</span> ? <span class="keyword">where</span> ?</span><br><span class="line"></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> <span class="keyword">table</span> <span class="keyword">where</span> ?</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="MySQL-加锁处理分析"><a href="#MySQL-加锁处理分析" class="headerlink" title="MySQL 加锁处理分析"></a>MySQL 加锁处理分析</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* SQL1 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> t1 <span class="keyword">where</span> id<span class="operator">=</span><span class="number">10</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* SQL2 */</span></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> t1 <span class="keyword">where</span> id<span class="operator">=</span><span class="number">10</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>前提<ul>
+<li>前提一：id列是不是主键？</li>
+<li>前提二：当前系统的隔离级别是什么？</li>
+<li>前提三：id列如果不是主键，那么id列上有索引吗？</li>
+<li>前提四：id列上如果有二级索引，这个索引是唯一索引吗？</li>
+<li>前提五：两个SQL的执行计划是什么？索引扫描？全表扫描？</li>
+</ul>
+</li>
+<li>通过对前提的不同组合会有不同的结果</li>
+<li>组合<ul>
+<li>组合一：id列是主键，RC隔离级别</li>
+<li>组合二：id列是二级唯一索引，RC隔离级别</li>
+<li>组合三：id列是二级非唯一索引，RC隔离级别</li>
+<li>组合四：id列上没有索引，RC隔离级别</li>
+<li>组合五：id列是主键，RR隔离级别</li>
+<li>组合六：id列是二级唯一索引，RR隔离级别</li>
+<li>组合七：id列是二级非唯一索引，RR隔离级别</li>
+<li>组合八：id列上没有索引，RR隔离级别</li>
+<li>组合九：Serializable隔离级别</li>
+</ul>
+</li>
+</ul>
+<h4 id="组合一：id主键-RC"><a href="#组合一：id主键-RC" class="headerlink" title="组合一：id主键+RC"></a>组合一：id主键+RC</h4><img src="07-1/image-20210612205745033.png" style="zoom: 67%;" />
+
+
+
+<h4 id="组合二：id唯一索引-RC"><a href="#组合二：id唯一索引-RC" class="headerlink" title="组合二：id唯一索引+RC"></a>组合二：id唯一索引+RC</h4><img src="07-1/image-20210612210128618.png" style="zoom:67%;" />
+
+
+
+
+
+<h4 id="组合三：id非唯一索引-RC"><a href="#组合三：id非唯一索引-RC" class="headerlink" title="组合三：id非唯一索引+RC"></a>组合三：id非唯一索引+RC</h4><img src="07-1/image-20210612210240187.png" style="zoom: 80%;" />
+
+
+
+<h4 id="组合四：id无索引-RC"><a href="#组合四：id无索引-RC" class="headerlink" title="组合四：id无索引+RC"></a>组合四：id无索引+RC</h4><img src="07-1/image-20210612210313852.png" style="zoom:67%;" />
+
+
+
+<h4 id="组合七：id非唯一索引-RR"><a href="#组合七：id非唯一索引-RR" class="headerlink" title="组合七：id非唯一索引+RR"></a>组合七：id非唯一索引+RR</h4><img src="07-1/image-20210612210408732.png" style="zoom:80%;" />
+
+
+
+<h4 id="组合八：id无索引-RR"><a href="#组合八：id无索引-RR" class="headerlink" title="组合八：id无索引+RR"></a>组合八：id无索引+RR</h4><img src="07-1/image-20210612210600528.png" style="zoom:80%;" />
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/04/DB/CLJ/07-1/" data-id="cl9lj74ay00fz64tzgw9of3hb" data-title="数据库概论.陈立军.07.并发控制(2)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/06/07/OS/xv6-source-code/05-FileSystem/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          xv6-riscv-源代码阅读.文件系统
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/06/03/OS/xv6-labs/lab7-lock/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">xv6-labs-2020.lab7.lock</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

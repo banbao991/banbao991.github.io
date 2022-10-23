@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>数据库概论.陈立军.07.并发控制 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="并发控制、两段锁协议、基本锁类型（排他锁、共享锁、更新锁）、意向锁（I、IS、IX）、SQL Server 的锁模式（码范围锁）、MySQL 的行锁">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.07.并发控制">
+<meta property="og:url" content="http://example.com/2021/05/25/DB/CLJ/07/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="并发控制、两段锁协议、基本锁类型（排他锁、共享锁、更新锁）、意向锁（I、IS、IX）、SQL Server 的锁模式（码范围锁）、MySQL 的行锁">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210603213524078.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210603214644809.png">
+<meta property="og:image" content="http://example.com/07/image-20210603221848187.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210603233000188.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210604114515233.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210604115935940.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210604120016324.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210604120643062.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210604120726693.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210604135729531.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210604142311541.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210604143943619.png">
+<meta property="og:image" content="http://example.com/07/image-20210604144317013.png">
+<meta property="og:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210604145703323.png">
+<meta property="article:published_time" content="2021-05-25T08:35:15.000Z">
+<meta property="article:modified_time" content="2021-06-25T04:12:43.046Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/25/DB/CLJ/07/07/image-20210603213524078.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-DB/CLJ/07" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/05/25/DB/CLJ/07/" class="article-date">
+  <time class="dt-published" datetime="2021-05-25T08:35:15.000Z" itemprop="datePublished">2021-05-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/DB-CLJ/">DB.CLJ</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      数据库概论.陈立军.07.并发控制
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="并发控制"><a href="#并发控制" class="headerlink" title="并发控制"></a>并发控制</h1><ul>
+<li>并发问题</li>
+<li>资源争用</li>
+<li>关键：调度</li>
+</ul>
+<h2 id="两段锁协议"><a href="#两段锁协议" class="headerlink" title="两段锁协议"></a>两段锁协议</h2><h3 id="封锁的定义"><a href="#封锁的定义" class="headerlink" title="封锁的定义"></a>封锁的定义</h3><ul>
+<li>封锁就是一个事务对某个数据对象加锁，取得对它一定的控制，限制其它事务对该数据对象使用</li>
+<li>要访问一个数据项 $R$，事务 $T_i$ 必须先申请对 $R$ 的封锁，如果 $R$ 已经被事务 $T_j$ 加了不相容的锁，则 $T_i$ 需要等待，直至 $T_j$ 释放它的封锁</li>
+<li>例子：信号灯</li>
+<li>封锁性能<ul>
+<li>事务吞吐量</li>
+<li>TPC-C：测数据库事务性能<ul>
+<li>目前的第一：Ocean Base（阿里）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>一些其他的指标<ul>
+<li>TPC-H：测数据库的大数据分析处理能力</li>
+</ul>
+</li>
+<li>数据库追求的目标：在避免冲突的前提下，提高事务吞吐量（提高并发度）</li>
+</ul>
+<h3 id="锁持有期"><a href="#锁持有期" class="headerlink" title="锁持有期"></a>锁持有期</h3><ul>
+<li>长锁：保持到事务结束时才释放的锁</li>
+<li>短锁：在事务中途就可以释放的锁</li>
+<li>例子<ul>
+<li>read uncommitted：不申请锁</li>
+<li>read committed：短 S 锁</li>
+<li>repeatable read：长 S 锁</li>
+</ul>
+</li>
+</ul>
+<h3 id="两段锁协议-1"><a href="#两段锁协议-1" class="headerlink" title="两段锁协议"></a>两段锁协议</h3><ul>
+<li>Two-Phase Locking Protocol</li>
+<li>事务加锁和解锁过程是严格分开的</li>
+<li><strong>增长阶段</strong>（Growing Phase）<ul>
+<li>事务可以获得锁，但不能释放锁</li>
+</ul>
+</li>
+<li><strong>缩减阶段</strong>（Shrinking Phase）<ul>
+<li>事务可以释放锁，但不能获得锁</li>
+</ul>
+</li>
+<li>图示</li>
+</ul>
+<img src="07/image-20210603213524078.png" style="zoom:60%;" />
+
+<ul>
+<li>哪个事务隔离性级别不满足 2PL（两段锁协议）<ul>
+<li>read committed</li>
+</ul>
+</li>
+</ul>
+<h4 id="两阶段封锁协议的作用"><a href="#两阶段封锁协议的作用" class="headerlink" title="两阶段封锁协议的作用"></a>两阶段封锁协议的作用</h4><ul>
+<li>若一组事务均服从两阶段封锁协议，则它们的调度一定是<strong>可串行化</strong>的</li>
+<li><strong>封锁点</strong>：事务获得其最后封锁的时间<ul>
+<li>获得最后一个锁的时间</li>
+</ul>
+</li>
+<li><strong>事务调度等价于和其封锁点顺序一致的串行调度</strong></li>
+<li>例子<ul>
+<li>如下图，t1, t2, t3 满足 2PL 则等价的串行顺序是 t1, t3, t2</li>
+</ul>
+</li>
+</ul>
+<img src="07/image-20210603214644809.png" style="zoom: 67%;" />
+
+
+
+<h4 id="为什么两阶段封锁协议保证可串行化？"><a href="#为什么两阶段封锁协议保证可串行化？" class="headerlink" title="为什么两阶段封锁协议保证可串行化？"></a>为什么两阶段封锁协议保证可串行化？</h4><ul>
+<li>令 ${T_0,T_1,\cdots,T_n}$ 是参与调度 $S$ 的事务集</li>
+<li>如果 $T_i$ 对数据项 $R$ 加 $A$ 型锁，$T_j$ 对数据项 $R$ 加 $B$ 型锁，且 $\mathrm{comp(A,B)&#x3D;false}$（不相容的锁），若 $T_i$ 先获得锁，则 $T_i$ 先于 $T_j$，记作 $T_i\to T_j$，得到一个优先图</li>
+<li>设 $t_i$是 $T_i$ 的封锁点，若 $T_i\to T_j$，则必然有 $t_i&lt;t_j$<ul>
+<li>事务 $T_j$ 需要等待 $T_i$ 释放不相容的锁之后，才能获得锁，不妨设这个时间为 $t_m$</li>
+<li>$t_i&lt;t_m\le t_j$</li>
+</ul>
+</li>
+<li>若 ${T_0,T_1,\cdots,T_n}$ 不可串行化，则在优先图中存在环，不妨设为 $T_0\to T_1\to\cdots\to T_n\to T_0$，则 $t_0&lt;t_1&lt;\cdots&lt;t_n&lt;t_0$，时间不可能成环，矛盾</li>
+</ul>
+<h2 id="封锁类型"><a href="#封锁类型" class="headerlink" title="封锁类型"></a>封锁类型</h2><ul>
+<li>基本锁类型：X 锁、S 锁、U 锁</li>
+<li>意向锁：IS、IX、IU、SIX</li>
+<li>码范围锁：RangeS_S、RangeI_N…</li>
+<li>其他锁：模式锁、闩锁、BU锁</li>
+</ul>
+<h3 id="基本锁类型（排他锁、共享锁、更新锁）"><a href="#基本锁类型（排他锁、共享锁、更新锁）" class="headerlink" title="基本锁类型（排他锁、共享锁、更新锁）"></a>基本锁类型（排他锁、共享锁、更新锁）</h3><h4 id="排他锁与共享锁"><a href="#排他锁与共享锁" class="headerlink" title="排他锁与共享锁"></a>排他锁与共享锁</h4><ul>
+<li>排它锁（X 锁，eXclusive lock）<ul>
+<li>lock-X(R)：又称写锁，持有 X 锁可以读写数据项</li>
+<li>事务 T 对数据对象 R 加上 X 锁，则其它事务对 R 的<strong>任何封锁请求都不能成功</strong>，直至 T 释放 R 上的 X 锁</li>
+</ul>
+</li>
+<li>共享锁（S 锁，Share lock）<ul>
+<li>lock-S(R)：又称读锁，持有 S 锁只能读取数据项</li>
+<li>事务 T 对数据对象 R 加上 S 锁，则其它事务对 R 的 <strong>X 锁请求不能成功</strong>，而对 R 的 <strong>S 锁请求可以成功</strong></li>
+</ul>
+</li>
+<li>封锁的相容矩阵 $\mathrm{comp(A,B)}$</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">请求锁模式A \ 现有锁模式B</th>
+<th align="center">S</th>
+<th align="center">X</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">S</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+</tr>
+<tr>
+<td align="center">X</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+</tr>
+</tbody></table>
+<h4 id="先读后写场合中的锁转换"><a href="#先读后写场合中的锁转换" class="headerlink" title="先读后写场合中的锁转换"></a>先读后写场合中的锁转换</h4><ul>
+<li>两个事务 T1, T2<ul>
+<li>T1: read(a1); read(a2); …; read(an); write(a1)</li>
+<li>T2: read(a1); …</li>
+</ul>
+</li>
+<li>T1 需要对 a1 加 X 锁（因为后面要写）<ul>
+<li>这样的方案是不好的，因为 T2 无法执行</li>
+</ul>
+</li>
+<li>更好的并发方式<ul>
+<li>T1 在 read(a1) 上加 S 锁，在执行 write(a1) 之前升级锁（upgrade）为  X 锁</li>
+<li>升级的时候要求没有事务在 a1 上持有锁</li>
+</ul>
+</li>
+<li>如下左图等价于串行调度 T1,T2，右图等价于串行调度 T2,T1</li>
+</ul>
+<p><img src="/07/image-20210603221848187.png"></p>
+<h4 id="带有锁转换的两段锁协议"><a href="#带有锁转换的两段锁协议" class="headerlink" title="带有锁转换的两段锁协议"></a>带有锁转换的两段锁协议</h4><ul>
+<li><strong>增长阶段</strong><ul>
+<li>可获得 lock-S</li>
+<li>可获得 lock-X</li>
+<li><strong>可将 lock-S 升级为 lock-X（upgrade）</strong></li>
+</ul>
+</li>
+<li><strong>缩减阶段</strong><ul>
+<li>可释放 lock-S</li>
+<li>可释放 lock-X</li>
+<li><strong>可将 lock-X 降级为 lock-S（downgrade）</strong></li>
+</ul>
+</li>
+</ul>
+<h4 id="锁升级与重新申请锁"><a href="#锁升级与重新申请锁" class="headerlink" title="锁升级与重新申请锁"></a>锁升级与重新申请锁</h4><ul>
+<li>升级锁和重新申请锁的区别<ul>
+<li>申请锁是维护一个队列的<ul>
+<li>重新申请锁则会排在队列的最后</li>
+<li>升级锁则会排在队列的前面，可能更早考虑</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>在那个隔离性级别下会出现锁升级<ul>
+<li>repeatable read</li>
+<li>read committed 不会，因为是短 S 锁</li>
+</ul>
+</li>
+</ul>
+<h4 id="锁转化带来的问题"><a href="#锁转化带来的问题" class="headerlink" title="锁转化带来的问题"></a>锁转化带来的问题</h4><ul>
+<li>死锁</li>
+<li>两个事务都是<strong>先读后写</strong></li>
+<li><span id="ex1">如下例子</span><ul>
+<li>repeatable read 情况下（read 为长 S 锁）<ul>
+<li>T1 在 write(a1) 时需要锁升级，但是如果此时 T2 已经执行到了 read(a1) 之后，此时 T1 等待</li>
+<li>同样的道理 T2 也等待，导致死锁</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<img src="07/image-20210603233000188.png" style="zoom:67%;" />
+
+
+
+<h4 id="怎么避免锁转换导致的死锁"><a href="#怎么避免锁转换导致的死锁" class="headerlink" title="怎么避免锁转换导致的死锁"></a>怎么避免锁转换导致的死锁</h4><ul>
+<li>引入更新锁（U 锁）</li>
+</ul>
+<h4 id="更新锁"><a href="#更新锁" class="headerlink" title="更新锁"></a>更新锁</h4><ul>
+<li>U 锁，Update lock<ul>
+<li><strong>只有读权限</strong></li>
+</ul>
+</li>
+<li>当一个事务查询数据以便将来要进行修改时，可以对数据项施加更新锁<ul>
+<li>先读后写的操作申请 U 锁</li>
+<li>只读则申请 S 锁</li>
+</ul>
+</li>
+<li>如果事务修改资源，需将更新锁转换为排它锁（X 锁）</li>
+<li>一次只有一个事务可以获得资源上的更新锁<ul>
+<li>这样就避免了死锁</li>
+<li>U 锁和 U 锁不相容，因此<a href="#ex1">上面的例子</a></li>
+</ul>
+</li>
+</ul>
+<h5 id="更新锁的相容矩阵"><a href="#更新锁的相容矩阵" class="headerlink" title="更新锁的相容矩阵"></a>更新锁的相容矩阵</h5><table>
+<thead>
+<tr>
+<th align="center">请求锁模式A \ 现有锁模式B</th>
+<th align="center">S</th>
+<th align="center">X</th>
+<th align="center">U</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">S</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+</tr>
+<tr>
+<td align="center">X</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+</tr>
+<tr>
+<td align="center">U</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+</tr>
+</tbody></table>
+<h3 id="封锁粒度"><a href="#封锁粒度" class="headerlink" title="封锁粒度"></a>封锁粒度</h3><ul>
+<li>封锁对象<ul>
+<li>属性值、属性值集合、元组、关系、索引项、整个索引、整个数据库、物理页、块</li>
+</ul>
+</li>
+<li>不同封锁粒度<ul>
+<li>封锁粒度大，则并发度低，开销小</li>
+<li>封锁粒度小，则并发度高，开销高</li>
+</ul>
+</li>
+<li>一个锁在数据库中大概占据 100 来个字节</li>
+<li>事务的完整性相关域：<ul>
+<li>只封锁与操作有关的的数据对象</li>
+</ul>
+</li>
+</ul>
+<h4 id="封锁粒度与查询性能"><a href="#封锁粒度与查询性能" class="headerlink" title="封锁粒度与查询性能"></a>封锁粒度与查询性能</h4><ul>
+<li>一份早期的数据，数据表<strong>五道口技工学院</strong>中性别为女的记录非常少</li>
+<li>满足条件的数据非常少时，最佳粒度为<strong>行锁</strong></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> 五道口技工学院</span><br><span class="line"><span class="keyword">where</span> 性别<span class="operator">=</span><span class="string">&#x27;女&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>满足条件的数据非常多时，最佳粒度为<strong>表锁</strong></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> 五道口技工学院</span><br><span class="line"><span class="keyword">where</span> 性别<span class="operator">=</span><span class="string">&#x27;男&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>系统必须支持多粒度锁，根据查询范围选择最佳粒度</li>
+</ul>
+<h4 id="多粒度封锁中的隐含冲突"><a href="#多粒度封锁中的隐含冲突" class="headerlink" title="多粒度封锁中的隐含冲突"></a>多粒度封锁中的隐含冲突</h4><ul>
+<li>事务 T1（表锁）</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> 五道口技工学院</span><br><span class="line"><span class="keyword">where</span> 性别<span class="operator">=</span><span class="string">&#x27;男&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>事务 T2（表锁）</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 修改表的属性 */</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> 五道口技工学院</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>事务 T3</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> 五道口技工学院</span><br><span class="line"><span class="keyword">where</span> 性别<span class="operator">=</span><span class="string">&#x27;女&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>T1 和 T2 的冲突是能够检测出来的<ul>
+<li>锁表中有表的 id</li>
+</ul>
+</li>
+<li>事务 T2 和 T3 的冲突无法检测<ul>
+<li>锁表中只有行 id 和表 id，无法检测</li>
+</ul>
+</li>
+<li>冲突无法检测的原因：大集合中包含小集合，存在包含冲突<ul>
+<li>在分层封锁中，封锁了上层节点就意味着封锁了所有内层节点</li>
+<li>如果有事务 T3 对某元组加了 S 锁，而事务 T2 对该元组所在的关系加了 X 锁，因而隐含地 X 封锁了该元组，从而造成矛盾</li>
+</ul>
+</li>
+</ul>
+<img src="07/image-20210604114515233.png" style="zoom: 50%;" />
+
+<ul>
+<li>在对某个粒度加锁的同时，在其父节点贴上告示条，表示被占用<ul>
+<li>告示条和告示条之间不冲突</li>
+<li>告示条告诉别人不能直接加锁</li>
+<li>告示条只起到提示作用</li>
+</ul>
+</li>
+<li>引入意向锁（起到告示条的作用）</li>
+</ul>
+<h3 id="意向锁"><a href="#意向锁" class="headerlink" title="意向锁"></a>意向锁</h3><h4 id="意向锁-I（Intend）"><a href="#意向锁-I（Intend）" class="headerlink" title="意向锁 I（Intend）"></a>意向锁 I（Intend）</h4><ul>
+<li>引入意向锁 I（Intend）</li>
+<li>当为某节点加上 I 锁，表明其某些内层节点已发生事实上的封锁，防止其它事务再去显式封锁该节点</li>
+<li>I 锁的实施是<strong>从封锁层次的根开始</strong>，依次占据路径上的所有节点，直至要真正进行显式封锁的节点的<strong>父节点</strong>为止</li>
+</ul>
+<h5 id="意向锁-I-的相容性"><a href="#意向锁-I-的相容性" class="headerlink" title="意向锁 I 的相容性"></a>意向锁 I 的相容性</h5><table>
+<thead>
+<tr>
+<th align="center">请求锁模式A \ 现有锁模式B</th>
+<th align="center">S</th>
+<th align="center">X</th>
+<th align="center">I</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">S</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">${\color{red}\times}$</td>
+</tr>
+<tr>
+<td align="center">X</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+</tr>
+<tr>
+<td align="center">I</td>
+<td align="center">${\color{red}\times}$</td>
+<td align="center">$\times$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+</tr>
+</tbody></table>
+<h5 id="意向锁-I-的不足之处"><a href="#意向锁-I-的不足之处" class="headerlink" title="意向锁 I 的不足之处"></a>意向锁 I 的不足之处</h5><ul>
+<li>能够防范读写冲突</li>
+</ul>
+<img src="07/image-20210604115935940.png" style="zoom: 67%;" />
+
+<ul>
+<li>让读读操作变成了不相容</li>
+</ul>
+<img src="07/image-20210604120016324.png" style="zoom:67%;" />
+
+<ul>
+<li>降低了并发度</li>
+<li>根本原因：<strong>I 锁没有告诉我们内层加的锁的类型</strong></li>
+<li>引入意向锁 IS 锁，IX 锁</li>
+</ul>
+<h4 id="更为精细化的意向锁（IS-锁，IX-锁）"><a href="#更为精细化的意向锁（IS-锁，IX-锁）" class="headerlink" title="更为精细化的意向锁（IS 锁，IX 锁）"></a>更为精细化的意向锁（IS 锁，IX 锁）</h4><ul>
+<li><strong>IS 锁</strong>：如果对一个数据对象加 IS 锁，表示它的后裔节点拟（意向）加 S 锁</li>
+<li><strong>IX 锁</strong>：如果对一个数据对象加 IX 锁，表示它的后裔节点拟（意向）加 X 锁</li>
+<li>本质还是意向锁，起到告示条的作用</li>
+</ul>
+<h5 id="意向锁-IS-x2F-IX-的相容性"><a href="#意向锁-IS-x2F-IX-的相容性" class="headerlink" title="意向锁 IS&#x2F;IX 的相容性"></a>意向锁 IS&#x2F;IX 的相容性</h5><table>
+<thead>
+<tr>
+<th align="center">请求锁模式A \ 现有锁模式B</th>
+<th align="center">S</th>
+<th align="center">X</th>
+<th align="center">IS</th>
+<th align="center">IX</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">S</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">${\color{red}\times}$</td>
+</tr>
+<tr>
+<td align="center">X</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">${\color{red}\times}$</td>
+</tr>
+<tr>
+<td align="center">IS</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">$\times$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+</tr>
+<tr>
+<td align="center">IX</td>
+<td align="center">${\color{red}\times}$</td>
+<td align="center">${\color{red}\times}$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+</tr>
+</tbody></table>
+<h5 id="实际例子"><a href="#实际例子" class="headerlink" title="实际例子"></a>实际例子</h5><ul>
+<li>能够防范读写冲突</li>
+</ul>
+<img src="07/image-20210604120643062.png" style="zoom:67%;" />
+
+<ul>
+<li>读读操作还是相容的<ul>
+<li>解决了简单的意向锁 I 降低了并发度的问题</li>
+</ul>
+</li>
+</ul>
+<img src="07/image-20210604120726693.png" style="zoom:67%;" />
+
+
+
+<h4 id="共享与意向排他锁-SIX"><a href="#共享与意向排他锁-SIX" class="headerlink" title="共享与意向排他锁 SIX"></a>共享与意向排他锁 SIX</h4><ul>
+<li><strong>共享</strong>、<strong>意向排他</strong><ul>
+<li><strong>S + IX</strong></li>
+</ul>
+</li>
+<li>解决如下事务的加锁问题<ul>
+<li>在表的级别应该加什么锁呢？</li>
+<li>IX 和 S 单独都不能支持这个操作</li>
+<li>X 锁并发性很低</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> transaction isolation level repeatable read</span><br><span class="line"><span class="keyword">begin</span> tran <span class="string">&#x27;audit&#x27;</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> bigtable</span><br><span class="line"><span class="keyword">update</span> bigtable</span><br><span class="line"><span class="keyword">set</span> col <span class="operator">=</span> <span class="number">0</span></span><br><span class="line"><span class="keyword">where</span> keycolumn <span class="operator">=</span> <span class="number">100</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在表上加 SIX 锁，则表示该事务要读整个表（S 锁），同时会更新个别元组（IX 锁）</li>
+<li>SIX 锁只和 IS 锁相容<ul>
+<li>找同时与 S 锁和 IX 锁相容的锁</li>
+</ul>
+</li>
+</ul>
+<h5 id="相容矩阵"><a href="#相容矩阵" class="headerlink" title="相容矩阵"></a>相容矩阵</h5><table>
+<thead>
+<tr>
+<th align="center">请求锁模式A \ 现有锁模式B</th>
+<th align="center">S</th>
+<th align="center">X</th>
+<th align="center">U</th>
+<th align="center">IS</th>
+<th align="center">IX</th>
+<th align="center">SIX</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">S</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">${\color{red}\times}$</td>
+<td align="center">$\times$</td>
+</tr>
+<tr>
+<td align="center">X</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">${\color{red}\times}$</td>
+<td align="center">$\times$</td>
+</tr>
+<tr>
+<td align="center">U</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+</tr>
+<tr>
+<td align="center">IS</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+</tr>
+<tr>
+<td align="center">IX</td>
+<td align="center">${\color{red}\times}$</td>
+<td align="center">${\color{red}\times}$</td>
+<td align="center">$\times$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">$\times$</td>
+</tr>
+<tr>
+<td align="center">SIX</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+</tr>
+</tbody></table>
+<h3 id="SQL-Server-的锁模式"><a href="#SQL-Server-的锁模式" class="headerlink" title="SQL Server 的锁模式"></a>SQL Server 的锁模式</h3><img src="07/image-20210604135729531.png" style="zoom: 67%;" />
+
+<h4 id="模式修改锁（Sch-M锁）"><a href="#模式修改锁（Sch-M锁）" class="headerlink" title="模式修改锁（Sch-M锁）"></a>模式修改锁（Sch-M锁）</h4><ul>
+<li>执行表的 DDL 操作时使用模式修改锁</li>
+<li>Sch-M 锁与所有锁模式都不相容</li>
+</ul>
+<h4 id="模式稳定锁（Sch-S锁）"><a href="#模式稳定锁（Sch-S锁）" class="headerlink" title="模式稳定锁（Sch-S锁）"></a>模式稳定锁（Sch-S锁）</h4><ul>
+<li>当编译查询时，使用模式稳定锁</li>
+<li>Sch-S 锁与除了 Sch-M 锁之外所有其它锁模式相容</li>
+<li>此时其它事务都能继续运行，但不能对表执行 DDL 操作</li>
+</ul>
+<h4 id="SQL-Server中的大容量更新锁"><a href="#SQL-Server中的大容量更新锁" class="headerlink" title="SQL Server中的大容量更新锁"></a>SQL Server中的大容量更新锁</h4><ul>
+<li>BU 锁，Bulk update lock</li>
+<li>当使用 <code>bulk insert</code> 命令或 <code>bcp</code> 工具将数据大容量复制到表，且指定了 <code>TABLOCK</code> 提示或者使用 <code>sp_tableoption</code> 设置了 <code>table lock on bulk</code> 表选项时，将使用大容量更新锁</li>
+<li>大容量更新锁允许多个进程将数据并行地大容量复制到同一表，同时防止其它不进行大容量复制数据的进程访问该表</li>
+</ul>
+<h3 id="SQL-Server-码范围锁"><a href="#SQL-Server-码范围锁" class="headerlink" title="SQL Server 码范围锁"></a>SQL Server 码范围锁</h3><ul>
+<li>如何避免<strong>幻象</strong>的产生</li>
+<li><strong>只封锁现有数据是无效的</strong></li>
+<li>查询例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> R <span class="keyword">where</span> A<span class="operator">&gt;=</span><span class="number">10</span> <span class="keyword">and</span> A<span class="operator">&lt;=</span><span class="number">20</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>应该防止其他事务往区间 $[10,20]$ 插入数据<ul>
+<li>如何防止？</li>
+</ul>
+</li>
+<li>如何找到这样一个区间？</li>
+<li>表本身是无序的集合，只能用整个表覆盖这个区间，也即需要申请表级锁，并发度极低</li>
+<li>数据库中什么对象是有序的？<ul>
+<li>索引是有序的</li>
+</ul>
+</li>
+<li>如果在 A 上存在索引，则可以找到一个紧凑区间</li>
+</ul>
+<h4 id="码范围锁：范围扫描查询"><a href="#码范围锁：范围扫描查询" class="headerlink" title="码范围锁：范围扫描查询"></a>码范围锁：范围扫描查询</h4><ul>
+<li>码范围锁定原理解决了幻像并发问题</li>
+<li>码范围锁通过覆盖索引行和索引行之间的范围来工作，因为第二个事务在该范围内进行任何行插入、更新或删除操作时均需要修改索引，而码范围锁覆盖了索引项，所以在第一个事务完成之前会阻塞第二个事务的进行</li>
+<li>要求（同时满足）<ul>
+<li>必须在查询项上存在索引</li>
+<li>隔离性级别为 serializable</li>
+</ul>
+</li>
+</ul>
+<h4 id="码范围锁模式"><a href="#码范围锁模式" class="headerlink" title="码范围锁模式"></a>码范围锁模式</h4><ul>
+<li>码范围锁包括<strong>范围组件</strong>和<strong>行组件</strong><ul>
+<li>前者表示保护两个连续<strong>索引项之间范围的锁模式</strong>（RangeT）</li>
+<li>后者表示保护<strong>索引项的锁模式</strong>（K），这两部分用下划线连接，如 RangeT_K</li>
+</ul>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">范围</th>
+<th align="center">行</th>
+<th align="center">模式</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">RangeS</td>
+<td align="center">S</td>
+<td align="center">RangeS_S</td>
+<td align="center">共享范围，共享资源锁；可串行范围扫描</td>
+</tr>
+<tr>
+<td align="center">RangeS</td>
+<td align="center">U</td>
+<td align="center">RangeS_U</td>
+<td align="center">共享范围，更新资源锁；可串行更新扫描</td>
+</tr>
+<tr>
+<td align="center">RangeI</td>
+<td align="center">NULL</td>
+<td align="center">RangeI_N</td>
+<td align="center">插入范围，空资源锁；用于在索引中插入新码之前测试范围</td>
+</tr>
+<tr>
+<td align="center">RangeX</td>
+<td align="center">X</td>
+<td align="center">RangeX_X</td>
+<td align="center">排它范围，排它资源锁；用于更新范围中的码</td>
+</tr>
+</tbody></table>
+<h4 id="码范围锁的相容矩阵"><a href="#码范围锁的相容矩阵" class="headerlink" title="码范围锁的相容矩阵"></a>码范围锁的相容矩阵</h4><table>
+<thead>
+<tr>
+<th align="center">请求模式\现有的授权模式</th>
+<th align="center">S</th>
+<th align="center">U</th>
+<th align="center">X</th>
+<th align="center">RangeS_S</th>
+<th align="center">RangeS_U</th>
+<th align="center">RangeI_N</th>
+<th>RangeX_X</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">共享(S)</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\checkmark$</td>
+<td>$\times$</td>
+</tr>
+<tr>
+<td align="center">更新(U)</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td>$\times$</td>
+</tr>
+<tr>
+<td align="center">排它(X)</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td>$\times$</td>
+</tr>
+<tr>
+<td align="center">RangeS_S</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td>$\times$</td>
+</tr>
+<tr>
+<td align="center">RangeS_U</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td>$\times$</td>
+</tr>
+<tr>
+<td align="center">RangeI_N</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">${\color{red}\checkmark}$</td>
+<td align="center">${\color{red}\times}$</td>
+<td align="center">$\times$</td>
+<td align="center">$\checkmark$</td>
+<td>$\times$</td>
+</tr>
+<tr>
+<td align="center">RangeX_X</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td align="center">$\times$</td>
+<td>$\times$</td>
+</tr>
+</tbody></table>
+<h4 id="一个例子"><a href="#一个例子" class="headerlink" title="一个例子"></a>一个例子</h4><ul>
+<li>employees 表上存在 last_name 上的索引</li>
+</ul>
+<img src="07/image-20210604142311541.png" style="zoom: 70%;" />
+
+<ul>
+<li>在 serializable 隔离性级别上执行如下查询</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">from</span> employees</span><br><span class="line"><span class="keyword">where</span> last_name <span class="keyword">between</span> <span class="string">&#x27;Delaney&#x27;</span> <span class="keyword">and</span> <span class="string">&#x27;DuLaney&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在索引上找到一个覆盖上面范围的最小区间 $\mathrm{(Dallas,Duluth)}$</li>
+<li>如果 Dallas, Donovan 和 Duluth 是叶级的顺序索引码，前两个码将获得码范围锁 RangeS_S<ul>
+<li>码范围锁防止任何向以这两个码结束的区间插入数据<ul>
+<li>锁住了 Dallas 和 Donovan 后面的区间</li>
+</ul>
+</li>
+<li>没有大于 Dallas 且小于等于 Donovan 的行可以插入，也没有大于 Donovan 且小于等于 Duluth 的行可以插入</li>
+</ul>
+</li>
+<li>能否插入 Dashagua？<ul>
+<li>**<span style="color:red">不能插入</span>**，虽然是在查询范围之外，但是在最小覆盖的索引范围内部</li>
+</ul>
+</li>
+</ul>
+<h3 id="SQL-Server-锁"><a href="#SQL-Server-锁" class="headerlink" title="SQL Server 锁"></a>SQL Server 锁</h3><img src="07/image-20210604143943619.png" style="zoom:130%;" />
+
+
+
+<h3 id="MySQL-中的行锁模式"><a href="#MySQL-中的行锁模式" class="headerlink" title="MySQL 中的行锁模式"></a>MySQL 中的行锁模式</h3><ul>
+<li>MySQL 的 innode 引擎，在建表的时候，默认会有一个隐含的自增字段，缺省的会在这个字段上建立聚簇索引</li>
+<li>缺省的 MySQL 就是有序的表</li>
+<li>MySQL 中的行锁模式<ul>
+<li>lock_rec_not_gap：只锁记录</li>
+<li>lock_gap：间隙锁，锁两个记录之间的gap，防止记录插入</li>
+<li>lock_ordinary：也称为Next-KeyLock，锁一条记录及其之前的间隙</li>
+<li>lock_insert_intension：插入意向gap锁，插入记录时使用，是lock_gap的一种特例</li>
+</ul>
+</li>
+<li>图示</li>
+</ul>
+<p><img src="/07/image-20210604144317013.png"></p>
+<ul>
+<li>相容性</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">RECORD</th>
+<th align="center">GAP</th>
+<th align="center">NEXT-KEY</th>
+<th align="center">II GAP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">RECORD</td>
+<td align="center"></td>
+<td align="center">$\checkmark$</td>
+<td align="center"></td>
+<td align="center">$\checkmark$</td>
+</tr>
+<tr>
+<td align="center">GAP</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\checkmark$</td>
+<td align="center">$\checkmark$</td>
+</tr>
+<tr>
+<td align="center">NEXT-KEY</td>
+<td align="center"></td>
+<td align="center">$\checkmark$</td>
+<td align="center"></td>
+<td align="center">$\checkmark$</td>
+</tr>
+<tr>
+<td align="center">II GAP</td>
+<td align="center">$\checkmark$</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">$\checkmark$</td>
+</tr>
+</tbody></table>
+<h4 id="闩锁"><a href="#闩锁" class="headerlink" title="闩锁"></a>闩锁</h4><ul>
+<li>lock：保护逻辑对象</li>
+<li>latch：保护内存页</li>
+<li>以下显示不对内存页加保护的结果<ul>
+<li>页头的写入需要做保护</li>
+</ul>
+</li>
+</ul>
+<img src="07/image-20210604145703323.png" style="zoom:67%;" />
+
+<ul>
+<li>为什么不直接使用排他锁实现？<ul>
+<li>太慢了，需要向锁管理器申请，锁表的处理慢</li>
+</ul>
+</li>
+<li>闩锁是自旋锁（spinlock）</li>
+<li>使用序列号锁聚簇索引码的问题<ul>
+<li>由于自增 id，最新的页面会被很多进程同时写，闩锁竞争激烈</li>
+</ul>
+</li>
+</ul>
+<h4 id="MySQL-的自增器"><a href="#MySQL-的自增器" class="headerlink" title="MySQL 的自增器"></a>MySQL 的自增器</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* SQL1 */</span></span><br><span class="line"><span class="comment">/* 已知条数 */</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t1 <span class="keyword">values</span> (<span class="number">1</span>),(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* SQL2 */</span></span><br><span class="line"><span class="comment">/* 未知条数 */</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t2 <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> t1</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>已知行数用闩锁（mutex），未知行数使用自增锁（auto-inc locking）</li>
+<li>为了保证同一个事务插入的数据，自增 id 是连续的</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/05/25/DB/CLJ/07/" data-id="cl9lj74ay00g464tz3q4w12f1" data-title="数据库概论.陈立军.07.并发控制" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/05/31/CG/YLQ-GAMES202/12/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          GAMES202.闫令琪.12.实时光线追踪
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/05/24/DB/CLJ/04-8/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">数据库概论.陈立军.04.非关系型数据</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

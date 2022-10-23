@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>计算方法B.裴玉茹.06.线性方程组(2) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="矩阵收敛性、不动点迭代方法、收敛性证明、迭代方法比较（雅各比方法、高斯赛德尔方法、松弛方法）、Kahan 定理、Ostrowski-Reich 定理、误差分析、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算方法B.裴玉茹.06.线性方程组(2)">
+<meta property="og:url" content="http://example.com/2021/11/02/computation/pyr/06-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="矩阵收敛性、不动点迭代方法、收敛性证明、迭代方法比较（雅各比方法、高斯赛德尔方法、松弛方法）、Kahan 定理、Ostrowski-Reich 定理、误差分析、">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102181328666.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102181618617.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102182213175.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102182323008.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102182354622.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102224538239.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102224855257.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102225034498.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102231549351.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102233453123.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211103203646622.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211103204627130.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211104093206306.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211104094321121.png">
+<meta property="og:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211104101733732.png">
+<meta property="article:published_time" content="2021-11-02T09:14:14.000Z">
+<meta property="article:modified_time" content="2021-11-04T02:22:43.582Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="computation">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/11/02/computation/pyr/06-1/06-1/image-20211102181328666.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-computation/pyr/06-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/11/02/computation/pyr/06-1/" class="article-date">
+  <time class="dt-published" datetime="2021-11-02T09:14:14.000Z" itemprop="datePublished">2021-11-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/computation-pyr/">computation.pyr</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      计算方法B.裴玉茹.06.线性方程组(2)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <ul>
+<li>PPT（线性方程组）</li>
+</ul>
+<h1 id="线性方程组"><a href="#线性方程组" class="headerlink" title="线性方程组"></a>线性方程组</h1><h2 id="4-迭代求解"><a href="#4-迭代求解" class="headerlink" title="4. 迭代求解"></a>4. 迭代求解</h2><h3 id="1-矩阵收敛"><a href="#1-矩阵收敛" class="headerlink" title="(1) 矩阵收敛"></a>(1) 矩阵收敛</h3><ul>
+<li>$n\times n$ 矩阵收敛：$\lim_{k\to\infty}(A^{k})_{ij}&#x3D;0$</li>
+</ul>
+<h4 id="等价命题"><a href="#等价命题" class="headerlink" title="等价命题"></a>等价命题</h4><ul>
+<li>如下命题等价<ul>
+<li>$A$ 是收敛矩阵</li>
+<li>对任意自然范数，$\lim_{n\to\infty}\Vert{A^{n}}\Vert&#x3D;0$</li>
+<li>$\rho(A)&lt;1$</li>
+<li>$\lim_{n\to\infty}A^{n}x&#x3D;0$</li>
+</ul>
+</li>
+</ul>
+<h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><ul>
+<li>收敛矩阵</li>
+</ul>
+<p>$$<br>A&#x3D;\begin{pmatrix}<br>\dfrac{1}{2}&amp;0\<br>\dfrac{1}{4}&amp;\dfrac{1}{2}\<br>\end{pmatrix},<br>A^{k}&#x3D;\begin{pmatrix}<br>\dfrac{1}{2^{k}}&amp;0\<br>\dfrac{k}{2^{k+1}}&amp;\dfrac{1}{2^{k}}\<br>\end{pmatrix}<br>$$</p>
+<h3 id="2-线性方程组不动点迭代"><a href="#2-线性方程组不动点迭代" class="headerlink" title="(2) 线性方程组不动点迭代"></a>(2) 线性方程组不动点迭代</h3><ul>
+<li>$Ax&#x3D;b$ 构造不动点迭代函数 $x&#x3D;Tx+c$</li>
+</ul>
+<h4 id="雅各比迭代方法"><a href="#雅各比迭代方法" class="headerlink" title="雅各比迭代方法"></a>雅各比迭代方法</h4><ul>
+<li>之前的笔记：<a href="/2021/10/10/computation/pyr/03-1/#%E9%9B%85%E5%8F%AF%E6%AF%94%E6%96%B9%E6%B3%95">Jacobi</a></li>
+</ul>
+<p>$$<br>x_{k+1}&#x3D;-D^{-1}(L+U)x_{k}+D^{-1}b<br>$$</p>
+<h4 id="高斯塞德尔方法"><a href="#高斯塞德尔方法" class="headerlink" title="高斯塞德尔方法"></a>高斯塞德尔方法</h4><ul>
+<li>之前的笔记：<a href="/2021/10/10/computation/pyr/03-1/#guass-seidel-%E6%96%B9%E6%B3%95">Guass-Seidel</a></li>
+</ul>
+<p>$$<br>x_{k+1}&#x3D;-D^{-1}Lx_{k+1}-D^{-1}Ux_{k}+D^{-1}b<br>$$</p>
+<p>$$<br>x_{k+1}&#x3D;-(D+L)^{-1}Ux_{k}+(D+L)^{-1}b<br>$$</p>
+<h3 id="3-迭代方法的收敛性"><a href="#3-迭代方法的收敛性" class="headerlink" title="(3) 迭代方法的收敛性"></a>(3) 迭代方法的收敛性</h3><h4 id="谱半径定理"><a href="#谱半径定理" class="headerlink" title="谱半径定理"></a>谱半径定理</h4><img src="06-1/image-20211102181328666.png" style="zoom:80%;" />
+
+<ul>
+<li>证明</li>
+</ul>
+<img src="06-1/image-20211102181618617.png" style="zoom:80%;" />
+
+
+
+<h4 id="收敛定理"><a href="#收敛定理" class="headerlink" title="收敛定理"></a>收敛定理</h4><img src="06-1/image-20211102182213175.png" style="zoom:80%;" />
+
+<ul>
+<li>充分性</li>
+</ul>
+<img src="06-1/image-20211102182323008.png" style="zoom:80%;" />
+
+<ul>
+<li>必要性：通过证明 $A$ 是收敛矩阵得到 $\rho(A)&lt;1$</li>
+</ul>
+<img src="06-1/image-20211102182354622.png" style="zoom:80%;" />
+
+
+
+<h4 id="误差界"><a href="#误差界" class="headerlink" title="误差界"></a>误差界</h4><img src="06-1/image-20211102224538239.png" style="zoom:80%;" />
+
+<ul>
+<li>证明方法和单变量迭代类似</li>
+</ul>
+<img src="06-1/image-20211102224855257.png" style="zoom:80%;" />
+
+
+
+<h3 id="4-收敛性证明"><a href="#4-收敛性证明" class="headerlink" title="(4) 收敛性证明"></a>(4) 收敛性证明</h3><h4 id="雅各比方法、高斯塞德尔方法"><a href="#雅各比方法、高斯塞德尔方法" class="headerlink" title="雅各比方法、高斯塞德尔方法"></a>雅各比方法、高斯塞德尔方法</h4><img src="06-1/image-20211102225034498.png" style="zoom:80%;" />
+
+<ul>
+<li>证明：<a href="/2021/10/10/computation/pyr/03-1/#%E8%BF%AD%E4%BB%A3%E6%96%B9%E6%B3%95%E7%9A%84%E6%94%B6%E6%95%9B">note</a><ul>
+<li>使用严格对角占优的条件证明谱半径小于 1</li>
+</ul>
+</li>
+</ul>
+<h3 id="5-迭代方法比较"><a href="#5-迭代方法比较" class="headerlink" title="(5) 迭代方法比较"></a>(5) 迭代方法比较</h3><h4 id="Stein-Rosenberg-定理"><a href="#Stein-Rosenberg-定理" class="headerlink" title="Stein Rosenberg 定理"></a>Stein Rosenberg 定理</h4><ul>
+<li><p>如果 $a_{ij}\le0,i\ne j,a_{ii}&gt;0,i&#x3D;1,\cdots,n$，则如下命题仅有一项成立</p>
+<ul>
+<li>$0\le\rho(T_g)\le\rho(T_j)&lt;1$</li>
+<li>$1\le\rho(T_j)\le\rho(T_g)$</li>
+<li>$0&#x3D;\rho(T_g)&#x3D;\rho(T_j)$<ul>
+<li>收敛</li>
+</ul>
+</li>
+<li>$1&#x3D;\rho(T_g)&#x3D;\rho(T_j)$<ul>
+<li>不收敛：误差很难降低</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>谱半径越小收敛越快</strong></p>
+<ul>
+<li>一个方法收敛，两种方法都收敛，Gauss-Seidel 方法收敛更快</li>
+<li>一个方法发散，二者皆发散.，高斯赛德尔方法发散更快</li>
+</ul>
+</li>
+</ul>
+<h3 id="6-松弛方法"><a href="#6-松弛方法" class="headerlink" title="(6) 松弛方法"></a>(6) 松弛方法</h3><ul>
+<li><a href="/2021/10/10/computation/pyr/03-1/#SOR">SOR</a></li>
+<li>下面的定义和书上是一致的，$r_i$ 里面包含了 $i&#x3D;j$ 的一项</li>
+</ul>
+<img src="06-1/image-20211102231549351.png" alt="image-20211102231549351" style="zoom:80%;" />
+
+<ul>
+<li><strong>对于特定的正数 $w$ , 可以减少残差向量的范数，获得更快的收敛速度</strong><ul>
+<li>$0&lt;w&lt;1$：欠松弛<ul>
+<li>使得 GS 下某些不收敛线性方程组收敛</li>
+</ul>
+</li>
+<li>$w&#x3D;1$：Gauss-Seidel</li>
+<li>$w&gt;1$：过松弛（SOR）<ul>
+<li>使得 GS 下某些收敛线性方程组收敛更快</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Kahan-定理"><a href="#Kahan-定理" class="headerlink" title="Kahan 定理"></a>Kahan 定理</h4><ul>
+<li>对于 SOR 方法，如果 $a_{ii}\ne0,i&#x3D;1,\cdots,n$，则 $\rho(T_w)\ge\vert{w-1}\vert$</li>
+</ul>
+<h5 id="证明"><a href="#证明" class="headerlink" title="证明"></a>证明</h5><ul>
+<li>化成 $x&#x3D;Tx+c$ 的形式</li>
+</ul>
+<p>$$<br>x_{k+1}&#x3D;(\omega L+D)^{-1}\big((1-\omega)D-\omega U\big)x_{k}+\omega(\omega L+D)^{-1}b<br>$$</p>
+<ul>
+<li>记 $H&#x3D;(\omega L+D)^{-1}\big((1-\omega)D-\omega U\big)$</li>
+</ul>
+<img src="06-1/image-20211102233453123.png" style="zoom:80%;" />
+
+<h5 id="推论"><a href="#推论" class="headerlink" title="推论"></a>推论</h5><ul>
+<li>SOR 方法收敛的<strong>必要条件</strong>是 $\vert{w-1}\vert&lt;1$，即 $0&lt;w&lt;2$</li>
+</ul>
+<h4 id="Ostrowski-Reich-定理"><a href="#Ostrowski-Reich-定理" class="headerlink" title="Ostrowski-Reich 定理"></a>Ostrowski-Reich 定理</h4><ul>
+<li>如果 $A$ 是<strong>正定矩阵</strong>且 $0&lt;w&lt;2$，则 SOR 方法对于任意初始近似向量 $x_0$ 收敛<ul>
+<li><strong>正定：定义中包括共轭对称</strong></li>
+</ul>
+</li>
+</ul>
+<h5 id="证明-1"><a href="#证明-1" class="headerlink" title="证明"></a>证明</h5><ul>
+<li>思路：证明 $\vert\lambda\vert&lt;1\Leftrightarrow{\lambda}^2&lt;1$</li>
+</ul>
+<img src="06-1/image-20211103203646622.png" style="zoom:80%;" />
+
+<img src="06-1/image-20211103204627130.png" style="zoom:80%;" />
+
+
+
+<h4 id="最优-w"><a href="#最优-w" class="headerlink" title="最优 w"></a>最优 w</h4><ul>
+<li>如果 $A$ 是<strong>正定三对角线矩阵</strong>，则 $\rho(T_g)&#x3D;\rho^{2}(T_j)&lt;1$，SOR方法 $\rho(T)&#x3D;w-1$，最优的 $w$ 值为</li>
+</ul>
+<p>$$<br>w&#x3D;\dfrac{2}{1-\sqrt{1-\rho^{2}(T_j)}}<br>$$</p>
+<ul>
+<li>三对角线矩阵：只有<strong>对角线</strong>和<strong>与其相邻的两条对角线</strong>有非零元素</li>
+</ul>
+<h3 id="7-误差分析"><a href="#7-误差分析" class="headerlink" title="(7) 误差分析"></a>(7) 误差分析</h3><ul>
+<li><a href="/2021/10/02/computation/pyr/03/#%E8%AF%AF%E5%B7%AE%E6%94%BE%E5%A4%A7%E5%92%8C%E6%9D%A1%E4%BB%B6%E6%95%B0">note</a></li>
+<li>误差界<ul>
+<li><a href="/2021/10/02/computation/pyr/03/#%E6%9D%A1%E4%BB%B6%E6%95%B0%E8%AF%81%E6%98%8E">证明</a></li>
+</ul>
+</li>
+</ul>
+<p>$$<br>\dfrac{\Vert{x-x_a}\Vert}{\Vert{x}\Vert}\le\Vert{A^{-1}}\Vert\Vert{A}\Vert\cdot\dfrac{\Vert{r}\Vert}{\Vert{b}\Vert}<br>$$</p>
+<ul>
+<li>条件数</li>
+</ul>
+<p>$$<br>K(A)&#x3D;\mathrm{cond}(A)&#x3D;\Vert{A^{-1}}\Vert\Vert{A}\Vert<br>$$</p>
+<ul>
+<li>病态与良态<ul>
+<li>当 $K(A)$ 接近 $1$ 时，矩阵 $A$ 是良态矩阵</li>
+<li>当 $K(A)$ 显著大于 $1$ 时，矩阵是病态的</li>
+</ul>
+</li>
+<li>病态矩阵示例<ul>
+<li>希尔伯特矩阵：$(H_{n})_{ij}&#x3D;\dfrac{1}{i+j-1}$</li>
+</ul>
+</li>
+</ul>
+<h4 id="条件数近似"><a href="#条件数近似" class="headerlink" title="条件数近似"></a>条件数近似</h4><h5 id="近似方法-1"><a href="#近似方法-1" class="headerlink" title="近似方法 1"></a>近似方法 1</h5><ul>
+<li>$t$ 位算术，残差向量 $r$ 的近似值为 $\Vert{r}\Vert\approx10^{-t}\Vert{A}\Vert\Vert{x}\Vert$</li>
+<li>那么条件数的近似值 $K(A)&#x3D;\dfrac{\Vert{\tilde{y}}\Vert}{\Vert{\tilde{x}}\Vert}10^{t}$，其中 $\Vert{\tilde{y}}\Vert&#x3D;A^{-1}r$</li>
+</ul>
+<img src="06-1/image-20211104093206306.png" style="zoom:80%;" />
+
+
+
+<h5 id="迭代算法的优化"><a href="#迭代算法的优化" class="headerlink" title="迭代算法的优化"></a>迭代算法的优化</h5><ul>
+<li>一般来说， $\tilde{x}+\tilde{y}$ 比  $\tilde{x}$ 更精确</li>
+<li>步骤</li>
+</ul>
+<img src="06-1/image-20211104094321121.png" style="zoom:80%;" />
+
+
+
+<h4 id="2-范数"><a href="#2-范数" class="headerlink" title="2 范数"></a>2 范数</h4><p>$$<br>K(A)<em>2&#x3D;\sqrt{\dfrac{\lambda</em>{max}(A^{T}T)}{\lambda_{min}(A^{T}T)}}<br>$$</p>
+<ul>
+<li>$Ax_1&#x3D;\lambda_1 x_1$ 那么则有 $A^{-1}x&#x3D;\dfrac{1}{\lambda_1}x_1$</li>
+</ul>
+<h4 id="不等式"><a href="#不等式" class="headerlink" title="不等式"></a>不等式</h4><img src="06-1/image-20211104101733732.png" style="zoom:80%;" />
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/11/02/computation/pyr/06-1/" data-id="cl9lj74af00ck64tz0t2b6a92" data-title="计算方法B.裴玉茹.06.线性方程组(2)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/computation/" rel="tag">computation</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/11/04/book/directory/IntimateRelationships/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          亲密关系目录
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/11/01/computation/pyr/06/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">计算方法B.裴玉茹.06.线性方程组</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

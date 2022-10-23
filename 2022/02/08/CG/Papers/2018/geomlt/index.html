@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>(论文)[2018] Geometry-Aware Metropolis Light Transport | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="MLT 对 path segment 的出射角度进行变异的时候，利用可见性求出没有遮挡的最大圆锥，将变异的最大角度设置为圆锥顶角，从而避免因为可见性原因导致新生成的路径被拒绝">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2018] Geometry-Aware Metropolis Light Transport">
+<meta property="og:url" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="MLT 对 path segment 的出射角度进行变异的时候，利用可见性求出没有遮挡的最大圆锥，将变异的最大角度设置为圆锥顶角，从而避免因为可见性原因导致新生成的路径被拒绝">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220208092831418.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220209102035507.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213085003715.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213085323853.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213095748652.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213101711000.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213102115165.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213111443167.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213112055131.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213114638556.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213120522157.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213142936290.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213150615178.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213150741855.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213151753388.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213161002331.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213190644235.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213190723401.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213191100768.png">
+<meta property="og:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220213194431214.png">
+<meta property="article:published_time" content="2022-02-08T01:24:00.000Z">
+<meta property="article:modified_time" content="2022-02-21T11:06:43.073Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="occlusion">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/02/08/CG/Papers/2018/geomlt/geomlt/image-20220208092831418.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/Papers/2018/geomlt" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/02/08/CG/Papers/2018/geomlt/" class="article-date">
+  <time class="dt-published" datetime="2022-02-08T01:24:00.000Z" itemprop="datePublished">2022-02-08</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-Paper/">CG.Paper</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      (论文)[2018] Geometry-Aware Metropolis Light Transport
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="GeoMLT"><a href="#GeoMLT" class="headerlink" title="GeoMLT"></a>GeoMLT</h1><ul>
+<li>Geometry-Aware Metropolis Light Transport</li>
+<li>Hisanari Otsu, Johannes Hanika, Toshiya Hachisuka, and Carsten Dachsbacher. 2018. Geometry-Aware Metropolis Light Transport. <em>ACM Trans. Graph.</em> 37, 6, Article 278 (November 2018), 11 pages. <a target="_blank" rel="noopener" href="https://doi.org/10.1145/3272127.3275106">https://doi.org/10.1145/3272127.3275106</a></li>
+</ul>
+<h1 id="0-展示"><a href="#0-展示" class="headerlink" title="0. 展示"></a>0. 展示</h1><img src="geomlt/image-20220208092831418.png" style="zoom:80%;" />
+
+<ul>
+<li>30 分钟渲染的结果，光源在门外<ul>
+<li>reference 是通过 BDPT 渲染收敛得到</li>
+</ul>
+</li>
+<li>传统的 MLT 在边界、间隙的时候由于可见性的改变，变异得到的路径常常会被拒绝，我们的方法根据几何信息控制变异的大小<ul>
+<li>adaptively controls the mutation size according to the geometry information surrounding each path segment</li>
+</ul>
+</li>
+<li>我们的方法能够很好的避免由于可见性导致的零贡献样本（不可见）</li>
+<li>通过估计最大的可见的圆锥顶角来限制突变步长，从而避免可见性问题<ul>
+<li>在不降低采样质量的前提下，提高 MLT 突变的接受率</li>
+</ul>
+</li>
+<li>直接估计代价较大，我们还提出了加速方式</li>
+</ul>
+<h1 id="1-INTRODUCTION"><a href="#1-INTRODUCTION" class="headerlink" title="1. INTRODUCTION"></a>1. INTRODUCTION</h1><ul>
+<li>MCMC 渲染方式</li>
+<li>高效的 MCMC 取决于如下因素<ul>
+<li>the design of the transition kernel (path mutation)<ul>
+<li>小步长的样本 $\to$ 和之前的样本比较像 $\to$ 较高的接受率</li>
+</ul>
+</li>
+<li>the autocorrelation between states<ul>
+<li>自相关程度高 $\to$ 样本附加信息少 $\to$ 样本质量低</li>
+<li>步长大 $\to$ 容易被拒绝</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>通过局部结构来控制变化的步长</li>
+<li>我们着重考虑因为<strong>可见性问题</strong>（不可见）导致的被拒绝的路径</li>
+<li>如下图，蓝色范围表示突变核 kernel<ul>
+<li>右边的 kernel 更好，左边可能会产生由于不可见而被拒绝的路径，右边不会</li>
+</ul>
+</li>
+</ul>
+<img src="geomlt/image-20220209102035507.png" style="zoom:80%;" />
+
+<ul>
+<li>现在的考虑可适应步长的方法没有考虑可见性问题<ul>
+<li>Wenzel Jakob and Stephen Marschner. 2012. Manifold exploration: a Markov chain Monte Carlo technique for rendering scenes with difficult specular transport. ACM Transactions on Graphics (Proc. SIGGRAPH) 31, 4, Article 58 (2012).</li>
+<li>Tzu-Mao Li, Jaakko Lehtinen, Ravi Ramamoorthi, Wenzel Jakob, and Frédo Durand. 2015. Anisotropic Gaussian Mutations for Metropolis Light Transport Through Hessian-Hamiltonian Dynamics. ACM Transactions on Graphics (Proc. SIGGRAPH Asia) 34, 6 (2015), 209:1–209:13.</li>
+</ul>
+</li>
+<li><strong>我们第一次在 MCMC 中考虑了可见性因素</strong></li>
+<li>文章的贡献<ul>
+<li>第一次在 MCMC 中考虑了可见性因素</li>
+<li>如上图所示，给出了一种快速估计最大的圆锥顶角的算法</li>
+<li>很容易集成到现有的 MLT 算法中，我们给出了实现</li>
+</ul>
+</li>
+</ul>
+<h1 id="2-BACKGROUND-AND-PREVIOUS-WORK"><a href="#2-BACKGROUND-AND-PREVIOUS-WORK" class="headerlink" title="2. BACKGROUND AND PREVIOUS WORK"></a>2. BACKGROUND AND PREVIOUS WORK</h1><h2 id="2-1-Light-Transport-Simulation"><a href="#2-1-Light-Transport-Simulation" class="headerlink" title="2.1 Light Transport Simulation"></a>2.1 Light Transport Simulation</h2><ul>
+<li>intensity $I_j$ of the $j$-th pixel<ul>
+<li><strong><span style="color:red">论文中之后把 $f_j$ 简写为 $f$</span></strong></li>
+</ul>
+</li>
+</ul>
+<p>$$<br>I_j&#x3D;\int_{\Omega}f_j(\bar{x});\mathrm{d}\mu(\bar{x})<br>$$</p>
+<ul>
+<li>$\Omega$：任意长度、所有可能的路径空间</li>
+</ul>
+<p>$$<br>\Omega&#x3D;\bigcup_{k&#x3D;2}^{\infty}\Omega_{k}<br>$$</p>
+<ul>
+<li>$\Omega_{k}$：结点数为 $k$ 的路径空间</li>
+<li>$\bar{x}$：路径<ul>
+<li>$\bar{x}&#x3D;(\mathrm{x}_1,\cdots,\mathrm{x}_k)\in\Omega$</li>
+</ul>
+</li>
+<li>$\mathcal{M}$：场景表面集合<ul>
+<li>$\mathrm{x}_i\in\mathcal{M},;i&#x3D;1,\cdots,k$</li>
+</ul>
+</li>
+<li>采样算法<ul>
+<li>Path Tracing：Kajiya 1986</li>
+<li>Light Tracing：Arvo 1986</li>
+<li>BDPT：Lafortune and Willems 1993; Veach and Guibas 1994</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-2-MCMC-Rendering"><a href="#2-2-MCMC-Rendering" class="headerlink" title="2.2 MCMC Rendering"></a>2.2 MCMC Rendering</h2><ul>
+<li><p>论文这一段是对 MLT 的介绍</p>
+</li>
+<li><p>MCMC：MLT</p>
+<ul>
+<li>Veach and Guibas 1997</li>
+<li>把 $f$ 作为目标分布的时候，最终路径的分布会趋近于 $f&#x2F;b$（归一化后的分布）</li>
+</ul>
+<p>  $$<br>  b&#x3D;\int_{\Omega}f(\bar{x});\mathrm{d}\mu(\bar{x})<br>  $$</p>
+</li>
+<li><p>Metropolis-Hastings (MH) algorithm</p>
+<ul>
+<li>Hastings 1970; Metropolis et al. 1953</li>
+</ul>
+</li>
+</ul>
+<h3 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h3><ul>
+<li>生成一系列的路径样本，新样本 $y$ 的生成只依赖于上一个样本 $x$，转移核 $T$</li>
+</ul>
+<p>$$<br>\bar{y}\sim T(\bar{x}\to\bar{y})<br>$$</p>
+<ul>
+<li>新样本以一定概率被接受</li>
+</ul>
+<img src="geomlt/image-20220213085003715.png" style="zoom:80%;" />
+
+<ul>
+<li>最后一部分等式推导</li>
+</ul>
+<p>$$<br>R(\bar{x}_i\to\bar{y})\equiv f (\bar{y})&#x2F;T(\bar{x}_i\to\bar{y})<br>$$</p>
+<ul>
+<li>$f^{\ast}$：the scalar contribution function, which typically is the <strong>luminance</strong> of $f$</li>
+</ul>
+<img src="geomlt/image-20220213085323853.png" style="zoom:80%;" />
+
+
+
+<h3 id="变异策略"><a href="#变异策略" class="headerlink" title="变异策略"></a>变异策略</h3><ul>
+<li>变异策略基于状态空间<ul>
+<li>PSSMLT：Kelemen et al. [2002]</li>
+<li>MMLT：Hachisuka et al. [2014]<ul>
+<li>利用 MIS 将 PSSMLT 和 BDPT 结合在一起</li>
+</ul>
+</li>
+<li>Three recent works by Pantaleoni [2017], Otsu et al. [2017], and Bitterli et al. [2017] concurrently proposed techniques to combine the different state spaces by using an <strong>inverse mapping</strong> from the primary sample space to the path space.</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-3-Path-Space-Perturbations"><a href="#2-3-Path-Space-Perturbations" class="headerlink" title="2.3 Path Space Perturbations"></a>2.3 Path Space Perturbations</h2><ul>
+<li>Our geometry-aware mutation technique is based on the <strong>lens</strong>, <strong>caustic</strong>, and <strong>multi-chain perturbations operating</strong> in the path space [Veach and Guibas 1997].</li>
+<li>对于一条 subpath，我们对其的扰动为改变它的出射方向（<strong>局部球面坐标系</strong>）<ul>
+<li>例如扰动从 lens 出发的 subpath，我们改变其出射方向，追踪这条光线，直到停在 diffuse 的表面</li>
+</ul>
+</li>
+</ul>
+<img src="geomlt/image-20220213095748652.png" style="zoom:80%;" />
+
+<ul>
+<li>以出射方向为<strong>上方向</strong>，$\theta$ 指数分布，$\phi$ 均匀分布<ul>
+<li>Veach and Guibas [1997]</li>
+</ul>
+</li>
+</ul>
+<img src="geomlt/image-20220213101711000.png" style="zoom:80%;" />
+
+<ul>
+<li>采样得到的 $\theta\in[r_{\min},r_{\max}]$</li>
+<li>$U$：$[0,1]$ 均匀分布</li>
+<li>推导得到 pdf 如下</li>
+</ul>
+<img src="geomlt/image-20220213102115165.png" style="zoom:80%;" />
+
+<ul>
+<li>如何设置步长（也就是设置 $r_{\max},r_{\min}$）对于渲染结果影响很大<ul>
+<li>自相关性 vs 收敛速度</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-4-Adaptive-Step-Sizes"><a href="#2-4-Adaptive-Step-Sizes" class="headerlink" title="2.4 Adaptive Step Sizes"></a>2.4 Adaptive Step Sizes</h2><ul>
+<li>有些研究根据目标函数的某些特征实现可适应步长<ul>
+<li>Li et al. [2015] utilized local information obtained from <strong>analytic derivatives</strong> to adaptively control the shape of the transition kernels based the idea of <strong>Hamiltonian Monte Carlo</strong> [Duane et al. 1987].</li>
+<li>Jakob and Marschner [2012]<ul>
+<li>specular 表面，将路径空间限制在低维度中</li>
+</ul>
+</li>
+<li>Kaplanyan et al. [2014] and Hanika et al. [2015]<ul>
+<li>泛化上面的方法，使用半角向量表示路径空间</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>之前的方法都没有考虑可见性的问题，因为可见性函数的微分包含狄拉克函数成分 $Dirac$</li>
+</ul>
+<h2 id="2-5-Cones-in-Rendering"><a href="#2-5-Cones-in-Rendering" class="headerlink" title="2.5 Cones in Rendering"></a>2.5 Cones in Rendering</h2><ul>
+<li>Cone tracing [Amanatides 1984]<ul>
+<li>使用 cone 代替了 ray 和场景求交</li>
+<li>有效的实现了 AA</li>
+</ul>
+</li>
+<li>Roger et al. [2007]<ul>
+<li><strong>使用 cone 表示一组 ray，从而实现了一组相关的光线和场景的快速求交</strong><ul>
+<li><strong><span style="color:red">可能有用</span></strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Mora [2011]<ul>
+<li>utilized <strong>cones as ray packets</strong> in the context of <strong>divide-and-conquer ray tracing</strong>.</li>
+</ul>
+</li>
+<li>Crassin et al. [2011]<ul>
+<li><strong>voxelized</strong> scene geometries</li>
+</ul>
+</li>
+<li>我们在一条出射光线的周围放置一个 cone，找到最大的不和场景相交的 cone</li>
+</ul>
+<h1 id="3-OVERVIEW"><a href="#3-OVERVIEW" class="headerlink" title="3 OVERVIEW"></a>3 OVERVIEW</h1><ul>
+<li>3 个问题<ul>
+<li>如何找到最大的张角？</li>
+<li>如何加速？</li>
+<li>如何集成到 MLT 中？</li>
+</ul>
+</li>
+</ul>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><ul>
+<li>引导性的例子 MLT vs GeoMLT（场景与测试结果）</li>
+</ul>
+<img src="geomlt/image-20220213111443167.png" style="zoom:80%;" />
+
+<img src="geomlt/image-20220213112055131.png" style="zoom:80%;" />
+
+<ul>
+<li>如上，<strong>黑点</strong>表示被拒绝的样本，<strong>橙点</strong>表示接受的样本</li>
+<li>限制路径长度为 1，<strong>被拒绝的原因只有可见性</strong></li>
+<li>上面的图示表示 GeoMLT 的适应性步长有比较好的效果</li>
+</ul>
+<h1 id="4-GEOMETRY-AWARE-PERTURBATION-SIZE"><a href="#4-GEOMETRY-AWARE-PERTURBATION-SIZE" class="headerlink" title="4 GEOMETRY-AWARE PERTURBATION SIZE"></a>4 GEOMETRY-AWARE PERTURBATION SIZE</h1><ul>
+<li>让变异范围内的光线都不会因为可见性原因而被拒绝</li>
+<li>如何计算 cone 的最大张角 $r_{\max}$<ul>
+<li>通过用户定义的一个参数 $\alpha$ 求得 $r_{\min}&#x3D;\alpha r_{\max}$</li>
+</ul>
+</li>
+<li>path segment：$\mathrm{x}_1\mathrm{x}_2$</li>
+<li>点 $\mathrm{x}_1$ 不动，扰动出射方向</li>
+</ul>
+<h2 id="truncated-cone"><a href="#truncated-cone" class="headerlink" title="truncated cone"></a>truncated cone</h2><ul>
+<li>引入 truncated cone 的概念</li>
+</ul>
+<img src="geomlt/image-20220213114638556.png" style="zoom:80%;" />
+
+<ul>
+<li>两个截断平面<ul>
+<li>避免自相交、和点 $\mathrm{x}_2$ 比较近的几何体的相交</li>
+<li>The truncation of the cone’s apex and the base is used to avoid <strong>self-intersections close to $\mathrm{x}_1$</strong> and to avoid <strong>unnecessary small cone angles due to geometry close to $\mathrm{x}_2$</strong></li>
+</ul>
+</li>
+</ul>
+<img src="geomlt/image-20220213120522157.png" style="zoom:80%;" />
+
+<ul>
+<li>$t_2$ 截断平面不一定和圆锥的轴垂直<ul>
+<li>更好的考虑倾斜的几何体</li>
+<li>使用交点 $\mathrm{x}_2$ 的法线作为平面的法线</li>
+</ul>
+</li>
+<li>$t_1$ 需要垂直</li>
+<li>$\mathcal{C}(\theta)$：所有在上面的 truncated cone 之间的点的集合</li>
+<li>场景表面集合：$\mathcal{M}$</li>
+<li>则最大的张角如下</li>
+</ul>
+<p>$$<br>\theta_{\max}&#x3D;\sup{\theta\vert\mathcal{M}\cap\mathcal{C}(\theta)&#x3D;\emptyset}<br>$$</p>
+<ul>
+<li>准确计算十分耗时<ul>
+<li>一种方法是二分的进行 cone-scene intersection test</li>
+</ul>
+</li>
+</ul>
+<h1 id="5-APPROXIMATE-CONE-ANGLE"><a href="#5-APPROXIMATE-CONE-ANGLE" class="headerlink" title="5. APPROXIMATE CONE ANGLE"></a>5. APPROXIMATE CONE ANGLE</h1><ul>
+<li>粗略估计</li>
+<li>使用 AABB 包围盒代替几何体进行 $\theta_{\max}$ 的计算</li>
+</ul>
+<h2 id="5-1-Estimating-the-Cone-Angle-for-a-Single-AABB"><a href="#5-1-Estimating-the-Cone-Angle-for-a-Single-AABB" class="headerlink" title="5.1 Estimating the Cone Angle for a Single AABB"></a>5.1 Estimating the Cone Angle for a Single AABB</h2><ul>
+<li>计算一个 path segment 和一个 AABB 的 $\theta_{\max}$</li>
+<li>求出相交的最小夹角，<strong>算法</strong>如下<ul>
+<li>如果某个顶点 $\mathrm{p}_i$ 在 $[t_1,t_2]$ 之间，计算夹角 $\langle \mathrm{x}_1\mathrm{p}_i,\mathrm{x}_1\mathrm{x}_2\rangle$</li>
+<li>对于 AABB 的每一条边，我们求出到 $\mathrm{x}_1\mathrm{x}_2$ 最近的点，如果这个点落在 $[t_1,t_2]$ 之间，用它更新夹角</li>
+<li>$t_2$ 平面和 AABB 求交（得到一个凸多边形），求这个凸多边形到 $\mathrm{x}_1\mathrm{x}_2$ 最近的点，更新夹角</li>
+</ul>
+</li>
+<li>如下图<ul>
+<li>$\mathrm{p}_1,\mathrm{p}_2$ 的投影在区间 $[t_1,t_2]$ 内部，需要考虑</li>
+<li>$\mathrm{p}_3,\mathrm{p}_4$ 的投影在区间 $[t_1,t_2]$ 外部，不需要考虑</li>
+</ul>
+</li>
+</ul>
+<img src="geomlt/image-20220213142936290.png" style="zoom:80%;" />
+
+
+
+<h2 id="5-2-Cone-Estimation-using-a-BVH-Cut"><a href="#5-2-Cone-Estimation-using-a-BVH-Cut" class="headerlink" title="5.2 Cone Estimation using a BVH-Cut"></a>5.2 Cone Estimation using a BVH-Cut</h2><ul>
+<li>首先计算 initial cut，里面包含如下的结点<ul>
+<li>他们的父结点和 $\mathrm{x}_1\mathrm{x}_2$ 相交，但是他自己没有和 $\mathrm{x}_1\mathrm{x}_2$ 相交</li>
+<li>如下的红色结点</li>
+</ul>
+</li>
+</ul>
+<img src="geomlt/image-20220213150615178.png" style="zoom:80%;" />
+
+<ul>
+<li>实现如下</li>
+</ul>
+<img src="geomlt/image-20220213150741855.png" style="zoom:80%;" />
+
+<ul>
+<li>此时 initial cut 里面包含着一堆绕着 $\mathrm{x}_1\mathrm{x}_2$ 的 AABB，但是他们都不和 $\mathrm{x}_1\mathrm{x}_2$ 相交</li>
+<li>这也可以避免角度变成 0（和空的 AABB 相交）<ul>
+<li>会被排除</li>
+</ul>
+</li>
+<li>此时可以使用 5.1 的方法对每一个 AABB 进行求解<ul>
+<li>如此得到的 $\theta_{\max}$ 总是会偏小</li>
+</ul>
+</li>
+</ul>
+<img src="geomlt/image-20220213151753388.png" style="zoom:80%;" />
+
+<ul>
+<li>优化策略：将所有的 AABB 展开，直到结点个数达到设定值 $N_{\max}$<ul>
+<li>优先队列 $Q$，夹角最小的在根结点</li>
+</ul>
+</li>
+</ul>
+<img src="geomlt/image-20220213161002331.png" style="zoom:80%;" />
+
+<ul>
+<li>展开每个结点，直到限制夹角的结点为叶子结点（此时已经是最大）或者达到数量限制（考虑效率）</li>
+</ul>
+<h2 id="5-3-Trading-Accuracy-for-Speed"><a href="#5-3-Trading-Accuracy-for-Speed" class="headerlink" title="5.3 Trading Accuracy for Speed"></a>5.3 Trading Accuracy for Speed</h2><ul>
+<li>更快但是牺牲了准确率</li>
+<li>一种策略：只进行 5.1 部分的第一个测试（<strong>顶点</strong>），而且不进行 cut refinement</li>
+</ul>
+<h1 id="6-GEOMETRY-AWARE-METROPOLIS-LIGHT-TRANSPORT"><a href="#6-GEOMETRY-AWARE-METROPOLIS-LIGHT-TRANSPORT" class="headerlink" title="6. GEOMETRY-AWARE METROPOLIS LIGHT TRANSPORT"></a>6. GEOMETRY-AWARE METROPOLIS LIGHT TRANSPORT</h1><ul>
+<li>扰动策略<ul>
+<li>a geometry-aware extension of the <strong>multi-chain perturbation</strong></li>
+</ul>
+</li>
+<li>可以类似的迁移到其他的扰动策略上<ul>
+<li>lens or caustic perturbation</li>
+</ul>
+</li>
+</ul>
+<h2 id="变异策略-1"><a href="#变异策略-1" class="headerlink" title="变异策略"></a>变异策略</h2><ul>
+<li>当前路径：$\bar{x}&#x3D;\mathrm{x}_1\mathrm{x}_2\cdots\mathrm{x}_k$</li>
+<li>依次对这样的 path segment 进行扰动，直到遇见两个连续的非镜面顶点<ul>
+<li>$\mathrm{x}<em>i\mathrm{x}</em>{i+1}$：出发自非镜面，终止在镜面</li>
+<li>突变从 $\mathrm{x}_k$ （光圈）开始，突变策略就是上面讲的</li>
+<li>保证结点的表面类型、结点数量不变</li>
+<li>结果为 $\bar{y}&#x3D;\mathrm{x}_1\mathrm{x}_2\cdots\mathrm{x}<em>s\mathrm{y}</em>{s+1}\cdots\mathrm{y}_k$</li>
+</ul>
+</li>
+<li>优化<ul>
+<li>如果 $\mathrm{x}<em>{i+1}$ 是非镜面或者光圈，我们扰动原始的方向（$\omega_0&#x3D;\mathrm{x}</em>{i+1}\to\mathrm{x}_i$），此时下一个顶点 $\mathrm{y}<em>i$ 通过朝着新的方向 $\omega$ 射出一条光线计算得到，不使用方向 $\mathrm{y}</em>{i+1}\to\mathrm{x}_i$，因为这样在计算接受率的时候需要额外对这段路径进行可见性测试</li>
+<li>如果 $\mathrm{x}_{i+1}$ 是镜面，则根据确定的方向计算得到 $\mathrm{y}_i$</li>
+</ul>
+</li>
+</ul>
+<h2 id="计算接收率"><a href="#计算接收率" class="headerlink" title="计算接收率"></a>计算接收率</h2><ul>
+<li>化简，消去公共项（前面一段相同）</li>
+</ul>
+<img src="geomlt/image-20220213190644235.png" style="zoom:80%;" />
+
+<img src="geomlt/image-20220213190723401.png" style="zoom:80%;" />
+
+<ul>
+<li>只需要计算不同的项</li>
+</ul>
+<img src="geomlt/image-20220213191100768.png" style="zoom:80%;" />
+
+
+
+<h1 id="7-RESULTS"><a href="#7-RESULTS" class="headerlink" title="7. RESULTS"></a>7. RESULTS</h1><ul>
+<li>MLT：$r_{\max}&#x3D;0.5,r_{\min}&#x3D;0.05$</li>
+<li>GeoMLT：$N_{\max}&#x3D;10,\alpha&#x3D;0.1$</li>
+<li>算法<ul>
+<li>the bidirectional mutation for global exploration</li>
+<li>and the multi-chain perturbations for local exploration with equal selection probability.</li>
+</ul>
+</li>
+</ul>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><ul>
+<li><p>Clamping the Estimated Cone Angle</p>
+<ul>
+<li>如果光线掠过一个几何体的表面，可能会导致计算得到的 $\theta$ 很小（几乎为 0），我们将计算得到的 $\theta$ clamp 到用户指定的范围内</li>
+<li>实验为 $[0.01,0.5]$</li>
+</ul>
+</li>
+<li><p>Avoiding Unnecessary Cone Angle Underestimation</p>
+<ul>
+<li>$t_2$ 设置得距离 $\mathrm{x}_2$ 不能太近</li>
+<li>实验：$t_1&#x3D;10^{-4},t_2&#x3D;0.99\Vert\mathrm{x}_1-\mathrm{x_2}\Vert$</li>
+</ul>
+</li>
+<li><p>Equal-Time Comparisons</p>
+<ul>
+<li>我们的方法不对出发于镜面的顶点进行估计，因此在这种情况下会有问题</li>
+</ul>
+</li>
+<li><p>Accuracy of the BVHCut Approximation</p>
+<ul>
+<li>BVHcut 估计的顶角范围基本准确</li>
+<li>算法能够适应不同场景（场景旋转不同角度，AABB 改变）</li>
+</ul>
+</li>
+<li><p>Quality of Exploration</p>
+<ul>
+<li>评估：$\text{MCMC-SE}&#x3D;\sqrt{\dfrac{\text{Var}}{\text{ESS}}}$</li>
+</ul>
+</li>
+</ul>
+<img src="geomlt/image-20220213194431214.png" style="zoom:80%;" />
+
+<ul>
+<li>Differently-Sized Geometry<ul>
+<li>场景中同时有不同尺度的几何体</li>
+<li>树干和树枝</li>
+<li>背景中含有一个很大的 diffuse reflector 时，我们看到 GeoMLT 增益不大<ul>
+<li>因为可以跳过这个遮挡的树枝，从另外的一个间隙中过来，因此 $\theta$ 之外其实也还有很多可行的光路</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="8-DISCUSSION"><a href="#8-DISCUSSION" class="headerlink" title="8. DISCUSSION"></a>8. DISCUSSION</h1><ul>
+<li>Parameters<ul>
+<li>有些人为设置的参数，会影响渲染结果</li>
+</ul>
+</li>
+<li>Cone Angle Estimation<ul>
+<li>BVHCut：相对精确</li>
+<li>FastApprox：很宽松</li>
+<li>更好的方法：TODO</li>
+</ul>
+</li>
+<li>Limitations<ul>
+<li>两个顶点都是镜面材质</li>
+<li>不连续结构</li>
+<li>最大张角很大（大于等于人为设置的最大值），此时 BVHCut 白做了</li>
+</ul>
+</li>
+<li>Reusing Acceleration Structure<ul>
+<li>同时进行，方便</li>
+</ul>
+</li>
+<li>Future work<ul>
+<li>各向异性的 cone</li>
+<li>现在只支持表面渲染，推广到参与介质的渲染（participating media）</li>
+<li>designing geometry-aware mutations in primary sample space</li>
+</ul>
+</li>
+</ul>
+<h1 id="9-CONCLUSION"><a href="#9-CONCLUSION" class="headerlink" title="9. CONCLUSION"></a>9. CONCLUSION</h1><ul>
+<li>We presented a mutation strategy which adaptively changes the mutation step size according to the geometry of the scene. Our method restricts perturbations of path segments such that nearby geometry is not intersected, as this would always result in rejected proposals. We introduced fast, approximate algorithms to estimate the maximum perturbation angle, which reuse the very same acceleration structure which is already present for ray casting.We demonstrated that our approach can greatly improve the exploration performance of a Markov chain. Our perturbation strategy has been designed with small geometric features in mind, such as door slits or keyholes where the light shines through. However, as our results show, it also reduces noise near geometric edges, such as the one between the floor and the back wall in the Ajar door scene. We believe that using information about geometric visibility has great potential and can be used to ameliorate many other cases of inefficient mutations due to geometric constraints.</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/02/08/CG/Papers/2018/geomlt/" data-id="cl9lj74bv00m664tz45gv6r16" data-title="(论文)[2018] Geometry-Aware Metropolis Light Transport" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/02/24/CG/WHM-GAMES103/06-1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          GAMES103.王华民.06.Constrained Approaches(PBD, PD and others)(2)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/01/24/CG/WHM-GAMES103/06/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">GAMES103.王华民.06.Constrained Approaches(PBD, PD and others)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>数据库概论.陈立军.10.数据库存储 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="存储介质（磁盘）、RAID 技术">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.10.数据库存储">
+<meta property="og:url" content="http://example.com/2021/07/21/DB/CLJ/10/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="存储介质（磁盘）、RAID 技术">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721165645564.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721170151776.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721170407711.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721171520371.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721171621527.png">
+<meta property="og:image" content="http://example.com/10/image-20210721171939746.png">
+<meta property="og:image" content="http://example.com/10/image-20210721173142744.png">
+<meta property="og:image" content="http://example.com/10/image-20210721173314280.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721195735905.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721201830020.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721201843784.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721201710511.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721201730225.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/RAID2.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721201923429.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721202506338.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721202831447.png">
+<meta property="og:image" content="http://example.com/10/image-20210721202856237.png">
+<meta property="og:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721203500063.png">
+<meta property="article:published_time" content="2021-07-21T08:53:29.000Z">
+<meta property="article:modified_time" content="2021-07-21T12:44:19.888Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/07/21/DB/CLJ/10/10/image-20210721165645564.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-DB/CLJ/10" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/21/DB/CLJ/10/" class="article-date">
+  <time class="dt-published" datetime="2021-07-21T08:53:29.000Z" itemprop="datePublished">2021-07-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/DB-CLJ/">DB.CLJ</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      数据库概论.陈立军.10.数据库存储
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="数据库存储"><a href="#数据库存储" class="headerlink" title="数据库存储"></a>数据库存储</h1><h2 id="存储介质"><a href="#存储介质" class="headerlink" title="存储介质"></a>存储介质</h2><h3 id="物理存储介质"><a href="#物理存储介质" class="headerlink" title="物理存储介质"></a>物理存储介质</h3><img src="10/image-20210721165645564.png" style="zoom:80%;" />
+
+<ul>
+<li>根据读写性能调整数据库算法</li>
+<li>缓存：<strong>局部性原理</strong></li>
+<li>性能</li>
+</ul>
+<img src="10/image-20210721170151776.png" style="zoom:80%;" />
+
+<ul>
+<li>高速缓冲存储器（cache）<ul>
+<li>最快最昂贵的存储介质</li>
+<li>很小，由操作系统管理</li>
+</ul>
+</li>
+<li>主存储器（main memory）<ul>
+<li>存放可被处理的数据的存储介质</li>
+<li>易失，相对整个数据库太小</li>
+</ul>
+</li>
+<li>快闪存储器（flash memory）<ul>
+<li>读性能类似主存，写速度非常慢</li>
+<li>电子可擦除可编程只读存储器 (Electrically Erasable Programmable Read-Only Memory)</li>
+</ul>
+</li>
+<li>磁盘存储器（Magnetic-disk storage）<ul>
+<li>直接读取设备，支持随机读取</li>
+<li>非易失联机数据存储设备</li>
+<li>访问数据时，磁盘 $\to$ 内存</li>
+<li>修改后的数据，内存 $\to$ 磁盘</li>
+</ul>
+</li>
+<li>光学存储器（Optical storage）<ul>
+<li>只读(CD-ROM)、一次写多次读(WORM)、多次写(CD-RW)</li>
+</ul>
+</li>
+<li>磁带（tape）<ul>
+<li>顺序访问，归档存储，容量大，价格便宜</li>
+</ul>
+</li>
+</ul>
+<h3 id="磁盘"><a href="#磁盘" class="headerlink" title="磁盘"></a>磁盘</h3><ul>
+<li>磁盘物理结构</li>
+</ul>
+<img src="10/image-20210721170407711.png" style="zoom:80%;" />
+
+<ul>
+<li>盘片(platter)、磁道(track)、扇区(sector)、柱面(cylinder)、磁盘臂(diskarm)</li>
+<li>读写头(read-write head)：反转磁性物质磁化方向</li>
+<li>磁盘控制器(disk controller)：<ul>
+<li>接受读写扇区命令，定位读写头</li>
+<li>向扇区写入数据时附加校验和(checksum)，读取时重新计算校验和</li>
+</ul>
+</li>
+</ul>
+<h4 id="磁盘性能度量"><a href="#磁盘性能度量" class="headerlink" title="磁盘性能度量"></a>磁盘性能度量</h4><ul>
+<li><strong>访问时间</strong><ul>
+<li>从发出读写请求到数据开始传输之间的时间</li>
+<li>先移动磁盘臂，定位到正确的磁道，然后旋转磁盘，直到指定扇区出现在读写头下方</li>
+</ul>
+</li>
+<li><strong>寻道时间</strong>（seek time）<ul>
+<li>磁盘臂重定位时间，取决于目标磁道和磁盘臂当前距离，2~30毫秒。平均寻道时间是最大寻道时间的1&#x2F;3</li>
+</ul>
+</li>
+<li><strong>旋转等待时间</strong>（rotational latency tiime）<ul>
+<li>目标扇区旋转到读写头下面的时间，每转在4~11毫秒之间。平均旋转时间是旋转一周的1&#x2F;2</li>
+</ul>
+</li>
+<li><strong>数据传输率</strong>（data-transfer rate）<ul>
+<li>25~100兆&#x2F;秒</li>
+</ul>
+</li>
+</ul>
+<h4 id="磁盘访问优化"><a href="#磁盘访问优化" class="headerlink" title="磁盘访问优化"></a>磁盘访问优化</h4><ul>
+<li><strong>磁盘块的大小</strong><ul>
+<li>小，更多的磁盘传输次数</li>
+<li>大，空间浪费</li>
+</ul>
+</li>
+<li><strong>调度</strong><ul>
+<li>块在一个柱面上，按块经过读写头的顺序访问</li>
+<li>块在不同柱面上，按使磁盘臂移动距离最短的顺序访问</li>
+<li>电梯算法</li>
+</ul>
+</li>
+<li><strong>文件组织</strong><ul>
+<li>按与预期数据访问方式最接近的方式组织磁盘块</li>
+<li>碎片整理</li>
+</ul>
+</li>
+<li><strong>日志磁盘</strong><ul>
+<li><strong>顺序写</strong>，消除了寻道时间</li>
+<li>检查点</li>
+<li>顺序写：把物理上相邻的页面聚集大一起，一次性写入磁盘</li>
+</ul>
+</li>
+</ul>
+<h4 id="磁盘的顺序和随机访问对比"><a href="#磁盘的顺序和随机访问对比" class="headerlink" title="磁盘的顺序和随机访问对比"></a>磁盘的顺序和随机访问对比</h4><ul>
+<li>7200rpm 的希捷 SATA 硬盘顺序读写基本都能达到 300MB&#x2F;s</li>
+<li>随机读写 100IOPS，假设每次 IO 大小为 1KB，则随机读写数据带宽为 100KB&#x2F;s</li>
+</ul>
+<img src="10/image-20210721171520371.png" style="zoom:150%;" />
+
+<ul>
+<li>不同介质的顺序和随机访问对比</li>
+</ul>
+<img src="10/image-20210721171621527.png" style="zoom:150%;" />
+
+<ul>
+<li><strong>尽可能顺序读！！！</strong></li>
+</ul>
+<h4 id="发掘磁盘顺序读的性能"><a href="#发掘磁盘顺序读的性能" class="headerlink" title="发掘磁盘顺序读的性能"></a>发掘磁盘顺序读的性能</h4><h5 id="预读"><a href="#预读" class="headerlink" title="预读"></a>预读</h5><ul>
+<li>prefetch、read-ahead<ul>
+<li>将临近的数据读进来</li>
+</ul>
+</li>
+<li>局部性原理</li>
+<li>MySQL线性预读（linear read-ahead）：是否将下一个 extent 预读到 buffer pool 中<ul>
+<li>如果一个 extent 中被顺序读取的 page 超过或者等于该参数变量时，Innodb 将会异步将下一个 extent 读取到 bufferpool 中</li>
+</ul>
+</li>
+</ul>
+<p><img src="/10/image-20210721171939746.png"></p>
+<h3 id="LSM"><a href="#LSM" class="headerlink" title="LSM"></a>LSM</h3><ul>
+<li>The Log-Structured Merge-Tree（LSM-Tree）</li>
+<li>假设要写入10000 个 随机 key<ul>
+<li>最快的磁盘写入方式是批量顺序写，但这样带来的问题是每次查询都需要遍历整个数据</li>
+<li>如果想获得高磁盘读性能，就需要对数据像 B 树那样进行排序，但其写性能又太差</li>
+<li>如何权衡？$\to$ LSM 树</li>
+</ul>
+</li>
+<li>将 $N$ 个数据划分成多个小的有序结构，每 $m$ 个数据在内存里排序一次，这样就获得 $\dfrac{N}{m}$ 个有序结构；查询时从最新的一个有序结构里做二分查找，如果没找到就继续查找下一个有序结构<ul>
+<li>读取的时间复杂度是 $\dfrac{N}{m}\log_{2}{M}$</li>
+</ul>
+</li>
+<li>LSM 把一棵大树拆分成 N 棵小树，随着小树越来越大，<strong>内存中的小树会 flush 到磁盘中</strong>，<strong>磁盘中的树定期做 merge 操作</strong>，合并成一棵大树，以优化读性能<ul>
+<li>内存中满了之后整体刷到磁盘上，这样是顺序写，而不是 B 树或者 B+ 树的随机写</li>
+</ul>
+</li>
+<li>将对数据的修改增量保持在内存中，达到指定的大小限制后再批量写入磁盘，所以写入性能大大提升</li>
+<li>需要合并磁盘中历史数据和内存中最近修改操作</li>
+<li><strong>读取时需要先看是否命中内存，否则需要访问较多的磁盘文件</strong></li>
+<li>在合并过程中，并不会像 B+ 树一样，在原数据的位置上修改，而是<strong>直接插入新的数据</strong>，从而避免了随机写</li>
+<li>当磁盘中的小树<strong>合并</strong>成一个大树的时候，可以<strong>重新排好顺序</strong>，使得block连续，优化读性能</li>
+<li>LSM-Tree 属于传输型，因为它会使用日志文件和一个内存存储结构把<strong>随机写操作转化为顺序写</strong></li>
+</ul>
+<p><img src="/10/image-20210721173142744.png"></p>
+<ul>
+<li>对于删除操作，只需在 memtable 中插入一条数据当作标志，如 delKey:1933</li>
+<li>当读操作读到 memtable 中这个标志时，就会知道这个 key 已被删除</li>
+<li>把树刷到磁盘的时候，修改为 immutable，不允许修改</li>
+</ul>
+<p><img src="/10/image-20210721173314280.png"></p>
+<ul>
+<li>怎么保证读到的数据是最新的？<ul>
+<li>如果一个数据多次更新，可能会存在其的多个副本</li>
+<li>我们读的顺序是由新到旧的读，因此读到的总是最新的</li>
+<li>小树合并成大树的时候可以把多个副本处理掉</li>
+</ul>
+</li>
+</ul>
+<h4 id="bloom-filter"><a href="#bloom-filter" class="headerlink" title="bloom filter"></a>bloom filter</h4><ul>
+<li>对于不存在的数据，如何避免遍历所有集合？<ul>
+<li>如果使用 LSM 树的话，需要遍历所有树</li>
+</ul>
+</li>
+<li>引入布隆过滤器，当它显示某 SSTable 中没有目标数据时，就跳过</li>
+</ul>
+<img src="10/image-20210721195735905.png" style="zoom: 80%;" />
+
+<ul>
+<li>使用多个哈希函数，都存在才表明这个元素存在</li>
+<li>bloom filter <ul>
+<li>如果判定一个元素<strong>没有出现过</strong>，那么这个元素<strong>一定没有出现过</strong></li>
+<li>如果判定一个元素<strong>出现过</strong>，那么这个元素<strong>可能出现过也可能没出现过</strong></li>
+</ul>
+</li>
+</ul>
+<h2 id="RAID"><a href="#RAID" class="headerlink" title="RAID"></a>RAID</h2><ul>
+<li>Redundant Arrays of Inexpensive Disks</li>
+<li>是一种利用大量廉价磁盘进行磁盘组织的技术</li>
+<li>好处<ul>
+<li><strong>价格</strong>：大量廉价的磁盘比少量昂贵的大磁盘合算得多</li>
+<li><strong>性能</strong>：大量磁盘可以提高数据的并行存取</li>
+<li><strong>可靠性</strong>：冗余数据可以存放在多个磁盘上，因此一个磁盘的故障不会导致数据丢失</li>
+</ul>
+</li>
+<li>过去 RAID 是大而昂贵的磁盘的替代方法，今天使用 RAID 是因为它的高可靠性和高数据传输率<ul>
+<li>Redundant Arrays of Independent Disks</li>
+</ul>
+</li>
+</ul>
+<h3 id="不同方式"><a href="#不同方式" class="headerlink" title="不同方式"></a>不同方式</h3><h4 id="通过冗余提高可靠性"><a href="#通过冗余提高可靠性" class="headerlink" title="通过冗余提高可靠性"></a>通过冗余提高可靠性</h4><ul>
+<li>N 个磁盘组成的集合中某个磁盘发生故障的概率比特定的单个磁盘发生故障的概率高很多</li>
+<li>假定单个磁盘的 MTTF 是100,000小时（约为11年），则由 100 个磁盘组成的阵列的MTTF是1000小时（约为41天）</li>
+<li><strong>冗余</strong>（Redundancy）：存储额外的信息，以便当磁盘故障时能从中重建</li>
+</ul>
+<h4 id="镜像冗余"><a href="#镜像冗余" class="headerlink" title="镜像冗余"></a>镜像冗余</h4><ul>
+<li>一个逻辑磁盘由两个物理磁盘组成</li>
+<li>写操作在每个磁盘上执行</li>
+<li>如果其中一个发生故障，数据可以从另一个磁盘读出</li>
+<li>只有第一个磁盘的故障尚未恢复，第二个磁盘也发生故障，这时才会发生数据丢失</li>
+<li>假定一个磁盘的MTTF是 $10^5$ 小时，修复时间是 $10$ 小时，则镜像磁盘的MTTF是$(10^5)^2&#x2F;(2<em>10)&#x3D;500</em>10^6$ 小时，约为 $57000$ 年</li>
+</ul>
+<h4 id="校验码冗余"><a href="#校验码冗余" class="headerlink" title="校验码冗余"></a>校验码冗余</h4><ul>
+<li>内存中每个字节都有一个<strong>奇偶校验位</strong>与之相连，它记录该字节中为 1 的比特位的总数是偶数(&#x3D;0)还是奇数(&#x3D;1)，如果字节中有一位被破坏，则字节的 ECC 与存储的 ECC 就不会相匹配</li>
+<li>通过 ECC 可以<strong>检测</strong>到所有的 <strong>1位</strong> 错误</li>
+</ul>
+<h4 id="通过拆分提高并行"><a href="#通过拆分提高并行" class="headerlink" title="通过拆分提高并行"></a>通过拆分提高并行</h4><ul>
+<li>将数据拆分到多个磁盘上以提高传输率</li>
+<li><strong>通过并行提高性能的两种途径</strong><ul>
+<li>负载平衡多个小的存取操作（即页面存取），提高以提高这种存取操作的吞吐量</li>
+<li>并行执行大的存取操作，以减少大的存取操作的响应时间</li>
+</ul>
+</li>
+</ul>
+<h4 id="两种不同的拆分方式"><a href="#两种不同的拆分方式" class="headerlink" title="两种不同的拆分方式"></a>两种不同的拆分方式</h4><ul>
+<li><strong>比特级拆分</strong>（Bit-level striping）<ul>
+<li>将每个字节按比特分开，存储到多个磁盘上</li>
+<li>一个由 8 个磁盘组成的阵列，将每个字节的第 i 个比特位写到第 i 个磁盘上<ul>
+<li>其存取速度是单个磁盘的 8 倍</li>
+</ul>
+</li>
+<li>对于由 4 个磁盘组成的阵列，将每个字节的第 i 个比特位和第 i+4 个比特位写到第i个磁盘上</li>
+</ul>
+</li>
+<li><strong>块级拆分</strong>（Block-level striping）<ul>
+<li>对于由 n 个磁盘构成的阵列，文件的第i块存放在第 (i mod n)+1 个磁盘上</li>
+</ul>
+</li>
+<li>比特级拆分 vs  块级拆分<ul>
+<li>位级拆分：响应时间（多个盘同时响应）</li>
+<li>块级拆分：吞吐量（不同的读取操作读不同的块，这些块在不同磁盘上）</li>
+</ul>
+</li>
+</ul>
+<h3 id="RAID-级别"><a href="#RAID-级别" class="headerlink" title="RAID 级别"></a>RAID 级别</h3><h4 id="RAID-0"><a href="#RAID-0" class="headerlink" title="RAID 0"></a>RAID 0</h4><ul>
+<li><strong>块级拆分</strong>且<strong>没有任何冗余</strong>的磁盘阵列</li>
+<li>用于高性能访问且数据丢失不十分重要的应用场合</li>
+</ul>
+<img src="10/image-20210721201830020.png" style="zoom:80%;" />
+
+
+
+<h4 id="RAID-1"><a href="#RAID-1" class="headerlink" title="RAID 1"></a>RAID 1</h4><ul>
+<li>带<strong>块级拆分</strong>的<strong>磁盘镜像</strong></li>
+<li><strong>提供最佳写性能</strong></li>
+<li>一般用于类似于数据库系统中日志文件存储的应用场合</li>
+</ul>
+<img src="10/image-20210721201843784.png" style="zoom: 80%;" />
+
+
+
+<h4 id="RAID-10"><a href="#RAID-10" class="headerlink" title="RAID 10"></a>RAID 10</h4><img src="10/image-20210721201710511.png" style="zoom: 80%;" />
+
+
+
+<h4 id="RAID-01"><a href="#RAID-01" class="headerlink" title="RAID 01"></a>RAID 01</h4><img src="10/image-20210721201730225.png" style="zoom:80%;" />
+
+
+
+<p>RAID 2</p>
+<ul>
+<li>汉明码</li>
+<li>允许多个磁盘出错</li>
+</ul>
+<img src="10/RAID2.png" style="zoom:80%;" />
+
+
+
+<h4 id="RAID-3"><a href="#RAID-3" class="headerlink" title="RAID 3"></a>RAID 3</h4><ul>
+<li><strong>位</strong>交叉<strong>奇偶校验</strong></li>
+</ul>
+<img src="10/image-20210721201923429.png" style="zoom: 80%;" />
+
+<ul>
+<li>RAID 3 写操作更新校验盘的两种方式（例如写D2，生成 D2’）<ul>
+<li>根据 D1, D3, D2’ 生成 D4：<strong>读D1,D3，写D2, D4</strong></li>
+<li>根据 D2, D2’ 生成 D4：<strong>读D2,D4，写D2,D4</strong><ul>
+<li>多个数据盘优势大，跟数据盘个数无关</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>数据盘多的话，产生故障的几率大了，恢复过程变得耗时</li>
+</ul>
+<h4 id="RAID-4"><a href="#RAID-4" class="headerlink" title="RAID 4"></a>RAID 4</h4><ul>
+<li><strong>块级拆分</strong>，在一个<strong>独立的磁盘</strong>上为其他 N 个磁盘上对应的块保留一个<strong>奇偶校验块</strong></li>
+<li>读取一个块只访问一个磁盘，每个存取操作的传输率低但可以并行地执行多个读操作，从而产生较高的总 I&#x2F;O 率</li>
+</ul>
+<img src="10/image-20210721202506338.png" style="zoom: 80%;" />
+
+<ul>
+<li>问题：负载不均衡<ul>
+<li>读数据盘的时候 D4（校验盘） 不工作</li>
+<li>写数据盘的时候都得写 D4</li>
+</ul>
+</li>
+</ul>
+<h4 id="RAID-5"><a href="#RAID-5" class="headerlink" title="RAID 5"></a>RAID 5</h4><ul>
+<li>基于 RAID 4，将数据和奇偶校验位分布到所有的 N 个磁盘上</li>
+<li>奇偶校验块不能和这个块对应的数据存储在同一个磁盘上</li>
+<li>RAID 5 所有磁盘都参与对读请求的服务，而 RAID 4 中奇偶校验磁盘不参与读操作</li>
+<li>RAID5 包容 RAID 4，<strong>在相同成本下提供更好的读写性能</strong></li>
+</ul>
+<img src="10/image-20210721202831447.png" style="zoom:80%;" />
+
+
+
+<h4 id="RAID-50"><a href="#RAID-50" class="headerlink" title="RAID 50"></a>RAID 50</h4><p><img src="/10/image-20210721202856237.png"></p>
+<h4 id="RAID-6"><a href="#RAID-6" class="headerlink" title="RAID 6"></a>RAID 6</h4><ul>
+<li>P+Q：Reed-Solomon 码</li>
+<li>允许多个盘出错，也能恢复</li>
+</ul>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><img src="10/image-20210721203500063.png" style="zoom:80%;" />
+
+
+
+<h4 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h4><ul>
+<li>RAID 1 vs RAID 5</li>
+<li>为写 1 块数据，RAID5 需要 2 块读和 2 块写</li>
+<li>如果应用需要每秒 r 次读，w 次写<ul>
+<li>RAID 1 要求每秒 r+2w 次 I&#x2F;O 操作</li>
+<li>RAID 5 要求每秒 r+4w 次 I&#x2F;O 操作<ul>
+<li>写（4 I&#x2F;O）：阅读待更新块、阅读奇偶校验块、更新块中的数据块、更新奇偶校验块</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>当<strong>写操作较少且数据非常大</strong>时，RAID 5 较优，否则 RAID 1 更佳</li>
+</ul>
+<h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><ul>
+<li>RAID 的 Write Back</li>
+<li>插入 20 万条数据，每条数据放在单独一个事务中执行</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">RAID卡设置</th>
+<th align="center">耗时</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Write Back</td>
+<td align="center">43 秒</td>
+</tr>
+<tr>
+<td align="center">Write Through</td>
+<td align="center">31 分钟</td>
+</tr>
+<tr>
+<td align="center">Write Through with innodb_flush_log_at_trx_commit &#x3D; 0（日志强制写回磁盘、内容不强制）</td>
+<td align="center">68 秒</td>
+</tr>
+</tbody></table>
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/07/21/DB/CLJ/10/" data-id="cl9lj74b200gp64tz3dzz3sfi" data-title="数据库概论.陈立军.10.数据库存储" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/07/21/DB/CLJ/10-1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          数据库概论.陈立军.10.数据库存储(2)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/07/21/DB/CLJ/09-2/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">数据库概论.陈立军.09.恢复控制(3)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

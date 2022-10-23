@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>计算机图形学.李胜.08.真实感绘制之光照明(1) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="真实感绘制流程、简单光照明模型（环境光、漫反射、镜面高光、光的传播衰减、阴影、透明）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.08.真实感绘制之光照明(1)">
+<meta property="og:url" content="http://example.com/2021/02/05/CG/LS/08/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="真实感绘制流程、简单光照明模型（环境光、漫反射、镜面高光、光的传播衰减、阴影、透明）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/08/diffuse-reflection.png">
+<meta property="og:image" content="http://example.com/08/ideal-specular-highlight.png">
+<meta property="og:image" content="http://example.com/08/specular-highlight.png">
+<meta property="og:image" content="http://example.com/08/phong-n.png">
+<meta property="og:image" content="http://example.com/08/depth-cueing.png">
+<meta property="og:image" content="http://example.com/08/bilinear-interpolation.png">
+<meta property="og:image" content="http://example.com/08/normal-bilinear-interpolation.png">
+<meta property="og:image" content="http://example.com/08/contrast-flat-gouraud-phong.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/08/highlight-gouraud-phong.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/08/interpolation-projection.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/08/interpolation-direction.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/08/interpolation-continue.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/08/interpolation-point-normal.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/08/accumulative.png">
+<meta property="og:image" content="http://example.com/2021/02/05/CG/LS/08/08/error.png">
+<meta property="og:image" content="http://example.com/08/simple-transparent.png">
+<meta property="og:image" content="http://example.com/08/refraction.png">
+<meta property="og:image" content="http://example.com/08/refraction2.png">
+<meta property="article:published_time" content="2021-02-05T03:50:24.000Z">
+<meta property="article:modified_time" content="2021-02-07T16:15:37.166Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/08/diffuse-reflection.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/LS/08" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/02/05/CG/LS/08/" class="article-date">
+  <time class="dt-published" datetime="2021-02-05T03:50:24.000Z" itemprop="datePublished">2021-02-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      计算机图形学.李胜.08.真实感绘制之光照明(1)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="真实感绘制流程"><a href="#真实感绘制流程" class="headerlink" title="真实感绘制流程"></a>真实感绘制流程</h1><ul>
+<li>动机：图形真实感的需求</li>
+<li>真实感：产生幻觉（illusion）</li>
+<li>基于用户评估，没有一个确定的标准</li>
+<li>例子：树皮<ul>
+<li>光线：产生阴影</li>
+<li>边界：粗糙的感觉</li>
+</ul>
+</li>
+</ul>
+<h2 id="光照明模型发展历史"><a href="#光照明模型发展历史" class="headerlink" title="光照明模型发展历史"></a>光照明模型发展历史</h2><ul>
+<li>早期光照明模型<ul>
+<li>基于<strong>经验</strong></li>
+<li>只能反映<strong>光源直接照射</strong>的情况</li>
+</ul>
+</li>
+<li>比较精确的模型<ul>
+<li>模拟物体之间光的相互作用</li>
+<li><strong>间接光照</strong></li>
+</ul>
+</li>
+<li>更精确的模型<ul>
+<li>模拟物体自身的光照相互作用</li>
+<li>模拟光源至物体表面以及物体表面至视点之间光的传播</li>
+<li>光传播的介质（雾）、物体表面形态、视点位置变化、体数据</li>
+</ul>
+</li>
+<li>2005 siggraph achievement：Nishita 东京大学<ul>
+<li>截止：光在大气中传播的模拟</li>
+<li>participating media：参与介质</li>
+</ul>
+</li>
+</ul>
+<h2 id="真实感图形绘制的四个步骤"><a href="#真实感图形绘制的四个步骤" class="headerlink" title="真实感图形绘制的四个步骤"></a>真实感图形绘制的四个步骤</h2><h3 id="3D流水线"><a href="#3D流水线" class="headerlink" title="3D流水线"></a>3D流水线</h3><ul>
+<li>三维形体 $\rightarrow$ 变换 $\rightarrow$ 明暗处理（光照）$\rightarrow$ 光栅化 $\rightarrow$ 真实感图像</li>
+</ul>
+<h3 id="1-几何建模"><a href="#1-几何建模" class="headerlink" title="(1) 几何建模"></a>(1) 几何建模</h3><ul>
+<li>用数学方法建立所需三维场景的几何描述</li>
+<li>通常是由三维造型系统完成</li>
+<li>场景的几何描述直接影响了图形的复杂性和图形绘制的计算开销</li>
+</ul>
+<h3 id="2-投影"><a href="#2-投影" class="headerlink" title="(2) 投影"></a>(2) 投影</h3><ul>
+<li>将三维几何描述转换为二维透视图</li>
+<li>通过对场景的透视变换来完成</li>
+</ul>
+<h3 id="3-确定形状"><a href="#3-确定形状" class="headerlink" title="(3) 确定形状"></a>(3) 确定形状</h3><ul>
+<li>隐藏面消除</li>
+<li>确定场景中的所有可见面</li>
+<li>将视野之外或被其它物体遮挡的不可见面消去</li>
+</ul>
+<h3 id="4-确定色彩"><a href="#4-确定色彩" class="headerlink" title="(4) 确定色彩"></a>(4) 确定色彩</h3><ul>
+<li>计算场景中可见面的颜色</li>
+<li>根据基于光学物理的光照明模型计算可见面投射到观察者眼中的光亮度大小和色彩组成，并将它转换成适合图形设备的颜色值，从而确定投影画面上每一象素的颜色（或者与纹理相结合），最终生成图形</li>
+</ul>
+<h1 id="简单光照明模型"><a href="#简单光照明模型" class="headerlink" title="简单光照明模型"></a>简单光照明模型</h1><h2 id="简单光照明模型的假设"><a href="#简单光照明模型的假设" class="headerlink" title="简单光照明模型的假设"></a>简单光照明模型的假设</h2><ul>
+<li>仅考虑光源照射在物体表面产生的<strong>反射光</strong></li>
+<li>通常假定物体表面是<strong>光滑</strong>的且由<strong>理想材料</strong>构成，只考虑<strong>被照明物体的几何</strong>对反射和透射光的影响</li>
+<li>忽略光源的颜色和几何形状（<strong>点光源白光照明</strong>）</li>
+<li>可以模拟出<strong>不透明物体</strong>表面的明暗过渡，具有一定的真实感。 但真实感较差，阴影区域边界尖锐</li>
+</ul>
+<h2 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h2><ul>
+<li>反射<ul>
+<li>理想漫反射（diffuse reflection）</li>
+<li>镜面高光（specular highlight）</li>
+</ul>
+</li>
+<li>环境光<ul>
+<li>ambient lighting</li>
+</ul>
+</li>
+<li>直接光：直接反射&#x2F;折射</li>
+<li>间接光：间接反射&#x2F;折射<ul>
+<li>简单光照明不考虑间接光</li>
+</ul>
+</li>
+<li><strong>以下提到的方向向量均为单位向量</strong></li>
+</ul>
+<h2 id="环境光"><a href="#环境光" class="headerlink" title="环境光"></a>环境光</h2><ul>
+<li>光线在场景中经过复杂传播之后，形成的弥漫于整个空间的光线</li>
+<li><strong>事实上是不存在的</strong><ul>
+<li>由于难以模拟，假想出来的</li>
+</ul>
+</li>
+<li>$I_e&#x3D;K_aI_a$<ul>
+<li>物体表面呈现的亮度 &#x3D; 环境光反射系数 x 环境光亮度</li>
+</ul>
+</li>
+</ul>
+<h2 id="漫反射"><a href="#漫反射" class="headerlink" title="漫反射"></a>漫反射</h2><ul>
+<li>点光源<ul>
+<li>向周围辐射等强度的光</li>
+</ul>
+</li>
+<li>漫反射<ul>
+<li>粗糙、无光泽物体（如粉笔）表面对光的反射</li>
+</ul>
+</li>
+<li>$I_d&#x3D;I_pK_d\cos\theta&#x3D;I_pK_d(\vec{L}\cdot\vec{N})$<ul>
+<li>物体表面呈现的亮度  &#x3D; 点光源的亮度 x 漫反射系数 x $\cos$(入射角)</li>
+</ul>
+</li>
+</ul>
+<p><img src="/08/diffuse-reflection.png"></p>
+<h2 id="镜面反射与-Phong-模型"><a href="#镜面反射与-Phong-模型" class="headerlink" title="镜面反射与 Phong 模型"></a>镜面反射与 Phong 模型</h2><ul>
+<li>光滑物体表面，高光效果</li>
+</ul>
+<h3 id="理想镜面反射"><a href="#理想镜面反射" class="headerlink" title="理想镜面反射"></a>理想镜面反射</h3><ul>
+<li>难以捕获：要求视点恰好在反射光 R 的方向上</li>
+<li>$\vec{R}&#x3D;2(\vec{L}\cdot\vec{N})\vec{N}-\vec{L}$</li>
+<li>$\vec{R}+\vec{L}&#x3D;(2|\vec{R}|\cos\theta)\vec{N}&#x3D;(2\cos\theta)\vec{N}&#x3D;2(\vec{N}\cdot\vec{L})\vec{N}$</li>
+</ul>
+<p><img src="/08/ideal-specular-highlight.png"></p>
+<h3 id="非理想镜面反射"><a href="#非理想镜面反射" class="headerlink" title="非理想镜面反射"></a>非理想镜面反射</h3><ul>
+<li>锥形区域：中心轴为 R，圆锥角 $2\beta$<ul>
+<li>圆锥内部：光强由中心向四周递减</li>
+<li>圆锥外部：光强为 0</li>
+</ul>
+</li>
+</ul>
+<p><img src="/08/specular-highlight.png"></p>
+<ul>
+<li>Phong 模型<ul>
+<li>$I_s&#x3D;I_pK_s(\cos\alpha)^n&#x3D;I_pK_s(\vec{V}\cdot\vec{R})^n$</li>
+<li>n 为镜面反射系数<ul>
+<li>n 越大，高光越集中</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/08/phong-n.png"></p>
+<ul>
+<li>定义 $\vec{H_0}&#x3D;\dfrac{1}{2}(\vec{L}+\vec{V}),\vec{H}&#x3D;\dfrac{\vec{H_0}}{\Vert\vec{H_0}\Vert}&#x3D;\dfrac{\vec{H_0}}{\cos\theta}$<ul>
+<li>可以用 $\vec{H}\cdot\vec{N}$ 代替 $\vec{V}\cdot\vec{R}$</li>
+<li>趋势是一致的<ul>
+<li>$\vec{H}\cdot\vec{N}&#x3D;\dfrac{\cos\theta+\cos(\theta+\alpha)}{2\cos\theta}$<ul>
+<li>$\alpha\in[0,\dfrac{\pi}{2}]\to[1,1-\tan\theta]$</li>
+</ul>
+</li>
+<li>$\vec{V}\cdot\vec{R}&#x3D;\cos\alpha$<ul>
+<li>$\alpha\in[0,\dfrac{\pi}{2}]\to[1,0]$</li>
+</ul>
+</li>
+<li>$&lt;\vec{H},\vec{N}&gt;&#x3D;\dfrac{&lt;\vec{V},\vec{R}&gt;}{2}$</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="光线的衰减"><a href="#光线的衰减" class="headerlink" title="光线的衰减"></a>光线的衰减</h2><h3 id="1-光在光源到物体表面过程中的衰减"><a href="#1-光在光源到物体表面过程中的衰减" class="headerlink" title="(1) 光在光源到物体表面过程中的衰减"></a>(1) 光在光源到物体表面过程中的衰减</h3><ul>
+<li>$f(d)&#x3D;\min(\dfrac{1}{c_0+c_1d+c_2d^2},1)$<ul>
+<li>经验函数</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-光在物体表面到人眼过程中的衰减"><a href="#2-光在物体表面到人眼过程中的衰减" class="headerlink" title="(2) 光在物体表面到人眼过程中的衰减"></a>(2) 光在物体表面到人眼过程中的衰减</h3><ul>
+<li>Depth Cueing 技术（深度暗示技术）<ul>
+<li>使用深度值代替表示距离（几乎等价）</li>
+</ul>
+</li>
+<li>线性插值<ul>
+<li>front&#x2F;back：前&#x2F;后参考面，并且赋予比例因子 $S_f,S_b\in[0,1]$</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>S_0&#x3D;<br>\begin{cases}<br>S_b,&amp;Z_0&lt;Z_b\<br>S_b+\dfrac{Z_0-Z_b}{Z_f-Z_b}(S_f-S_b),&amp;Z_0\in[Z_b,Z_f],\<br>S_f,&amp;Z_0&gt;Z_f<br>\end{cases}<br>$$</p>
+<p><img src="/08/depth-cueing.png"></p>
+<ul>
+<li>$I’&#x3D;S_0I+(1-S_0)I_{dc}$<ul>
+<li>$I_{dc}$ 为融合亮度，是用户指定的</li>
+</ul>
+</li>
+<li>特别的：$S_f&#x3D;1,S_b&#x3D;0,I_{dc}&#x3D;0$</li>
+</ul>
+<p>$$<br>S_0&#x3D;<br>\begin{cases}<br>0,&amp;Z_0&lt;Z_b\<br>\dfrac{Z_0-Z_b}{Z_f-Z_b},&amp;Z_0\in[Z_b,Z_f],\<br>1,&amp;Z_0&gt;Z_f<br>\end{cases}<br>$$</p>
+<p>$$<br>I’&#x3D;<br>\begin{cases}<br>0,&amp;Z_0&lt;Z_b\<br>\dfrac{Z_0-Z_b}{Z_f-Z_b}I,&amp;Z_0\in[Z_b,Z_f],\<br>I,&amp;Z_0&gt;Z_f<br>\end{cases}<br>$$</p>
+<ul>
+<li>衰减为 0 $\rightarrow$ 部分衰减 $\rightarrow$ 不衰减<ul>
+<li>真实感较好</li>
+</ul>
+</li>
+</ul>
+<h2 id="简单光照明模型-1"><a href="#简单光照明模型-1" class="headerlink" title="简单光照明模型"></a>简单光照明模型</h2><ul>
+<li>$I&#x3D;I_aK_a+f(d)I_p[K_d(\vec{L}\cdot \vec{N})+K_s(\vec{V}\cdot\vec{R})^n]$</li>
+<li>环境光是不衰减的</li>
+</ul>
+<h2 id="彩色"><a href="#彩色" class="headerlink" title="彩色"></a>彩色</h2><ul>
+<li>选择合适的颜色模型：RGB模型</li>
+<li>为颜色模型中的每一种基色建立光照明方程</li>
+<li>$I&#x3D;I_{a\lambda}K_{a\lambda}+f(d)I_{p\lambda}[K_{d\lambda}(\vec{L}\cdot \vec{N})+K_{s\lambda}(\vec{V}\cdot\vec{R})^n]$<ul>
+<li>$\lambda\in{R,G,B}$</li>
+</ul>
+</li>
+</ul>
+<h2 id="多光源"><a href="#多光源" class="headerlink" title="多光源"></a>多光源</h2><ul>
+<li>为每个光源建立光照明模型<ul>
+<li>注意环境光只有一个</li>
+</ul>
+</li>
+<li>如下，$m$ 个光源​</li>
+</ul>
+<p>$$<br>I&#x3D;I_{a\lambda}K_{a\lambda}+\sum_{i&#x3D;1}^{m}{f(d_i)I_{p_i\lambda}[K_{d_i\lambda}(\vec{L_i}\cdot \vec{N})+K_{s_i\lambda}(\vec{V}\cdot\vec{R})^n]}<br>$$</p>
+<h2 id="多边形绘制着色方法"><a href="#多边形绘制着色方法" class="headerlink" title="多边形绘制着色方法"></a>多边形绘制着色方法</h2><ul>
+<li>shading</li>
+<li>计算完<strong>顶点</strong>信息之后如何对<strong>内部的点</strong>上色<ul>
+<li>统一着色（constant shading）</li>
+<li>均匀着色（flat shading）</li>
+<li>光滑着色 (smooth shading)<ul>
+<li>Gouraud着色方法 (Gouraud shading)</li>
+<li>Phong着色方法 (Phong shading)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="统一着色"><a href="#统一着色" class="headerlink" title="统一着色"></a>统一着色</h3><ul>
+<li>constant shading</li>
+<li>每个<strong>物体</strong>着同一种颜色</li>
+</ul>
+<h3 id="均匀着色"><a href="#均匀着色" class="headerlink" title="均匀着色"></a>均匀着色</h3><ul>
+<li>flat shading</li>
+<li>每个<strong>表面</strong>着同一种颜色</li>
+<li>着色方法<ul>
+<li>任取多边形上一点，利用光照明方程计算出它的颜色</li>
+<li>用这个颜色填充整个多边形</li>
+</ul>
+</li>
+<li>适用情况：<strong>同一表面差别不大</strong><ul>
+<li>光源在无穷远处</li>
+<li>视点在无穷远处</li>
+<li>多边形是物体表面的精确表示</li>
+</ul>
+</li>
+<li>优点<ul>
+<li>每个多边形只需计算一次光照明方程，<strong>速度快</strong></li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>相邻多边形颜色<strong>过渡十分不光滑</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="光滑着色"><a href="#光滑着色" class="headerlink" title="光滑着色"></a>光滑着色</h3><ul>
+<li>方法：<strong>插值</strong><ul>
+<li>颜色插值 $\rightarrow$ Gouraud 着色方法</li>
+<li>法矢量插值 $\rightarrow$ Phong 着色方法</li>
+</ul>
+</li>
+</ul>
+<h4 id="Gouraud-着色方法"><a href="#Gouraud-着色方法" class="headerlink" title="Gouraud 着色方法"></a>Gouraud 着色方法</h4><ul>
+<li>面法向量 $\rightarrow$ 顶点法向量 $\rightarrow$ 计算颜色 $\rightarrow$ 颜色插值</li>
+</ul>
+<h5 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h5><ul>
+<li><p>计算多边形的单位法矢量（<strong>面法向量</strong>）</p>
+<ul>
+<li>面内两个向量叉乘</li>
+</ul>
+</li>
+<li><p>计算多边形顶点的单位法矢量（<strong>顶点法向量</strong>）</p>
+<ul>
+<li>拟合</li>
+<li>简单的拟合方式：使用 1 邻域的面法向量的均值<ul>
+<li>1 邻域：直接相邻的面</li>
+<li>2 邻域：直接相邻的面以及和这些面直接相邻的面</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>利用光照明方程计算顶点颜色</p>
+</li>
+<li><p>对多边形顶点颜色进行<strong>双线性插值</strong>，获得多边形内部各点的颜色</p>
+<ul>
+<li>如下图：需要求得点 $P$ 的颜色<ul>
+<li>第三步求出了顶点 $P_1,P_2,P_3$ 的颜色</li>
+<li>通过<strong>线性插值</strong>求出点 $A,B$ 的颜色</li>
+<li>对 $A,B$ 进行线性插值求得点 $P$ 的颜色</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/08/bilinear-interpolation.png"><br>$$<br>I_a&#x3D;I_1\dfrac{y_a-y_2}{y_1-y_2}+I_2\dfrac{y_1-y_a}{y_1-y_2}\<br>I_b&#x3D;I_1\dfrac{y_a-y_3}{y_1-y_3}+I_2\dfrac{y_1-y_a}{y_1-y_3}\<br>I_p&#x3D;I_a\dfrac{x_p-x_a}{x_b-x_a}+I_b\dfrac{x_p-x_a}{x_b-x_a}<br>$$</p>
+<h5 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h5><ul>
+<li>不能正确模拟高光</li>
+</ul>
+<h4 id="Phong-着色方法"><a href="#Phong-着色方法" class="headerlink" title="Phong 着色方法"></a>Phong 着色方法</h4><ul>
+<li>面法向量 $\rightarrow$ 顶点法向量 $\rightarrow$法向量插值 $\rightarrow$  计算颜色</li>
+</ul>
+<h5 id="步骤-1"><a href="#步骤-1" class="headerlink" title="步骤"></a>步骤</h5><ul>
+<li>计算多边形单位法矢量</li>
+<li>计算多边形顶点单位法矢量</li>
+<li>对多边形顶点法矢量进行双线性插值，获得内部各点的法矢量</li>
+</ul>
+<p><img src="/08/normal-bilinear-interpolation.png"></p>
+<ul>
+<li>利用光照明方程计算多边形内部各点颜色</li>
+</ul>
+<p><img src="/08/contrast-flat-gouraud-phong.png"></p>
+<h4 id="方法对比"><a href="#方法对比" class="headerlink" title="方法对比"></a>方法对比</h4><ul>
+<li>计算颜色时期的不同：插值总是在<strong>光栅化</strong>阶段（rasterization）<ul>
+<li>Gouraud：vertex shader</li>
+<li>Phong：fragment shader</li>
+</ul>
+</li>
+<li>高光<ul>
+<li>Gouraud：缺失</li>
+<li>Phong：还不错</li>
+</ul>
+</li>
+</ul>
+<img src="08/highlight-gouraud-phong.png" style="zoom: 25%;" />
+
+
+
+<h4 id="插值方法存在的问题"><a href="#插值方法存在的问题" class="headerlink" title="插值方法存在的问题"></a>插值方法存在的问题</h4><ul>
+<li>不光滑的物体轮廓<ul>
+<li>模型离散化道中的</li>
+<li>解决方案：使用法相贴图，将需要求的法向值给定，这样就无需插值拟合</li>
+</ul>
+</li>
+<li>透视变形<ul>
+<li>我们的插值是在投影平面上进行的，实际上应该在三维空间中插值</li>
+<li>这样在趋势上会有所差别</li>
+</ul>
+</li>
+</ul>
+<img src="08/interpolation-projection.png" style="zoom:50%;" />
+
+<ul>
+<li>方向依赖性<ul>
+<li>双线性插值的方向依赖性</li>
+<li>早期的问题，现在已经能够解决</li>
+</ul>
+</li>
+</ul>
+<img src="08/interpolation-direction.png" style="zoom:50%;" />
+
+<ul>
+<li>公共顶点颜色不连续<ul>
+<li>下图的绿点<ul>
+<li>对于左上角的小矩形来说，是顶点（计算产生）</li>
+<li>对于右上角的的矩形来说，不是顶点（插值产生）</li>
+</ul>
+</li>
+<li>因此其周围的点颜色可能不连续</li>
+</ul>
+</li>
+</ul>
+<img src="08/interpolation-continue.png" style="zoom:50%;" />
+
+<ul>
+<li>顶点方向不具有代表性<ul>
+<li>如果使用定顶点进行插值，区分不出来两种类型的面（颜色都一样）</li>
+<li>解决方案：<strong>将面进行更加细致的剖分</strong>，这样就可以减少这种情况的发生</li>
+</ul>
+</li>
+</ul>
+<img src="08/interpolation-point-normal.png" style="zoom:50%;" />
+
+
+
+<h2 id="阴影"><a href="#阴影" class="headerlink" title="阴影"></a>阴影</h2><ul>
+<li>阴影<ul>
+<li>光源不能直接照射的区域</li>
+<li>对光源来说，不可见的面（隐藏面）</li>
+</ul>
+</li>
+<li>考虑阴影的光照明方程</li>
+</ul>
+<p>$$<br>I&#x3D;I_{a\lambda}K_{a\lambda}+\sum_{i&#x3D;1}^{m}{S_if(d_i)I_{p_i\lambda}[K_{d_i\lambda}(\vec{L_i}\cdot \vec{N})+K_{s_i\lambda}(\vec{V}\cdot\vec{R})^n]}\<br>$$</p>
+<p>$$<br>S_i&#x3D;<br>\begin{cases}<br>0,&amp;位于第i个光源的阴影中\<br>1,&amp;else<br>\end{cases}<br>$$</p>
+<ul>
+<li>简单：点光源</li>
+<li>复杂：体光源、面光源</li>
+</ul>
+<h3 id="基于-GPU-硬件的-shadow-map-算法"><a href="#基于-GPU-硬件的-shadow-map-算法" class="headerlink" title="基于 GPU 硬件的 shadow map 算法"></a>基于 GPU 硬件的 shadow map 算法</h3><ul>
+<li><strong>像素</strong>级别精确的阴影算法</li>
+<li><strong>点光源</strong></li>
+<li>利用 z-buffer 消隐<ul>
+<li>将物体变换到光源坐标系中，消隐，记录下可见的最小深度值（z-buffer）</li>
+<li>将物体变换到光源坐标系中，计算深度，如果大于记录值则不可见，否则可见（只可能<strong>等于</strong>）</li>
+</ul>
+</li>
+</ul>
+<h4 id="算法步骤"><a href="#算法步骤" class="headerlink" title="算法步骤"></a>算法步骤</h4><ul>
+<li>将所有景物变换到光源坐标系中，利用 z 缓冲器算法按光线方向对景物进行消隐，把那些距光源最近的物体表面上点的深度值保存在阴影缓冲器中</li>
+<li>利用Z缓冲器算法按视线方向对景物进行消隐，将得到的每一个可见点变换到光源坐标系中，若<br>  它在光源坐标系中的深度值比阴影缓冲器中相应单元的值小，则说明该可见点位于阴影中，否则不是</li>
+</ul>
+<h4 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h4><ul>
+<li>算法简单，易于实现</li>
+<li>已经可以在GPU硬件上直接实现</li>
+</ul>
+<h4 id="缺点-1"><a href="#缺点-1" class="headerlink" title="缺点"></a>缺点</h4><ul>
+<li>每个光源需要一个阴影缓冲器</li>
+<li>在阴影的边界上容易形成锯齿效果<ul>
+<li>量化误差（算法精度、z-buffer大小、深度值精度）</li>
+</ul>
+</li>
+</ul>
+<h3 id="RSM：Reflective-Shadow-Map"><a href="#RSM：Reflective-Shadow-Map" class="headerlink" title="RSM：Reflective Shadow Map"></a>RSM：Reflective Shadow Map</h3><ul>
+<li>shadow map 第一次渲染只生成了一张深度图，太浪费（代价太大）</li>
+<li>第一次渲染的时候同时生成一些其他信息<ul>
+<li>光源直接照到部分的深度 $\rightarrow$ 光源直接照到部分的深度、颜色、法向</li>
+</ul>
+</li>
+<li>第二次绘制利用第一次绘制生成的信息可以计算<strong>单次间接光照</strong></li>
+</ul>
+<h3 id="阴影反混淆"><a href="#阴影反混淆" class="headerlink" title="阴影反混淆"></a>阴影反混淆</h3><ul>
+<li>边界锯齿 $\rightarrow$ 平滑过渡<ul>
+<li>锯齿的光栅化过程产生的</li>
+<li>走样</li>
+</ul>
+</li>
+<li>反走样<ul>
+<li>时域：连续帧中，远方亮点的忽隐忽现（flick）</li>
+<li>空域：边界锯齿</li>
+</ul>
+</li>
+<li>反走样方法<ul>
+<li>SSAA：Super Sampling  Anti-Aliasing<ul>
+<li>超采样反走样</li>
+<li>每个采样点进行进一步的<strong>细分</strong><ul>
+<li>x2，x3，x4 $\rightarrow$ 每个采样点细分为为 4，9，16个采样点</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>MSAA：Multi-Sampling AA<ul>
+<li>多采样反走样</li>
+<li>SSAA 的计算量非常大，SSAA 的改进</li>
+<li>寻找出物体边缘部分的像素，然后对它们进行超采样处理<ul>
+<li>这样忽略掉了不会产生锯齿的内部像素，减少了计算量</li>
+</ul>
+</li>
+<li>光栅化而言，MSAA 跟 SSAA 差不多，覆盖和遮挡信息在更大的分辨率上进行的</li>
+<li>着色的时候，通过计算原始的一个采样点细分出来的不同采样点的颜色混合得到原始采样点的颜色</li>
+</ul>
+</li>
+<li>CSAA：Coverage Sampling AA<ul>
+<li>覆盖取样抗锯齿</li>
+</ul>
+</li>
+<li>TAA<ul>
+<li>temporal AA</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>方法对比<ul>
+<li>SSAA 中，每个取样表示了着色颜色、储存的颜色&#x2F;Z&#x2F;模板、和覆盖，本质上增加了渲染到一个过大的缓存并向下取样</li>
+<li>MSAA 通过从储存的颜色和覆盖中分离出着色取样，减少了这项操作的着色器开销；这允许应用程序使用抗锯齿来处理更少的着色取样同时维持同样质量的颜色&#x2F;Z&#x2F;模板和覆盖取样</li>
+<li>CSAA通过从颜色&#x2F;Z&#x2F;模板分离出覆盖进一步优化了这个过程，从而减少带宽和存储开销</li>
+</ul>
+</li>
+<li>反走样方法<ul>
+<li>光栅化图形显示必然的问题问题</li>
+<li>trade off（时间与质量）</li>
+</ul>
+</li>
+</ul>
+<h3 id="基于GPU硬件-的-Shadow-Volume"><a href="#基于GPU硬件-的-Shadow-Volume" class="headerlink" title="基于GPU硬件 的 Shadow Volume"></a>基于GPU硬件 的 Shadow Volume</h3><ul>
+<li><strong>几何</strong>级别精确的阴影算法<ul>
+<li>没有阴影锯齿问题</li>
+</ul>
+</li>
+<li>光源 $\rightarrow$ <strong>物体轮廓</strong><ul>
+<li>光源和轮廓形成的锥体向远处拉伸，形成<strong>阴影体</strong></li>
+</ul>
+</li>
+<li>关键问题<ul>
+<li>找出轮廓</li>
+<li>如何判断物体是否处于阴影中</li>
+</ul>
+</li>
+</ul>
+<h4 id="如何判断物体处于阴影体中"><a href="#如何判断物体处于阴影体中" class="headerlink" title="如何判断物体处于阴影体中"></a>如何判断物体处于阴影体中</h4><ul>
+<li>直接对所有的几何体和阴影体求交、求交线<ul>
+<li>复杂度很高</li>
+</ul>
+</li>
+<li>利用 buffer</li>
+</ul>
+<h5 id="累积缓冲"><a href="#累积缓冲" class="headerlink" title="累积缓冲"></a>累积缓冲</h5><h6 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h6><img src="08/accumulative.png" style="zoom:80%;" />
+
+<ul>
+<li>光源和物体形成射线</li>
+<li>视点和需要求的点形成<strong>线段</strong>（方向为视点到待求的点），在线段上求累积值</li>
+<li>正向面 +1，负向面 -1<ul>
+<li>朝向视点的面&#x2F;远离视点的面</li>
+</ul>
+</li>
+<li>求累计值<ul>
+<li>若大于 0，则处于阴影中</li>
+<li>若等于 0，则不在阴影中</li>
+</ul>
+</li>
+</ul>
+<h6 id="怎么形成线段"><a href="#怎么形成线段" class="headerlink" title="怎么形成线段"></a>怎么形成线段</h6><ul>
+<li>怎么去掉物体之后的视线部分，上述黄线的绿点右边部分</li>
+<li><strong>绘制顺序、绘制状态</strong></li>
+</ul>
+<h6 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h6><ul>
+<li>绘制出整个场景（非阴影体），确定整个场景的深度（记录到深度缓冲器中）</li>
+<li>画阴影体（正向面&#x2F;反向面），顺序没有关系<ul>
+<li>和记录的深度值比较<ul>
+<li>若比记录的小，则根据自己是正向面还是反向面更新累计缓冲值</li>
+<li>若大，则不更新累计缓冲值</li>
+</ul>
+</li>
+<li>只进行深度判断，不进行深度更新（不修改深度缓冲器的值）</li>
+<li>阴影体是虚拟的，是我们人为加入的</li>
+</ul>
+</li>
+</ul>
+<h6 id="问题（特例）"><a href="#问题（特例）" class="headerlink" title="问题（特例）"></a>问题（特例）</h6><ul>
+<li><p>视点位于阴影体内部</p>
+<ul>
+<li>解决方法：在视线上，从无穷远到待求的点这条线段上进行累计缓冲计数<ul>
+<li>比较计数的时候，只比较深度大于待求点的阴影体<ul>
+<li>z-fail：计数的点是没有通过深度检测的阴影体（解决特例的方法）</li>
+<li>z-pass：计数的点是通过深度检测的阴影体（常规方法）</li>
+</ul>
+</li>
+<li>无穷远是客观的（无穷远不在阴影内部）</li>
+</ul>
+</li>
+<li>问题：无穷远在阴影中，出错</li>
+</ul>
+  <img src="08/error.png" style="zoom:60%;" />
+</li>
+<li><p>视见体把某些物体裁剪掉了，导致阴影体减少了</p>
+<ul>
+<li>上述算法出错</li>
+</ul>
+</li>
+</ul>
+<h3 id="软影以及动态光源阴影的生成"><a href="#软影以及动态光源阴影的生成" class="headerlink" title="软影以及动态光源阴影的生成"></a>软影以及动态光源阴影的生成</h3><ul>
+<li>面光源、体光源<ul>
+<li>软影（本影、半影）</li>
+<li>笨的方法：将光源进行<strong>点采样</strong><ul>
+<li>慢，效率低下</li>
+</ul>
+</li>
+<li><strong>阴影楔</strong><ul>
+<li>A Geometry-based Soft Shadow Volume Algorithm<ul>
+<li>实时图像渲染</li>
+<li>Tomas Akenine-Möller</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>光源形态发生变化（火焰）</li>
+<li>待渲染的物体变化</li>
+</ul>
+<h2 id="透明现象"><a href="#透明现象" class="headerlink" title="透明现象"></a>透明现象</h2><h3 id="简单透明"><a href="#简单透明" class="headerlink" title="简单透明"></a>简单透明</h3><ul>
+<li>简单透明不考虑折射现象</li>
+</ul>
+<h4 id="插值透明"><a href="#插值透明" class="headerlink" title="插值透明"></a>插值透明</h4><p><img src="/08/simple-transparent.png"></p>
+<ul>
+<li>$I_\lambda&#x3D;(1-K_{t_1})I_{\lambda_1}+K_{t_1}I_{\lambda_2}$<ul>
+<li>$K_{t_1}&#x3D;1$：1 完全透明，2 完全不透明</li>
+<li>$K_{t_1}&#x3D;0$：2 完全透明，1 完全不透明</li>
+</ul>
+</li>
+</ul>
+<h4 id="过滤透明"><a href="#过滤透明" class="headerlink" title="过滤透明"></a>过滤透明</h4><ul>
+<li>$I_\lambda&#x3D;I_{\lambda_1}+K_{t_1}C_{t\lambda}I_{\lambda_2}$<ul>
+<li>$K_{t_1}$：透射系数，越大颜色透射得越多</li>
+<li>$C_{t\lambda}$：不同颜色系数不同</li>
+</ul>
+</li>
+</ul>
+<h3 id="折射"><a href="#折射" class="headerlink" title="折射"></a>折射</h3><ul>
+<li>折射定律</li>
+</ul>
+<p><img src="/08/refraction.png"></p>
+<ul>
+<li>$\dfrac{\sin\theta_i}{\sin\theta_t}&#x3D;\dfrac{\eta_t}{\eta_i}&#x3D;\dfrac{1}{\eta}$</li>
+<li>$\vec{T}&#x3D;(\eta\cos\theta_i-\cos\theta_t)\vec{N}-\eta\vec{I}$</li>
+</ul>
+<p><img src="/08/refraction2.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/02/05/CG/LS/08/" data-id="cl9lj7497004k64tz1gf6dd1u" data-title="计算机图形学.李胜.08.真实感绘制之光照明(1)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/02/06/CG/LS/08-1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          计算机图形学.李胜.08.真实感绘制之光照明(2)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/02/03/CG/LS/07/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">计算机图形学.李胜.07.三维实体的表示</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

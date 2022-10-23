@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Ray Tracing-The Rest of Your Life | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="蒙特卡洛积分">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ray Tracing-The Rest of Your Life">
+<meta property="og:url" content="http://example.com/2022/03/11/CG/Kits/rtyl/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="蒙特卡洛积分">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/RTYL/fig-3.01-circ-square.jpg">
+<meta property="og:image" content="http://example.com/RTYL/fig-3.02-jitter.jpg">
+<meta property="og:image" content="http://example.com/RTYL/image-20220316190428847.png">
+<meta property="article:published_time" content="2022-03-11T05:56:50.000Z">
+<meta property="article:modified_time" content="2022-03-16T13:34:59.201Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/RTYL/fig-3.01-circ-square.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/Kits/rtyl" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/03/11/CG/Kits/rtyl/" class="article-date">
+  <time class="dt-published" datetime="2022-03-11T05:56:50.000Z" itemprop="datePublished">2022-03-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-Kits/">CG.Kits</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Ray Tracing-The Rest of Your Life
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><a target="_blank" rel="noopener" href="https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html">Ray Tracing: The Rest of Your Life</a></li>
+</ul>
+<h1 id="Ray-Tracing-The-Rest-of-Your-Life"><a href="#Ray-Tracing-The-Rest-of-Your-Life" class="headerlink" title="Ray Tracing-The Rest of Your Life"></a>Ray Tracing-The Rest of Your Life</h1><h2 id="1-蒙特卡洛采样"><a href="#1-蒙特卡洛采样" class="headerlink" title="1. 蒙特卡洛采样"></a>1. 蒙特卡洛采样</h2><ul>
+<li>Monte Carlo (MC)</li>
+</ul>
+<p><img src="/RTYL/fig-3.01-circ-square.jpg"><br>$$<br>\dfrac{\pi r^2}{(2r)^2}&#x3D;\dfrac{\pi}{4}<br>$$</p>
+<h3 id="1-Stratified-Samples-Jittering"><a href="#1-Stratified-Samples-Jittering" class="headerlink" title="(1) Stratified Samples (Jittering)"></a>(1) Stratified Samples (Jittering)</h3><ul>
+<li>我们很快能够得到一个 $\pi$ 的估计，但是收敛的很慢<ul>
+<li>收益递减定律：law of diminishing return</li>
+</ul>
+</li>
+<li>可以通过分层来降低影响</li>
+</ul>
+<p><img src="/RTYL/fig-3.02-jitter.jpg"></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 常规的 MC</span></span><br><span class="line"><span class="type">double</span> x = <span class="built_in">random_double</span>(<span class="number">-1</span>, <span class="number">1</span>);</span><br><span class="line"><span class="type">double</span> y = <span class="built_in">random_double</span>(<span class="number">-1</span>, <span class="number">1</span>);</span><br><span class="line"><span class="keyword">if</span> (x * x + y * y &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    ++circle;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 分层 MC</span></span><br><span class="line"><span class="comment">// 分成了 sqrt_N * sqrt_N 个</span></span><br><span class="line">x = <span class="number">2</span> * ((i + <span class="built_in">random_double</span>()) / sqrt_N) - <span class="number">1</span>;</span><br><span class="line">y = <span class="number">2</span> * ((j + <span class="built_in">random_double</span>()) / sqrt_N) - <span class="number">1</span>;</span><br><span class="line"><span class="keyword">if</span> (x * x + y * y &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    ++circle_j;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Regular    Estimate of PI: 3.1416273200</span><br><span class="line">Stratified Estimate of PI: 3.1415919200</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>效果确实好了，估计得更准确，收敛的也更快<ul>
+<li>为什么呢？<strong>分层采样的方差更小</strong></li>
+<li><a href="/2022/03/15/CG/Kits/StratifiedSampling/">分层采样的方差分析</a></li>
+</ul>
+</li>
+<li>这个优势会随着维度的增加而递减，例如把上面的代码应用到 3D 的球和正方体，用体积占比算 PI<ul>
+<li>维度的诅咒： Curse of Dimensionality</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-一维-MC"><a href="#2-一维-MC" class="headerlink" title="2. 一维 MC"></a>2. 一维 MC</h2><h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p>$$<br>I&#x3D;\int_{0}^{2}x^2;\mathrm{d}x<br>$$</p>
+<ul>
+<li>$[0,2]$ 上均匀采样，$p(x)&#x3D;\dfrac{1}{2}$</li>
+</ul>
+<p>$$<br>\hat{I}&#x3D;\dfrac{1}{N}\sum_{i&#x3D;1}^{N}\dfrac{X_i^2}{p(X_i)}&#x3D;\dfrac{1}{N}\sum_{i&#x3D;1}^{N}2X_i^2<br>$$</p>
+<ul>
+<li>结果如下：$\dfrac{8}{3}$</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">2.6671368997</span><br><span class="line">2.6669793315</span><br><span class="line">2.6669378018</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>MC 适用于一些很难显式求出积分的问题，例如</li>
+</ul>
+<p>$$<br>I&#x3D;\int_{1}^{2}\log(\sin x);\mathrm{d}x<br>$$</p>
+<h3 id="PDF"><a href="#PDF" class="headerlink" title="PDF"></a>PDF</h3><ul>
+<li>pdf：<em>probability density function</em><ul>
+<li>$p(x)$</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>\int_{\infty}^{\infty}p(x);\mathrm{d}x&#x3D;1<br>$$</p>
+<ul>
+<li>cdf：<em>cumulative probability distribution function</em><ul>
+<li>$F(x)$</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>F(x_0)&#x3D;\int_{-\infty}^{x_0}p(x);\mathrm{d}x<br>$$</p>
+<h3 id="采样特定分布"><a href="#采样特定分布" class="headerlink" title="采样特定分布"></a>采样特定分布</h3><ul>
+<li>如何从一个均匀分布采样得到另外一个分布呢？</li>
+<li>目标 cdf 为 $F(x)$，目标 pdf 为 $p(x)$，$p(x)$ 在 $[0,1]$ 上非零，$U$ 表示 $[0,1]$ 上的均匀分布</li>
+<li>我们需要找函数 $f(u(x))$，使得 pdf 为 $p(x)$</li>
+<li>设 $X&#x3D;f(U)$</li>
+</ul>
+<p>$$<br>\begin{aligned}<br>F(x)&amp;&#x3D;\Pr(X\le x)\<br>&amp;&#x3D;\Pr\Big(f(U)\le x\Big)\<br>&amp;&#x3D;\Pr\Big(U\le f^{-1}(x)\Big)\<br>&amp;&#x3D;f^{-1}(x)<br>\end{aligned}<br>$$</p>
+<ul>
+<li>于是有</li>
+</ul>
+<p>$$<br>f(x)&#x3D;F^{-1}(x)<br>$$</p>
+<ul>
+<li>于是我们便可以产生指定分布的样本</li>
+</ul>
+<h4 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h4><ul>
+<li>指定 $p(x)&#x3D;\dfrac{x}{2},0\le x\le2$</li>
+<li>$F(x)&#x3D;\dfrac{x^2}{4}$</li>
+<li>$f(x)&#x3D;\sqrt{4y}$</li>
+<li>样本生成：$X&#x3D;2\sqrt{U}$</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">estimate_x_x_pdf</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> N = <span class="number">100000000</span>;</span><br><span class="line">    <span class="type">double</span> ans = <span class="number">0.0</span>, ans_pdf = <span class="number">0.0</span>;</span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> num = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        ++num;</span><br><span class="line">        <span class="type">double</span> x = <span class="built_in">random_double</span>(<span class="number">0</span>, <span class="number">2</span>);</span><br><span class="line">        ans += <span class="number">2</span> * x * x;</span><br><span class="line"></span><br><span class="line">        x = <span class="number">2</span> * <span class="built_in">sqrt</span>(<span class="built_in">random_double</span>(<span class="number">0</span>, <span class="number">1</span>));</span><br><span class="line">        ans_pdf += x * <span class="number">2</span>;  <span class="comment">// x*x/p(x) = x*x*2/x = x*2</span></span><br><span class="line">        <span class="keyword">if</span> (num % N == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(</span><br><span class="line">                <span class="string">&quot;uniform: %.10lf\n&quot;</span></span><br><span class="line">                <span class="string">&quot;pdf=x/2: %.10lf\n\n&quot;</span>,</span><br><span class="line">                ans / num, ans_pdf / num);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Importance-Sampling"><a href="#Importance-Sampling" class="headerlink" title="Importance Sampling"></a>Importance Sampling</h3><ul>
+<li>重要性采样</li>
+<li>我们期望在积分值比较大的地方采样更多的样本，这样可以得到更小的噪声，而且收敛更快</li>
+<li>我们试图将采样引导向分布中比较重要的部分，这也是我们为什么要设计一个<strong>非均匀分布采样</strong>的原因<ul>
+<li>这被称为重要性采样</li>
+</ul>
+</li>
+<li>例如我们如果令 $p(x)&#x3D;\dfrac{f(x)}{\int f(x)}$，此时 $E(X)&#x3D;X,Var[X]&#x3D;0$，直接一次采样返回结果</li>
+</ul>
+<h3 id="MC-方法流程"><a href="#MC-方法流程" class="headerlink" title="MC 方法流程"></a>MC 方法流程</h3><ul>
+<li>一个积分函数</li>
+</ul>
+<p>$$<br>I&#x3D;\int_{\Omega}g(X);\mathrm{d}\mu(X)<br>$$</p>
+<ul>
+<li>一个在 $\Omega$ 上不为 0 的分布函数 pdf $p(X)$</li>
+<li>采样计算结果</li>
+</ul>
+<p>$$<br>\hat{I}&#x3D;\dfrac{1}{N}\sum_{i&#x3D;1}^{N}\dfrac{g(X_i)}{p(X_i)}<br>$$</p>
+<h2 id="3-球面-MC"><a href="#3-球面-MC" class="headerlink" title="3. 球面 MC"></a>3. 球面 MC</h2><p><img src="/RTYL/image-20220316190428847.png"></p>
+<ul>
+<li>3D 中的方向可以表示为单位球上的一个点</li>
+</ul>
+<p>$$<br>X&#x3D;(\theta,\phi)<br>$$</p>
+<ul>
+<li>考虑球面均匀采样</li>
+</ul>
+<p>$$<br>\int_{\Omega};\mathrm{d}S&#x3D;4\pi<br>$$</p>
+<p>$$<br>\mathrm{d}S&#x3D;\sin\theta;\mathrm{d}\theta;\mathrm{d}\phi<br>$$</p>
+<h3 id="例子-2"><a href="#例子-2" class="headerlink" title="例子"></a>例子</h3><p>$$<br>I&#x3D;\int\cos^2\theta;\mathrm{d}S&#x3D;\dfrac{4\pi}{3}<br>$$</p>
+<h4 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h4><ul>
+<li>均匀采样 $x,y$，等价于对 $\phi,\cos{\theta}$ 均匀采样</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">vec3 <span class="title">vec3::random_on_unit_sphere_surface</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 如何在一个球面上均匀采样 ? 单位球上的面积(r=1)</span></span><br><span class="line">    <span class="comment">// dA = \sin&#123;\theta&#125;d&#123;\theta&#125;d&#123;\phi&#125; = \cos&#123;\theta&#125;d&#123;\phi&#125;</span></span><br><span class="line">    <span class="comment">// 应该是对 \phi, \cos&#123;\theta&#125; 均匀采样</span></span><br><span class="line">    <span class="type">double</span> phi = <span class="built_in">random_double</span>(<span class="number">0</span>, <span class="number">2</span> * pi);</span><br><span class="line">    <span class="type">double</span> z = <span class="built_in">random_double</span>(<span class="number">-1</span>, <span class="number">1</span>);</span><br><span class="line">    <span class="type">double</span> r = std::<span class="built_in">sqrt</span>(<span class="number">1</span> - z * z);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">vec3</span>(r * std::<span class="built_in">cos</span>(phi), r * std::<span class="built_in">sin</span>(phi), z);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h4><p>$$<br>I&#x3D;\int_{0}^{\pi}\left(\int_{0}^{2\pi}\cos^2\theta\sin\theta;\mathrm{d}\theta\right);\mathrm{d}\phi<br>$$</p>
+<ul>
+<li>对 $\phi,\theta$ 均匀采样，此时的估计如下</li>
+</ul>
+<p>$$<br>p(\theta,\phi)&#x3D;\dfrac{1}{\int_{\Omega};\mathrm{d}\theta;\mathrm{d}\phi}&#x3D;\dfrac{1}{2\pi^2}<br>$$</p>
+<h4 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// I = \int_&#123;\Omega&#125;\cos^2\theta</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">estimate_cos_sphere</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> N = <span class="number">20000000</span>;</span><br><span class="line">    <span class="type">double</span> ans = <span class="number">0.0</span>, ans1 = <span class="number">0.0</span>;</span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> num = <span class="number">0</span>;</span><br><span class="line">    <span class="type">double</span> <span class="type">const</span> pi4 = pi * <span class="number">4</span>;</span><br><span class="line">    <span class="type">double</span> <span class="type">const</span> pi22 = <span class="number">2</span> * pi * pi;</span><br><span class="line">    <span class="type">double</span> <span class="type">const</span> result = pi4 / <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        ++num;</span><br><span class="line">        <span class="comment">// p(x) = 0.5, 0&lt;=x&lt;=2</span></span><br><span class="line">        vec3 x = vec3::<span class="built_in">random_on_unit_sphere_surface</span>();</span><br><span class="line">        <span class="comment">// p(X) = 1/(4*pi)</span></span><br><span class="line">        ans += x.<span class="built_in">z</span>() * x.<span class="built_in">z</span>() * pi4;</span><br><span class="line"></span><br><span class="line">        <span class="type">double</span> theta = <span class="built_in">random_double</span>(<span class="number">0</span>, pi);</span><br><span class="line">        <span class="type">double</span> phi = <span class="built_in">random_double</span>(<span class="number">0</span>, pi2);</span><br><span class="line">        <span class="type">double</span> t = <span class="built_in">cos</span>(theta);</span><br><span class="line">        <span class="comment">// p(X) = 1/(2*pi*pi)</span></span><br><span class="line">        ans1 += t * t * <span class="built_in">sin</span>(theta) * pi22;</span><br><span class="line">        <span class="keyword">if</span> (num % N == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="built_in">printf</span>(</span><br><span class="line">                <span class="string">&quot;standard                :   %.10lf\n&quot;</span></span><br><span class="line">                <span class="string">&quot;dS uniform              :   %.10lf\n&quot;</span></span><br><span class="line">                <span class="string">&quot;d(theta), d(phi) uniform:   %.10lf\n&quot;</span>,</span><br><span class="line">                result, ans / num, ans1 / num);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">standard                :   4.1887902048</span><br><span class="line">dS uniform              :   4.1888837271</span><br><span class="line">d(theta), d(phi) uniform:   4.1887124194</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/03/11/CG/Kits/rtyl/" data-id="cl9lj749d005l64tzepbq5ebc" data-title="Ray Tracing-The Rest of Your Life" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/03/15/CG/Kits/StratifiedSampling/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Stratified Sampling 分层采样
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/03/11/software/ps/01/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">PS 批量处理图片</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

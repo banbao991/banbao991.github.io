@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>xv6-labs-2020.lab4.lazy page allocation | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="惰性分配">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6-labs-2020.lab4.lazy page allocation">
+<meta property="og:url" content="http://example.com/2021/05/08/OS/xv6-labs/lab4-lazy-allocation/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="惰性分配">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-05-08T04:00:00.000Z">
+<meta property="article:modified_time" content="2021-07-22T11:13:11.535Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="xv6">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-OS/xv6-labs/lab4-lazy-allocation" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/05/08/OS/xv6-labs/lab4-lazy-allocation/" class="article-date">
+  <time class="dt-published" datetime="2021-05-08T04:00:00.000Z" itemprop="datePublished">2021-05-08</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      xv6-labs-2020.lab4.lazy page allocation
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="lab4-lazy-page-allocation"><a href="#lab4-lazy-page-allocation" class="headerlink" title="lab4: lazy page allocation"></a>lab4: lazy page allocation</h1><h2 id="1-作业链接"><a href="#1-作业链接" class="headerlink" title="1.作业链接"></a>1.作业链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2020/labs/cow.html">https://pdos.csail.mit.edu/6.828/2020/labs/cow.html</a></li>
+</ul>
+<h2 id="2-实习内容"><a href="#2-实习内容" class="headerlink" title="2. 实习内容"></a>2. 实习内容</h2><h3 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h3><p>子进程</p>
+<ul>
+<li>阅读给定文档的 Chapter 03&#x2F;04</li>
+</ul>
+<h3 id="P1-Eliminate-allocation-from-sbrk"><a href="#P1-Eliminate-allocation-from-sbrk" class="headerlink" title="P1: Eliminate allocation from sbrk()"></a>P1: Eliminate allocation from sbrk()</h3><ul>
+<li>修改系统调用 <code>sbrk()</code>，让其只增加进程的大小 <code>myproc()-&gt;sz</code>，返回未增长前的的地址，不分配新的内存空间</li>
+<li>直接修改文件 <code>kernel/sysproc.c</code> 中的函数 <code>sys_sbrk()</code> 即可</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/sysproc.c:sys_sbrk()</span></span><br><span class="line">uint64 <span class="title function_">sys_sbrk</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 注意地址要写成 uint64, 原来的代码里面写的是 int</span></span><br><span class="line">    <span class="comment">// 导致最后会有 panic(&quot;walk&quot;)</span></span><br><span class="line">    <span class="comment">// 截断导致最终 p-&gt;sz 变成负数(f开头)</span></span><br><span class="line">    uint64 addr;</span><br><span class="line">    <span class="type">int</span> n;</span><br><span class="line">    <span class="keyword">if</span>(argint(<span class="number">0</span>, &amp;n) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    addr = myproc()-&gt;sz;</span><br><span class="line">    <span class="comment">// if(growproc(n) &lt; 0)</span></span><br><span class="line">    <span class="comment">//  return -1;</span></span><br><span class="line">    myproc()-&gt;sz = addr + n;</span><br><span class="line">    <span class="keyword">return</span> addr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这样的修改势必会导致在读取地址的时候导致 page fault，因为没有分配内存，虚拟映射失败</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> hi</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">usertrap(): unexpected scause 0x000000000000000f pid=3</span><br><span class="line">            sepc=0x00000000000012ac stval=0x0000000000004008</span><br><span class="line">panic: uvmunmap: not mapped</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="P2-Lazy-allocation"><a href="#P2-Lazy-allocation" class="headerlink" title="P2: Lazy allocation"></a>P2: Lazy allocation</h3><ul>
+<li>响应上面的 page fault，从而能够让程序良好运行</li>
+<li>需要在 <code>usertrap()</code> 调用 <code>printf()</code> 之前加入一些代码进行 page fault 的判断</li>
+<li>可能需要修改一些其它地方的代码</li>
+</ul>
+<h4 id="1-一些提示"><a href="#1-一些提示" class="headerlink" title="(1) 一些提示"></a>(1) 一些提示</h4><ul>
+<li>可以通过 <code>r_scause()</code> 为 13 或者 15 来判断当前是否触发的是 <code>pagefault</code></li>
+<li><code>r_stval()</code> 返回导致异常的虚拟地址</li>
+<li>仿照 <code>vm.c</code> 中的 <code>uvmalloc()</code> 代码进行分配内存<ul>
+<li>原来 <code>sbrk()</code> 通过调用 <code>growproc()</code> 间接调用到 <code>uvmalloc()</code></li>
+<li>需要调用 <code>kalloc()</code> 以及 <code>mappages()</code></li>
+</ul>
+</li>
+<li>使用 <code>PGROUNDDOWN(va)</code> 可以获取到当前虚拟页的最小地址</li>
+<li><code>uvmunmap()</code> 会调用 <code>panic()</code>，如果是因为没有映射造成的话，我们应该不让他调用</li>
+<li><code>kernel/kernel.asm</code> 中保存着汇编代码，如果发生错误可以查看这部分代码</li>
+<li>如果报错 <code>incomplete type proc</code><ul>
+<li>include “spinlock.h” then “proc.h”.</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-修改-usertrap"><a href="#2-修改-usertrap" class="headerlink" title="(2) 修改 usertrap()"></a>(2) 修改 usertrap()</h4><ul>
+<li>判断异常是否为 pagefault</li>
+<li>如果是则正确分配一页物理页</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/trap.c:usertrap()</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span>(scause == <span class="number">0xf</span> || scause == <span class="number">0xd</span>) &#123;</span><br><span class="line">    <span class="comment">// Page Fault Code Start</span></span><br><span class="line">    uint64 scause = r_scause();</span><br><span class="line">    <span class="comment">// 判断是否为 pagefault</span></span><br><span class="line">    <span class="comment">// 获取虚拟页位置</span></span><br><span class="line">    uint64 vm_addr = r_stval();</span><br><span class="line">    vm_addr = PGROUNDDOWN(vm_addr);</span><br><span class="line">    <span class="type">pagetable_t</span> pagetable = myproc()-&gt;pagetable;</span><br><span class="line">    <span class="type">char</span> *mem;</span><br><span class="line">    <span class="comment">// 为虚拟页分配一页物理页</span></span><br><span class="line">    mem = kalloc();</span><br><span class="line">    <span class="comment">// 当分配不到物理页时的处理</span></span><br><span class="line">    <span class="keyword">if</span>(mem == <span class="number">0</span>) &#123;</span><br><span class="line">        p-&gt;killed = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 刷零</span></span><br><span class="line">    <span class="built_in">memset</span>(mem, <span class="number">0</span>, PGSIZE);</span><br><span class="line">    <span class="keyword">if</span>(mappages(pagetable, vm_addr, PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U) != <span class="number">0</span>)&#123;</span><br><span class="line">        kfree(mem);</span><br><span class="line">        p-&gt;killed = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Page Fault Code End</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>同时我们要把由于 pagefault 导致的 <code>panic()</code> 取消<ul>
+<li>注释掉如下代码</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/vm.c:uvmunmap()</span></span><br><span class="line"><span class="keyword">if</span>((*pte &amp; PTE_V) == <span class="number">0</span>)</span><br><span class="line">    panic(<span class="string">&quot;uvmunmap: not mapped&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>由于我们现在只是实现了 lazy 的分配，还需要解决这样一个问题，如果申请了一块内存，但是尚未分配映射，此时我们不需要进行 <code>kfree()</code> 操作</li>
+<li>整段代码修改如下</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/vm.c:uvmunmap()</span></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="keyword">for</span>(a = va; a &lt; va + npages*PGSIZE; a += PGSIZE)&#123;</span><br><span class="line">    <span class="comment">// 分配了而且映射了的内存才需要释放</span></span><br><span class="line">    <span class="keyword">if</span>((pte = walk(pagetable, a, <span class="number">0</span>)) == <span class="number">0</span>) <span class="keyword">continue</span>;</span><br><span class="line">    <span class="comment">// panic(&quot;uvmunmap: walk&quot;);</span></span><br><span class="line">    <span class="comment">// if((*pte &amp; PTE_V) == 0)</span></span><br><span class="line">    <span class="comment">// panic(&quot;uvmunmap: not mapped&quot;);</span></span><br><span class="line">    <span class="keyword">if</span>(PTE_FLAGS(*pte) == PTE_V)</span><br><span class="line">        panic(<span class="string">&quot;uvmunmap: not a leaf&quot;</span>);</span><br><span class="line">    <span class="comment">// 分配了而且映射了的内存才需要释放</span></span><br><span class="line">    <span class="keyword">if</span>(do_free &amp;&amp; (*pte &amp; PTE_V) != <span class="number">0</span>)&#123;</span><br><span class="line">        uint64 pa = PTE2PA(*pte);</span><br><span class="line">        kfree((<span class="type">void</span>*)pa);</span><br><span class="line">    &#125;</span><br><span class="line">    *pte = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>此时运行 <code>echo hi</code>，能够正确的输出 <code>hi</code></li>
+</ul>
+<h3 id="P3-Lazytests-and-Usertests"><a href="#P3-Lazytests-and-Usertests" class="headerlink" title="P3: Lazytests and Usertests"></a>P3: Lazytests and Usertests</h3><ul>
+<li>处理一些细节问题</li>
+<li>实现 <code>sbrk()</code> 中参数为负的情况</li>
+<li>如果请求的虚拟地址，比当前进程通过 <code>sbrk()</code> 申请的最高地址要高的话，<code>kill</code> 掉</li>
+<li>内核态访问的的内存已申请，但是尚未分配映射<ul>
+<li>You can fix it by add code in <code>walkaddr()</code> in <code>kernel/vm.c:104</code>, as any r&#x2F;w syscall will invoke <code>walkaddr</code> to get physical address.</li>
+</ul>
+</li>
+<li>能够处理 <code>fork()</code> 中父子进程的内存复制</li>
+<li><code>kalloc()</code> 失败的时候，<code>kill</code> 掉当前进程<ul>
+<li>已经实现</li>
+</ul>
+</li>
+<li>解决栈溢出的问题，栈的大小只有一页，不能访问栈之外的空间</li>
+</ul>
+<h4 id="1-sbrk-参数为负"><a href="#1-sbrk-参数为负" class="headerlink" title="(1) sbrk() 参数为负"></a>(1) sbrk() 参数为负</h4><ul>
+<li>直接调用 <code>uvmunmap()</code> 释放即可</li>
+<li>简单实现，我们可以直接调用 <code>growproc()</code> 实现</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/sysproc.c:sys_sbrk()</span></span><br><span class="line">uint64 <span class="title function_">sys_sbrk</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    uint64 addr;</span><br><span class="line">    <span class="type">int</span> n;</span><br><span class="line">    <span class="keyword">if</span>(argint(<span class="number">0</span>, &amp;n) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    addr = myproc()-&gt;sz;</span><br><span class="line">    <span class="comment">// if(growproc(n) &lt; 0)</span></span><br><span class="line">    <span class="comment">//  return -1;</span></span><br><span class="line">    <span class="keyword">if</span>(n &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>(growproc(n) &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        myproc()-&gt;sz = addr + n;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> addr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="2-访问到未申请的空间"><a href="#2-访问到未申请的空间" class="headerlink" title="(2) 访问到未申请的空间"></a>(2) 访问到未申请的空间</h4><ul>
+<li>判断访问的虚拟地址是否已经申请</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/trap.c:usertrap()</span></span><br><span class="line"><span class="keyword">if</span>(vm_addr &gt;= p-&gt;sz) &#123;</span><br><span class="line">    p-&gt;killed = <span class="number">1</span>;</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-栈溢出"><a href="#3-栈溢出" class="headerlink" title="(3) 栈溢出"></a>(3) 栈溢出</h4><ul>
+<li>因为栈的大小只有一页，我们可以通过 <code>myproc()-&gt;trapframe-&gt;sp</code> 获取到当前栈所在的页</li>
+<li>然后使用 <code>PGROUNDDOWN</code> 以及 <code>PGROUNDUP</code> 获取到边界</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/trap.c:usertrap()</span></span><br><span class="line"><span class="comment">// 用户栈溢出</span></span><br><span class="line">uint64 ustack = p-&gt;trapframe-&gt;sp;</span><br><span class="line"><span class="keyword">if</span>(vm_addr &lt; PGROUNDDOWN(ustack)) &#123;</span><br><span class="line">    p-&gt;killed = <span class="number">1</span>;</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="4-fork-问题"><a href="#4-fork-问题" class="headerlink" title="(4) fork 问题"></a>(4) fork 问题</h4><ul>
+<li>调用 fork 的时候，如果父进程存在一些申请了但是尚未分配映射的内存，子进程就不需要 copy 了</li>
+<li>在进行 <code>uvmcopy()</code> 的时候进行修改，如果 pte 不存在，则不复制，而不是报错</li>
+<li>修改如下</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>((pte = walk(old, i, <span class="number">0</span>)) == <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">continue</span>;</span><br><span class="line"><span class="comment">// panic(&quot;uvmcopy: pte should exist&quot;);</span></span><br><span class="line"><span class="keyword">if</span>((*pte &amp; PTE_V) == <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">continue</span>;</span><br><span class="line"><span class="comment">// panic(&quot;uvmcopy: page not present&quot;);</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h4 id="5-内核态的内存操作"><a href="#5-内核态的内存操作" class="headerlink" title="(5) 内核态的内存操作"></a>(5) 内核态的内存操作</h4><ul>
+<li>如果内核态需要操作一个申请了但是尚未分配映射的空间时，需要进行处理</li>
+<li>例如 <code>write()</code> 的内存尚未分配映射</li>
+<li>在 <code>walkaddr()</code> 中加入判断<ul>
+<li>如果出现找不到页的情况，马上分配</li>
+<li>具体的分配页的判断和 <code>usertrap()</code> 中的一样，于是我们将其封装为一个函数</li>
+</ul>
+</li>
+</ul>
+<h4 id="6-最终的修改情况"><a href="#6-最终的修改情况" class="headerlink" title="(6) 最终的修改情况"></a>(6) 最终的修改情况</h4><ul>
+<li><code>kernel/defs.h</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// vm.c</span></span><br><span class="line">uint64          <span class="title function_">alloc_page</span><span class="params">(<span class="keyword">struct</span> proc*, uint64)</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>kernel/vm.c</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 增加一个 lazy allocation 的函数</span></span><br><span class="line">uint64 <span class="title function_">alloc_page</span><span class="params">(<span class="keyword">struct</span> proc* p, uint64 vm_addr)</span>&#123;</span><br><span class="line">    <span class="comment">// 访问的虚拟地址没有申请</span></span><br><span class="line">    <span class="comment">// 虚拟地址越界</span></span><br><span class="line">    <span class="keyword">if</span>(vm_addr &gt;= p-&gt;sz) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 用户栈溢出</span></span><br><span class="line">    uint64 ustack = p-&gt;trapframe-&gt;sp;</span><br><span class="line">    <span class="keyword">if</span>(vm_addr &lt; (uint64)PGROUNDDOWN(ustack)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    vm_addr = PGROUNDDOWN(vm_addr);</span><br><span class="line">    <span class="type">pagetable_t</span> pagetable = p-&gt;pagetable;</span><br><span class="line">    <span class="type">char</span> *mem;</span><br><span class="line">    <span class="comment">// 为虚拟页分配一页物理页</span></span><br><span class="line">    mem = kalloc();</span><br><span class="line">    <span class="comment">// 当分配不到物理页时的处理</span></span><br><span class="line">    <span class="keyword">if</span>(mem == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 刷零</span></span><br><span class="line">    <span class="built_in">memset</span>(mem, <span class="number">0</span>, PGSIZE);</span><br><span class="line">    <span class="keyword">if</span>(mappages(pagetable, vm_addr, PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U) != <span class="number">0</span>)&#123;</span><br><span class="line">        kfree(mem);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (uint64)mem;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// uvmcopy()</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">uvmcopy</span><span class="params">(<span class="type">pagetable_t</span> old, <span class="type">pagetable_t</span> new, uint64 sz)</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">if</span>((pte = walk(old, i, <span class="number">0</span>)) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// panic(&quot;uvmcopy: pte should exist&quot;);</span></span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>((*pte &amp; PTE_V) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// panic(&quot;uvmcopy: page not present&quot;);</span></span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// uvmunmap()</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">uvmunmap</span><span class="params">(<span class="type">pagetable_t</span> pagetable, uint64 va, uint64 npages, <span class="type">int</span> do_free)</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">if</span>((pte = walk(pagetable, a, <span class="number">0</span>)) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// panic(&quot;uvmunmap: walk&quot;);</span></span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 分配了而且映射了的内存才需要释放</span></span><br><span class="line">    <span class="keyword">if</span>((*pte &amp; PTE_V) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// panic(&quot;uvmunmap: not mapped&quot;);</span></span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// walkaddr()</span></span><br><span class="line">uint64 <span class="title function_">walkaddr</span><span class="params">(<span class="type">pagetable_t</span> pagetable, uint64 va)</span></span><br><span class="line">    <span class="comment">// if(pte == 0)</span></span><br><span class="line">    <span class="comment">//   return 0;</span></span><br><span class="line">    <span class="comment">// if((*pte &amp; PTE_V) == 0)</span></span><br><span class="line">    <span class="comment">//   return 0;</span></span><br><span class="line">    <span class="comment">// if((*pte &amp; PTE_U) == 0)</span></span><br><span class="line">    <span class="comment">//   return 0;</span></span><br><span class="line">    <span class="title function_">if</span><span class="params">(pte == <span class="number">0</span> || (*pte &amp; PTE_V) == <span class="number">0</span> || (*pte &amp; PTE_U) == <span class="number">0</span>)</span> &#123;</span><br><span class="line">        pa = alloc_page(myproc(), va);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        pa = PTE2PA(*pte);</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>kernel/sysproc.c</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">uint64 <span class="title function_">sys_sbrk</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    uint64 addr;</span><br><span class="line">    <span class="type">int</span> n;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">proc</span>* <span class="title">p</span>;</span></span><br><span class="line">    <span class="keyword">if</span>(argint(<span class="number">0</span>, &amp;n) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    p = myproc();</span><br><span class="line">    addr = p-&gt;sz;</span><br><span class="line">    <span class="keyword">if</span>(n &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span>(growproc(n) &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        p-&gt;sz = addr + n;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> addr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>kernel/trap.c</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">usertrap</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(r_scause() == <span class="number">15</span> || r_scause() == <span class="number">13</span>) &#123;</span><br><span class="line">        <span class="type">int</span> ret = alloc_page(p, r_stval());</span><br><span class="line">        <span class="keyword">if</span>(ret == <span class="number">0</span>) &#123;</span><br><span class="line">            p-&gt;killed = <span class="number">1</span>;</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3-实验结果"><a href="#3-实验结果" class="headerlink" title="3. 实验结果"></a>3. 实验结果</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br></pre></td><td class="code"><pre><span class="line">$ make qemu-gdb</span><br><span class="line">(26.0s)</span><br><span class="line">== Test   lazy: map ==</span><br><span class="line">  lazy: map: OK</span><br><span class="line">== Test   lazy: unmap ==</span><br><span class="line">  lazy: unmap: OK</span><br><span class="line">== Test usertests ==</span><br><span class="line">$ make qemu-gdb</span><br><span class="line">Timeout! (300.9s)</span><br><span class="line">== Test   usertests: pgbug ==</span><br><span class="line">  usertests: pgbug: OK</span><br><span class="line">== Test   usertests: sbrkbugs ==</span><br><span class="line">  usertests: sbrkbugs: OK</span><br><span class="line">== Test   usertests: argptest ==</span><br><span class="line">  usertests: argptest: OK</span><br><span class="line">== Test   usertests: sbrkmuch ==</span><br><span class="line">  usertests: sbrkmuch: OK</span><br><span class="line">== Test   usertests: sbrkfail ==</span><br><span class="line">  usertests: sbrkfail: OK</span><br><span class="line">== Test   usertests: sbrkarg ==</span><br><span class="line">  usertests: sbrkarg: OK</span><br><span class="line">== Test   usertests: stacktest ==</span><br><span class="line">  usertests: stacktest: OK</span><br><span class="line">== Test   usertests: execout ==</span><br><span class="line">  usertests: execout: OK</span><br><span class="line">== Test   usertests: copyin ==</span><br><span class="line">  usertests: copyin: OK</span><br><span class="line">== Test   usertests: copyout ==</span><br><span class="line">  usertests: copyout: OK</span><br><span class="line">== Test   usertests: copyinstr1 ==</span><br><span class="line">  usertests: copyinstr1: OK</span><br><span class="line">== Test   usertests: copyinstr2 ==</span><br><span class="line">  usertests: copyinstr2: OK</span><br><span class="line">== Test   usertests: copyinstr3 ==</span><br><span class="line">  usertests: copyinstr3: OK</span><br><span class="line">== Test   usertests: rwsbrk ==</span><br><span class="line">  usertests: rwsbrk: OK</span><br><span class="line">== Test   usertests: truncate1 ==</span><br><span class="line">  usertests: truncate1: OK</span><br><span class="line">== Test   usertests: truncate2 ==</span><br><span class="line">  usertests: truncate2: OK</span><br><span class="line">== Test   usertests: truncate3 ==</span><br><span class="line">  usertests: truncate3: OK</span><br><span class="line">== Test   usertests: reparent2 ==</span><br><span class="line">  usertests: reparent2: OK</span><br><span class="line">== Test   usertests: badarg ==</span><br><span class="line">  usertests: badarg: OK</span><br><span class="line">== Test   usertests: reparent ==</span><br><span class="line">  usertests: reparent: OK</span><br><span class="line">== Test   usertests: twochildren ==</span><br><span class="line">  usertests: twochildren: OK</span><br><span class="line">== Test   usertests: forkfork ==</span><br><span class="line">  usertests: forkfork: OK</span><br><span class="line">== Test   usertests: forkforkfork ==</span><br><span class="line">  usertests: forkforkfork: OK</span><br><span class="line">== Test   usertests: createdelete ==</span><br><span class="line">  usertests: createdelete: OK</span><br><span class="line">== Test   usertests: linkunlink ==</span><br><span class="line">  usertests: linkunlink: OK</span><br><span class="line">== Test   usertests: linktest ==</span><br><span class="line">  usertests: linktest: OK</span><br><span class="line">== Test   usertests: unlinkread ==</span><br><span class="line">  usertests: unlinkread: OK</span><br><span class="line">== Test   usertests: concreate ==</span><br><span class="line">  usertests: concreate: OK</span><br><span class="line">== Test   usertests: subdir ==</span><br><span class="line">  usertests: subdir: OK</span><br><span class="line">== Test   usertests: fourfiles ==</span><br><span class="line">  usertests: fourfiles: OK</span><br><span class="line">== Test   usertests: sharedfd ==</span><br><span class="line">  usertests: sharedfd: OK</span><br><span class="line">== Test   usertests: exectest ==</span><br><span class="line">  usertests: exectest: OK</span><br><span class="line">== Test   usertests: bigargtest ==</span><br><span class="line">  usertests: bigargtest: OK</span><br><span class="line">== Test   usertests: bigwrite ==</span><br><span class="line">  usertests: bigwrite: OK</span><br><span class="line">== Test   usertests: bsstest ==</span><br><span class="line">  usertests: bsstest: OK</span><br><span class="line">== Test   usertests: sbrkbasic ==</span><br><span class="line">  usertests: sbrkbasic: OK</span><br><span class="line">== Test   usertests: kernmem ==</span><br><span class="line">  usertests: kernmem: OK</span><br><span class="line">== Test   usertests: validatetest ==</span><br><span class="line">  usertests: validatetest: OK</span><br><span class="line">== Test   usertests: opentest ==</span><br><span class="line">  usertests: opentest: OK</span><br><span class="line">== Test   usertests: writetest ==</span><br><span class="line">  usertests: writetest: OK</span><br><span class="line">== Test   usertests: writebig ==</span><br><span class="line">  usertests: writebig: OK</span><br><span class="line">== Test   usertests: createtest ==</span><br><span class="line">  usertests: createtest: OK</span><br><span class="line">== Test   usertests: openiput ==</span><br><span class="line">  usertests: openiput: OK</span><br><span class="line">== Test   usertests: exitiput ==</span><br><span class="line">  usertests: exitiput: OK</span><br><span class="line">== Test   usertests: iput ==</span><br><span class="line">  usertests: iput: OK</span><br><span class="line">== Test   usertests: mem ==</span><br><span class="line">  usertests: mem: OK</span><br><span class="line">== Test   usertests: pipe1 ==</span><br><span class="line">  usertests: pipe1: OK</span><br><span class="line">== Test   usertests: preempt ==</span><br><span class="line">  usertests: preempt: OK</span><br><span class="line">== Test   usertests: exitwait ==</span><br><span class="line">  usertests: exitwait: OK</span><br><span class="line">== Test   usertests: rmdot ==</span><br><span class="line">  usertests: rmdot: OK</span><br><span class="line">== Test   usertests: fourteen ==</span><br><span class="line">  usertests: fourteen: OK</span><br><span class="line">== Test   usertests: bigfile ==</span><br><span class="line">  usertests: bigfile: OK</span><br><span class="line">== Test   usertests: dirfile ==</span><br><span class="line">  usertests: dirfile: OK</span><br><span class="line">== Test   usertests: iref ==</span><br><span class="line">  usertests: iref: OK</span><br><span class="line">== Test   usertests: forktest ==</span><br><span class="line">  usertests: forktest: OK</span><br><span class="line">== Test time ==</span><br><span class="line">time: OK</span><br><span class="line">Score: 119/119</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-遇到的困难以及收获"><a href="#4-遇到的困难以及收获" class="headerlink" title="4. 遇到的困难以及收获"></a>4. 遇到的困难以及收获</h2><ul>
+<li>在 <code>sys_sbrk()</code> 函数中的部分 <code>addr</code> 被声明成了 <code>int</code>，但是实际上应该是 <code>uint64</code>，这个 bug 改了好久，一直都在报错 <code>panic(&quot;walk&quot;)</code>，看来对原始的代码也不能都相信，还得是自己重新修改下</li>
+<li>有些问题的设计还是挺巧妙的，例如在内核态下遇到了 pagefault 的处理，这个在之前都没有仔细思考过</li>
+<li>在学习完这一部分的 lab 之后，对整个多级页表的立即更加深入了，对操作系统在底层内存空间实现也有了更好的理解</li>
+</ul>
+<h2 id="5-对课程或-lab-的意见和建议"><a href="#5-对课程或-lab-的意见和建议" class="headerlink" title="5. 对课程或 lab 的意见和建议"></a>5. 对课程或 lab 的意见和建议</h2><ul>
+<li>希望中文版本能把 hint 也翻译过来（当然不是必要的）</li>
+</ul>
+<h2 id="6-参考文献"><a href="#6-参考文献" class="headerlink" title="6. 参考文献"></a>6. 参考文献</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2020/xv6/book-riscv-rev1.pdf">https://pdos.csail.mit.edu/6.828/2020/xv6/book-riscv-rev1.pdf</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/05/08/OS/xv6-labs/lab4-lazy-allocation/" data-id="cl9lj74bb00ih64tzexyq1v9b" data-title="xv6-labs-2020.lab4.lazy page allocation" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/05/09/OS/xv6-source-code/04-VM/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          xv6-riscv-源代码阅读.虚存管理
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/05/06/OS/xv6-labs/lab3-traps/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">xv6-labs-2020.lab3.traps</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>高动态范围成像 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="多张不同曝光时间的图片, 单张 LDR 图片和 intensity map 图片, 单张 LDR 图片，利用 deep-CNNs">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高动态范围成像">
+<meta property="og:url" content="http://example.com/2021/03/04/CV/HDR/Paper23/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="多张不同曝光时间的图片, 单张 LDR 图片和 intensity map 图片, 单张 LDR 图片，利用 deep-CNNs">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/Paper23/J_001.png">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_ldr.jpg">
+<meta property="og:image" content="http://example.com/Paper23/J_ex_intensity_map.jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_ground_truth.jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/pic/J_ex_ldr_linear.jpg">
+<meta property="og:image" content="http://example.com/Paper23/J_ex_ldr_yuv.png">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_weight_funciton.png">
+<meta property="og:image" content="http://example.com/Paper23/J_ex_fusion.png">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_result.1.jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_result.1.minus.w.jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_hist_origin.jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_result.1.minus.w.equalize_hist(256).jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_hist_256.jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_hist_10000.jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_result.1.minus.w.equalize_hist(10000).jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_weight_funciton.only.bright.png">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_ex_result.1.minus.w.equalize_hist(10000).only.bright.jpg">
+<meta property="og:image" content="http://example.com/Paper23/J_1_all.png">
+<meta property="og:image" content="http://example.com/Paper23/J_2_all.png">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_adjusted.jpg">
+<meta property="og:image" content="http://example.com/2021/03/04/CV/HDR/Paper23/Paper23/J_2_result.1.minus.w.adjusted.only.bright.jpg">
+<meta property="og:image" content="http://example.com/Paper23/J_network.png">
+<meta property="og:image" content="http://example.com/Paper23/J_3_001.png">
+<meta property="og:image" content="http://example.com/Paper23/J_3_002.png">
+<meta property="og:image" content="http://example.com/Paper23/J_3_003.png">
+<meta property="og:image" content="http://example.com/Paper23/J_3_004.png">
+<meta property="og:image" content="http://example.com/Paper23/J_3_005.png">
+<meta property="og:image" content="http://example.com/Paper23/J_3_006.png">
+<meta property="og:image" content="http://example.com/Paper23/J_3_007.png">
+<meta property="article:published_time" content="2021-03-04T09:12:50.000Z">
+<meta property="article:modified_time" content="2021-03-04T09:40:23.023Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CV">
+<meta property="article:tag" content="HDR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/Paper23/J_001.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CV/HDR/Paper23" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/03/04/CV/HDR/Paper23/" class="article-date">
+  <time class="dt-published" datetime="2021-03-04T09:12:50.000Z" itemprop="datePublished">2021-03-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CV/">CV</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      高动态范围成像
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="HDR-高动态范围成像"><a href="#HDR-高动态范围成像" class="headerlink" title="HDR 高动态范围成像"></a>HDR 高动态范围成像</h1><ul>
+<li>代码路径<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/banbao990/CV/tree/main/HDR">https://github.com/banbao990/CV/tree/main/HDR</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="一-概述"><a href="#一-概述" class="headerlink" title="一. 概述"></a>一. 概述</h2><p>HDR 高动态范围成像的主要内容有 3 个部分，具体的内容以及参考文献如下</p>
+<ul>
+<li>论文 1：利用多张不同曝光时间的图片重建 HDR 图片<ul>
+<li>Recovering High Dynamic Range Radiance Maps from Photographs</li>
+</ul>
+</li>
+<li>论文 2：利用单张 LDR 图片和 intensity map 图片重建 HDR 图片<ul>
+<li>Neuromorphic Camera Guided High Dynamic Range Imaging</li>
+</ul>
+</li>
+<li>论文 3：对单张 LDR 图片，利用 deep-CNNs 重建 HDR 图片<ul>
+<li>HDR image reconstruction from a single exposure using deep CNNs</li>
+</ul>
+</li>
+</ul>
+<p>接下来的内容就围绕着这 3 篇论文展开</p>
+<h2 id="二-正文"><a href="#二-正文" class="headerlink" title="二. 正文"></a>二. 正文</h2><h3 id="论文-1：利用多张不同曝光时间的图片重建-HDR-图片"><a href="#论文-1：利用多张不同曝光时间的图片重建-HDR-图片" class="headerlink" title="论文 1：利用多张不同曝光时间的图片重建 HDR 图片"></a>论文 1：利用多张不同曝光时间的图片重建 HDR 图片</h3><blockquote>
+<p> Recovering High Dynamic Range Radiance Maps from Photographs</p>
+</blockquote>
+<h3 id="论文-2：利用单张-LDR-图片和-intensity-map-图片重建-HDR-图片"><a href="#论文-2：利用单张-LDR-图片和-intensity-map-图片重建-HDR-图片" class="headerlink" title="论文 2：利用单张 LDR 图片和 intensity map 图片重建 HDR 图片"></a>论文 2：利用单张 LDR 图片和 intensity map 图片重建 HDR 图片</h3><blockquote>
+<p> Neuromorphic Camera Guided High Dynamic Range Imaging</p>
+</blockquote>
+<h4 id="2-1-主要目的"><a href="#2-1-主要目的" class="headerlink" title="2.1 主要目的"></a>2.1 主要目的</h4><ul>
+<li>利用单张 LDR 图片和 intensity map 图片重建 HDR 图片</li>
+<li>由于一张 RGB  的LDR 的图片在高曝光和低曝光区域都存在一些细节缺失，而 intensity map 中保留了所有区域的深度信息，因此可以在某种意义上使用这两张图片恢复出一张 HDR 的图片，该论文的第一部分就介绍了这样的一种方法</li>
+</ul>
+<h4 id="2-2-主要方法"><a href="#2-2-主要方法" class="headerlink" title="2.2 主要方法"></a>2.2 主要方法</h4><p><img src="/Paper23/J_001.png"></p>
+<ul>
+<li>以上是流程图，具体的步骤如下<ul>
+<li>首先我们利用相机响应函数将 LDR 的图片从非线性转化到线性空间得到图片pic1</li>
+<li>将 pic1 从 RGB 空间转换到 YUV 空间中得到 pic2，此时 Y 平面中包含了图象的深度信息</li>
+<li>将 intensity map 过采样到和 LDR 图片大小相同得到 pic3</li>
+<li>将 pic3 和 pic2 的 Y 平面进行融合得到 pic4</li>
+<li>将 pic4 作为 pic2 的 Y 平面，将其转化为 RGB 空间</li>
+<li>最后通过 tone mapping 将图片转化为观感较好的 RGB 图片</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-3-具体的实现与效果展示"><a href="#2-3-具体的实现与效果展示" class="headerlink" title="2.3 具体的实现与效果展示"></a>2.3 具体的实现与效果展示</h4><ul>
+<li>使用 opencv 的 python 版本实现</li>
+<li>具体使用到的库以及 python 的版本信息如下</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">python: 3.7.9 [MSC v.1916 64 bit (AMD64)]</span><br><span class="line">matplotlib: 3.3.2</span><br><span class="line">numpy: 1.19.1</span><br><span class="line">cv2: 4.4.0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>每一步的实现如下，具体细节见代码</p>
+</li>
+<li><p>以下以示例图片作为简单的效果展示</p>
+</li>
+<li><p>示例图片</p>
+<ul>
+<li><p>ldr 图片</p>
+  <img src="Paper23/J_ex_ldr.jpg" alt="img" style="zoom:50%;" />
+</li>
+<li><p>intensity map</p>
+<p>  <img src="/Paper23/J_ex_intensity_map.jpg"></p>
+</li>
+<li><p>ground truth</p>
+  <img src="Paper23/J_ex_ground_truth.jpg" alt="img" style="zoom:50%;" /></li>
+</ul>
+</li>
+</ul>
+<h5 id="1-逆色调映射"><a href="#1-逆色调映射" class="headerlink" title="(1) 逆色调映射"></a>(1) 逆色调映射</h5><ul>
+<li>因为我们不知道相机的响应函数以及图片的曝光时间，因此使用简单的 gamma2.2 校正<ul>
+<li>$y&#x3D;x^\frac{1}{\gamma},gamma&#x3D;2.2$</li>
+</ul>
+</li>
+<li>效果图如下</li>
+</ul>
+<img src="pic\J_ex_ldr_linear.jpg" alt="img" style="zoom:50%"/>
+
+<h5 id="2-RGB-空间转换为-YUV-空间"><a href="#2-RGB-空间转换为-YUV-空间" class="headerlink" title="(2) RGB 空间转换为 YUV 空间"></a>(2) RGB 空间转换为 YUV 空间</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># opencv 自带的函数</span></span><br><span class="line">cv2.cvtColor(ldr_linear, cv2.COLOR_BGR2YUV)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>展示 YUV 空间的图片</li>
+</ul>
+<p><img src="/Paper23/J_ex_ldr_yuv.png"></p>
+<ul>
+<li>我们看到这里的 Y 平面中确实含有一定的深度信息</li>
+</ul>
+<h5 id="3-intensity-map-的大小转换"><a href="#3-intensity-map-的大小转换" class="headerlink" title="(3) intensity map 的大小转换"></a>(3) intensity map 的大小转换</h5><ul>
+<li>使用论文中给的使用 INTER_CUBIC 三次样条插值</li>
+</ul>
+<h5 id="4-深度融合"><a href="#4-深度融合" class="headerlink" title="(4) 深度融合"></a>(4) 深度融合</h5><ul>
+<li><p>尝试了两种融合方法</p>
+<ul>
+<li>论文中给的是 $w_{ij}∗Y_{ij}+(1-w_i)∗I_{ij}$<ul>
+<li>其中</li>
+</ul>
+</li>
+</ul>
+<p>  $$<br>  w_{ij}&#x3D;\frac{(0.5-max(|I_{ij}-0.5|,τ-0.5))}{(1-τ)}<br>  $$</p>
+  <img src="Paper23/J_weight_funciton.png" alt="1610207884863" style="zoom: 40%;" />
+
+<ul>
+<li>$w_{ij}∗Y_{ij}+I_{ij}$</li>
+</ul>
+</li>
+<li><p>展示效果图如下</p>
+</li>
+</ul>
+<p><img src="/Paper23/J_ex_fusion.png"></p>
+<h5 id="5-最后的色调映射"><a href="#5-最后的色调映射" class="headerlink" title="(5) 最后的色调映射"></a>(5) 最后的色调映射</h5><ul>
+<li><p>简单的使用 gamma2.2 校正</p>
+</li>
+<li><p>效果展示</p>
+<ul>
+<li>使用论文函数 (w)</li>
+</ul>
+  <img src="Paper23/J_ex_result.1.jpg" alt="img" style="zoom:80%;" />
+
+<ul>
+<li>使用函数 (1-w)</li>
+</ul>
+  <img src="Paper23/J_ex_result.1.minus.w.jpg" alt="img" style="zoom:80%;" />
+</li>
+<li><p>图上我们可以看到亮处的深度信息已经被恢复出来，但是颜色信息缺失了</p>
+</li>
+<li><p>上下对比，我们发现使用函数 w 的图片更加亮一些，但是出现了一些模糊的现象（例如水管部分）</p>
+<ul>
+<li>更亮是因为使用 w 得到的值更大</li>
+<li>模糊是因为 ldr 图片和 intensity map 的对齐问题，对齐问题在两张图的深度都占一定比例时体现的最完全，也就是亮度中等的时候</li>
+</ul>
+</li>
+<li><p>颜色信息缺失是没有办法的，因为我们没有处理原图的 U&#x2F;V 两个平面的颜色信息，而只是补充上了深度信息</p>
+</li>
+<li><p>而论文中最后使用神经网络生成的图像从 U&#x2F;V 两个平面学到了色彩信息，因此填充上了色彩</p>
+</li>
+<li><p>还有存在的问题是过渡效果比较差，因为 intensity map 中整体偏暗，导致结果图中本应该是亮色的部分反而偏暗，因此过渡比较难看</p>
+</li>
+</ul>
+<h4 id="2-4-一些改进与颜色校正的尝试"><a href="#2-4-一些改进与颜色校正的尝试" class="headerlink" title="2.4 一些改进与颜色校正的尝试"></a>2.4 一些改进与颜色校正的尝试</h4><ul>
+<li>在上课做完报告之后，我们发现在 intensity map 之中确实整体偏暗，导致合成的结果亮色部分偏暗，以下是我们的一些修改策略</li>
+<li>以下以示例图片为例，展示如下</li>
+</ul>
+<h5 id="1-直方图均衡化-调库-256采样"><a href="#1-直方图均衡化-调库-256采样" class="headerlink" title="(1) 直方图均衡化 (调库+256采样)"></a>(1) 直方图均衡化 (调库+256采样)</h5><ul>
+<li><p>原始的直方图</p>
+  <img src="Paper23/J_ex_hist_origin.jpg" alt="img" style="zoom:40%;" />
+</li>
+<li><p>直接调用内置的函数实现，但是内置的函数只能实现 256 精度的采样</p>
+</li>
+</ul>
+<img src="Paper23/J_ex_result.1.minus.w.equalize_hist(256).jpg" alt="img" style="zoom: 80%;" />
+
+<ul>
+<li><p>效果如上图所示，我们发现亮色部分的提升很明显，但是暗色部分的噪声也很明显</p>
+<ul>
+<li><p>这一方面是时直方图均衡化采样精度低导致的问题</p>
+<ul>
+<li>采样精度低会导致结果并不是很均衡，丧失高动态范围</li>
+</ul>
+</li>
+<li><p>另一方面是原生的问题 intensity map 本来分辨率就低导致的</p>
+</li>
+<li><p>均衡化的直方图如下</p>
+  <img src="Paper23/J_ex_hist_256.jpg" alt="img" style="zoom:40%;" /></li>
+</ul>
+</li>
+</ul>
+<h5 id="2-直方图均衡化-高采样"><a href="#2-直方图均衡化-高采样" class="headerlink" title="(2) 直方图均衡化 (高采样)"></a>(2) 直方图均衡化 (高采样)</h5><ul>
+<li><p>自己写的一个高精度的直方图均衡化</p>
+</li>
+<li><p>采样精度为 10000，直方图如下</p>
+<ul>
+<li>基本上实现了均衡化</li>
+</ul>
+  <img src="Paper23/J_ex_hist_10000.jpg" alt="img" style="zoom:40%;" />
+</li>
+<li><p>但是最终合成效果还是不太好，噪声很严重（似乎更严重了，噪声的采样也更细致了）</p>
+  <img src="Paper23/J_ex_result.1.minus.w.equalize_hist(10000).jpg" alt="img" style="zoom: 80%;" /></li>
+</ul>
+<h5 id="3-调整权重函数"><a href="#3-调整权重函数" class="headerlink" title="(3) 调整权重函数"></a>(3) 调整权重函数</h5><ul>
+<li><p>手动设置范围将暗部噪声减弱</p>
+</li>
+<li><p>一个简单的操作就是直接将暗处的 intensity map 舍去，将权重函数修改为如下<br>  $$<br>  w_{ij}&#x3D;\frac{(0.5-max(I_{ij}-0.5,τ-0.5))}{(1-τ)}<br>  $$</p>
+  <img src="Paper23/J_weight_funciton.only.bright.png" alt="1610207884863" style="zoom: 40%;" />
+</li>
+<li><p>虽然说这样就舍弃了暗部的高动态范围，但是这和噪声相比不算什么</p>
+</li>
+<li><p>效果如下</p>
+  <img src="Paper23/J_ex_result.1.minus.w.equalize_hist(10000).only.bright.jpg" alt="img" style="zoom:80%;" />
+</li>
+<li><p>感觉还是很棒的，过度效果也挺好的</p>
+</li>
+</ul>
+<h4 id="2-5-其他图片的效果图"><a href="#2-5-其他图片的效果图" class="headerlink" title="2.5 其他图片的效果图"></a>2.5 其他图片的效果图</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// TODO</span></span><br></pre></td></tr></table></figure>
+
+
+<h5 id="1-图片1的结果"><a href="#1-图片1的结果" class="headerlink" title="(1) 图片1的结果"></a>(1) 图片1的结果</h5><ul>
+<li>效果很好，过渡比原来直接做的效果好太多了</li>
+<li>不使用 intensity map 的暗部也使得噪声控制很好</li>
+</ul>
+<p><img src="/Paper23/J_1_all.png"></p>
+<h5 id="2-图片2的结果"><a href="#2-图片2的结果" class="headerlink" title="(2) 图片2的结果"></a>(2) 图片2的结果</h5><ul>
+<li>效果一般，但是色调比较正常</li>
+<li>过渡也比较好，但是跟 ldr 图片相比，最终的动态范围提升不大<ul>
+<li>这张图片的主要提升点应该在暗部，但是我们现在的解决方案对暗部提升没有作用</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Paper23/J_2_all.png"></p>
+<ul>
+<li><p>尝试了一个其他的方法</p>
+<ul>
+<li><p>对整体进行一个校正，暗处加强，亮处减弱<br>  $$<br>  s&#x3D;T(r)&#x3D;\frac{(2x-1)^{\alpha}+1}{2}<br>  $$</p>
+</li>
+<li><img src="Paper23/J_adjusted.jpg" alt="img" style="zoom:33%;" />
+</li>
+<li><p>使用 1-w，仅保留 intensity map 中的亮部</p>
+</li>
+<li><p>效果如下</p>
+<ul>
+<li>相较于之前而言，整体配色接近原始图片，而且在亮处的过度也稍微好一些，此时暗处提确实提高了亮度</li>
+</ul>
+  <img src="Paper23/J_2_result.1.minus.w.adjusted.only.bright.jpg" alt="img" style="zoom: 80%;" /></li>
+</ul>
+</li>
+</ul>
+<h3 id="论文-3：对单张-LDR-图片，利用-deep-CNNs-重建-HDR-图片"><a href="#论文-3：对单张-LDR-图片，利用-deep-CNNs-重建-HDR-图片" class="headerlink" title="论文 3：对单张 LDR 图片，利用 deep-CNNs 重建 HDR 图片"></a>论文 3：对单张 LDR 图片，利用 deep-CNNs 重建 HDR 图片</h3><blockquote>
+<p>HDR image reconstruction from a single exposure using deep CNNs</p>
+</blockquote>
+<h4 id="3-1-环境配置"><a href="#3-1-环境配置" class="headerlink" title="3.1 环境配置"></a>3.1 环境配置</h4><ul>
+<li>实验环境 Google Colab</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tensorflow-gpu==1.12.0</span><br><span class="line">tensorlayer==1.11.0</span><br><span class="line">OpenEXR-1.3.2</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>遇到一些问题<ul>
+<li>本地配置可能需要比较大的显存<ul>
+<li>至少大于 2G</li>
+</ul>
+</li>
+<li>对于比较大的图片上的输入，可能也跑不动</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-2-方法简述"><a href="#3-2-方法简述" class="headerlink" title="3.2 方法简述"></a>3.2 方法简述</h4><ul>
+<li><p>构造一个神经网络如下，训练从一张图片生成 HDR 的能力</p>
+<p>  <img src="/Paper23/J_network.png"></p>
+</li>
+<li><p>设计亮点</p>
+<ul>
+<li>skip-connection<ul>
+<li>保留高维细节</li>
+</ul>
+</li>
+<li>HDR-decoder 对比<ul>
+<li>log 域</li>
+<li>范围大</li>
+</ul>
+</li>
+<li>损失函数<ul>
+<li>直接差异R + 正则项 I</li>
+<li>颜色，细节 + 全局亮度</li>
+<li>I &#x3D;&gt; 只能处理高曝光的补全</li>
+<li>只能够补全高曝光面积较小的区域</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>本质上神经网络是学习到了加强高曝光区域的细节</p>
+<ul>
+<li>如果输入的图片在高曝光区域没有任何细节，那么是无法恢复的</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-3-效果展示"><a href="#3-3-效果展示" class="headerlink" title="3.3 效果展示"></a>3.3 效果展示</h4><h5 id="1-示例图片"><a href="#1-示例图片" class="headerlink" title="(1) 示例图片"></a>(1) 示例图片</h5><p><img src="/Paper23/J_3_001.png"></p>
+<ul>
+<li>效果很好，甚至文字细节都展示出来了</li>
+</ul>
+<h5 id="2-论文-1-的图片"><a href="#2-论文-1-的图片" class="headerlink" title="(2) 论文 1 的图片"></a>(2) 论文 1 的图片</h5><p><img src="/Paper23/J_3_002.png"></p>
+<ul>
+<li>效果超级好</li>
+<li>灯顶、窗户细节</li>
+</ul>
+<h5 id="2-论文-2-的图片"><a href="#2-论文-2-的图片" class="headerlink" title="(2) 论文 2 的图片"></a>(2) 论文 2 的图片</h5><p><img src="/Paper23/J_3_003.png"></p>
+<ul>
+<li>首先恢复了一些颜色信息，这是论文 2 的简单方法做不到的，这个很强<ul>
+<li>红色区域</li>
+</ul>
+</li>
+<li>出现了一些问题，树枝周围存在一些阴影<ul>
+<li>绿色区域</li>
+<li>神经网络本质上是加强了高曝光区域的细节，这里细节信息比较少，因此将树枝周围的小的高曝光区域使用树枝的成分进行了补全，导致在结果上产生了阴影</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Paper23/J_3_004.png"></p>
+<ul>
+<li>对于低曝光区域，神经网络无法给出结果</li>
+</ul>
+<h5 id="3-自己拍的照片"><a href="#3-自己拍的照片" class="headerlink" title="(3) 自己拍的照片"></a>(3) 自己拍的照片</h5><ul>
+<li><p>灯光</p>
+<ul>
+<li>能够很好的将灯光细节恢复过来</li>
+</ul>
+<p>  <img src="/Paper23/J_3_005.png"></p>
+</li>
+<li><p>安全入口标志</p>
+<ul>
+<li>也能除去一些发光的亮晕</li>
+<li>对于上面的灯，也有一定的缩小光电的作用</li>
+</ul>
+<p>  <img src="/Paper23/J_3_006.png"></p>
+</li>
+<li><p>中文字</p>
+<ul>
+<li>恢复没有英文字那么明显，可能是中文字符的连接比较复杂，没有英文字符那么容易修复</li>
+</ul>
+<p>  <img src="/Paper23/J_3_007.png"></p>
+</li>
+</ul>
+<h2 id="三-总结"><a href="#三-总结" class="headerlink" title="三. 总结"></a>三. 总结</h2><h3 id="1-方法对比"><a href="#1-方法对比" class="headerlink" title="(1) 方法对比"></a>(1) 方法对比</h3><ul>
+<li>论文 1：利用多张不同曝光时间的图片重建 HDR 图片<ul>
+<li>优点<ul>
+<li>理论基础好，图片较多时恢复效果好</li>
+<li>能够把高曝光和低曝光区域的高动态范围都做的很好</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>需要大量已知曝光时间的照片</li>
+<li>需要自己设定最终的色调映射函数<ul>
+<li>设置不好的时候会出现奇怪的色彩</li>
+</ul>
+</li>
+<li>多张图片需要处理对齐的问题</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>论文 2：利用单张 LDR 图片和 intensity map 图片重建 HDR 图片<ul>
+<li>优点<ul>
+<li>能够将图像的深度信息较好的恢复</li>
+<li>两张照片即可，相对容易获取</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>需要获得 intensity map</li>
+<li>恢复不出来颜色信息</li>
+<li>需要自己设置色调映射函数</li>
+<li>可能需要进行 ldr 图片和 intensity map 的对齐<ul>
+<li>存在一定的偏差</li>
+</ul>
+</li>
+<li>每一张图片的性质不同，如果要恢复得比较好的话，需要对每一张图片进行调节</li>
+<li>intensity map 的低分辨率导致图片的低曝光区域噪声很多，因此对低曝光区域的恢复也不太好</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>论文 3：对单张 LDR 图片，利用 deep-CNNs 重建 HDR 图片<ul>
+<li>优点<ul>
+<li>所需材料少，获取材料简单</li>
+<li>效果其实很好，使用论文1 中一张合适的图片便可以将整体恢复得很好</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>训练一个这样的神经网络需要大量的材料和算力</li>
+<li>需要有一定的硬件设备<ul>
+<li>显卡内存需要比较大</li>
+</ul>
+</li>
+<li>只能恢复高曝光饱和的情况</li>
+<li>细节缺失严重的时候恢复不出来</li>
+<li>回复的细节信息可能与实际有所偏差</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/03/04/CV/HDR/Paper23/" data-id="cl9lj748v002l64tz7s4wg7b6" data-title="高动态范围成像" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/03/13/CG/YLQ-GAMES101/00/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          GAMES101.闫令琪.00.课程介绍
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/02/22/CG/LS/11/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">计算机图形学.李胜.11.物理模拟</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

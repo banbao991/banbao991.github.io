@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>数据库概论.陈立军.06.事务(3) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="事务冲突可串行化（交换非冲突指令、优先图）、事务视图可串行化（从读一致性）、事务模型">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.06.事务(3)">
+<meta property="og:url" content="http://example.com/2021/05/23/DB/CLJ/06-2/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="事务冲突可串行化（交换非冲突指令、优先图）、事务视图可串行化（从读一致性）、事务模型">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525144122354.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525145111210.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525145951520.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525150148422.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525150856508.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525151342084.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525153235697.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525154116982.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525154541252.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525163716093.png">
+<meta property="og:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525164238665.png">
+<meta property="article:published_time" content="2021-05-23T13:39:28.000Z">
+<meta property="article:modified_time" content="2021-06-25T03:21:50.308Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/23/DB/CLJ/06-2/06-2/image-20210525144122354.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-DB/CLJ/06-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/05/23/DB/CLJ/06-2/" class="article-date">
+  <time class="dt-published" datetime="2021-05-23T13:39:28.000Z" itemprop="datePublished">2021-05-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/DB-CLJ/">DB.CLJ</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      数据库概论.陈立军.06.事务(3)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h1><h2 id="事务冲突可串行化"><a href="#事务冲突可串行化" class="headerlink" title="事务冲突可串行化"></a>事务冲突可串行化</h2><ul>
+<li>一个调度是否正确，看它执行的结果是否和某一个串行调度执行的结果相同</li>
+<li>核心问题：<ul>
+<li>如何判定一个调度是可串行化的？</li>
+<li>如何判定两个调度是等价的？</li>
+</ul>
+</li>
+<li>微观视角：<strong>交换非冲突指令</strong><ul>
+<li>如何把一个调度转换为另一个等价调度？</li>
+</ul>
+</li>
+<li>宏观视角：<strong>从读一致性</strong><ul>
+<li>如何保证每个事务在两个调度中是相同的？</li>
+<li>调度内部逻辑相同，因此对于每个事务，如果输入相同则结果一致</li>
+</ul>
+</li>
+</ul>
+<h3 id="指令顺序对调度结果的影响"><a href="#指令顺序对调度结果的影响" class="headerlink" title="指令顺序对调度结果的影响"></a>指令顺序对调度结果的影响</h3><ul>
+<li>考虑一个调度 S 中的两条连续指令（仅限于 read 与 write 操作）Ii 与 Ij，分别属于事务 Ti 与 Tj</li>
+<li>考虑如下四种情况<ul>
+<li>A：Ii&#x3D;read(Q), Ij&#x3D;read(Q)</li>
+<li>B：Ii&#x3D;read(Q), Ij&#x3D;write(Q)</li>
+<li>C：Ii&#x3D;write(Q), Ij&#x3D;read(Q)</li>
+<li>D：Ii&#x3D;write(Q), Ij&#x3D;write(Q)</li>
+</ul>
+</li>
+<li>只有 A 操作可以交换，也就是说两条指令中存在写指令则不能交换</li>
+<li>引出冲突指令的定义</li>
+</ul>
+<h3 id="调度中的冲突指令"><a href="#调度中的冲突指令" class="headerlink" title="调度中的冲突指令"></a>调度中的冲突指令</h3><ul>
+<li><strong>冲突指令</strong><ul>
+<li>两条指令是不同事务在<strong>相同数据项</strong>上的操作，并且其中<strong>至少有一个</strong>是 <strong>write</strong> 指令</li>
+</ul>
+</li>
+<li>非冲突指令（满足一条即可）<ul>
+<li>都是 read 操作</li>
+<li>操作不同数据项</li>
+</ul>
+</li>
+</ul>
+<h3 id="冲突等价"><a href="#冲突等价" class="headerlink" title="冲突等价"></a>冲突等价</h3><ul>
+<li>如果调度 S 可以经过交换一系列非冲突指令转换成调度 S’，则称调度 S 与 S’ 是冲突等价的</li>
+</ul>
+<h3 id="冲突可串行化的定义"><a href="#冲突可串行化的定义" class="headerlink" title="冲突可串行化的定义"></a>冲突可串行化的定义</h3><ul>
+<li>当一个调度 S 与一个串行调度冲突等价时，则称该调度是冲突可串行化的</li>
+</ul>
+<h4 id="非冲突串行化的例子"><a href="#非冲突串行化的例子" class="headerlink" title="非冲突串行化的例子"></a>非冲突串行化的例子</h4><table>
+<thead>
+<tr>
+<th align="center">T1</th>
+<th align="center">T2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">read(A)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">write(A)</td>
+</tr>
+<tr>
+<td align="center">write(A)</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<h3 id="冲突可串行化的判定"><a href="#冲突可串行化的判定" class="headerlink" title="冲突可串行化的判定"></a>冲突可串行化的判定</h3><ul>
+<li><strong>优先图</strong>（precedence graph）</li>
+<li>调度 S 的优先图的构造方式<ul>
+<li>它是一个有向图 G&#x3D;(V，E)，V是顶点集，E是边集</li>
+<li>顶点集由所有参与调度的事务组成</li>
+<li>边集由满足下述条件之一的边 Ti $\to$ Tj 组成（冲突指令）<ul>
+<li>在 Tj 执行 read(Q) 之前，Ti 执行 write(Q)</li>
+<li>在 Tj 执行 write(Q) 之前，Ti 执行 read(Q)</li>
+<li>在 Tj 执行 write(Q) 之前，Ti 执行 write(Q)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="优先图构造例子"><a href="#优先图构造例子" class="headerlink" title="优先图构造例子"></a>优先图构造例子</h4><img src="06-2/image-20210525144122354.png" style="zoom:50%;" />
+
+<ul>
+<li>如果优先图中存在边 Ti $\to$ Tj，则在任何等价于 S 的串行调度 S’ 中，Ti 都必须出现在 Tj 之前</li>
+<li>如果调度 S 的优先图中有环，则 S 是非冲突可串行化的</li>
+<li>如果调度 S 的优先图中无环，则是冲突可串行化的<ul>
+<li>拓扑排序</li>
+</ul>
+</li>
+</ul>
+<h4 id="与冲突可串行化等价的串行顺序"><a href="#与冲突可串行化等价的串行顺序" class="headerlink" title="与冲突可串行化等价的串行顺序"></a>与冲突可串行化等价的串行顺序</h4><ul>
+<li>串行顺序可由拓扑排序得到，求出与优先图的偏序相一致的线序</li>
+<li>优先图</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">graph LR;</span><br><span class="line">T1--&gt;T2;</span><br><span class="line">T1--&gt;T3;</span><br><span class="line">T2--&gt;T4;</span><br><span class="line">T3--&gt;T4;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>等价串行线序</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">graph LR;</span><br><span class="line">T1--&gt;T2;</span><br><span class="line">T2--&gt;T3;</span><br><span class="line">T3--&gt;T4;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">graph LR;</span><br><span class="line">T1--&gt;T3;</span><br><span class="line">T3--&gt;T2;</span><br><span class="line">T2--&gt;T4;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="可串行化但非冲突可串行化的调度"><a href="#可串行化但非冲突可串行化的调度" class="headerlink" title="可串行化但非冲突可串行化的调度"></a>可串行化但非冲突可串行化的调度</h3><ul>
+<li>满足上面冲突可串行化判断的调度一定是可串行化的</li>
+<li>不满足判断的调度不一定是不可串行化的</li>
+<li>一个例子：转账<ul>
+<li>在实际编写中应当尽量避免如下操作，应该按照相同的数据项的顺序进行处理</li>
+<li>容易造成死锁等问题</li>
+</ul>
+</li>
+</ul>
+<img src="06-2/image-20210525145111210.png" alt="image-20210525145414073" style="zoom:50%;" />
+
+<ul>
+<li>冲突可串行化的要求太苛刻了，引入视图可串行化的判定</li>
+</ul>
+<h2 id="事务视图可串行化"><a href="#事务视图可串行化" class="headerlink" title="事务视图可串行化"></a>事务视图可串行化</h2><h3 id="从读一致性"><a href="#从读一致性" class="headerlink" title="从读一致性"></a>从读一致性</h3><ul>
+<li>如果两个调度从读一致，则是等价的</li>
+<li>把两个调度的 read 指令挑出来，看对应的 read 指令读到的数据是否相同</li>
+<li>每个 read 指令往前找，离它最近的 write 相同数据项的指令，就是他读出来的值</li>
+</ul>
+<h4 id="例子-1：S1-和-S2-从读一致"><a href="#例子-1：S1-和-S2-从读一致" class="headerlink" title="例子 1：S1 和 S2 从读一致"></a>例子 1：S1 和 S2 从读一致</h4><img src="06-2/image-20210525145951520.png" style="zoom:67%;" />
+
+<ul>
+<li>S1 中的从读关系<ul>
+<li>r1(A) 和 r1(B) 读取的是数据库中的初值</li>
+<li>r2(A) 读取的是 w1(A)，r2(B) 读取 w1(B)</li>
+</ul>
+</li>
+<li>S2 中的从读关系<ul>
+<li>r1(A) 和 r1(B) 读取的是数据库中的初值</li>
+<li>r2(A) 读取的是 w1(A)，r2(B) 读取 w1(B)</li>
+</ul>
+</li>
+</ul>
+<h4 id="例子-2：S1-和-S3-从读不一致"><a href="#例子-2：S1-和-S3-从读不一致" class="headerlink" title="例子 2：S1 和 S3 从读不一致"></a>例子 2：S1 和 S3 从读不一致</h4><img src="06-2/image-20210525150148422.png" style="zoom:67%;" />
+
+<ul>
+<li>S1 中的从读关系<ul>
+<li>r1(A) 和 r1(B) 读取的是数据库中的初值</li>
+<li>r2(A) 读取的是 w1(A)，r2(B) 读取 w1(B)</li>
+</ul>
+</li>
+<li>S3 中的从读关系<ul>
+<li>r1(A) 和 r1(B) 读取的是数据库中的初值</li>
+<li>r2(A) 读取的是数据库中的初值</li>
+<li>r2(B) 读取 w1(B)</li>
+</ul>
+</li>
+</ul>
+<h3 id="视图等价的调度"><a href="#视图等价的调度" class="headerlink" title="视图等价的调度"></a>视图等价的调度</h3><ul>
+<li>考虑关于某个事务集的两个调度 S，S’，若调度 S，S’ 满足以下条件，则称它们是视图等价的<ul>
+<li>数据库初值 ${\buildrel{S}\over\longrightarrow}$ ri(Q)，数据库初值 ${\buildrel{S’}\over\longrightarrow}$ ri(Q)</li>
+<li>wj(Q) ${\buildrel{S}\over\longrightarrow}$ ri(Q)，wj(Q) ${\buildrel{S’}\over\longrightarrow}$ ri(Q)</li>
+<li>wj(Q) ${\buildrel{S}\over\longrightarrow}$ 数据库终值，wj(Q) ${\buildrel{S’}\over\longrightarrow}$ 数据库终值</li>
+</ul>
+</li>
+<li>前两条保证从读一致性</li>
+<li>最后一条保证两个调度得到最终相同的系统状态</li>
+</ul>
+<h4 id="视图等价的例子"><a href="#视图等价的例子" class="headerlink" title="视图等价的例子"></a>视图等价的例子</h4><img src="06-2/image-20210525150856508.png" style="zoom:50%;" />
+
+
+
+<h3 id="视图可串行化"><a href="#视图可串行化" class="headerlink" title="视图可串行化"></a>视图可串行化</h3><ul>
+<li>如果某个调度视图等价于一个串行调度，则称该调度是视图可串行化的</li>
+<li><strong>冲突可串行化调度一定是视图可串行化的</strong><ul>
+<li>冲突可串行化的调度一定满足从读一致性</li>
+<li>交换一系列非冲突指令，不会破坏从读一致性</li>
+</ul>
+</li>
+<li><strong>存在视图可串行化但非冲突可串行化的调度</strong></li>
+</ul>
+<img src="06-2/image-20210525151342084.png" style="zoom:50%;" />
+
+<ul>
+<li>盲目写操作：不读就写</li>
+</ul>
+<h3 id="视图可串行化判定"><a href="#视图可串行化判定" class="headerlink" title="视图可串行化判定"></a>视图可串行化判定</h3><h4 id="思想"><a href="#思想" class="headerlink" title="思想"></a>思想</h4><ul>
+<li>找出所有的从读关系</li>
+<li>如果有其他事务对某个数据项有写操作，这个写操作不能破坏这个数据项的从读关系</li>
+</ul>
+<h4 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h4><ul>
+<li>设调度 S 包含了事务 {T1,T2, … ,Tn} ，设 Tb,Tf 是两个虚事务，其中 Tb 为 S 中所有 write(Q) 操作，Tf 为 S 中所有 read(Q) 操作。在调度 S 的开头插入 Tb ，在调度 S 的末尾插入 Tf，得到新的调度 S’<ul>
+<li>如果 Tj 读取 Ti 写入的数据项的值，则加入边 Ti ${\buildrel{0}\over\longrightarrow}$ Tj</li>
+<li>删除所有关联无用事务的边。如果在优先图中不存在从 Ti 到 Tf 的通路，则 Ti 是无用事务</li>
+<li>对于每个数据项 Q，如果 Tj 读取 Ti 写入的 Q 值，Tk 执行 write(Q) 操作且 Tk $\ne$ Tb，则<ul>
+<li>如果 Ti &#x3D; Tb 且 Tj $\ne$ Tf，则在带标记的优先图中插入边 Tj ${\buildrel{0}\over\longrightarrow}$ Tk</li>
+<li>如果Ti $\ne$ Tb 且 Tj&#x3D;Tf，则在带标记的优先图中插入边 Tk ${\buildrel{0}\over\longrightarrow}$ Ti</li>
+<li>如果 Ti $\ne$ Tb且 Tj $\ne$ Tf，则在带标记的优先图中插入边 Tk ${\buildrel{p}\over\longrightarrow}$ Ti 与 Tj ${\buildrel{p}\over\longrightarrow}$ Tk<ul>
+<li>其中 p 是一个唯一的，在前面边的标记中未曾用过的大于 0 的整数</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="算法解释"><a href="#算法解释" class="headerlink" title="算法解释"></a>算法解释</h4><ul>
+<li>读数据库初值的，就是读取 Tb 的</li>
+<li>最终加入一个 Tf，表示读数据库终值</li>
+</ul>
+<h4 id="简单的算法操作"><a href="#简单的算法操作" class="headerlink" title="简单的算法操作"></a>简单的算法操作</h4><ul>
+<li>找到所有的从读关系，加边（包括读初值、写中止）</li>
+<li>对剩下的写操作做分析，不能破坏上面的从读关系<ul>
+<li>只能加前面 &#x2F; 只能加后面：标记 0</li>
+<li>否则加两条边，并标记 p</li>
+</ul>
+</li>
+</ul>
+<h4 id="算法解释（例子1）"><a href="#算法解释（例子1）" class="headerlink" title="算法解释（例子1）"></a>算法解释（例子1）</h4><img src="06-2/image-20210525153235697.png" style="zoom:50%;" />
+
+<ul>
+<li>找出从读关系（红边）<ul>
+<li>read(A) 读取数据库初值，加上一条边（Tb $\to$ T1）</li>
+<li>write(A) 写数据库终值，加上一条边 （T1 $\to$ Tf）</li>
+</ul>
+</li>
+<li>对从读关系进行判断，找到和从读关系操作数据项相同的 write 操作<ul>
+<li>write(A) 不能破坏边（Tb $\to$ T1）的从读关系，因此 T2 只能在 Tb 的前面（这不允许，Tb是第一个事务）或者 T1 的后面</li>
+<li>write(A) 不能破坏边（T1 $\to$ Tf）的从读关系，因此 T2 只能在 T1 的前面或者 Tf 的后面（这不允许，Tf 是最后一个事务）</li>
+</ul>
+</li>
+<li>结果有环，不是视图可串行化的</li>
+</ul>
+<h4 id="例子-2"><a href="#例子-2" class="headerlink" title="例子 2"></a>例子 2</h4><img src="06-2/image-20210525154116982.png" style="zoom:50%;" />
+
+<ul>
+<li>按照上面的算法构造优先图<ul>
+<li>标号相同且不为 0 的边，有一条边成立即可</li>
+</ul>
+</li>
+<li>判定<ul>
+<li>每个优先图包含标号大于 1 的边对中的一条</li>
+<li>判定准则：只要有一个优先图无环，则调度是视图可串行化的</li>
+</ul>
+</li>
+</ul>
+<img src="06-2/image-20210525154541252.png" style="zoom:60%;" />
+
+<ul>
+<li>左图无环，是视图可串行化的</li>
+</ul>
+<h3 id="视图可串行化判定示例"><a href="#视图可串行化判定示例" class="headerlink" title="视图可串行化判定示例"></a>视图可串行化判定示例</h3><ul>
+<li>满足上面视图可串行化判断的调度一定是可串行化的</li>
+<li>不满足判断的调度不一定是不可串行化的</li>
+<li>例子<ul>
+<li>另外一种判定方法：如下调度与任意一个串行调度都不是视图等价的<ul>
+<li>T1, T2</li>
+<li>T2, T1</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">T1</th>
+<th align="center">T2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">read(A)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">A :&#x3D; A - 50</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">write(A)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">read(B)</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">B :&#x3D; B - 10</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">write(B)</td>
+</tr>
+<tr>
+<td align="center">read(B)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">B :&#x3D; B + 50</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">write(B)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">read(A)</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">A :&#x3D; A + 10</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">write(A)</td>
+</tr>
+</tbody></table>
+<h2 id="事务模型"><a href="#事务模型" class="headerlink" title="事务模型"></a>事务模型</h2><h3 id="平面事务"><a href="#平面事务" class="headerlink" title="平面事务"></a>平面事务</h3><ul>
+<li><strong>一层结构</strong></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span> transaction ... <span class="keyword">commit</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>平面事务的缺点<ul>
+<li><strong>不能部分回滚</strong></li>
+</ul>
+</li>
+<li>某些应用场合有部分回滚的需求</li>
+</ul>
+<h4 id="部分回滚应用场合"><a href="#部分回滚应用场合" class="headerlink" title="部分回滚应用场合"></a>部分回滚应用场合</h4><ul>
+<li>确定旅行路线<ul>
+<li>某条线路不通应该回滚到上一个分支点，而不是回滚整个事务</li>
+</ul>
+</li>
+<li>批量更新<ul>
+<li>如银行结算利息，可以把更新每个帐号作为一个事务，也可以把更新所有帐号作为一个事务</li>
+<li>一部分记录更新后，做 一个保存点</li>
+</ul>
+</li>
+</ul>
+<h4 id="保存点"><a href="#保存点" class="headerlink" title="保存点"></a>保存点</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">begin_transaction()</span><br><span class="line">    S1;</span><br><span class="line">    sp1 :<span class="operator">=</span> create_savepoint();</span><br><span class="line">    ...</span><br><span class="line">    Sn;</span><br><span class="line">    spn:<span class="operator">=</span> create_savepoint();</span><br><span class="line">    ...</span><br><span class="line">    if(<span class="keyword">condition</span>)&#123;</span><br><span class="line">        <span class="keyword">rollback</span>(spi);</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line"><span class="keyword">commit</span>();</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>一个例子</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span> tran</span><br><span class="line"><span class="comment">----转账部分</span></span><br><span class="line"><span class="keyword">update</span> accounts</span><br><span class="line"><span class="keyword">set</span> amounts<span class="operator">=</span>amounts<span class="number">-100</span></span><br><span class="line"><span class="keyword">where</span> account_id<span class="operator">=</span><span class="string">&#x27;A&#x27;</span></span><br><span class="line"><span class="keyword">update</span> accounts</span><br><span class="line"><span class="keyword">set</span> amounts<span class="operator">=</span>amounts<span class="operator">+</span><span class="number">100</span></span><br><span class="line"><span class="keyword">where</span> account_id<span class="operator">=</span><span class="string">&#x27;A&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">----结算利息, 然后撤销</span></span><br><span class="line">save tran add_interest <span class="comment">--保存点</span></span><br><span class="line"><span class="keyword">update</span> accounts</span><br><span class="line"><span class="keyword">set</span> amounts<span class="operator">=</span>amounts<span class="operator">*</span><span class="number">1.02</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> accounts</span><br><span class="line"><span class="keyword">rollback</span> tranadd_interest</span><br><span class="line"><span class="keyword">commit</span> tran</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="分布式事务"><a href="#分布式事务" class="headerlink" title="分布式事务"></a>分布式事务</h3><img src="06-2/image-20210525163716093.png" style="zoom:67%;" />
+
+<h3 id="Moss-的嵌套事务模型"><a href="#Moss-的嵌套事务模型" class="headerlink" title="Moss 的嵌套事务模型"></a>Moss 的嵌套事务模型</h3><ul>
+<li>嵌套事务是一棵<strong>事务树</strong>，<strong>子树</strong>可以是<strong>嵌套</strong>的也可以是<strong>平面</strong>的</li>
+<li><strong>叶结点事务是平面事务</strong>，从根结点到各个叶结点的距离可以是不同的</li>
+<li>根结点事务称作<strong>顶层事务</strong>，其他称作<strong>子事务</strong></li>
+<li>子事务可以提交也可以回滚，但它的提交并不起作用，除非它的父事务提交<ul>
+<li><strong>只有根结点的提交才会使得所有子事务提交</strong></li>
+</ul>
+</li>
+<li>树中任何一个事务的回滚导致它的所有子事务的回滚</li>
+<li>子事务具有一般事务的 A,C,I 特性，但不具有 D 特性</li>
+<li>实际工作只发生在叶结点事务中，只有它们可以访问数据库，发送消息等<ul>
+<li>上层事务只是组织控制流以及决定什么时候该激活哪个子事务</li>
+</ul>
+</li>
+</ul>
+<h4 id="规则"><a href="#规则" class="headerlink" title="规则"></a>规则</h4><ul>
+<li>提交规则<ul>
+<li>当子事务提交时，它的结果只能被它的父事务所访问</li>
+<li>只有当一个子事务提交了，并且它的一直到根的所有祖先也都提交了，该子事务才最终提交</li>
+<li>因此，只有根结点提交了，所有子事务才会提交</li>
+</ul>
+</li>
+<li>回滚规则<ul>
+<li>如果任何一个嵌套层次的事务回滚了，它的所有子事务也都要回滚，不管它们当前是否已经提交</li>
+<li>因此，如果根结点回滚，整个嵌套事务也就回滚</li>
+</ul>
+</li>
+<li>可见规则<ul>
+<li>当子事务提交后，它的修改对其父事务是可见的，而对其兄弟是不可见的</li>
+<li>父事务的任何对象对其子事务都是可访问的</li>
+</ul>
+</li>
+</ul>
+<h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> TestNestTrans(Col <span class="type">char</span>(<span class="number">3</span>))</span><br><span class="line"><span class="keyword">create</span> proccedure TransProc <span class="variable">@CharCol</span> <span class="type">char</span>(<span class="number">3</span>)</span><br><span class="line"><span class="keyword">as</span></span><br><span class="line"><span class="keyword">begin</span> transaction InProc</span><br><span class="line">    <span class="keyword">insert</span> <span class="keyword">into</span> TestNestTrans <span class="keyword">values</span>(<span class="variable">@CharCol</span>)</span><br><span class="line"><span class="keyword">commit</span> transaction InProc</span><br><span class="line"></span><br><span class="line"><span class="keyword">begin</span> transaction OutOfProc</span><br><span class="line">    <span class="keyword">exec</span> TransProc <span class="string">&#x27;aaa&#x27;</span></span><br><span class="line"><span class="keyword">rollback</span> transaction OutOfProc</span><br><span class="line"></span><br><span class="line"><span class="keyword">exec</span> TransProc <span class="string">&#x27;bbb&#x27;</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> TestTrans</span><br><span class="line"><span class="comment">--最终 TestNestTrans 表中只有元组 bbb</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="工作流（workflow）"><a href="#工作流（workflow）" class="headerlink" title="工作流（workflow）"></a>工作流（workflow）</h3><ul>
+<li>实现某种商业目的的一组相关活动（或步骤）<ul>
+<li>银行或保险公司的贷款申请或保险索赔</li>
+<li>一次科技会议的规划(邀请、评论、通知等等)</li>
+<li>购买房地产的行政程序</li>
+<li>病人在医院中的“行程”</li>
+</ul>
+</li>
+<li>工作流使得机构把他们重复的、一成不变的处理自动化，同时保持灵活性，根据不断变化的商业需求来很快调整处理过程</li>
+<li>工作流可能跨越不同的负责人和不同的、独立的信息系统，甚至跨越不同的企业</li>
+<li>银行借贷工作流</li>
+</ul>
+<img src="06-2/image-20210525164238665.png" style="zoom:60%;" />
+
+<h4 id="工作流任务间的依赖关系"><a href="#工作流任务间的依赖关系" class="headerlink" title="工作流任务间的依赖关系"></a>工作流任务间的依赖关系</h4><ul>
+<li>其他任务的执行状态<ul>
+<li>任务 tj 结束了，任务 ti 才能开始</li>
+</ul>
+</li>
+<li>其他任务的输出值<ul>
+<li>如果任务 tj 返回一个大于 20 的值，则任务 ti 可以开始</li>
+<li>如果秘书审批任务返回 OK，则经理审批任务可以开始</li>
+</ul>
+</li>
+<li>外部时间修改的外部变量<ul>
+<li>上午9点以后任务 ti 才能开始</li>
+<li>在任务 tj 完成后的 24 小时内必须开始任务 ti</li>
+</ul>
+</li>
+</ul>
+<h4 id="工作流的执行"><a href="#工作流的执行" class="headerlink" title="工作流的执行"></a>工作流的执行</h4><ul>
+<li>工作流执行<ul>
+<li>提交的可接受终止状态</li>
+<li>中止的可接受终止状态</li>
+</ul>
+</li>
+<li>整个工作流作为一个事务？<ul>
+<li>工作流持续时间很长</li>
+<li>每个活动作为一个事务？</li>
+</ul>
+</li>
+<li>如何取消一个活动？补偿事务</li>
+</ul>
+<h3 id="长事务"><a href="#长事务" class="headerlink" title="长事务"></a>长事务</h3><ul>
+<li>运行时间过长，不能采用传统的封锁机制</li>
+<li>业务事务：涉及多个相关步骤、运行较长时间</li>
+<li>例如购物包括以下若干步骤<ul>
+<li>订购商品、商议价格、确定发货日期、确认发货、开具发票、收到货款、发货、…</li>
+</ul>
+</li>
+<li>不能用普通事务实现，否则锁死很久</li>
+</ul>
+<h4 id="典型例子"><a href="#典型例子" class="headerlink" title="典型例子"></a>典型例子</h4><ul>
+<li>传统的 DBMS 应用<ul>
+<li>计算所有银行账户余额</li>
+</ul>
+</li>
+<li>设计系统<ul>
+<li>设计被分为不同部分，不同设计者同时工作在不同部分上</li>
+</ul>
+</li>
+<li>工作流系统</li>
+</ul>
+<h4 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h4><ul>
+<li>持续时间长</li>
+<li>暴露未提交的数据</li>
+<li>子任务<ul>
+<li>中止其中某个子任务，而不必中止整个事务</li>
+</ul>
+</li>
+<li>可恢复性<ul>
+<li>不要将整个事务撤销，而恢复到系统崩溃之前的某一状态，使丢掉的工作尽量少</li>
+</ul>
+</li>
+<li>性能<ul>
+<li>响应时间 vs 事务吞吐量</li>
+</ul>
+</li>
+</ul>
+<h4 id="Saga"><a href="#Saga" class="headerlink" title="Saga"></a>Saga</h4><ul>
+<li>Saga：构成长事务的一系列动作</li>
+<li>一个图，其结点是动作或中止及完成结点，弧连接结点对<ul>
+<li>中止及完成结点称为<strong>终止结点</strong></li>
+</ul>
+</li>
+<li>关于动作从哪个结点开始的指示，称为<strong>开始节点</strong></li>
+<li>Saga 的并发控制<ul>
+<li>每个动作是一个一个短事务，采用传统的并发控制</li>
+<li>整个事务的完整性由<strong>补偿事务</strong>来保证<ul>
+<li>整个事务，即任何通向终止结点的路径通过补偿事务来管理，也即每个结点上短事务的逆（用于撤销回滚）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Service-Broker"><a href="#Service-Broker" class="headerlink" title="Service Broker"></a>Service Broker</h4><ul>
+<li>转化为异步的消息队列</li>
+<li>每个部门处理订单的一部分，每个部分处理完自己的短事务之后，打包成一个消息传递给下一个部门</li>
+<li>可靠的（reliable）、有序的（in order）、异步的（asynchronous）</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/05/23/DB/CLJ/06-2/" data-id="cl9lj74ax00fv64tzdnad0wpd" data-title="数据库概论.陈立军.06.事务(3)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/05/24/DB/CLJ/04-8/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          数据库概论.陈立军.04.非关系型数据
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/05/22/CG/YLQ-GAMES202/11/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">GAMES202.闫令琪.11.基于物理的材质与非真实感渲染</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

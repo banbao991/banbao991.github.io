@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>xv6-riscv-源代码阅读.中断与异常 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="中断与异常">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6-riscv-源代码阅读.中断与异常">
+<meta property="og:url" content="http://example.com/2021/03/28/OS/xv6-source-code/01-Exception/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="中断与异常">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-03-28T05:00:00.000Z">
+<meta property="article:modified_time" content="2021-07-22T11:31:08.522Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="xv6">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-OS/xv6-source-code/01-Exception" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/03/28/OS/xv6-source-code/01-Exception/" class="article-date">
+  <time class="dt-published" datetime="2021-03-28T05:00:00.000Z" itemprop="datePublished">2021-03-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      xv6-riscv-源代码阅读.中断与异常
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="XV6-源代码阅读——中断与异常"><a href="#XV6-源代码阅读——中断与异常" class="headerlink" title="XV6 源代码阅读——中断与异常"></a>XV6 源代码阅读——中断与异常</h1><h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><ul>
+<li>阅读的代码是 <code>xv6-riscv</code> 版本的</li>
+<li>涉及到的文件如下<ul>
+<li><code>kernel</code><ul>
+<li><code>kernelvsc.S</code>、<code>proc.c</code>、<code>start.c</code>、<code>syscall.c</code>、<code>trampoline.S</code>、<code>trap.c</code>、<code>riscv.h</code>、<code>entry.S</code></li>
+</ul>
+</li>
+<li><code>user</code><ul>
+<li><code>sh.c</code>、<code>initcode.S</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="问题回答"><a href="#问题回答" class="headerlink" title="问题回答"></a>问题回答</h2><h3 id="1-问题-1"><a href="#1-问题-1" class="headerlink" title="(1) 问题 1"></a>(1) 问题 1</h3><h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><ul>
+<li>什么是用户态和内核态？两者有何区别？什么是中断和系统调用？两者有何区别？计算机在运行时，是如何确定当前处于用户态还是内核态的？</li>
+</ul>
+<h4 id="回答"><a href="#回答" class="headerlink" title="回答"></a>回答</h4><ul>
+<li>在 RISC-V 中，有 3 种权限不同的模式（Machine mode、Supervisor mode、User mode）<ul>
+<li>machine mode 拥有所有的特权，一般在启动时候用于配置电脑的环境</li>
+<li>supervisor mode 的权限相对低些，可以执行特权指令，例如是否使能中断等</li>
+<li>user mode 的权限级别最低，完成一些特殊功能的时候需要通过系统调用进入 supervisor mode</li>
+</ul>
+</li>
+<li>内核态可以运行在 machine mode 和 supervisor mode 下，用户态只能运行在 user mode</li>
+<li>中断与系统调用<ul>
+<li>中断分为外中断和内中断，外中断包括 I&#x2F;O 中断、时钟中断等，内中断包括异常、系统调用和中止</li>
+<li>系统调用指的是处于用户态下的程序需要完成一些只有内核态才能完成的功能时，通过系统调用的方式进入内核态，从而实现功能的行为<ul>
+<li>主动调用，返回到下一条指令</li>
+<li>一种中断，需要利用中断的机制来实现</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>在 RISC-V 中，通过寄存器 sstatus 中保存的 SPP 位来判断是处于内核态 (1) 还是用户态 (0)</li>
+</ul>
+<h3 id="2-问题-2"><a href="#2-问题-2" class="headerlink" title="(2) 问题 2"></a>(2) 问题 2</h3><h4 id="问题-1"><a href="#问题-1" class="headerlink" title="问题"></a>问题</h4><ul>
+<li>什么是中断描述符，中断描述符表？在XV6 里是用什么数据结构表示的？</li>
+</ul>
+<h4 id="回答-1"><a href="#回答-1" class="headerlink" title="回答"></a>回答</h4><ul>
+<li>RISC-V 中直接在 stvec 寄存器中设定中断处理程序的基地址，然后根据引起中断的不同原因分别进行操作，stvec 可以有两种取值 uservec &#x2F; kernelvec</li>
+<li>如果是一种系统调用的话，在 uservec 中通过 syscall 进行具体功能的调用，参数通过 a 类寄存器传递，具体的系统调用号保存在寄存器 a7 里面，然后在进行 syscall 的时候，直接在数组通过系统调用号索引出具体的系统调用函数</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># user/initcode.S</span><br><span class="line">start:</span><br><span class="line">  la a0, init</span><br><span class="line">  la a1, argv</span><br><span class="line">  li a7, SYS_exec</span><br><span class="line">  ecall # ecall 陷入内核, 然后执行 uservec(在第三部分提具体的机制)</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="3-一次中断的过程"><a href="#3-一次中断的过程" class="headerlink" title="(3) 一次中断的过程"></a>(3) 一次中断的过程</h3><ul>
+<li>我们使用 trap 来泛指中断<ul>
+<li>系统调用（system call）：用户态程序通过调用 <code>ecall</code> 进入内核态实现功能</li>
+<li>异常（exception）：用户态或者内核态程序的操作非法（除零、地址无效等）</li>
+<li>设备中断（device interrupt）：例如硬件读写等</li>
+</ul>
+</li>
+<li>Xv6 trap 的处理过程主要有 4 步<ul>
+<li>RISC-V CPU 硬件做一些相关工作</li>
+<li>为内核执行 C 代码准备一个向量组</li>
+<li>C trap 处理程序</li>
+<li>最后通过 system call 或者 device-driver 进行处理</li>
+</ul>
+</li>
+<li>硬件在中断中做的事情如下<ul>
+<li>判断 trap 类型，如果是设备中断而且寄存器 sstatus 中的 SIE 位为 0 ，那么结束（下列都不执行）</li>
+<li>将寄存器 sstatus 中的 SIE 位设置为 0（关掉设备中断）</li>
+<li>将 pc 拷贝到寄存器 sepc 中</li>
+<li>保存当前模式（user&#x2F;supervisor）到 sstatus 的 SPP 位中</li>
+<li>将 scause 寄存器设置为引起 trap 的原因</li>
+<li>设置模式为 supervisor mode</li>
+<li>将寄存器 stvec 的内容拷贝到 pc 中<ul>
+<li>stvec 寄存器保存 trap 处理程序的地址</li>
+</ul>
+</li>
+<li>开始按照新的 pc 执行代码</li>
+</ul>
+</li>
+<li>硬件在中断中的行为<ul>
+<li>没有切换页表、没有切换栈、没有保存其他寄存器</li>
+<li>这样的话相对高效，不是所有程序都需要切换页表的，而且不同程序保存寄存器的方式也不一样，硬件只做必要的事情</li>
+</ul>
+</li>
+<li>Xv6 在实现 trap 的时候将其分为如下 3 类，分别对应不同的处理程序<ul>
+<li>traps from kernel space</li>
+<li>traps from user space</li>
+<li>timer interrupts</li>
+</ul>
+</li>
+<li>我们接下来探讨这 3 类 trap 的不同实现</li>
+</ul>
+<h4 id="Traps-from-kernel-mode"><a href="#Traps-from-kernel-mode" class="headerlink" title="Traps from kernel mode"></a>Traps from kernel mode</h4><ul>
+<li>在内核模式下，trap 只有两类：exceptions 、device  interrupt</li>
+<li>当一个 trap 发生的时候，首先硬件开始工作，配置好上面提到的环境信息</li>
+<li>此时 stvec 指向了 kernelvec 的起始地址</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"># kernel/kernelvec.S</span><br><span class="line">.globl kerneltrap</span><br><span class="line">.globl kernelvec</span><br><span class="line">.align 4</span><br><span class="line">kernelvec:</span><br><span class="line">        # 在栈上开辟一块空间用于保存寄存器</span><br><span class="line">        addi sp, sp, -256</span><br><span class="line">        sd ra, 0(sp)</span><br><span class="line">        # ... 保存所有寄存器</span><br><span class="line">        sd t6, 240(sp)</span><br><span class="line"></span><br><span class="line">        # 调用 C 处理程序</span><br><span class="line">        call kerneltrap</span><br><span class="line"></span><br><span class="line">        # 恢复寄存器到之前的状态</span><br><span class="line">        ld ra, 0(sp)</span><br><span class="line">        # ... 恢复所有的寄存器(除了 tp)</span><br><span class="line">        ld t6, 240(sp)</span><br><span class="line"></span><br><span class="line">        # 恢复栈指针</span><br><span class="line">        addi sp, sp, 256</span><br><span class="line"></span><br><span class="line">        # 返回到之前的运行状态</span><br><span class="line">        sret</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>kernelvec 首先在栈上开辟一块空间，将所有的寄存器都保存下来<ul>
+<li>因为本身就是在内核栈中，直接保存在栈上就行了</li>
+</ul>
+</li>
+<li>调用 trap 的处理程序 kerneltrap</li>
+<li>返回后恢复所有寄存器到原来的状态<ul>
+<li>不需要恢复 tp（thread pointer）</li>
+</ul>
+</li>
+<li>kerneltrap 的代码如下</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/trap.c</span></span><br><span class="line"><span class="type">void</span>  <span class="title function_">kerneltrap</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="type">int</span> which_dev = <span class="number">0</span>;</span><br><span class="line">  uint64 sepc = r_sepc();</span><br><span class="line">  uint64 sstatus = r_sstatus();</span><br><span class="line">  uint64 scause = r_scause();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>((sstatus &amp; SSTATUS_SPP) == <span class="number">0</span>)</span><br><span class="line">    panic(<span class="string">&quot;kerneltrap: not from supervisor mode&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span>(intr_get() != <span class="number">0</span>)</span><br><span class="line">    panic(<span class="string">&quot;kerneltrap: interrupts enabled&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>((which_dev = devintr()) == <span class="number">0</span>)&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;scause %p\n&quot;</span>, scause);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;sepc=%p stval=%p\n&quot;</span>, r_sepc(), r_stval());</span><br><span class="line">    panic(<span class="string">&quot;kerneltrap&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// give up the CPU if this is a timer interrupt.</span></span><br><span class="line">  <span class="keyword">if</span>(which_dev == <span class="number">2</span> &amp;&amp; myproc() != <span class="number">0</span> &amp;&amp; myproc()-&gt;state == RUNNING)</span><br><span class="line">    yield();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// the yield() may have caused some traps to occur,</span></span><br><span class="line">  <span class="comment">// so restore trap registers for use by kernelvec.S&#x27;s sepc instruction.</span></span><br><span class="line">  w_sepc(sepc);</span><br><span class="line">  w_sstatus(sstatus);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>kerneltrap 首先保存寄存器 sstatus、sepc<ul>
+<li>因为可能在 yield() 的时候出发新的 trap，因此需要保存这些寄存器的值</li>
+</ul>
+</li>
+<li>权限判断，触发 kerneltrap 的必须是内核态</li>
+<li>判断现在的 sstatus 寄存器的 SIE 位是否为 1（是否打开设备中断）<ul>
+<li>如果打开了说明之前有可能出错，正常情况下应该是关闭的</li>
+<li>出错原因？</li>
+</ul>
+</li>
+<li>判断 trap 的原因【通过 devintr() 函数判断】<ul>
+<li>如果是 exceptions ，那么肯定是内核出现错误了</li>
+<li>如果是 device interrupt 的话，那么一定是时钟中断，调用 yield() 让出执行权</li>
+</ul>
+</li>
+<li>最后恢复寄存器 sstatus、sepc 的值</li>
+</ul>
+<h5 id="一个问题"><a href="#一个问题" class="headerlink" title="一个问题"></a>一个问题</h5><ul>
+<li>如果 yield() 的时候触发了 trap 怎么进入 kerneltrap 呢？在 user mode 下，stvec 指向的是 usertrap？<ul>
+<li>在调用 usertrap 的时候设置 stvec 为 kerneltrap 即可</li>
+<li>由于 RISC-V 硬件在进入 trap 的时候会关闭中断，因此就算有一小段时间 stvec 的值不正确也没事</li>
+<li>具体 yield() 的机制还没学习 &#x2F;&#x2F; TODO</li>
+</ul>
+</li>
+</ul>
+<h4 id="Traps-from-user-space"><a href="#Traps-from-user-space" class="headerlink" title="Traps from user space"></a>Traps from user space</h4><ul>
+<li>除了上面提到的两种 trap 之外，用户态下的 trap 还有通过 syscall 触发的系统调用</li>
+<li>大体的运作逻辑是这样<ul>
+<li>uservec、usertrap、 usertrapret、userret</li>
+</ul>
+</li>
+<li>这一部分相对复杂的原因硬件在进入 trap 的时候是没有切换页表的，因此我们在查找具体的页表内容的时候需要通过当前进程中保存的页表地址取计算得到</li>
+<li>首先系统进入 trap 之后，硬件会做上面提到的工作<ul>
+<li>但是此时，stvec 指向的地址是 uservec</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"># trampoline.S</span><br><span class="line">uservec:</span><br><span class="line">    # 交换 a0 和 sscratch 寄存器的值</span><br><span class="line">        # so that a0 is TRAPFRAME</span><br><span class="line">        csrrw a0, sscratch, a0</span><br><span class="line"></span><br><span class="line">        # 将寄存器保存到当前进程的 trapframe 中</span><br><span class="line">        sd ra, 40(a0)</span><br><span class="line">        # ... 保存寄存去</span><br><span class="line">        sd t6, 280(a0)</span><br><span class="line"></span><br><span class="line">        # 同时也保存 a0</span><br><span class="line">        csrr t0, sscratch</span><br><span class="line">        sd t0, 112(a0)</span><br><span class="line"></span><br><span class="line">        # 从 user mode 的 traptable 中恢复一些内核的信息</span><br><span class="line">        ld sp, 8(a0)</span><br><span class="line">        ld tp, 32(a0)</span><br><span class="line">        ld t0, 16(a0)</span><br><span class="line">        ld t1, 0(a0)</span><br><span class="line">        csrw satp, t1</span><br><span class="line">        sfence.vma zero, zero</span><br><span class="line"></span><br><span class="line">        # a0 is no longer valid, since the kernel page</span><br><span class="line">        # table does not specially map p-&gt;tf.</span><br><span class="line"></span><br><span class="line">        # jump to usertrap(), which does not return</span><br><span class="line">        jr t0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在进行系统调用之前，p-&gt;trapframe 的起始地址会被保存在 sscratch 寄存器中</li>
+<li>因此在运行 usertrap 的时候可以利用 sscatch 寄存器中保存的值找到 user mode 下的页表地址</li>
+<li>usertrap 首先将所有的寄存器保存在 p-&gt;trapframe 中</li>
+<li>然后将内核页表的地址修改为和用户的页表地址一致</li>
+<li>跳转到 usertrap 执行</li>
+<li>usertrap 代码如下（基本思路和之前差不多）</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">usertrap</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">  <span class="type">int</span> which_dev = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">if</span>((r_sstatus() &amp; SSTATUS_SPP) != <span class="number">0</span>)</span><br><span class="line">    panic(<span class="string">&quot;usertrap: not from user mode&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 设置 stvec 为 kernelvec</span></span><br><span class="line">  w_stvec((uint64)kernelvec);</span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">proc</span> *<span class="title">p</span> =</span> myproc();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 保存PC, 否则可能会有其他的 usertrap 修改它</span></span><br><span class="line">  p-&gt;trapframe-&gt;epc = r_sepc();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(r_scause() == <span class="number">8</span>)&#123;</span><br><span class="line">    <span class="comment">// system call</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(p-&gt;killed)</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 系统调用返回下一条命令</span></span><br><span class="line">    p-&gt;trapframe-&gt;epc += <span class="number">4</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 做完寄存器的操作之后打开设备中断</span></span><br><span class="line">    intr_on();</span><br><span class="line"></span><br><span class="line">    syscall(); <span class="comment">// 系统调用</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span>((which_dev = devintr()) != <span class="number">0</span>)&#123;</span><br><span class="line">    <span class="comment">// ok</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;usertrap(): unexpected scause %p pid=%d\n&quot;</span>, r_scause(), p-&gt;pid);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;            sepc=%p stval=%p\n&quot;</span>, r_sepc(), r_stval());</span><br><span class="line">    p-&gt;killed = <span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(p-&gt;killed)</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// give up the CPU if this is a timer interrupt.</span></span><br><span class="line">  <span class="keyword">if</span>(which_dev == <span class="number">2</span>)</span><br><span class="line">    yield();</span><br><span class="line"></span><br><span class="line">  usertrapret();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>usertrap 的流程如下<ul>
+<li>判断权限（要求是用户态）</li>
+<li>重新修改 stvec 为 kernelvec<ul>
+<li>当前所处的状态是内核态</li>
+<li>之前提到的 yield 问题</li>
+</ul>
+</li>
+<li>保存一些状态值，避免新的 usertrap 会修改它<ul>
+<li>PC 等</li>
+</ul>
+</li>
+<li>判断具体引起 trap 的原因<ul>
+<li>如果是 syscall<ul>
+<li>判断进程是否存活</li>
+<li>修改 PC &#x3D; PC + 4（系统调用返回下一条命令）</li>
+<li>打开设备中断</li>
+<li>syscall 进行系统调用</li>
+</ul>
+</li>
+<li>如果是 exception<ul>
+<li>杀死进程并报错</li>
+</ul>
+</li>
+<li>如果是 device interrupt<ul>
+<li>yield</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>最后调用 usertrapret 返回<ul>
+<li>这一部分主要恢复之前保存的状态</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Time-interrupt"><a href="#Time-interrupt" class="headerlink" title="Time interrupt"></a>Time interrupt</h4><ul>
+<li>具体的机制和上面谈到的一样</li>
+<li>time interrupt 的启动<ul>
+<li>在操作系统启动的时候，开启 time interrupt</li>
+</ul>
+</li>
+</ul>
+<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><ul>
+<li>很多的设计都是一些 trade-off<ul>
+<li>例如在 RISC-V 中，只让硬件做简单的工作，而不用进行一些复杂的操作（页表切换、栈切换等）</li>
+<li>这样的设计让不需要做复杂操作的程序运行得更快了（例如 kernelvec）</li>
+<li>但是同时需要做上述操作的程序处理起来就更加复杂，而且不是硬件直接做的话，速度上也会有所下降（例如 uservec）</li>
+</ul>
+</li>
+<li>很多设计的思想其实是相通的，例如这里的 kernelvec 调用的时候需要自己保存一些状态，避免在此时再次引发 trap 的时候修改这些状态量。这和编译器上面递归函数调用的时候需要保存参数等是一致的。</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2019/xv6/book-riscv-rev0.pdf">https://pdos.csail.mit.edu/6.828/2019/xv6/book-riscv-rev0.pdf</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/mit-pdos/xv6-riscv">https://github.com/mit-pdos/xv6-riscv</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/03/28/OS/xv6-source-code/01-Exception/" data-id="cl9lj74b700hq64tz3wx38ncs" data-title="xv6-riscv-源代码阅读.中断与异常" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/03/29/OS/xv6-labs/lab0-environment-utils/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          xv6-labs-2020.lab0.utils
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/03/27/CG/YLQ-GAMES202/02/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">GAMES202.闫令琪.02.基础知识</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

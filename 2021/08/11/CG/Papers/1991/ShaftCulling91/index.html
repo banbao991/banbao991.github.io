@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>(论文)[1991] Shaft Culling for Efficient Ray-Cast Radiosity | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="光线投射的可见性测试，shaft culling 方法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[1991] Shaft Culling for Efficient Ray-Cast Radiosity">
+<meta property="og:url" content="http://example.com/2021/08/11/CG/Papers/1991/ShaftCulling91/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="光线投射的可见性测试，shaft culling 方法">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/08/11/CG/Papers/1991/ShaftCulling91/ShaftCulling91/image-20210809214236432.png">
+<meta property="og:image" content="http://example.com/2021/08/11/CG/Papers/1991/ShaftCulling91/ShaftCulling91/image-20210809214236432.png">
+<meta property="og:image" content="http://example.com/2021/08/11/CG/Papers/1991/ShaftCulling91/ShaftCulling91/image-20210810152017775.png">
+<meta property="og:image" content="http://example.com/2021/08/11/CG/Papers/1991/ShaftCulling91/ShaftCulling91/image-20210810171310519.png">
+<meta property="og:image" content="http://example.com/2021/08/11/CG/Papers/1991/ShaftCulling91/ShaftCulling91/image-20210810220729169.png">
+<meta property="article:published_time" content="2021-08-11T08:51:56.000Z">
+<meta property="article:modified_time" content="2021-09-22T03:37:55.925Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="occlusion">
+<meta property="article:tag" content="可见性">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/08/11/CG/Papers/1991/ShaftCulling91/ShaftCulling91/image-20210809214236432.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/Papers/1991/ShaftCulling91" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/08/11/CG/Papers/1991/ShaftCulling91/" class="article-date">
+  <time class="dt-published" datetime="2021-08-11T08:51:56.000Z" itemprop="datePublished">2021-08-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-Paper/">CG.Paper</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      (论文)[1991] Shaft Culling for Efficient Ray-Cast Radiosity
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Shaft-Culling-for-Efficient-Ray-Cast-Radiosity"><a href="#Shaft-Culling-for-Efficient-Ray-Cast-Radiosity" class="headerlink" title="Shaft Culling for Efficient Ray-Cast Radiosity"></a>Shaft Culling for Efficient Ray-Cast Radiosity</h1><h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><ul>
+<li>在 emitter 和 receiver 之间，我们可能会做多次光线投射的可见性测试，因此我们进行预处理</li>
+<li>首先我们生成一个尽可能小的包围盒，将 emitter 和 receiver 包含进去</li>
+<li>然后我们生成一个 list，list 里面包含可能和这个包围盒相交的 bv（可能对 emitter 和 receiver 之间的可见性又影响的 bv）</li>
+<li>之后我们对每一条光线，只需要判断它和 list 中的光线是否有交即可</li>
+</ul>
+<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><ul>
+<li>object：一个可渲染的图元</li>
+<li>item：一个 object 或者多个 item</li>
+<li>算法准备工作：根据给定的 object 建立 bvh（bounding volume hierarchy）</li>
+<li>reference items：the emitter and the receiver</li>
+<li>candidate list：可能挡住 emitter 和 receiver 之间可见性的一组 item</li>
+<li>每次需要判断两个采样点之间的可见性时，我们遍历整个 candidate list，直至找到交点或者遍历结束</li>
+<li>怎么生成 candidate list？如下是两种比较 trivial 的方法<ul>
+<li>可以使用整个场景所有 object 构成 candidate list</li>
+<li>只使用 bvh 的根节点，遍历整棵树</li>
+</ul>
+</li>
+<li>如果我们能够在空间上定义一个 volume，它能够包含整个空间中在 reference items 之间的所有点，这样便能够形成一个比较好的 candidate list<ul>
+<li>这样只需要判断 object 是否在 volume 之内即可</li>
+</ul>
+</li>
+<li>时间花费：建立 candidate list 花费的时间和使用它节省的时间<ul>
+<li>可以估计允许我们使用多少时间生成 candidate list</li>
+</ul>
+</li>
+<li>是否生成 candidate list<ul>
+<li>emitter 和 receiver 相隔很远，不生成</li>
+</ul>
+</li>
+<li>预计算潜在的在 reference items 之间的光线，如果大于预设值则生成使用 candidate list，否则不生成使用<ul>
+<li><strong>简单</strong>的测试</li>
+</ul>
+</li>
+</ul>
+<h2 id="candidate-list-算法"><a href="#candidate-list-算法" class="headerlink" title="candidate list 算法"></a>candidate list 算法</h2><ul>
+<li>candidate list 算法有 3 个步骤<ul>
+<li>forming the testing volume</li>
+<li>creating the candidate list by using this volume</li>
+<li>accessing the candidate list for visibility determination between samples</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-Forming-the-Testing-Structure"><a href="#1-Forming-the-Testing-Structure" class="headerlink" title="(1) Forming the Testing Structure"></a>(1) Forming the Testing Structure</h3><ul>
+<li>主要步骤如下<ul>
+<li>Obtain the <strong>bounding boxes</strong> for the reference items.</li>
+<li>Compute <strong>the extent bounding box</strong> containing both reference items.</li>
+<li>Create the <strong>plane set</strong> between the two reference items’ boxes.</li>
+</ul>
+</li>
+</ul>
+<img src="ShaftCulling91/image-20210809214236432.png" style="zoom:67%;" />
+
+<ul>
+<li><p>第一步</p>
+<ul>
+<li>我们使用 bvh，因此可以很容易得到 reference item 的包围盒，AABB 包围盒（axis aligned）</li>
+<li>$lo.x,lo.y,lo.z,hi.x,hi.y,hi.z$</li>
+</ul>
+</li>
+<li><p>第二步</p>
+<ul>
+<li>直接对两个 reference item 的包围盒取边界值（大的取大，小的取小）</li>
+<li>同时找出 culled edges（扩展包包围盒中不属于 reference item 的边）</li>
+</ul>
+</li>
+<li><p>第三步</p>
+<ul>
+<li><p>找到一组平面，将两个 reference item 的包围盒连接在一起</p>
+</li>
+<li><p>形成 minimal bounding volume</p>
+</li>
+<li><p>我们削去包围盒中和 culled edges 相邻的一块空间</p>
+<ul>
+<li>我们将 volume 称为 shaft</li>
+</ul>
+</li>
+<li><p>同时需要记录哪一个生成扩展包围盒的时候，哪一个包围盒的顶点成为了边界值（最大最小）</p>
+<ul>
+<li>称为 list</li>
+<li>用于确定 culled edges</li>
+</ul>
+</li>
+<li><p>两个 reference item 都需要有一个 list，每个 list 最多有 6 个 entry</p>
+</li>
+<li><p>每一个  entry 记录类型（minimum &#x2F; maximum）和方向（X &#x2F; Y &#x2F; Z）</p>
+<ul>
+<li>例如 MIN_Z</li>
+</ul>
+</li>
+<li><p>如果 reference item 的最小&#x2F;大值相同，则两个列表都不会出现这个 entry</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="运行过程"><a href="#运行过程" class="headerlink" title="运行过程"></a>运行过程</h4><ul>
+<li>构造 list<ul>
+<li>emitter list：MAX_Y</li>
+<li>receiver list：MIN_X，MIN_Y，MAX_X</li>
+</ul>
+</li>
+<li>第三步构造 planes，两个 list 中的元素两两组合（去除方向匹配的边），剩下的边就是 culled edge<ul>
+<li>MAX_Y——MIN_X</li>
+<li>MAX_Y——MIN_Y（方向匹配上了，去除）</li>
+<li>MAX_Y——MAX_X</li>
+</ul>
+</li>
+</ul>
+<img src="ShaftCulling91/image-20210809214236432.png" style="zoom:67%;" />
+
+<ul>
+<li>MAX_Y——MIN_X<ul>
+<li>切去边 ：$(lo.x,hi.y,lo.z)-(lo.x,hi.y,hi.z)$ 关联的边（culled edge）</li>
+<li>生成平面的法线（就和我们平时法线的定义一致），<strong>得归一化</strong><ul>
+<li>未参与 $Z.direction&#x3D;0$ </li>
+<li>$X.direction&#x3D;Receiver.hi.y-Emitter.hi.y$</li>
+<li>$Y.direction&#x3D;-Receiver.lo.x+Emitter.lo.x$</li>
+</ul>
+</li>
+<li>平面与原点的距离（原点指向平面，法线）<ul>
+<li>$P.distance&#x3D;-(X.direction\ast lo.x+Y.direction\ast hi.y)$</li>
+<li>$lo.x,hi,y$ 使用任意 reference item 的都行，是等价的（画图即可看出来）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>形成的 plane 的集合保存在一个 list 中，称为 plane set</li>
+<li>可能 plane set 为空<ul>
+<li>当一个 reference item 整个都在另一个 reference item 的里面时，plane set 为空</li>
+</ul>
+</li>
+<li>其他例子</li>
+</ul>
+<img src="ShaftCulling91/image-20210810152017775.png" style="zoom:67%;" />
+
+
+
+<h3 id="2-Creating-the-Candidate-List"><a href="#2-Creating-the-Candidate-List" class="headerlink" title="(2) Creating the Candidate List"></a>(2) Creating the Candidate List</h3><ul>
+<li><p>使用第一步建立的 shaft，和场景中的物体求交，生成 candidate list，具体生成方法如下</p>
+</li>
+<li><p>首先使用 bvh 的根节点和 shaft 求交，可能出现如下的 3 种情况</p>
+<ul>
+<li>The item is entirely outside of the shaft.（在 shaft 外面）</li>
+<li>The item is entirely inside the shaft. （在 shaft 里面）</li>
+<li>Else, the item overlaps the shaft. （和  shaft 部分相交）</li>
+</ul>
+</li>
+<li><p>如果在 shaft 外面，直接忽略</p>
+</li>
+<li><p>如果是在 shaft 里面或部分相交，则有多种策略</p>
+<ul>
+<li>always open<ul>
+<li>始终递归进行，直到叶子结点（不是 bounding volume）</li>
+<li>candidate list 由所有不是 bv 的 object 组成</li>
+</ul>
+</li>
+<li>非 always open 策略<ul>
+<li>如果是在 shaft 里面，则将其加入到 candidate list 中<ul>
+<li>如果光线 miss 则会加速（不需要和内部的 item 进行测试）</li>
+</ul>
+</li>
+<li>如果是和 shaft 部分相交，则有多种策略</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>和 shaft 部分相交的多种非 always open 策略</p>
+<ul>
+<li>叶子结点的处理<ul>
+<li>如果是一个 object 而不是 bv，则加入 candidate list</li>
+</ul>
+</li>
+<li>keep closed<ul>
+<li>直接将 bv 加入到 candidate list 中</li>
+</ul>
+</li>
+<li>overlap open<ul>
+<li>和 always open 一样，递归展开至叶子结点</li>
+<li>当 reference item 之间的 object 比较少的时候可以使用</li>
+<li>但是可能这始终打开 bv 是一个比较耗时的操作（增加光线的测试）</li>
+</ul>
+</li>
+<li>ratio open<ul>
+<li>设定一个 ratio 判定是否值得打开 bv<ul>
+<li>例如 0.4<ul>
+<li>如果 bv 中有超过 40% 的物体在 shaft 中或者与 shaft 相交，则不打开 bv，直接将其放入 candidate list</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>值得注意的是，即使是满足上面 ratio 的条件，bv 也有可能被展开，bv 被保留的条件是内部的 item 比 bv 测试难得多得多</li>
+</ul>
+</li>
+<li>多种策略</li>
+</ul>
+  <img src="ShaftCulling91/image-20210810171310519.png" style="zoom:67%;" /></li>
+</ul>
+<h3 id="3-Shaft-Cull-Testing"><a href="#3-Shaft-Cull-Testing" class="headerlink" title="(3) Shaft Cull Testing"></a>(3) Shaft Cull Testing</h3><ul>
+<li>cull test：shaft 和 bv 求交</li>
+<li>被测试的 bv 被称为 test volume</li>
+<li>只考虑 sphere 包围盒和 axis aligned 包围盒</li>
+<li>判断流程如下<ul>
+<li>判断 test volume 和 extent box 的位置关系：inside、outside、overlapping</li>
+<li>如果是 outside ，测试结束；否则判断 test volume 是否和 reference item 有重合部分（overlap）</li>
+<li>如果有重合部分，测试结束；否则将 test volume 和 plane set 进行位置关系的测试</li>
+<li>如果 test volume 是 outside ，测试结束；否则需要进一步测试（策略相关），判断 test volume 是否完全在 shaft 里面，或者是否展开 bv 等</li>
+</ul>
+</li>
+</ul>
+<h4 id="Sphere-bv-测试"><a href="#Sphere-bv-测试" class="headerlink" title="Sphere bv 测试"></a>Sphere bv 测试</h4><ul>
+<li>第一步：outside 测试<ul>
+<li><strong>Arvo’s algorithm</strong> for <strong>box&#x2F;sphere comparison</strong> [Arvo, 90].<ul>
+<li>每个轴分开处理</li>
+<li>如果在某个轴上，圆心在 box 内部，则求出圆心到这个轴对应的近一点的面的距离</li>
+<li>对上面的距离求平方和，和半径的平方作比较</li>
+<li>如果比平方和大，就是 outside</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>第二步：overlap 测试<ul>
+<li>和第一步相似，将 test volume 和 reference item 进行测试</li>
+<li>如果相交，则一定和 shaft 相交</li>
+</ul>
+</li>
+<li>第三步：plane set，outside 测试<ul>
+<li>T&#x3D;dot_product(Plane.normal, Sphere.center) + Plane.distance<ul>
+<li>画图发现就是圆心到平面的距离</li>
+</ul>
+</li>
+<li>如果 T&gt;Sphere.radius，说明相离（outside）<ul>
+<li>如果是内部的话，计算出来会的 T 是负数</li>
+</ul>
+</li>
+<li>如果法线对于所有 plane set 中的 plane，都是 outside 的话，说明 bv 在 shaft 的外面</li>
+<li>仍然有可能出现 bv 在 shaft 外面的情况（false positive）<ul>
+<li>这不会犯错，但是会增加计算量（误将其放入 candidate list）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<img src="ShaftCulling91/image-20210810220729169.png" style="zoom:67%;" />
+
+<ul>
+<li>第四步：inside 测试<ul>
+<li>如果对所有的 plane set 中的 plane，都满足 T &gt; -Sphere.radius，则在 shaft 内部</li>
+<li>否则就归类于 overlap</li>
+</ul>
+</li>
+</ul>
+<h4 id="AABB-测试"><a href="#AABB-测试" class="headerlink" title="AABB 测试"></a>AABB 测试</h4><ul>
+<li>boxes 的测试不需要对 plane set 中的法向进行归一化<ul>
+<li>sphere 需要和半径比较因此需要归一化，但是这里比较的都是和 0 比，因此 scale 无关紧要</li>
+</ul>
+</li>
+<li>定义 the distance of a point from the plane 如下<ul>
+<li>T &#x3D; dot_product( Plane.normal, Point) + Plane.distance</li>
+</ul>
+</li>
+<li>平面定义了半空间（half space）<ul>
+<li>T&gt;0：outside</li>
+<li>T&#x3D;0：on</li>
+<li>T&lt;0：inside</li>
+</ul>
+</li>
+<li>认为距离有正负大小区分</li>
+<li>给定一个平面，总有一个顶点到平面距离最大（farthest），有一个点到平面距离最小（nearest）<ul>
+<li>这个顶点是平面法线的函数<ul>
+<li>farthest：对于法线，如果某一个轴值为正，则使用 box 的 hi 值；0 使用 0；负使用 box 的 lo 值</li>
+<li>nearest：正：lo；0：0；负：hi</li>
+</ul>
+</li>
+<li>例如，法线：[-3, 8, 4]<ul>
+<li>farthest：[lo.x,hi.y,hi.z]</li>
+<li>nearest：[hi.x,lo.y,lo.z]</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>因此测试过程和 sphere 一摸一样<ul>
+<li>extent box</li>
+<li>reference item boxes</li>
+<li>each plane in the plane set<ul>
+<li>使用 nearest_corner</li>
+<li>If dot_product( Plane.normal, <strong>Box.near_corner</strong>) + Plane.distance &gt; 0<ul>
+<li>box is outside the plane (and the shaft)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>如果通过了上述测试，说明 test volume 和 shaft 的位置只有 inside&#x2F;overlap</li>
+<li>overlap 测试（一个满足则是 overlap）<ul>
+<li>If dot_product( Plane.normal, Box.far_corner ) + Plane.distance &gt; 0<ul>
+<li>box overlaps shaft</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>以上的方法虽然快，但是可能会将 outside 的物体判定为 overlap<ul>
+<li>plane set 的测试，我们用的是整个平面，可能会误判的问题，但是这个只会增加计算量而不会导致错误</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-Candidate-List-Access"><a href="#4-Candidate-List-Access" class="headerlink" title="(4) Candidate List Access"></a>(4) Candidate List Access</h3><ul>
+<li>对于 receiver 和 emitter 上的两个采样点，我们形成一条光线，使用 candidate list 进行测试</li>
+<li>使用栈实现，对于 bv，如果相交，则将其子结点压栈</li>
+<li>最终要么相交（和一个不透明的物体相交），要么栈弹空结束</li>
+</ul>
+<h2 id="算法改进"><a href="#算法改进" class="headerlink" title="算法改进"></a>算法改进</h2><ul>
+<li>我们知道两个 reference item 之间的光线一定是起源于某个 box，终止与另外一个 box<ul>
+<li>因此如果 test volume 完全将某个 reference item 包含，则光线必定相交</li>
+<li>因此可以在第一步的时候，做一下这个测试</li>
+</ul>
+</li>
+<li>基于辐射度算法会出现如下情况：一个 emitter，对多个 receiver，如下预处理很有效<ul>
+<li>对 bv 进行预求交，判断它是否完全包含 emitter 的 reference box，形成一个 candidate list<ul>
+<li>如果完全包含，直接展开为子节点</li>
+</ul>
+</li>
+<li>这样的预计算可以减少重复计算</li>
+<li>之后和上面一样，当然之后 reference item 的完全包含测试只需要测试 receiver 即可</li>
+<li>同时在预处理的时候，可以在 candidate list 中保存 emitter 的 reference item 的位置关系，如果 emitter 是 overlap 的话，则后面算法中的 outside 测试就不需要了</li>
+<li>相当这一部分的改进就是，将后面可能的重复计算提前预计算了</li>
+</ul>
+</li>
+<li>从 emitter 的 bv 开始向上展开形成 candidate list<ul>
+<li>测试其父结点的所有子结点，然后重复向上（不需要测试父结点，一定相交）</li>
+</ul>
+</li>
+<li>emitter 的出射方向有限的时候，可以将不可见的面直接剔除</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/08/11/CG/Papers/1991/ShaftCulling91/" data-id="cl9lj74bu00lz64tzdrfm3bdg" data-title="(论文)[1991] Shaft Culling for Efficient Ray-Cast Radiosity" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/08/15/CG/LLG-GAMES102/02/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          GAMES102.刘利刚.02.参数曲线拟合
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/07/31/Code/code-7/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">代码练习(2021 图形学实验室夏令营机试)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

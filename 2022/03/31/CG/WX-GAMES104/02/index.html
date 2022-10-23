@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>GAMES104.王希.02.引擎架构分层 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="引擎架构分层、5 层架构（工具层、功能层、资源层、核心层、平台层）、第三方库">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES104.王希.02.引擎架构分层">
+<meta property="og:url" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="引擎架构分层、5 层架构（工具层、功能层、资源层、核心层、平台层）、第三方库">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220404231020106.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220405130231900.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220405130852206.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220405131023605.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220405131147048.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406223349330.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406231307713.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406231356768.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406230653182.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406231518503.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406232847663.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406232931885.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406233107813.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406233408505.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406234251685.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406235206152.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220406235659880.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220407001323964.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220407102823342.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220407103456141.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220407104005734.png">
+<meta property="og:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/A9R8g7g6v_1oufq0p_nw.png">
+<meta property="article:published_time" content="2022-03-31T03:28:42.000Z">
+<meta property="article:modified_time" content="2022-04-11T15:21:49.150Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="WX">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/03/31/CG/WX-GAMES104/02/02/image-20220404231020106.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/WX-GAMES104/02" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/03/31/CG/WX-GAMES104/02/" class="article-date">
+  <time class="dt-published" datetime="2022-03-31T03:28:42.000Z" itemprop="datePublished">2022-03-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-GAMES104/">CG.GAMES104</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      GAMES104.王希.02.引擎架构分层
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><a target="_blank" rel="noopener" href="https://space.bilibili.com/512313464/channel/collectiondetail?sid=292637">Bilibili 课程链接</a></li>
+</ul>
+<h1 id="引擎架构分层与整体-pipeline"><a href="#引擎架构分层与整体-pipeline" class="headerlink" title="引擎架构分层与整体 pipeline"></a>引擎架构分层与整体 pipeline</h1><ul>
+<li>Layered Architecture of Game Engine</li>
+<li>如何开始看游戏引擎的海量代码？</li>
+<li>现代游戏引擎的 5 层架构<ul>
+<li>工具层、功能层、资源层、核心层、平台层</li>
+<li>第三方库</li>
+</ul>
+</li>
+</ul>
+<h2 id="游戏引擎分层简介"><a href="#游戏引擎分层简介" class="headerlink" title="游戏引擎分层简介"></a>游戏引擎分层简介</h2><img src="02/image-20220404231020106.png" style="zoom:80%;" />
+
+<h3 id="工具层"><a href="#工具层" class="headerlink" title="工具层"></a>工具层</h3><ul>
+<li>Tool Layer</li>
+<li>Chain of Editors</li>
+<li>在游戏引擎中，首先看到的是各种各样的编辑器</li>
+</ul>
+<h3 id="功能层"><a href="#功能层" class="headerlink" title="功能层"></a>功能层</h3><ul>
+<li>Function Layer</li>
+<li>让游戏能过够运行起来<ul>
+<li>Make It Visible, Movable and Playable</li>
+</ul>
+</li>
+<li>动画、渲染、物理系统、脚本、FSM（有限状态自动机）、AI、相机、交互界面、HUD（抬头显视设备）、输入输出</li>
+<li>HUD</li>
+</ul>
+<img src="02/image-20220405130231900.png" style="zoom:80%;" />
+
+
+
+<h3 id="资源层"><a href="#资源层" class="headerlink" title="资源层"></a>资源层</h3><ul>
+<li>Resource Layer</li>
+<li>数据和文件：Data And Files</li>
+</ul>
+<img src="02/image-20220405130852206.png" style="zoom:80%;" />
+
+
+
+<h3 id="核心层"><a href="#核心层" class="headerlink" title="核心层"></a>核心层</h3><ul>
+<li>Core Layer</li>
+<li>将底层代码封装成核心函数库</li>
+</ul>
+<img src="02/image-20220405131023605.png" style="zoom:80%;" />
+
+
+
+<h3 id="平台层"><a href="#平台层" class="headerlink" title="平台层"></a>平台层</h3><ul>
+<li>Platform Layer</li>
+<li>兼容不同的平台<ul>
+<li>硬件平台</li>
+<li>软件平台</li>
+</ul>
+</li>
+<li>兼容不同的输入设备</li>
+</ul>
+<img src="02/image-20220405131147048.png" style="zoom:80%;" />
+
+<ul>
+<li>不同的输入设备都需要翻译成游戏中的一个统一的语言</li>
+</ul>
+<h3 id="第三方库"><a href="#第三方库" class="headerlink" title="第三方库"></a>第三方库</h3><img src="02/image-20220406223349330.png" style="zoom:80%;" />
+
+<ul>
+<li>SDK 形式，直接集成到引擎里面，编译的时候就需要编译进去</li>
+<li>第三方工具，和游戏引擎的数据交换通过文件形式<ul>
+<li>simplygon：面片简化工具</li>
+</ul>
+</li>
+</ul>
+<h2 id="5-层架构"><a href="#5-层架构" class="headerlink" title="5 层架构"></a>5 层架构</h2><ul>
+<li>如何实现 5 层架构？</li>
+<li>如果想实现一个动起来的角色，5 层架构分别要做些什么？</li>
+<li>以这个问题为线索，说明各层的作用</li>
+</ul>
+<h2 id="资源层-1"><a href="#资源层-1" class="headerlink" title="资源层"></a>资源层</h2><h3 id="数据引擎化"><a href="#数据引擎化" class="headerlink" title="数据引擎化"></a>数据引擎化</h3><ul>
+<li>拿到了资源之后，怎么样导入使用这些资源？</li>
+<li>能不能直接加载？<ul>
+<li>在游戏引擎这么复杂的软件里面，我们不可能去逐个问资源的具体格式</li>
+<li>另外，很多软件的数据格式是为了软件好操作而建构的，可能比较复杂，存在很多无效信息，直接加载效率非常低</li>
+</ul>
+</li>
+<li>会先将资源做一个转换（import），转换成引擎的高效数据，变成资产（asset）</li>
+<li>例如图片，我们将可以图片都转成 dds 这种 GPU 友好的图片格式<ul>
+<li>dds：DirectDraw Surface，是 DirectX 纹理压缩（DirectX Texture Compression，简称 DXTC）的产物</li>
+</ul>
+</li>
+<li>另外一个例子，word $\to$ txt<ul>
+<li>word 本身提供各种功能，导致文件很大，如果只需要里面的文字，转成 txt，则文件很小</li>
+</ul>
+</li>
+<li>在预处理之后的 asset，加载和使用都会非常块</li>
+</ul>
+<h3 id="资产关联"><a href="#资产关联" class="headerlink" title="资产关联"></a>资产关联</h3><ul>
+<li>composite asset</li>
+<li>将不同的资产关联在一起，表明数据之间的关系</li>
+<li>GUID：唯一识别号<ul>
+<li>Globally Unique Identifier</li>
+<li>为每一个资产设定一个 GUID（类似人的身份证）</li>
+</ul>
+</li>
+<li>例如如下的资产关联模式</li>
+</ul>
+<img src="02/image-20220406231307713.png" style="zoom:80%;" />
+
+<ul>
+<li>通过引用关联</li>
+</ul>
+<img src="02/image-20220406231356768.png" style="zoom:80%;" />
+
+
+
+<h3 id="运行时管理"><a href="#运行时管理" class="headerlink" title="运行时管理"></a>运行时管理</h3><ul>
+<li>Runtime Asset Manager</li>
+<li>一个虚拟的文件系统，通过文件路径来加载&#x2F;卸载 assets</li>
+<li>handle system：管理资产的生命周期、引用</li>
+<li>资源的内存管理（<strong>内存是有限的</strong>）</li>
+<li>资产的生命周期<ul>
+<li><strong>垃圾回收</strong>（GC）</li>
+<li><strong>延迟加载</strong></li>
+</ul>
+</li>
+<li>在现代游戏引擎架构中，GC 很重要<ul>
+<li>例如关卡切换的时候，如果 GC 没写好，很可能导致卡顿（大量资源的回收和生成）</li>
+</ul>
+</li>
+<li>延迟加载：边玩边加载</li>
+</ul>
+<h2 id="功能层-1"><a href="#功能层-1" class="headerlink" title="功能层"></a>功能层</h2><h3 id="Tick"><a href="#Tick" class="headerlink" title="Tick"></a>Tick</h3><ul>
+<li>如何让角色动起来？</li>
+<li><em>tick</em></li>
+<li>在每一个 <em>tick</em> 时间，执行一遍所有操作</li>
+</ul>
+<img src="02/image-20220406230653182.png" style="zoom:80%;" />
+
+
+
+<ul>
+<li>游戏每一帧的逻辑如下</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="built_in">tickLogic</span>(deltaTime);</span><br><span class="line">    <span class="built_in">tickRender</span>(deltaTime);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="02/image-20220406231518503.png" style="zoom:80%;" />
+
+<ul>
+<li>不管渲染还是不渲染，游戏世界中的时间都是向前推进的（事件都是在发生的）</li>
+<li>logic 和 render 在代码是线上需要分开，不能混在一起<ul>
+<li>本身做的就是两件事</li>
+</ul>
+</li>
+<li>功能层很复杂，为游戏本身提供了很多功能模块</li>
+<li>游戏中的循环周期性的更新系统的状态</li>
+<li>游戏和游戏引擎关系复杂<ul>
+<li>有些模块到底是该位于游戏还是游戏引擎说不清楚</li>
+<li>例如某个游戏可能需要有相机摇晃的感觉，这个功能应该是游戏还是游戏引擎呢？</li>
+<li>一个评论：业务与底层的关系，但是业务可以沉到底层实现复用</li>
+</ul>
+</li>
+<li>有些功能是很清晰的属于游戏引擎的<ul>
+<li>绘制、pipeline、资产管理</li>
+</ul>
+</li>
+</ul>
+<h3 id="多线程"><a href="#多线程" class="headerlink" title="多线程"></a>多线程</h3><ul>
+<li>多种架构</li>
+<li>入门级实现<ul>
+<li>Entry（Fixed Thread）：某个线程只做固定的事</li>
+</ul>
+</li>
+</ul>
+<img src="02/image-20220406232847663.png" style="zoom:80%;" />
+
+<ul>
+<li>主流架构<ul>
+<li>Mainstream（Thread Fork&#x2F;Join）</li>
+<li>将一些容易并行的计算使用多线程实现</li>
+</ul>
+</li>
+</ul>
+<img src="02/image-20220406232931885.png" style="zoom:80%;" />
+
+<ul>
+<li>未来游戏引擎的实现<ul>
+<li>Advanced（JOB System）</li>
+</ul>
+</li>
+</ul>
+<img src="02/image-20220406233107813.png" style="zoom:80%;" />
+
+<ul>
+<li>多线程的问题<ul>
+<li>需要处理数据依赖</li>
+</ul>
+</li>
+<li>未来的引擎架构一定是多核的</li>
+</ul>
+<h2 id="核心层-1"><a href="#核心层-1" class="headerlink" title="核心层"></a>核心层</h2><h3 id="数学库"><a href="#数学库" class="headerlink" title="数学库"></a>数学库</h3><ul>
+<li>变换</li>
+</ul>
+<img src="02/image-20220406233408505.png" style="zoom:80%;" />
+
+<ul>
+<li>为什么要抽象成一个库？<ul>
+<li>追求效率</li>
+<li>$\dfrac{1}{\sqrt{x}}$：Quake-III 实现如下<ul>
+<li><a target="_blank" rel="noopener" href="https://thatonegamedev.com/math/fast-square-root-quake-iii/">解析</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">float</span> <span class="title">Q_rsqrt</span><span class="params">( <span class="type">float</span> number )</span> </span>&#123;</span><br><span class="line">    <span class="type">long</span> i;</span><br><span class="line">    <span class="type">float</span> x2, y;</span><br><span class="line">    <span class="type">const</span> <span class="type">float</span> threehalfs = <span class="number">1.5F</span>;</span><br><span class="line">    x2 = number * <span class="number">0.5F</span>;</span><br><span class="line">    y  = number;</span><br><span class="line">    i  = * ( <span class="type">long</span> * ) &amp;y;</span><br><span class="line">    i  = <span class="number">0x5f3759df</span> - ( i &gt;&gt; <span class="number">1</span> );</span><br><span class="line">    y  = * ( <span class="type">float</span> * ) &amp;i;</span><br><span class="line">    y  = y * ( threehalfs - ( x2 * y * y ) );</span><br><span class="line">    y  = y * ( threehalfs - ( x2 * y * y ) );</span><br><span class="line">    <span class="keyword">return</span> y;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>SIMD：Single Instruction Multiple Data，单指令流多数据流<ul>
+<li>多个同样的运算同时进行</li>
+</ul>
+</li>
+</ul>
+<img src="02/image-20220406234251685.png" style="zoom:80%;" />
+
+
+
+<h3 id="数据结构和容器"><a href="#数据结构和容器" class="headerlink" title="数据结构和容器"></a>数据结构和容器</h3><ul>
+<li>C++ STL 的实现可能不适用于游戏中的应用场景</li>
+<li>我们需要设计自己的数据结构，尽可能减少内存碎片，提高访问效率</li>
+</ul>
+<h3 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h3><ul>
+<li>提高内存使用效率<ul>
+<li>Memory Pool &#x2F; Allocator</li>
+<li>Reduce cache miss</li>
+<li>Memory alignment</li>
+</ul>
+</li>
+<li>Polymorphic Memory Resource (PMR)<ul>
+<li>多态内存分配器</li>
+</ul>
+</li>
+<li>高效内存管理<ul>
+<li>Put data together：把数据放到一起</li>
+<li>Access data in order：访问数据的时候尽可能顺序访问</li>
+<li>Allocate and de-allocate as a block：读写的时候尽可能一起去读写</li>
+</ul>
+</li>
+</ul>
+<h3 id="核心层特点"><a href="#核心层特点" class="headerlink" title="核心层特点"></a>核心层特点</h3><ul>
+<li>高效的设计与实现</li>
+<li>高质量的代码</li>
+<li>一般不轻易改动</li>
+</ul>
+<img src="02/image-20220406235206152.png" style="zoom:80%;" />
+
+
+
+<h2 id="平台层-1"><a href="#平台层-1" class="headerlink" title="平台层"></a>平台层</h2><ul>
+<li>平台无关性，掩盖平台的差异，上层调用能够无视平台特征</li>
+</ul>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><ul>
+<li>文件路径</li>
+<li>渲染引擎<ul>
+<li>Windows：DirectX（DX11、DX12）</li>
+<li>MAC：Metal</li>
+<li>Android：OpenGLES、Vulkan</li>
+<li>重新定义一层 graphics 的 API，隐藏平台特征<ul>
+<li>Render Hardware Interface (RHI)<ul>
+<li>对不同的 GPU 架构和 SDK 都是透明的，隐藏差异</li>
+<li>对目标平台及其进行自动优化</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<img src="02/image-20220406235659880.png" style="zoom:80%;" />
+
+<ul>
+<li>CPU 架构可能都不一样<ul>
+<li>Core variants: PPU and SPUs</li>
+<li>UMA: unified memory access</li>
+</ul>
+</li>
+<li>平台层的设计很影响游戏引擎的效率，一个贴合硬件、指令集的编译能让效率提高很多</li>
+</ul>
+<h2 id="工具层-1"><a href="#工具层-1" class="headerlink" title="工具层"></a>工具层</h2><ul>
+<li>逻辑编辑器：蓝图</li>
+<li>材质编辑器：保证预览的效果和实际游戏的效果都是一样的</li>
+<li>level editor：以地图编辑器为主的各种编辑器</li>
+</ul>
+<img src="02/image-20220407001323964.png" style="zoom:80%;" />
+
+<ul>
+<li>工具层是真正生产力的工具，能够实现你的各种想象，允许别人去创造游戏内容</li>
+<li>涉及到游戏运行的代码需要注重效率，一般使用 C++ 开发</li>
+<li>实现可以有很多灵活的选择，因为只是一个开发工具，和游戏的实时运行无关<ul>
+<li>C++ Qt：开发效率优先</li>
+<li>C# WPF：控件</li>
+<li>H5</li>
+</ul>
+</li>
+</ul>
+<h3 id="DDC"><a href="#DDC" class="headerlink" title="DDC"></a>DDC</h3><ul>
+<li>Digital Content Creation</li>
+<li>Assets Conditioning Pipeline<ul>
+<li>将不同的编辑器生成的资源通过统一的管线导入到我们的引擎中，生成 Assets</li>
+<li>就是很多的导入&#x2F;导出器，实现数据之间的互导<ul>
+<li>通用的数据格式</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<img src="02/image-20220407102823342.png" style="zoom:80%;" />
+
+<ul>
+<li>工具层 &#x3D; 我们开发的编辑器 + 资产的导入器&#x2F;导出器</li>
+</ul>
+<h2 id="为什么要分层"><a href="#为什么要分层" class="headerlink" title="为什么要分层"></a>为什么要分层</h2><ul>
+<li>解耦（decoupling）和降低复杂度<ul>
+<li>底层实现和上层是无关的</li>
+<li>上层不需要知道下层是怎么实现的</li>
+</ul>
+</li>
+<li>封装</li>
+<li>类比于城市</li>
+</ul>
+<img src="02/image-20220407103456141.png" style="zoom:80%;" />
+
+<ul>
+<li>一般而言底层的代码不会经常修改，追求稳定<ul>
+<li>修改了可能会影响上层架构</li>
+</ul>
+</li>
+<li>上层代码为了追求效率、追求新功能经常会修改</li>
+<li>越往上层越灵活（customizable），越往下层越稳定（stable）</li>
+<li>分层架构是很重要的，清晰的架构，只能允许上层调用下层，不允许下层调用上层<ul>
+<li>设计一个特性的时候，必须先考虑这是需要放在哪一层</li>
+</ul>
+</li>
+</ul>
+<h2 id="Pilot"><a href="#Pilot" class="headerlink" title="Pilot"></a>Pilot</h2><ul>
+<li>课程的 Mini Engine<ul>
+<li>逐步开放</li>
+</ul>
+</li>
+</ul>
+<img src="02/image-20220407104005734.png" style="zoom:80%;" />
+
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/BoomingTech/Pilot">Github</a></li>
+<li>分层架构、支持基本引擎的功能</li>
+<li>ECS 架构</li>
+</ul>
+<img src="02/A9R8g7g6v_1oufq0p_nw.png" style="zoom: 50%;" />
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/03/31/CG/WX-GAMES104/02/" data-id="cl9lj749f005z64tz9ljxh0up" data-title="GAMES104.王希.02.引擎架构分层" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/WX/" rel="tag">WX</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/04/06/CG/Papers/2021/bvh-survey-home/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          (论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(目录)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/03/30/CG/WX-GAMES104/01/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">GAMES104.王希.01.游戏引擎导论</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

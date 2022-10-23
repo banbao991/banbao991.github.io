@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>GAMES202.闫令琪.06.实时环境光照(2) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="实时环境光照、PRT、球面谐波函数(SH)、基函数、DIffuse&#x2F;Glossy 物体的 PRT、预计算、小波">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES202.闫令琪.06.实时环境光照(2)">
+<meta property="og:url" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="实时环境光照、PRT、球面谐波函数(SH)、基函数、DIffuse&#x2F;Glossy 物体的 PRT、预计算、小波">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/06/image-20210414115518543.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/06/image-20210414122309086.png">
+<meta property="og:image" content="http://example.com/06/image-20210414124153911.png">
+<meta property="og:image" content="http://example.com/06/1.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/06/image-20210414140316760.png">
+<meta property="og:image" content="http://example.com/06/image-20210414144553229.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/06/image-20210414141140164.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/06/image-20210414142001805.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/06/image-20210424213131713.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/06/image-20210424215319352.png">
+<meta property="og:image" content="http://example.com/06/image-20210424220500394.png">
+<meta property="og:image" content="http://example.com/06/wavelet.png">
+<meta property="og:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/06/image-20210424221956291.png">
+<meta property="article:published_time" content="2021-04-14T02:50:51.000Z">
+<meta property="article:modified_time" content="2021-07-25T06:34:25.716Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/06/image-20210414115518543.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/YLQ-GAMES202/06" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/14/CG/YLQ-GAMES202/06/" class="article-date">
+  <time class="dt-published" datetime="2021-04-14T02:50:51.000Z" itemprop="datePublished">2021-04-14</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-GAMES202/">CG.GAMES202</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      GAMES202.闫令琪.06.实时环境光照(2)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1YK4y1T7yY">https://www.bilibili.com/video/BV1YK4y1T7yY</a></li>
+</ul>
+<h1 id="实时环境光照"><a href="#实时环境光照" class="headerlink" title="实时环境光照"></a>实时环境光照</h1><ul>
+<li>Precomputed Radiance Transfer</li>
+</ul>
+<h2 id="Shadow-From-Environment-Lighting"><a href="#Shadow-From-Environment-Lighting" class="headerlink" title="Shadow From Environment Lighting"></a>Shadow From Environment Lighting</h2><ul>
+<li>怎么从环境光照中得到阴影</li>
+<li>对于实时渲染而言，非常难</li>
+</ul>
+<h3 id="对环境光照的不同角度理解"><a href="#对环境光照的不同角度理解" class="headerlink" title="对环境光照的不同角度理解"></a>对环境光照的不同角度理解</h3><h4 id="多光源"><a href="#多光源" class="headerlink" title="多光源"></a>多光源</h4><ul>
+<li>可以把环境光理解为四面八方来的光照，理解为每个方向的都有光源</li>
+<li>环境光照被描述为一个 <code>many-light problem</code><ul>
+<li>如果使用 SM 的话，没个光源需要一个 SM</li>
+<li>代价很高</li>
+</ul>
+</li>
+</ul>
+<h4 id="采样"><a href="#采样" class="headerlink" title="采样"></a>采样</h4><ul>
+<li>可以通过采样估计，但是不知道 visibility 项（基于光栅化成像方法），采样很盲目</li>
+<li>之前的不等式（约等式）拆分不容易（visibility 不能剥离开来），因为有环境光项的存在<ul>
+<li>support 是整个半球</li>
+<li>变化不一定 smooth</li>
+</ul>
+</li>
+</ul>
+<h3 id="工业界的解决方案"><a href="#工业界的解决方案" class="headerlink" title="工业界的解决方案"></a>工业界的解决方案</h3><ul>
+<li>只处理最亮的几个光源</li>
+<li>环境光遮蔽（AO）<ul>
+<li>只能处理 constant environment lighting 情况下的光照<ul>
+<li>全白、全灰等</li>
+</ul>
+</li>
+<li>否则估计不准</li>
+</ul>
+</li>
+</ul>
+<h3 id="相关研究"><a href="#相关研究" class="headerlink" title="相关研究"></a>相关研究</h3><ul>
+<li>Imperfect shadow maps<ul>
+<li>相对好懂</li>
+</ul>
+</li>
+<li>Light cuts<ul>
+<li>反射物当作光源、光源归类</li>
+</ul>
+</li>
+<li>RTRT (might be the ultimate solution)<ul>
+<li>Real-Time Ray Tracing</li>
+</ul>
+</li>
+<li>Precomputed radiance transfer<ul>
+<li>能够得到非常准确得到环境光的阴影</li>
+</ul>
+</li>
+</ul>
+<h3 id="工业界"><a href="#工业界" class="headerlink" title="工业界"></a>工业界</h3><ul>
+<li>游戏引擎使用的方法和我们学的差不多，但是在实现上可能融合了很多种方法</li>
+<li>工业界怎么实现的又快又好才是重点</li>
+</ul>
+<h2 id="频域与滤波"><a href="#频域与滤波" class="headerlink" title="频域与滤波"></a>频域与滤波</h2><h3 id="傅里叶变换"><a href="#傅里叶变换" class="headerlink" title="傅里叶变换"></a>傅里叶变换</h3><ul>
+<li>傅里叶变换 Foutier Transform</li>
+<li>任意函数都可以展开为 sin&#x2F;cos 函数的线性组合<ul>
+<li><strong>基函数</strong></li>
+</ul>
+</li>
+<li>频率高，变化快</li>
+<li>图像主要是低频区域</li>
+<li>高频区域是细节</li>
+<li>滤波器：去除某些频率的内容，保留感兴趣的频率</li>
+<li>时域卷积 $\leftrightarrow$ 频域相乘</li>
+<li>模糊<ul>
+<li>时域卷积</li>
+<li>频域低通滤波（乘一个低通滤波器）</li>
+</ul>
+</li>
+</ul>
+<h3 id="滤波的理解"><a href="#滤波的理解" class="headerlink" title="滤波的理解"></a>滤波的理解</h3><ul>
+<li>乘积的积分可以理解为一种滤波<ul>
+<li>Any product integral can be considered as filtering</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>\int_{\Omega}f(x)g(x)dx<br>$$</p>
+<ul>
+<li>低频：smooth<ul>
+<li>Low frequency &#x3D;&#x3D; smooth function &#x2F; slow changes &#x2F; etc</li>
+</ul>
+</li>
+<li>上面积分得到的结果的频率是积分项中频率较低的一项<ul>
+<li>由较低的一项决定</li>
+<li>The frequency of the integral is the lowest of any individual’s</li>
+<li><strong>从频域上的相乘理解</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="基函数"><a href="#基函数" class="headerlink" title="基函数"></a>基函数</h3><ul>
+<li>Basis Functions</li>
+<li>一组线性无关的函数，任意函数都可以由这组函数线性表出<ul>
+<li>A set of functions that can be used to represent other functions in general</li>
+</ul>
+</li>
+<li>基函数正交</li>
+<li>傅里叶变换中的 $\sin&#x2F;\cos&#x2F;\cdots$</li>
+<li>泰勒展开中的多项式 $x&#x2F;x^2&#x2F;\cdots$</li>
+</ul>
+<h2 id="球面谐波函数"><a href="#球面谐波函数" class="headerlink" title="球面谐波函数"></a>球面谐波函数</h2><ul>
+<li>Spherical Harmonics</li>
+<li>A set of 2D basis functions defined on the sphere</li>
+<li>一系列的的二维函数，定义在球面上<ul>
+<li>方向函数 $(\theta,\phi)$</li>
+</ul>
+</li>
+<li>球面谐波函数的可视化<ul>
+<li>每一行的频率是一样的，第 $l$ 阶的 SH</li>
+<li>$m&#x3D;2l+1$</li>
+<li>前 $n$ 阶一共有 $n^2$ 个基函数</li>
+</ul>
+</li>
+</ul>
+<img src="06/image-20210414115518543.png" style="zoom:67%;" />
+
+<ul>
+<li>上图中<ul>
+<li>颜色表示值（白&#x2F;黑）</li>
+<li>值的变换快慢是频率</li>
+</ul>
+</li>
+<li>为什么不使用 2D 的傅里叶变换<ul>
+<li>不适合球面，可能最终会在球面上产生一条缝</li>
+<li>SH 定义在球面上，因此在球面上的变换更加 smooth</li>
+</ul>
+</li>
+<li>每一个基函数可以被勒让德多项式定义<ul>
+<li>Each SH basis function $B(\omega_i)$ is associated with a (Legendre) polynomial</li>
+</ul>
+</li>
+<li><strong>投影操作</strong><ul>
+<li>给定任意一个的定义在球面上的函数 $f(w)$，其展开为 SH 表示的系数为</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>c_i&#x3D;\int_{\Omega}f(\omega)B_i(\omega_i)\mathrm{d}(\omega)<br>$$</p>
+<ul>
+<li>恢复函数的的时候，可以直接保留前几项（例如前 4 阶）<ul>
+<li>类似于傅里叶变换中保留前几项，就可以恢复出一个相对可以接受的结果</li>
+</ul>
+</li>
+</ul>
+<h2 id="环境光照下-diffuse-物体的-shading"><a href="#环境光照下-diffuse-物体的-shading" class="headerlink" title="环境光照下 diffuse 物体的 shading"></a>环境光照下 diffuse 物体的 shading</h2><ul>
+<li>不考虑 shadow</li>
+<li>上一节课：Prefiltering + single query &#x3D; no filtering + multiple queries</li>
+<li>我们的想法是通过i分析 diffuse 的 BDRF ，发现这是个低频成分，于是我们不需要保留光照太多的高频信息，于是我们可以指考虑光照在球面谐波函数中的前几项即可</li>
+</ul>
+<h3 id="分析-BRDF"><a href="#分析-BRDF" class="headerlink" title="分析 BRDF"></a>分析 BRDF</h3><ul>
+<li><strong>diffuse</strong> 物体的 BRDF 表现的效果就是一个低通滤波器（球面上）<ul>
+<li><strong>相关</strong>，卷积</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>E_{lm}&#x3D;A_lL_{lm}<br>$$</p>
+<ul>
+<li>$A_l$ 为系数（$l$ 为偶数）</li>
+</ul>
+<p>$$<br>A_l&#x3D;2\pi\dfrac{(-1)^{\frac{l}{2}-1}}{(l+2)(l-1)}\left[\dfrac{l!}{2^l(\frac{l}{2}!)^2}\right]<br>$$</p>
+<ul>
+<li>使用前 3 阶的 SH 就能够很好的恢复<ul>
+<li>因为 diffuse 的 BRDF 十分低频，最终得到的结果肯定也是低频项占据主导</li>
+</ul>
+</li>
+</ul>
+<img src="06/image-20210414122309086.png" style="zoom:50%;" />
+
+
+
+<h3 id="估计光照"><a href="#估计光照" class="headerlink" title="估计光照"></a>估计光照</h3><ul>
+<li>因为 diffuse 的 BRDF 十分低频，最终能够得到的结果也会是一个低频信号<ul>
+<li>我们要计算的积分最终结果是 BRDF 和光照的卷积</li>
+</ul>
+</li>
+<li>没必要保留光照太多的高频信息</li>
+</ul>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><ul>
+<li>ground truth</li>
+</ul>
+<p><img src="/06/image-20210414124153911.png"></p>
+<ul>
+<li>使用前 1&#x2F;2&#x2F;3 阶的 SH 进行恢复光照，然后最终 shading 的结果</li>
+<li>RMS ERROR：25%，8%，1%</li>
+</ul>
+<p><img src="/06/1.png"></p>
+<h3 id="SH评价"><a href="#SH评价" class="headerlink" title="SH评价"></a>SH评价</h3><ul>
+<li>很适合描述低频的 BRDF、低频的光照</li>
+</ul>
+<h3 id="Diego"><a href="#Diego" class="headerlink" title="Diego"></a>Diego</h3><ul>
+<li>两行代码获得博士学位</li>
+<li>引入球谐函数，引领了一个时代</li>
+</ul>
+<img src="06/image-20210414140316760.png" style="zoom: 50%;" />
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">surface float1 <span class="title">irradmat</span> <span class="params">(matrix4 M, float3 v)</span> </span>&#123;</span><br><span class="line">    float4 n = &#123;v , <span class="number">1</span>&#125; ;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">dot</span>(n , M*n) ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="SH-的性质"><a href="#SH-的性质" class="headerlink" title="SH 的性质"></a>SH 的性质</h3><ul>
+<li>orthonormal<ul>
+<li>正交</li>
+</ul>
+</li>
+<li>simple projection&#x2F;reconstruction<ul>
+<li>投影&#x2F;重建好算</li>
+</ul>
+</li>
+<li>simple rotation<ul>
+<li>旋转球面上的任意函数，等价于旋转基函数</li>
+<li>旋转基函数，新的基函数可以被同阶的其他基函数线性表出</li>
+<li>因此旋转函数，相当于修改基函数的系数</li>
+</ul>
+</li>
+<li>simple convolution</li>
+<li>few basis functions: low freqs<ul>
+<li>使用较小阶的基函数就能够得到不错的效果（低频）</li>
+</ul>
+</li>
+</ul>
+<p><img src="/06/image-20210414144553229.png"></p>
+<h2 id="PRT"><a href="#PRT" class="headerlink" title="PRT"></a>PRT</h2><ul>
+<li>Precomputed Radiance Transfer</li>
+<li>渲染方程</li>
+</ul>
+<img src="06/image-20210414141140164.png" style="zoom:50%;" />
+
+<ul>
+<li>右下角中的红点对应的 3 张图</li>
+<li>复杂度很高，对于每一个点，需要取遍 6 张贴图中的所有点<ul>
+<li>$6\ast64\ast64$</li>
+</ul>
+</li>
+</ul>
+<h3 id="PRT-论文"><a href="#PRT-论文" class="headerlink" title="PRT 论文"></a>PRT 论文</h3><ul>
+<li>Precomputed Radiance Transfer for Real-Time Rendering in Dynamic, Low-Frequency Lighting Environments [Sloan 02]</li>
+<li>SIGGRAPH 2002</li>
+<li>利用球谐函数的性质进行预计算</li>
+<li>用另一种角度看待渲染方程</li>
+<li><strong>我们假设场景是不变的，改变的只是光照</strong><ul>
+<li>光照的位置、光照的颜色</li>
+</ul>
+</li>
+</ul>
+<img src="06/image-20210414142001805.png" style="zoom:67%;" />
+
+<ul>
+<li>把 Lighting 表示为基函数</li>
+<li>场景是不变的，因此在预计算的时候把 light transport 先计算出来，然后用基函数表示</li>
+</ul>
+<h3 id="PRT-Diffuse-物体"><a href="#PRT-Diffuse-物体" class="headerlink" title="PRT Diffuse 物体"></a>PRT Diffuse 物体</h3><ul>
+<li>将 diffuse 常数项从渲染方程中提取出来</li>
+</ul>
+<p>$$<br>L(\boldsymbol{o})&#x3D;\rho\int_{\Omega}L(\boldsymbol{i})V(\boldsymbol{i})\max(0,\boldsymbol{n}\cdot \boldsymbol{i})\mathrm{d}\boldsymbol{i}<br>$$</p>
+<ul>
+<li>光照使用 SH 表示</li>
+</ul>
+<p>$$<br>L(\boldsymbol{i})\approx\sum l_iB_i(\boldsymbol{i})<br>$$</p>
+<ul>
+<li>渲染方程变为</li>
+</ul>
+<p>$$<br>L(\boldsymbol{o})&#x3D;\rho\sum l_i{\color{red}\int_{\Omega}B_i(\boldsymbol{i})V(\boldsymbol{i})\max(0,\boldsymbol{n}\cdot \boldsymbol{i})\mathrm{d}\boldsymbol{i}}<br>$$</p>
+<ul>
+<li>红色部分与光照无关，可以预计算，记作 $T_i$，渲染方程变为<ul>
+<li>预计算的话不考虑时间</li>
+<li>Reduce rendering computation to <strong>dot product</strong></li>
+</ul>
+</li>
+</ul>
+<p>$$<br>L(\boldsymbol{o})&#x3D;\rho\sum l_iT_i<br>$$</p>
+<ul>
+<li><strong>场景是不能动的</strong>，因为动了，visibility 项就变了，预计算失效</li>
+<li>能不能解决光源移动的问题？<ul>
+<li>可以，SH 的性质，如果光源做了一个旋转操作，很快就能够得到新的  SH</li>
+</ul>
+</li>
+</ul>
+<h3 id="PRT-另外一种预计算的方式"><a href="#PRT-另外一种预计算的方式" class="headerlink" title="PRT 另外一种预计算的方式"></a>PRT 另外一种预计算的方式</h3><ul>
+<li>渲染方程</li>
+</ul>
+<p>$$<br>L_o(p,\omega_o)&#x3D;<br>\int_{\Omega^+}{\color{red}L_i(p,\omega_i)}{\color{blue}f_r(p,\omega_i,\omega_o)\cos\theta_i V(p,\omega_i)}d\omega_i&#x3D;\int_{\Omega^+}{\color{red}L(\omega_i)}{\color{blue}T(\omega_i)}d\omega_i<br>$$</p>
+<ul>
+<li>把 <strong>lighting</strong> 和 <strong>light transport</strong> 都用基函数表示出来</li>
+</ul>
+<p>$$<br>L(\omega_i)\approx\sum_{p}c_pB_p(\omega_i)<br>$$</p>
+<p>$$<br>T(\omega_i)\approx\sum_{q}t_qB_q(\omega_i)<br>$$</p>
+<ul>
+<li>重新表示渲染方程</li>
+</ul>
+<p>$$<br>L_o(p,\omega_o)&#x3D;\sum_{p}\sum_{q}c_pt_q\int_{\Omega^+}B_p(\omega_i)B_q(\omega_i)d\omega_i<br>$$</p>
+<ul>
+<li>似乎看起来是 $O(n^2)$ 的，但是由于 SH 的正交性，只有 $p&#x3D;q$ 的情况下才不为 0</li>
+</ul>
+<h3 id="PRT-Glossy-物体"><a href="#PRT-Glossy-物体" class="headerlink" title="PRT Glossy 物体"></a>PRT Glossy 物体</h3><ul>
+<li>diffuse 物体，BRDF 为常数</li>
+<li>glossy 物体，4D 的 BRDF<ul>
+<li>和 diffuse 的区别，上面 light transport（蓝色项）还与方向矢量 $o$ 有关（与视点有关）</li>
+</ul>
+</li>
+<li>因此就算是使用了基函数，结果还是和 $o$ 相关</li>
+</ul>
+<p>$$<br>L(o)\approx\sum_{i} l_iT_i(o)<br>$$</p>
+<ul>
+<li>能否将 $T_i(o)$ 也用基函数表示</li>
+</ul>
+<p>$$<br>T_i(o)\approx\sum_{j} t_{ij}B_j(o)<br>$$</p>
+<p>$$<br>L(o)\approx\sum_{i}\sum_{j} l_it_{ij}B_j(o)<br>$$</p>
+<ul>
+<li>这样看来，我们需要把 light transport 作为一个矩阵来看待（而不是之前的向量）</li>
+</ul>
+<img src="06/image-20210424213131713.png" style="zoom: 50%;" />
+
+<ul>
+<li>存储开销变大了，计算开销也变大了</li>
+<li>SH 阶数<ul>
+<li>diffuse 使用 3 阶 SH 就够了</li>
+<li>glossy 需要一些高频成分，4 阶或者 5 阶</li>
+</ul>
+</li>
+<li>非常高频，接近镜面的物体，PRT 无法解决<ul>
+<li>需要很高阶，而且效果不好</li>
+<li>可以直接采样</li>
+</ul>
+</li>
+</ul>
+<h3 id="Interreflection-and-caustics"><a href="#Interreflection-and-caustics" class="headerlink" title="Interreflection and caustics"></a>Interreflection and caustics</h3><ul>
+<li>光路 transport paths<ul>
+<li>$LE$（直接看到光源）<ul>
+<li>light - eye</li>
+</ul>
+</li>
+<li>$LGE$（直接反射）<ul>
+<li>light - glossy - eye</li>
+</ul>
+</li>
+<li>$L(D|G)\ast E$</li>
+<li>$LS\ast(D|G)\ast E$<ul>
+<li>caustics</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>PRT 在做完预计算之后，实际渲染的过程复杂度和 transport 的复杂度是无关的</li>
+<li>也就是说 PRT 可以模拟任意复杂的 transport</li>
+</ul>
+<h3 id="怎么进行预计算"><a href="#怎么进行预计算" class="headerlink" title="怎么进行预计算"></a>怎么进行预计算</h3><ul>
+<li><strong>基函数看作是光照</strong></li>
+<li>对于 diffuse 物体</li>
+</ul>
+<p>$$<br>T_i&#x3D;\int_{\Omega}B_i(\boldsymbol{i})V(\boldsymbol{i})\max(0,\boldsymbol{n}\cdot \boldsymbol{i})\mathrm{d}\boldsymbol{i}<br>$$</p>
+<ul>
+<li>形式上还是和 rendering equation，因此可以把基函数看作是某种光照</li>
+<li>因此，预计算的过程可以看作是一个离线渲染的过程，具体方法可以用之前提到的其他算法</li>
+</ul>
+<img src="06/image-20210424215319352.png" style="zoom:60%;" />
+
+
+
+
+
+<h3 id="PRT-的问题"><a href="#PRT-的问题" class="headerlink" title="PRT 的问题"></a>PRT 的问题</h3><ul>
+<li>不太适用于高频的光照（需要用很多的高阶的基函数）</li>
+<li>要求场景是固定的</li>
+<li>材质也需要是固定的</li>
+<li>存储开销</li>
+</ul>
+<h3 id="PRT-的改进"><a href="#PRT-的改进" class="headerlink" title="PRT 的改进"></a>PRT 的改进</h3><ul>
+<li>More basis functions<ul>
+<li>其他的基函数</li>
+</ul>
+</li>
+<li>dot product &#x3D;&gt; triple products<ul>
+<li>预计算更多的部分，例如 BRDF、visibility 等</li>
+</ul>
+</li>
+<li>Static scene &#x3D;&gt; dynamic scene</li>
+<li>Fix material &#x3D;&gt; dynamic material</li>
+<li>Other effects: translucent, hair, …</li>
+<li>Precomputation &#x3D;&gt; analytic computation<ul>
+<li>解析解，例如 split sum</li>
+</ul>
+</li>
+</ul>
+<h2 id="其他的一些基函数"><a href="#其他的一些基函数" class="headerlink" title="其他的一些基函数"></a>其他的一些基函数</h2><ul>
+<li>Spherical Harmonics (SH)</li>
+<li>Wavelet</li>
+<li>Zonal Harmonics</li>
+<li>Spherical Gaussian (SG)</li>
+<li>Piecewise Constant</li>
+</ul>
+<h3 id="小波"><a href="#小波" class="headerlink" title="小波"></a>小波</h3><ul>
+<li>Wavelet<ul>
+<li>有很多种</li>
+</ul>
+</li>
+<li>2D Haar Wavelet</li>
+</ul>
+<p><img src="/06/image-20210424220500394.png"></p>
+<ul>
+<li>小波定义在图像块上的，不同的小波定义域也不相同<ul>
+<li>灰色部分就是没有定义的地方</li>
+</ul>
+</li>
+<li>小波变换之后，很多基函数对应的系数为 0<ul>
+<li>保留最大的多少个不为 0 的项即可</li>
+<li>非线性估计</li>
+</ul>
+</li>
+<li><strong>对全频率的表示</strong></li>
+<li>由于小波是定义在平面上的，因此我们使用 cube map 去表示环境光照<ul>
+<li>对每个面进行小波变换</li>
+<li>将系数最大的几个项存在右上、右下、左下部分，对剩余的部分继续进行小波变换</li>
+</ul>
+</li>
+</ul>
+<p><img src="/06/wavelet.png"></p>
+<ul>
+<li>JPEG 文件使用了 DCT（离散余弦变换）去进行图像压缩<ul>
+<li>和小波变换比较像</li>
+</ul>
+</li>
+</ul>
+<h3 id="小波-vs-球谐"><a href="#小波-vs-球谐" class="headerlink" title="小波 vs 球谐"></a>小波 vs 球谐</h3><img src="06/image-20210424221956291.png" style="zoom:50%;" />
+
+<ul>
+<li>小波变换<ul>
+<li>保留了一些高频信息，产生很多高频阴影</li>
+<li><strong>不支持快速旋转光照</strong></li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/14/CG/YLQ-GAMES202/06/" data-id="cl9lj749t008h64tzhuddhwhh" data-title="GAMES202.闫令琪.06.实时环境光照(2)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/04/17/OS/xv6-source-code/03-Lock/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          xv6-riscv-源代码阅读.同步机制(锁)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/04/13/CG/Papers/2012/VCM/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">(论文)[2012] Light Transport Simulation with Vertex Connection and Merging</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

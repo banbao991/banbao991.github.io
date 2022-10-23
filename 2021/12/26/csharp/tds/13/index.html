@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>C#程序设计.唐大仕.13.深入理解C#语言 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="类型与转换、变量及其传递（ref,out）、多态及虚方法调用、动态类型确定（反射）、构造与析构、新特性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C#程序设计.唐大仕.13.深入理解C#语言">
+<meta property="og:url" content="http://example.com/2021/12/26/csharp/tds/13/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="类型与转换、变量及其传递（ref,out）、多态及虚方法调用、动态类型确定（反射）、构造与析构、新特性">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/12/26/csharp/tds/13/13/image-20211226134249692.png">
+<meta property="article:published_time" content="2021-12-26T04:57:59.000Z">
+<meta property="article:modified_time" content="2022-01-01T07:42:11.006Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="csharp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/12/26/csharp/tds/13/13/image-20211226134249692.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-csharp/tds/13" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/26/csharp/tds/13/" class="article-date">
+  <time class="dt-published" datetime="2021-12-26T04:57:59.000Z" itemprop="datePublished">2021-12-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/csharp-tds/">csharp.tds</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      C#程序设计.唐大仕.13.深入理解C#语言
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><a target="_blank" rel="noopener" href="https://www.icourse163.org/learn/PKU-1001663016">中国大学慕课</a></li>
+</ul>
+<p>[TOC]</p>
+<h1 id="深入理解-C-语言"><a href="#深入理解-C-语言" class="headerlink" title="深入理解 C# 语言"></a>深入理解 C# 语言</h1><h2 id="1-类型与转换"><a href="#1-类型与转换" class="headerlink" title="1. 类型与转换"></a>1. 类型与转换</h2><ul>
+<li>数据类型</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">值类型</th>
+<th align="center">引用类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">存储位置</td>
+<td align="center">栈</td>
+<td align="center">堆</td>
+</tr>
+<tr>
+<td align="center">默认值</td>
+<td align="center">Zeored</td>
+<td align="center">null</td>
+</tr>
+<tr>
+<td align="center">等号操作</td>
+<td align="center">所有值复制</td>
+<td align="center">指向同一个对象</td>
+</tr>
+</tbody></table>
+<ul>
+<li>值类型的转换<ul>
+<li>数字类型之间可以互相转化</li>
+<li>隐式转换</li>
+<li>显式转换（强制类型转换）</li>
+<li><strong>整型提升</strong></li>
+</ul>
+</li>
+<li><strong>枚举类型</strong>与数字类型之间可以显式转换（<strong>强制类型转换</strong>）</li>
+<li>结构类型之间不能转换</li>
+<li>引用类型转换<ul>
+<li>子类转父类（隐式）</li>
+<li>父类转子类（显式）<ul>
+<li>可能成功、可能异常</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>as</code><ul>
+<li>失败则等于 null（而不是抛异常）</li>
+</ul>
+</li>
+<li>引用类型与值类型的转换<ul>
+<li>boxing、unboxing<ul>
+<li>存储位置出现改变</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<img src="13/image-20211226134249692.png" style="zoom:80%;" />
+
+
+
+<h2 id="2-变量及其传递"><a href="#2-变量及其传递" class="headerlink" title="2. 变量及其传递"></a>2. 变量及其传递</h2><h3 id="域变量及局部变量"><a href="#域变量及局部变量" class="headerlink" title="域变量及局部变量"></a>域变量及局部变量</h3><ul>
+<li>类 static 变量<ul>
+<li>相当于类中的<strong>全局变量</strong></li>
+</ul>
+</li>
+<li>域变量<ul>
+<li>相当于<strong>对象中的变量</strong></li>
+</ul>
+</li>
+<li>局部变量<ul>
+<li>在函数体及其 <code>&#123;&#125;</code> 中，在栈中分配，自动消失</li>
+<li><strong>域变量自动有初值，局部变量则不</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="按值传送的参数"><a href="#按值传送的参数" class="headerlink" title="按值传送的参数"></a>按值传送的参数</h3><ul>
+<li>按值传送<ul>
+<li>要注意值类型与引用类型</li>
+</ul>
+</li>
+</ul>
+<h3 id="ref-参数及-out-参数"><a href="#ref-参数及-out-参数" class="headerlink" title="ref 参数及 out 参数"></a>ref 参数及 out 参数</h3><ul>
+<li><strong>效果相当于 C++ 的引用</strong></li>
+<li>ref 参数在<strong>传之间必须先赋值</strong></li>
+<li>out 参数在函数中必须<strong>赋值后才能返回</strong></li>
+<li><strong>表达式及对象的属性不能作 ref 及 out 参数</strong></li>
+</ul>
+<h3 id="params-参数"><a href="#params-参数" class="headerlink" title="params 参数"></a>params 参数</h3><ul>
+<li>数组参数（相当于VB的可变参数）</li>
+<li>参数必须放在<strong>最后</strong></li>
+<li>调用：<ul>
+<li>可用<strong>数组</strong>，也可用<strong>多个参数</strong></li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义</span></span><br><span class="line"><span class="function"><span class="built_in">double</span> <span class="title">Multi</span>(<span class="params"><span class="keyword">params</span> <span class="built_in">double</span>[] nums</span>)</span>;</span><br><span class="line"><span class="comment">// 调用</span></span><br><span class="line">Multi();</span><br><span class="line">Multi(<span class="number">27</span>);</span><br><span class="line">Multi(<span class="number">3.14</span>, <span class="number">0.9</span>, <span class="number">0.9</span>);</span><br><span class="line">Multi(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>);</span><br><span class="line">Multi(<span class="keyword">new</span> <span class="built_in">double</span>[] &#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>&#125;)</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="默认参数"><a href="#默认参数" class="headerlink" title="默认参数"></a>默认参数</h3><figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ZoomIn</span>(<span class="params"> Point p, <span class="built_in">double</span> k = <span class="number">1</span></span>)</span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3-多态与虚方法调用"><a href="#3-多态与虚方法调用" class="headerlink" title="3. 多态与虚方法调用"></a>3. 多态与虚方法调用</h2><ul>
+<li>多态（Polymorphism）</li>
+</ul>
+<h3 id="多态定义"><a href="#多态定义" class="headerlink" title="多态定义"></a>多态定义</h3><ul>
+<li>在面向对象的系统中，多态性是一个非常重要的概念，它允许客户对一个对象进行操作，<strong>由对象来完成一系列的动作，具体实现哪个动作、如何实现由系统负责解释</strong></li>
+<li>在C#中，多态性的定义是，同一操作作用于不同的类的实例，不同的类将进行不同的解释，最后产生不同的执行结果<ul>
+<li>C#支持两种类型的多态性。</li>
+</ul>
+</li>
+</ul>
+<h3 id="两种多态"><a href="#两种多态" class="headerlink" title="两种多态"></a>两种多态</h3><ul>
+<li><strong>编译时</strong>的多态性<ul>
+<li>编译时的多态是通过<strong>重载</strong>来实现的</li>
+<li>对于非虚的成员来说，系统在编译时，根据传递的参数、返回的类型等信息决定实现何种操作</li>
+</ul>
+</li>
+<li><strong>运行时</strong>的多态性<ul>
+<li>运行时的多态性是指直到系统运行时，才根据实际情况决定实现何种操作</li>
+<li>C#中，运行时的多态性通过<strong>虚成员</strong>实现</li>
+</ul>
+</li>
+<li>好处<ul>
+<li>编译时的多态性提供了运行速度快的特点</li>
+<li>而运行时的多态性则带来了高度灵活和抽象的特点</li>
+</ul>
+</li>
+</ul>
+<h3 id="上溯造型与虚方法调用"><a href="#上溯造型与虚方法调用" class="headerlink" title="上溯造型与虚方法调用"></a>上溯造型与虚方法调用</h3><figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title">Shape</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">draw</span>()</span> &#123;</span><br><span class="line">        Console.WriteLine(<span class="string">&quot;Shape Drawing&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">Circle</span> : <span class="title">Shape</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="title">draw</span>()</span> &#123;</span><br><span class="line">        Console.WriteLine(<span class="string">&quot;Draw Circle&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>virtual、override</li>
+</ul>
+<h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><ul>
+<li>必须有 <code>virtual</code> 或 <code>abstract</code> 或 <code>override</code> 所修饰</li>
+<li>虚方法不能省略访问控制符<ul>
+<li>不能是 private 的，不能是 static 的</li>
+<li>因为它们应该可以被子类所覆盖。</li>
+</ul>
+</li>
+<li>子类中要覆盖父类的虚方法，必须用 override<ul>
+<li>否则认为是新（new）的一个方法，并隐藏了父类的方法，不会实行虚方法调用</li>
+<li>覆盖和被覆盖的方法必须有相同的<strong>可访问性</strong>和相同的<strong>返回类型</strong></li>
+</ul>
+</li>
+<li>重要例子<ul>
+<li><a href="/utils/show_code/index.html?csharp/tds/13/OverrideTest1.cs">ex1</a>、<a href="/utils/show_code/index.html?csharp/tds/13/OverrideTest2.cs">ex2</a>、<a href="/utils/show_code/index.html?csharp/tds/13/OverrideTest3.cs">ex3</a>、<a href="/utils/show_code/index.html?csharp/tds/13/OverrideTest4.cs">ex4</a>、<a href="/utils/show_code/index.html?csharp/tds/13/OverrideTest5.cs">ex5</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="虚方法与非虚方法"><a href="#虚方法与非虚方法" class="headerlink" title="虚方法与非虚方法"></a>虚方法与非虚方法</h3><ul>
+<li>虚方法调用的方法是由<strong>对象实例的类型</strong>所决定</li>
+<li>非虚方法调用的方法是由<strong>所声明的对象变量</strong>来决定的</li>
+</ul>
+<h3 id="最可派生的方法"><a href="#最可派生的方法" class="headerlink" title="最可派生的方法"></a>最可派生的方法</h3><ul>
+<li>继承链中既有 override 也有 new</li>
+<li><a href="/utils/show_code/index.html?csharp/tds/13/VirtualComplex.cs">示例</a></li>
+</ul>
+<h2 id="4-动态类型确定"><a href="#4-动态类型确定" class="headerlink" title="4. 动态类型确定"></a>4. 动态类型确定</h2><h3 id="is-运算符"><a href="#is-运算符" class="headerlink" title="is 运算符"></a>is 运算符</h3><ul>
+<li>用于判断运行时对象的类型</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(obj <span class="keyword">is</span> TypeA) &#123;</span><br><span class="line">     <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="x3D-x3D-和-x3D"><a href="#x3D-x3D-和-x3D" class="headerlink" title="&#x3D;&#x3D; 和 !&#x3D;"></a>&#x3D;&#x3D; 和 !&#x3D;</h3><ul>
+<li>值类型相等</li>
+<li>引用类型的相等<ul>
+<li>是判断是否是同一对象</li>
+<li>除非重载了 &#x3D;&#x3D; 及 !&#x3D; 操作</li>
+<li><strong>对于 string 等类型，已经进行了重载</strong></li>
+<li><strong>对于两个 boxing 的对象，&#x3D;&#x3D; 总是 false</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="得到类型信息"><a href="#得到类型信息" class="headerlink" title="得到类型信息"></a>得到类型信息</h3><ul>
+<li><p><strong>typeof 运算符</strong></p>
+<ul>
+<li><code>typeof(System.Console)</code></li>
+</ul>
+</li>
+<li><p><code>对象.GetType()</code></p>
+</li>
+<li><p><code>Type.GetType(string 类名)</code></p>
+</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title">TypeGetType</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>()</span> &#123;</span><br><span class="line">        <span class="built_in">int</span> x = <span class="number">1</span>;</span><br><span class="line">        <span class="built_in">double</span> d = <span class="number">1.0</span>;</span><br><span class="line">        Type[] t = &#123;</span><br><span class="line">            <span class="keyword">typeof</span>(<span class="built_in">int</span>),</span><br><span class="line">            <span class="keyword">typeof</span>(System.Int32),</span><br><span class="line">            <span class="keyword">typeof</span>(<span class="built_in">string</span>),</span><br><span class="line">            <span class="keyword">typeof</span>(<span class="built_in">double</span>[]),</span><br><span class="line">            x.GetType(),</span><br><span class="line">            (x+d).GetType(),</span><br><span class="line">            Type.GetType( <span class="string">&quot;System.Console&quot;</span> ),</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>获得这个类型的其他元信息<ul>
+<li><a href="/utils/show_code/index.html?csharp/tds/13/TypeGetMembers.cs">示例</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="反射"><a href="#反射" class="headerlink" title="反射"></a>反射</h3><ul>
+<li>可以从 <code>exe</code> 文件中获取信息<ul>
+<li><a href="/utils/show_code/index.html?csharp/tds/13/ReflectionTest.cs">示例</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="5-对象构造与析构"><a href="#5-对象构造与析构" class="headerlink" title="5. 对象构造与析构"></a>5. 对象构造与析构</h2><h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><ul>
+<li>构造方法的初始化部分，使用 <code>this</code> 及 <code>base</code><ul>
+<li>调用本类或父类的构造方法</li>
+<li>不用 <code>this</code> 且不用 <code>base</code>，则会自动认为 <code>base()</code><ul>
+<li>这样的写法要求基类必须有默认构造方法</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="域的初始化"><a href="#域的初始化" class="headerlink" title="域的初始化"></a>域的初始化</h4><ul>
+<li>域的初始化中不能引用 this</li>
+<li>在 base 被调用之前不能引用 this</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title">A</span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">A</span>()</span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">A</span>(<span class="params"><span class="built_in">int</span> i</span>)</span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">B</span> : <span class="title">A</span> &#123;</span><br><span class="line">    <span class="built_in">int</span> x = <span class="number">1</span>;</span><br><span class="line">    <span class="function"><span class="built_in">int</span> <span class="title">M</span>()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">int</span> y = x+M(); <span class="comment">//Error</span></span><br><span class="line">    B():<span class="keyword">base</span>(x) &#123;&#125; <span class="comment">//Error</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>()</span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// t.cs(12,13): error CS0236: 字段初始值设定项无法引用非静态字段、方法或属性“B.x”</span></span><br><span class="line"><span class="comment">// t.cs(12,15): error CS0236: 字段初始值设定项无法引用非静态字段、方法或属性“B.M()”</span></span><br><span class="line"><span class="comment">// t.cs(13,14): error CS0120: 对象引用对于非静态的字段、方法或属性“B.x”是必需的</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="构造顺序"><a href="#构造顺序" class="headerlink" title="构造顺序"></a>构造顺序</h4><ul>
+<li>执行过程（Java 2&#x2F;3 相反）<ul>
+<li>若有 this，转向之</li>
+<li>执行域的初始化</li>
+<li>转到 base</li>
+<li>执行方法体</li>
+</ul>
+</li>
+<li>应避免在构造方法中调用任何虚方法</li>
+<li><a href="/utils/show_code/index.html?csharp/tds/13/ConstructorExecution.cs">示例</a></li>
+</ul>
+<h3 id="静态构造方法"><a href="#静态构造方法" class="headerlink" title="静态构造方法"></a>静态构造方法</h3><ul>
+<li>静态构造方法总是在该类的<strong>所有静态域初始化之后</strong>执行</li>
+<li>静态构造方法总是在<strong>该类被使用（如访问静态域、生成实例）之前完成</strong></li>
+<li>静态构造方法<strong>最多被执行一次</strong></li>
+<li>静态构造方法的执行顺序的不确定性，所以在使用构造方法时应谨慎</li>
+<li>应尽量避免在静态初始化或静态域中出现循环引用的情况</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">class</span> <span class="title">B</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">int</span> a = b + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">int</span> b = a + <span class="number">1</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>()</span> &#123;</span><br><span class="line">        Console.WriteLine(<span class="string">&quot;a=&#123;0&#125;,b=&#123;1&#125;&quot;</span>,a,b);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// a=1,b=2</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="析构方法"><a href="#析构方法" class="headerlink" title="析构方法"></a>析构方法</h3><ul>
+<li><code>~类名()&#123;&#125;</code><ul>
+<li>析构方法会自动调用父类的析构方法</li>
+</ul>
+</li>
+<li>编译器生成的构造方法名字为 <code>ctor()</code></li>
+<li>生成的析构方法名字为 <code>Finalize()</code></li>
+<li><strong>不能显式</strong>地调用析构方法</li>
+</ul>
+<h3 id="自动垃圾回收"><a href="#自动垃圾回收" class="headerlink" title="自动垃圾回收"></a>自动垃圾回收</h3><ul>
+<li>垃圾回收（garbage collection）</li>
+<li>自动回收</li>
+<li><strong>强制回收</strong></li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.GC.Collect(); <span class="comment">// 告诉系统建议回收</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="显式资源管理"><a href="#显式资源管理" class="headerlink" title="显式资源管理"></a>显式资源管理</h3><ul>
+<li>实现 <code>IDisposable</code> 接口</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> <span class="title">System</span> &#123;</span><br><span class="line">    [<span class="meta">System.Runtime.InteropServices.ComVisible(true)</span>]</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">IDisposable</span> &#123;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">Dispose</span>()</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="using-语句"><a href="#using-语句" class="headerlink" title="using 语句"></a>using 语句</h4><ul>
+<li>如下两种方式等价</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">R r1 = <span class="keyword">new</span> R();</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    r1.F();</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (r1 != <span class="literal">null</span>) &#123;</span><br><span class="line">        ((IDisposable)r1).Dispose();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> (R r1 = <span class="keyword">new</span> R())&#123;</span><br><span class="line">    r1.F();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="6-C-语言新特性"><a href="#6-C-语言新特性" class="headerlink" title="6. C# 语言新特性"></a>6. C# 语言新特性</h2><ul>
+<li>2.0 引入泛型</li>
+<li>3.0 引入Lambda及Linq</li>
+<li>4.0 引入动态特性dynamic</li>
+<li>5.0 引入并行及异步async&#x2F;await及Task</li>
+<li>6.0 改进编译，属性初始化</li>
+</ul>
+<h3 id="2-0"><a href="#2-0" class="headerlink" title="2.0"></a>2.0</h3><ul>
+<li>泛型 <code>List&lt;T&gt;</code></li>
+<li>泛型 delegate<ul>
+<li><code>Predicate&lt;T&gt;</code></li>
+<li><code>Comparison&lt;T&gt;</code></li>
+<li><code>Converter&lt;TInput,TOutput&gt;</code></li>
+<li><code>EventHandler&lt;TEventArgs&gt;</code></li>
+</ul>
+</li>
+<li>匿名方法<ul>
+<li>delegate(参数) { 方法体 }</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-0"><a href="#3-0" class="headerlink" title="3.0"></a>3.0</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/samples/dotnet/try-samples/101-linq-samples/">Linq 示例</a></li>
+<li><strong>扩展方法</strong>，用于给一个类新添加方法<ul>
+<li><strong>牛逼啊</strong>，这个给控件扩展放啊实在太棒了，可惜写大作业之前不知道</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title">T</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">bool</span> <span class="title">IsLonger</span>(<span class="params"><span class="keyword">this</span> <span class="built_in">string</span> str, <span class="built_in">int</span> n</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> str!=<span class="literal">null</span> &amp;&amp; str.Length&gt; n;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">B</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>()</span> &#123;</span><br><span class="line">        <span class="built_in">string</span> s = <span class="string">&quot;abc&quot;</span>;</span><br><span class="line">        Console.Write(s.IsLonger(<span class="number">2</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-0"><a href="#4-0" class="headerlink" title="4.0"></a>4.0</h3><ul>
+<li>dynamic<ul>
+<li>可以动态表示任意对象，在编译时不进行语法检查</li>
+<li>主要用于 COM 组件的操作</li>
+</ul>
+</li>
+</ul>
+<h3 id="5-0"><a href="#5-0" class="headerlink" title="5.0"></a>5.0</h3><ul>
+<li>Task</li>
+<li>await&#x2F;async</li>
+<li>PLinq</li>
+<li>Parallel</li>
+</ul>
+<h3 id="6-0"><a href="#6-0" class="headerlink" title="6.0"></a>6.0</h3><ul>
+<li>初始化更方便</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title">T</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">string</span> Name &#123;</span><br><span class="line">        <span class="keyword">get</span>;</span><br><span class="line">    &#125; = <span class="string">&quot;Mr.&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> intAge =&gt; <span class="number">20</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">intAdd</span>(<span class="params">inta, intb</span>)</span> =&gt; a+b;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Fun</span>(<span class="params"> <span class="built_in">string</span> s </span>)</span> =&gt; Console.Write(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/12/26/csharp/tds/13/" data-id="cl9lj74bn00ko64tz0mu0etgk" data-title="C#程序设计.唐大仕.13.深入理解C#语言" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/12/28/computation/pyr/09-1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          计算方法B.裴玉茹.09.常微分方程(2)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/12/07/computation/pyr/09/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">计算方法B.裴玉茹.09.常微分方程</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

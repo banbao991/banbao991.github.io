@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>MySQL 练习(员工数据库) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="员工数据库查询练习">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL 练习(员工数据库)">
+<meta property="og:url" content="http://example.com/2021/05/04/DB/MySQL/SQL-employees/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="员工数据库查询练习">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/SQL-employees/employees_details.png">
+<meta property="article:published_time" content="2021-05-04T09:10:00.000Z">
+<meta property="article:modified_time" content="2021-06-23T11:56:24.131Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="DB">
+<meta property="article:tag" content="SQL">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/SQL-employees/employees_details.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-DB/MySQL/SQL-employees" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/05/04/DB/MySQL/SQL-employees/" class="article-date">
+  <time class="dt-published" datetime="2021-05-04T09:10:00.000Z" itemprop="datePublished">2021-05-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/DB-MySQL/">DB.MySQL</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      MySQL 练习(员工数据库)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="SQL-查询练习"><a href="#SQL-查询练习" class="headerlink" title="SQL 查询练习"></a>SQL 查询练习</h1><h2 id="员工数据库"><a href="#员工数据库" class="headerlink" title="员工数据库"></a>员工数据库</h2><p><img src="/SQL-employees/employees_details.png"></p>
+<ul>
+<li>查询每个部门的经理信息。输出格式为（部门名，经理姓，经理名），按部门名升序输出</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> D.dept_name, E.last_name, E.first_name</span><br><span class="line"><span class="keyword">from</span> (departments D <span class="keyword">left</span> <span class="keyword">join</span> dept_manager DM <span class="keyword">on</span> D.dept_no <span class="operator">=</span> DM.dept_no)</span><br><span class="line">                    <span class="keyword">left</span> <span class="keyword">join</span> employees E <span class="keyword">on</span> DM.emp_no <span class="operator">=</span> E.emp_no</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> D.dept_name <span class="keyword">asc</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>找出那些至少拥有三个title并且至少在两个部门工作过的员工，要求按升序输出前十个员工号<ul>
+<li><strong>count 的时候需要去重</strong></li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> E.emp_no</span><br><span class="line"><span class="keyword">from</span> employees E <span class="keyword">inner</span> <span class="keyword">join</span> dept_emp DE <span class="keyword">on</span> E.emp_no <span class="operator">=</span> DE.emp_no</span><br><span class="line">                 <span class="keyword">inner</span> <span class="keyword">join</span> titles T <span class="keyword">on</span> E.emp_no <span class="operator">=</span> T.emp_no</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> E.emp_no</span><br><span class="line"><span class="keyword">having</span> <span class="built_in">count</span>(<span class="keyword">distinct</span> T.title) <span class="operator">&gt;=</span> <span class="number">3</span> <span class="keyword">and</span> <span class="built_in">count</span>(<span class="keyword">distinct</span> DE.dept_no) <span class="operator">&gt;=</span> <span class="number">2</span></span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> E.emp_no <span class="keyword">asc</span></span><br><span class="line">limit <span class="number">10</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>找出比其部门经理工资高的员工，要求输出列是（员工号，经理员工号），按员工号升序，员工号相同的按经理员工号升序，列出前十个。<strong>注意</strong>：有些员工会在多个部门任职，部门经理也会轮换，所以两者在同一部门工作的日期必须有交集。而任期内工资也可能是变化的，所以还必须考虑工资日期的交集。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">distinct</span> DE.emp_no, DM.emp_no</span><br><span class="line"><span class="keyword">from</span> (dept_emp DE <span class="keyword">inner</span> <span class="keyword">join</span> salaries S1 <span class="keyword">on</span>(</span><br><span class="line">    <span class="comment">/* 工资在部门任期之内 */</span></span><br><span class="line">    DE.emp_no <span class="operator">=</span> S1.emp_no</span><br><span class="line">    <span class="keyword">and</span> S1.from_date <span class="operator">&gt;=</span> DE.from_date</span><br><span class="line">    <span class="keyword">and</span> S1.to_date <span class="operator">&lt;=</span> DE.to_date</span><br><span class="line">)),</span><br><span class="line">(dept_manager DM <span class="keyword">inner</span> <span class="keyword">join</span> salaries S2 <span class="keyword">on</span>(</span><br><span class="line">    DM.emp_no <span class="operator">=</span> S2.emp_no</span><br><span class="line">    <span class="keyword">and</span> S2.from_date <span class="operator">&gt;=</span> DM.from_date</span><br><span class="line">    <span class="keyword">and</span> S2.to_date <span class="operator">&lt;=</span> DM.to_date</span><br><span class="line">))</span><br><span class="line"><span class="keyword">where</span> DM.dept_no <span class="operator">=</span> DE.dept_no        <span class="comment">/* 部门经理 */</span></span><br><span class="line">    <span class="keyword">and</span> S1.salary <span class="operator">&gt;</span> S2.salary        <span class="comment">/* 工资更高 */</span></span><br><span class="line">    <span class="comment">/* 工资时间交集 */</span></span><br><span class="line">    <span class="keyword">and</span> (S1.from_date <span class="operator">&lt;=</span> S2.to_date <span class="keyword">and</span> S2.from_date <span class="operator">&lt;=</span> S1.to_date)</span><br><span class="line">    <span class="comment">/* 工作时间交集 */</span></span><br><span class="line">    <span class="keyword">and</span> (DM.from_date <span class="operator">&lt;=</span> DE.to_date <span class="keyword">and</span> DE.from_date <span class="operator">&lt;=</span> DM.to_date)</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> DE.emp_no <span class="keyword">asc</span>, DM.emp_no <span class="keyword">asc</span></span><br><span class="line">limit <span class="number">10</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>将每个部门的员工的姓串接在一列中，要求以逗号分隔，按姓升序排序，仅包括前5个员工。输出格式为（部门号，员工姓），按部门号升序输出。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> DE.dept_no, substring_index(</span><br><span class="line">    group_concat(E.last_name <span class="keyword">order</span> <span class="keyword">by</span> E.last_name <span class="keyword">asc</span> separator <span class="string">&#x27;,&#x27;</span>),</span><br><span class="line">    <span class="string">&#x27;,&#x27;</span>,</span><br><span class="line">    <span class="number">5</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">from</span> dept_emp DE <span class="keyword">inner</span> <span class="keyword">join</span> employees E <span class="keyword">on</span> DE.emp_no <span class="operator">=</span> E.emp_no</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> DE.dept_no</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> DE.dept_no <span class="keyword">asc</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>列出每个部门中的最高和最低工资的员工及其工资。输出格式为（部门号，最高工资员工号，最高工资，最低工资员工号，最低工资）。<strong>注意</strong>：员工某一时期的工资，日期范围要和在该部门任职日期范围有交集，才能算作该部门的工资</li>
+<li>先找出最高工资，再找到人</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 超时了 */</span></span><br><span class="line"><span class="keyword">with</span> TMP <span class="keyword">as</span> (</span><br><span class="line"><span class="keyword">select</span> S.salary salary, E.emp_no emp_no, DE.dept_no dept_no</span><br><span class="line"><span class="keyword">from</span> dept_emp DE <span class="keyword">inner</span> <span class="keyword">join</span> employees E <span class="keyword">on</span> DE.emp_no <span class="operator">=</span> E.emp_no</span><br><span class="line">                 <span class="keyword">inner</span> <span class="keyword">join</span> salaries S <span class="keyword">on</span> (</span><br><span class="line">                     E.emp_no <span class="operator">=</span> S.emp_no <span class="keyword">and</span></span><br><span class="line">                     <span class="comment">/* 工资在部门任期之内 */</span></span><br><span class="line">                     S.from_date <span class="operator">&gt;=</span> DE.from_date <span class="keyword">and</span> S.to_date <span class="operator">&lt;=</span> DE.to_date</span><br><span class="line">                 )</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> t_max.dept_no, t3.emp_no, max_salary, t4.emp_no, min_salary</span><br><span class="line"><span class="keyword">from</span></span><br><span class="line"><span class="comment">/* 先求出最高工资 */</span></span><br><span class="line">(</span><br><span class="line">    <span class="keyword">select</span> t1.dept_no dept_no, <span class="built_in">max</span>(t1.salary) max_salary</span><br><span class="line">    <span class="keyword">from</span> TMP t1</span><br><span class="line">    <span class="keyword">group</span> <span class="keyword">by</span> t1.dept_no</span><br><span class="line">) t_max</span><br><span class="line"><span class="keyword">inner</span> <span class="keyword">join</span></span><br><span class="line"><span class="comment">/* 最低工资 */</span></span><br><span class="line">(</span><br><span class="line">    <span class="keyword">select</span> t2.dept_no dept_no, <span class="built_in">min</span>(t2.salary) min_salary</span><br><span class="line">    <span class="keyword">from</span> TMP t2</span><br><span class="line">    <span class="keyword">group</span> <span class="keyword">by</span> t2.dept_no</span><br><span class="line">) t_min</span><br><span class="line"><span class="keyword">on</span> t_max.dept_no <span class="operator">=</span> t_min.dept_no</span><br><span class="line"><span class="comment">/* 再连接 */</span></span><br><span class="line"><span class="keyword">inner</span> <span class="keyword">join</span> TMP t3</span><br><span class="line"><span class="keyword">on</span> t3.dept_no <span class="operator">=</span> t_max.dept_no <span class="keyword">and</span> t3.salary <span class="operator">=</span> t_max.max_salary</span><br><span class="line"><span class="keyword">inner</span> <span class="keyword">join</span> TMP t4</span><br><span class="line"><span class="keyword">on</span> t4.dept_no <span class="operator">=</span> t_min.dept_no <span class="keyword">and</span> t4.salary <span class="operator">=</span> t_min.min_salary</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>最大最小同时求，这样就不会超时</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> TMP <span class="keyword">as</span> (</span><br><span class="line"><span class="keyword">select</span> S.salary salary, E.emp_no emp_no, DE.dept_no dept_no</span><br><span class="line"><span class="keyword">from</span> dept_emp DE <span class="keyword">inner</span> <span class="keyword">join</span> employees E <span class="keyword">on</span> DE.emp_no <span class="operator">=</span> E.emp_no</span><br><span class="line">                 <span class="keyword">inner</span> <span class="keyword">join</span> salaries S <span class="keyword">on</span> (</span><br><span class="line">                     E.emp_no <span class="operator">=</span> S.emp_no <span class="keyword">and</span></span><br><span class="line">                     <span class="comment">/* 工资在部门任期之内 */</span></span><br><span class="line">                     S.from_date <span class="operator">&gt;=</span> DE.from_date <span class="keyword">and</span> S.to_date <span class="operator">&lt;=</span> DE.to_date</span><br><span class="line">                 )</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> t_m.dept_no, t3.emp_no, max_salary, t4.emp_no, min_salary</span><br><span class="line"><span class="keyword">from</span></span><br><span class="line"><span class="comment">/* 先求出最高最低工资 */</span></span><br><span class="line">(</span><br><span class="line">    <span class="keyword">select</span> t1.dept_no dept_no, <span class="built_in">max</span>(t1.salary) max_salary, <span class="built_in">min</span>(t1.salary) min_salary</span><br><span class="line">    <span class="keyword">from</span> TMP t1</span><br><span class="line">    <span class="keyword">group</span> <span class="keyword">by</span> t1.dept_no</span><br><span class="line">) t_m</span><br><span class="line"><span class="comment">/* 再连接 */</span></span><br><span class="line"><span class="keyword">inner</span> <span class="keyword">join</span> TMP t3</span><br><span class="line"><span class="keyword">on</span> t3.dept_no <span class="operator">=</span> t_m.dept_no <span class="keyword">and</span> t3.salary <span class="operator">=</span> t_m.max_salary</span><br><span class="line"><span class="keyword">inner</span> <span class="keyword">join</span> TMP t4</span><br><span class="line"><span class="keyword">on</span> t4.dept_no <span class="operator">=</span> t_m.dept_no <span class="keyword">and</span> t4.salary <span class="operator">=</span> t_m.min_salary</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查询最高工资所在的部门中的最低工资是多少？输出格式为（部门号，最高工资，最低工资），按部门号升序输出。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> TMP <span class="keyword">as</span> (</span><br><span class="line"><span class="keyword">select</span> S.salary salary, E.emp_no emp_no, DE.dept_no dept_no</span><br><span class="line"><span class="keyword">from</span> dept_emp DE <span class="keyword">inner</span> <span class="keyword">join</span> employees E <span class="keyword">on</span> DE.emp_no <span class="operator">=</span> E.emp_no</span><br><span class="line">                 <span class="keyword">inner</span> <span class="keyword">join</span> salaries S <span class="keyword">on</span> (</span><br><span class="line">                     E.emp_no <span class="operator">=</span> S.emp_no <span class="keyword">and</span></span><br><span class="line">                     <span class="comment">/* 工资在部门任期之内 */</span></span><br><span class="line">                     S.from_date <span class="operator">&gt;=</span> DE.from_date <span class="keyword">and</span> S.to_date <span class="operator">&lt;=</span> DE.to_date</span><br><span class="line">                 )</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> t_m.dept_no, max_salary msalary, min_salary nsalary</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">    <span class="keyword">select</span> t1.dept_no dept_no, <span class="built_in">max</span>(t1.salary) max_salary, <span class="built_in">min</span>(t1.salary) min_salary</span><br><span class="line">    <span class="keyword">from</span> TMP t1</span><br><span class="line">    <span class="keyword">group</span> <span class="keyword">by</span> t1.dept_no</span><br><span class="line">) t_m</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> max_salary <span class="keyword">desc</span></span><br><span class="line">limit <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>选做。比较男女职工的平均工资差异。一个人的生涯平均工资这样计算：先将某段时间内的年薪换算成日薪（统一用一年360天），再乘以在这个年薪水平下所工作的天数，得到收入，将所有不同时段的收入加起来，再除以总天数，这样就得到总平均日薪了，求所有男女员工的平均日薪也是类似做法。输出格式为（男职工平均日薪，女职工平均日薪，平均日薪差）。<strong>注意：</strong>to_date是’9999-01-01’的统一用最大的from_date+一年 代替，即’2003-08-01’</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* TODO */</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>11027号员工有过三个不同的title， 将其按如下表格形式输出</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">emp_no</th>
+<th align="center">tenure1</th>
+<th align="center">tenure2</th>
+<th align="center">tenure3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">11027</td>
+<td align="center">1986-05-07~1991-05-07\nAssistant Engineer</td>
+<td align="center">…</td>
+<td align="center">…</td>
+</tr>
+</tbody></table>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* MySQL 字符串拼接不能直接用 +, 需要使用 concat(,) */</span></span><br><span class="line"><span class="keyword">select</span> emp_no,</span><br><span class="line">    concat(</span><br><span class="line">        DATE_FORMAT(T1.from_date,<span class="string">&#x27;%Y-%m-%d&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;~&#x27;</span>,</span><br><span class="line">        DATE_FORMAT(T1.to_date,<span class="string">&#x27;%Y-%m-%d&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;\n&#x27;</span>,</span><br><span class="line">        T1.title</span><br><span class="line">    ) tenure1,</span><br><span class="line">    concat(</span><br><span class="line">        DATE_FORMAT(T2.from_date,<span class="string">&#x27;%Y-%m-%d&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;~&#x27;</span>,</span><br><span class="line">        DATE_FORMAT(T2.to_date,<span class="string">&#x27;%Y-%m-%d&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;\n&#x27;</span>,</span><br><span class="line">        T2.title</span><br><span class="line">    ) tenure2,</span><br><span class="line">    concat(</span><br><span class="line">        DATE_FORMAT(T3.from_date,<span class="string">&#x27;%Y-%m-%d&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;~&#x27;</span>,</span><br><span class="line">        DATE_FORMAT(T3.to_date,<span class="string">&#x27;%Y-%m-%d&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;\n&#x27;</span>,</span><br><span class="line">        T3.title</span><br><span class="line">    ) tenure3</span><br><span class="line"><span class="keyword">from</span> titles T1 <span class="keyword">join</span> titles T2 <span class="keyword">using</span>(emp_no) <span class="keyword">join</span> titles T3 <span class="keyword">using</span>(emp_no)</span><br><span class="line"><span class="keyword">where</span> emp_no <span class="operator">=</span> <span class="number">11027</span> <span class="keyword">and</span> T1.from_date <span class="operator">&lt;</span> T2.from_date <span class="keyword">and</span> T2.from_date <span class="operator">&lt;</span> T3.from_date</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/05/04/DB/MySQL/SQL-employees/" data-id="cl9lj74an00e264tzht106u2s" data-title="MySQL 练习(员工数据库)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/05/04/DB/MySQL/SQL-adventureworks/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          MySQL 练习(订单表数据库)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/05/04/DB/MySQL/SQL-SPJ/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">MySQL 练习(SPJ 数据库)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

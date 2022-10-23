@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>数据库概论.陈立军.05.关系规范化(3) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="模式分解、模式分解中的问题(异常、违约、有损)、无损分解、保持函数依赖的分解、模式调优">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.05.关系规范化(3)">
+<meta property="og:url" content="http://example.com/2021/05/19/DB/CLJ/05-2/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="模式分解、模式分解中的问题(异常、违约、有损)、无损分解、保持函数依赖的分解、模式调优">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520000151424.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520113036080.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520113541161.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520113735780.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520114858895.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520114954753.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520121032976.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520121911067.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520151750073.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520152425047.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520155032495.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520162648780.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520163507285.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520163631550.png">
+<meta property="og:image" content="http://example.com/05-2/image-20210520164000533.png">
+<meta property="og:image" content="http://example.com/05-2/image-20210520164045282.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520164113081.png">
+<meta property="og:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520164130508.png">
+<meta property="article:published_time" content="2021-05-19T14:20:45.000Z">
+<meta property="article:modified_time" content="2021-06-25T01:39:16.110Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/19/DB/CLJ/05-2/05-2/image-20210520000151424.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-DB/CLJ/05-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/05/19/DB/CLJ/05-2/" class="article-date">
+  <time class="dt-published" datetime="2021-05-19T14:20:45.000Z" itemprop="datePublished">2021-05-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/DB-CLJ/">DB.CLJ</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      数据库概论.陈立军.05.关系规范化(3)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="模式分解"><a href="#模式分解" class="headerlink" title="模式分解"></a>模式分解</h1><ul>
+<li>例子：给定一个关系模式，通过模式分解解决异常</li>
+<li>关系模式：$R(ABCD;A\to B,B\to C)$</li>
+<li>分解一<ul>
+<li>$R_1(AB;A\to B),R_2(BC;B\to C)$</li>
+<li>不是正确的分解，缺失了属性 $D$</li>
+</ul>
+</li>
+<li>分解二<ul>
+<li>$R_1(ABD;A\to B),R_2(BC;B\to C),R_3(BD)$</li>
+<li>不是正确的分解，$R_3$ 包含在 $R_1$ 中，没必要</li>
+</ul>
+</li>
+<li>分解三<ul>
+<li>$R_1(AB;A\to B),R_2(AC),R_3(AD)$</li>
+<li>不是正确的分解，和原来的关系模式函数依赖不等价（$A\to C$）</li>
+</ul>
+</li>
+<li>分解四<ul>
+<li>$R_1(AB;A\to B),R_2(AC;A\to C),R_3(AD)$</li>
+<li>正确</li>
+</ul>
+</li>
+</ul>
+<h2 id="模式分解的定义"><a href="#模式分解的定义" class="headerlink" title="模式分解的定义"></a>模式分解的定义</h2><ul>
+<li>属性上来看<ul>
+<li>子模式的属性集的并集和原来相同</li>
+<li>子模式的属性集之间不能有包含关系</li>
+</ul>
+</li>
+<li>函数依赖上看<ul>
+<li>原来函数依赖集要正确的投影到子模式的属性集上面</li>
+</ul>
+</li>
+</ul>
+<h3 id="函数依赖在属性集上的投影"><a href="#函数依赖在属性集上的投影" class="headerlink" title="函数依赖在属性集上的投影"></a>函数依赖在属性集上的投影</h3><ul>
+<li>函数依赖集 $F$ 在属性集 $U_i$ 上的投影定义为：$F_i&#x3D;{X\to Y|X\to Y\in F^+\land XY\subseteq U_i}$</li>
+</ul>
+<h4 id="例子1"><a href="#例子1" class="headerlink" title="例子1"></a>例子1</h4><ul>
+<li>求 $F&#x3D;{A\to B, B\to C, C\to D}$ 在 $S(ACD)$ 上的投影</li>
+<li>先求出闭包<ul>
+<li>$A_F^+&#x3D;ABCD,C_F^+&#x3D;CD,D_F^+&#x3D;D$</li>
+</ul>
+</li>
+<li>写出函数依赖<ul>
+<li>需要考虑二元（多元）<ul>
+<li>$A_F^+$ 已经是全集了，于是不需要考虑 $A$ 和其他的组合</li>
+<li>$(CD_F)^+&#x3D;CD$，于是也不需要了</li>
+</ul>
+</li>
+<li>$A\to C,A\to D,C\to D$</li>
+</ul>
+</li>
+<li>消除冗余依赖<ul>
+<li>$A\to C,C\to D$</li>
+</ul>
+</li>
+</ul>
+<h4 id="例子2"><a href="#例子2" class="headerlink" title="例子2"></a>例子2</h4><ul>
+<li>计算下面函数依赖集在 $S(ABC)$ 上的投影<ul>
+<li>$F&#x3D;{AB\to DE,C\to E,D\to C,E\to A}$</li>
+<li>$F&#x3D;{A\to D,BD\to E,AC\to E,DE\to B}$</li>
+<li>$F&#x3D;{AB\to D,AC\to E,BC\to D,D\to A,E\to B}$</li>
+</ul>
+</li>
+</ul>
+<h5 id="1-F-x3D-AB-to-DE-C-to-E-D-to-C-E-to-A"><a href="#1-F-x3D-AB-to-DE-C-to-E-D-to-C-E-to-A" class="headerlink" title="$(1);F&#x3D;{AB\to DE,C\to E,D\to C,E\to A}$"></a>$(1);F&#x3D;{AB\to DE,C\to E,D\to C,E\to A}$</h5><ul>
+<li><p>${\color{red}{C\to A,AB\to C,BC\to A}}$</p>
+</li>
+<li><p>$A_F^+&#x3D;A$</p>
+</li>
+<li><p>$B_F^+&#x3D;B$</p>
+</li>
+<li><p>$C_F^+&#x3D;CEA$</p>
+</li>
+<li><p>$(AB)_F^+&#x3D;ABDEC$</p>
+</li>
+<li><p>$(AC)_F^+&#x3D;ACE$</p>
+</li>
+<li><p>$(BC)_F^+&#x3D;BCEAD$</p>
+</li>
+</ul>
+<h5 id="2-F-x3D-A-to-D-BD-to-E-AC-to-E-DE-to-B"><a href="#2-F-x3D-A-to-D-BD-to-E-AC-to-E-DE-to-B" class="headerlink" title="$(2);F&#x3D;{A\to D,BD\to E,AC\to E,DE\to B}$"></a>$(2);F&#x3D;{A\to D,BD\to E,AC\to E,DE\to B}$</h5><ul>
+<li>${\color{red}{AC\to B}}$</li>
+<li>$A_F^+&#x3D;AD$</li>
+<li>$B_F^+&#x3D;B$</li>
+<li>$C_F^+&#x3D;C$</li>
+<li>$(AB)_F^+&#x3D;ABDE$</li>
+<li>$(AC)_F^+&#x3D;ACDEB$</li>
+<li>$(BC)_F^+&#x3D;BC$</li>
+</ul>
+<h5 id="3-F-x3D-AB-to-D-AC-to-E-BC-to-D-D-to-A-E-to-B"><a href="#3-F-x3D-AB-to-D-AC-to-E-BC-to-D-D-to-A-E-to-B" class="headerlink" title="$(3);F&#x3D;{AB\to D,AC\to E,BC\to D,D\to A,E\to B}$"></a>$(3);F&#x3D;{AB\to D,AC\to E,BC\to D,D\to A,E\to B}$</h5><ul>
+<li>${\color{red}{AC\to B,BC\to A}}$</li>
+<li>$A_F^+&#x3D;A$</li>
+<li>$B_F^+&#x3D;B$</li>
+<li>$C_F^+&#x3D;C$</li>
+<li>$(AB)_F^+&#x3D;ABD$</li>
+<li>$(AC)_F^+&#x3D;ACEBD$</li>
+<li>$(BC)_F^+&#x3D;BCDAE$</li>
+</ul>
+<h3 id="模式分解的定义-1"><a href="#模式分解的定义-1" class="headerlink" title="模式分解的定义"></a>模式分解的定义</h3><ul>
+<li>关系模式 $R(U , F)$ 的一个分解是指<ul>
+<li>$\rho&#x3D;{R_1(U_1,F_1),\cdots,R_n(U_n,F_n)}$</li>
+<li>其中 $U&#x3D;\bigcup_{i&#x3D;1}^{n}U_i$，并且没有 $U_i\subseteq U_j,1\le i,j\le n$</li>
+<li>$F_i$ 是 $F$ 在 $U_i$ 上的投影</li>
+</ul>
+</li>
+<li>模式分解的代数运算<ul>
+<li>分解：投影</li>
+<li>还原：自然连接</li>
+</ul>
+</li>
+</ul>
+<h3 id="模式分解的目标"><a href="#模式分解的目标" class="headerlink" title="模式分解的目标"></a>模式分解的目标</h3><ul>
+<li>trade off<ul>
+<li><strong>达到更高级的范式</strong></li>
+<li><strong>无损连接分解</strong></li>
+<li><strong>保持函数依赖</strong></li>
+</ul>
+</li>
+</ul>
+<h2 id="模式分解中的问题"><a href="#模式分解中的问题" class="headerlink" title="模式分解中的问题"></a>模式分解中的问题</h2><h3 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h3><ul>
+<li>分解的过于完全：丢失信息</li>
+</ul>
+<img src="05-2/image-20210520000151424.png" style="zoom:50%;" />
+
+<h3 id="违约-x2F-违章"><a href="#违约-x2F-违章" class="headerlink" title="违约&#x2F;违章"></a>违约&#x2F;违章</h3><ul>
+<li>在分解之后的表中执行插入操作，重构的时候可能违反原始表的函数依赖<ul>
+<li>问题是丢失了函数依赖</li>
+<li>$A\to B,A\to C$ 推导不出原来的 $B\to C$</li>
+</ul>
+</li>
+</ul>
+<img src="05-2/image-20210520113036080.png" style="zoom:50%;" />
+
+
+
+<h3 id="有损"><a href="#有损" class="headerlink" title="有损"></a>有损</h3><ul>
+<li>有损分解：信息损失了</li>
+</ul>
+<img src="05-2/image-20210520113541161.png" style="zoom:50%;" />
+
+<h3 id="正确的分解"><a href="#正确的分解" class="headerlink" title="正确的分解"></a>正确的分解</h3><img src="05-2/image-20210520113735780.png" style="zoom:50%;" />
+
+<ul>
+<li>有损比违章害处更大，违章的数据可以通过检查剔除</li>
+</ul>
+<h2 id="保持函数依赖的分解"><a href="#保持函数依赖的分解" class="headerlink" title="保持函数依赖的分解"></a>保持函数依赖的分解</h2><ul>
+<li>设关系模式 $R(U , F)$ 的一个分解是<ul>
+<li>$\rho&#x3D;{R_1(U_1,F_1),\cdots,R_n(U_n,F_n)}$</li>
+<li>如果 $F^+&#x3D;(\bigcup_{i&#x3D;1}^nF_i)^+$</li>
+<li>则称 $\rho$ 是保持函数依赖的分解</li>
+</ul>
+</li>
+<li>等价于验证 $F\subseteq (\bigcup_{i&#x3D;1}^nF_i)^+,F_i\subseteq F$</li>
+<li>由于 $F_i$ 都是由 $F$ 导出的，我们只需要验证 $F$ 中的函数依赖能够被 $\bigcup F_i$ 导出即可</li>
+</ul>
+<h3 id="丢失函数依赖的分解实例"><a href="#丢失函数依赖的分解实例" class="headerlink" title="丢失函数依赖的分解实例"></a>丢失函数依赖的分解实例</h3><ul>
+<li>$U&#x3D;{CITY,ST,ZIP},F&#x3D;{(CITY,ST)\to ZIP,ZIP\to CITY}$</li>
+<li>分解如下<ul>
+<li>$U_1&#x3D;{ST,ZIP},F1&#x3D;{}$</li>
+<li>$U_2&#x3D;{CITY,ZIP},F2&#x3D;{ZIP\to CITY}$</li>
+</ul>
+</li>
+<li>丢失了函数依赖 $(CITY,ST)\to ZIP$</li>
+<li>插入数据导致的问题</li>
+</ul>
+<img src="05-2/image-20210520114858895.png" style="zoom:50%;" />
+
+
+
+<h3 id="有损分解的例子"><a href="#有损分解的例子" class="headerlink" title="有损分解的例子"></a>有损分解的例子</h3><ul>
+<li>构造方法：公共属性上相同值多一些</li>
+</ul>
+<img src="05-2/image-20210520114954753.png" style="zoom:50%;" />
+
+
+
+<h2 id="无损连接分解"><a href="#无损连接分解" class="headerlink" title="无损连接分解"></a>无损连接分解</h2><h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><ul>
+<li>设关系模式 $R(U , F)$ 的一个分解是<ul>
+<li>$\rho&#x3D;{R_1(U_1,F_1),\cdots,R_n(U_n,F_n)}$</li>
+<li>$r$ 是 $R$ 的任意一个关系实例</li>
+<li>定义 $m_{\rho}(r)&#x3D;\prod_{U_i}(r)$</li>
+<li>若 $m_{\rho}(r)&#x3D;r$，则称 $\rho$ 是 $R$ 的一个无损分解</li>
+</ul>
+</li>
+</ul>
+<h3 id="无损连接分解的判别算法"><a href="#无损连接分解的判别算法" class="headerlink" title="无损连接分解的判别算法"></a>无损连接分解的判别算法</h3><ul>
+<li>$U&#x3D;{A_1,A_2,\cdots,A_n}$</li>
+<li>$\rho&#x3D;{R_1(U_1,F_1),\cdots,R_k(U_k,F_k)}$</li>
+</ul>
+<h4 id="1-建立一个-n-列-k-行的矩阵-TB"><a href="#1-建立一个-n-列-k-行的矩阵-TB" class="headerlink" title="(1) 建立一个 $n$ 列 $k$ 行的矩阵 TB"></a>(1) 建立一个 $n$ 列 $k$ 行的矩阵 TB</h4><ul>
+<li>填充矩阵</li>
+<li>$TB&#x3D;{C_{ij}|若A_i\in U_i,C_{ij}&#x3D;a_j,否则C_{ij}&#x3D;b_{ij}}$</li>
+</ul>
+<h4 id="2-对-F-中每一个函数依赖-X-to-Y"><a href="#2-对-F-中每一个函数依赖-X-to-Y" class="headerlink" title="(2) 对 $F$ 中每一个函数依赖 $X\to Y$"></a>(2) 对 $F$ 中每一个函数依赖 $X\to Y$</h4><ul>
+<li>若 TB 中存在元组 $t_1,t_2$，使得 $t_1[X]&#x3D;t_2[X],t_1[Y]\ne t_2[Y]$</li>
+<li>则对每一个 $A_i\in Y$ 进行如下操作<ul>
+<li>若 $t_1[A_i],t_2[A_i]$ 中有一个等于$a_j$，则另一个也改为 $a_j$</li>
+<li>否则取 $t_1[A_i]&#x3D;t_2[A_i]$（$t_2$ 的行号小于 $t_1$）</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-反复执行-2-，直至如下情况发生"><a href="#3-反复执行-2-，直至如下情况发生" class="headerlink" title="(3) 反复执行 (2)，直至如下情况发生"></a>(3) 反复执行 (2)，直至如下情况发生</h4><ul>
+<li>TB 中出现一行全为 $a_1,a_2,\cdots,a_n$的一行（无损分解）</li>
+<li>TB 不再变化，而且没有一行为 $a_1,a_2,\cdots,a_n$（有损分解）</li>
+</ul>
+<h4 id="一个算法的例子"><a href="#一个算法的例子" class="headerlink" title="一个算法的例子"></a>一个算法的例子</h4><img src="05-2/image-20210520121032976.png" style="zoom:50%;" />
+
+
+
+<h3 id="分解为两个关系模式的无损分解"><a href="#分解为两个关系模式的无损分解" class="headerlink" title="分解为两个关系模式的无损分解"></a>分解为两个关系模式的无损分解</h3><ul>
+<li>关系模式 $R(U),U_1\cup U_2 &#x3D; U$</li>
+<li>$r$ 是 $R$ 上的任一关系，$r_1&#x3D;\prod_{U_1}(r),r_2&#x3D;\prod_{U_2}(r)$</li>
+<li>若$r &#x3D; r_1\bowtie r_2$，则称 ${U_1,U_2}$ 是 $U$ 的一个无损连接分解</li>
+</ul>
+<h4 id="判定"><a href="#判定" class="headerlink" title="判定"></a>判定</h4><ul>
+<li>$\rho$ 是无损连接分解 $\Leftrightarrow$ $U_1\cap U_2\to U_1−U_2$ 或 $U_1\cap U_2\to U_2−U_1$</li>
+<li>使用之前的判定算法做一个简单的证明</li>
+</ul>
+<img src="05-2/image-20210520121911067.png" style="zoom:50%;" />
+
+<ul>
+<li>在这里没有证明， 如果是无损的，则能推出上述函数依赖</li>
+</ul>
+<h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><ul>
+<li>$R&#x3D;ABC,F&#x3D;{A\to B}$</li>
+<li>分解一：$\rho_1&#x3D;{R_1(AB),R_2(AC)}$<ul>
+<li>$R_1\cap R_2&#x3D;A,R_1-R_2&#x3D;B$</li>
+<li>由 $A\to B$，得到 $\rho_1$</li>
+<li>是无损连接分解</li>
+</ul>
+</li>
+<li>分解二：$\rho_2&#x3D;{R_1(AB),R_2(BC)}$<ul>
+<li>$R_1\cap R_2&#x3D;B,R_1-R_2&#x3D;A,R_2-R_1&#x3D;C$</li>
+<li>$B\to A,B\to C$ 均不成立</li>
+<li>不是无损连接分解</li>
+</ul>
+</li>
+</ul>
+<h3 id="达到-BCNF-无损连接分解算法"><a href="#达到-BCNF-无损连接分解算法" class="headerlink" title="达到 BCNF 无损连接分解算法"></a>达到 BCNF 无损连接分解算法</h3><ul>
+<li>BCNF：对于每个子模式，所有的函数依赖的左边都是码</li>
+</ul>
+<h4 id="算法流程"><a href="#算法流程" class="headerlink" title="算法流程"></a>算法流程</h4><ul>
+<li>给定关系模式 $R(U,F)$<ul>
+<li>(1) 令 $\rho&#x3D;R(U,F)$</li>
+<li>(2) 检查 $\rho$ 中各关系模式是否属于BCNF，若是，则算法终止</li>
+<li>(3) 设 $\rho$ 中 $R_i(U_i,F_i)$ 不属于 BCNF<ul>
+<li>则存在函数依赖 $X\to A\in F_i^+$，且 $X$ 不是 $R_i$ 的码</li>
+<li>将 $R_i$ 分解为 $\sigma&#x3D;{S_1(U_1),S_2(U_2)}$</li>
+<li>其中 $U_1&#x3D;XA,U_2&#x3D;U_i-A$</li>
+<li>以 $\sigma$ 代替 $R_i$，返回到 (2)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>结果一定能够达到 BCNF</li>
+<li>结果一定是无损的，可以通过上面 ”分解为两个关系模式的无损分解算法“ 证明<ul>
+<li>$U_1\cap U_2&#x3D;X$</li>
+<li>$U_1-U_2&#x3D;A$</li>
+<li>$X\to A$</li>
+</ul>
+</li>
+</ul>
+<h4 id="一个例子"><a href="#一个例子" class="headerlink" title="一个例子"></a>一个例子</h4><ul>
+<li>码是 AD，A 不是码，B 不是码</li>
+</ul>
+<img src="05-2/image-20210520151750073.png" style="zoom:50%;" />
+
+<ul>
+<li>当原来的关系模式中，存在多个函数依赖不满足 BCNF，处理的先后顺序会影响最终的结果</li>
+<li>如何构造一个有 N 种 BCNF 分解结果的关系模式？<ul>
+<li>一个例子：3</li>
+<li>$A\to D,B\to D,C\to D$，码是 $ABC$</li>
+</ul>
+</li>
+</ul>
+<h4 id="关于BCNF分解的额外讨论"><a href="#关于BCNF分解的额外讨论" class="headerlink" title="关于BCNF分解的额外讨论"></a>关于BCNF分解的额外讨论</h4><ul>
+<li>$R(ABCD),FD&#x3D;{A\to B,A\to C}$</li>
+<li>码是 $AD$，分解为 BCNF<ul>
+<li>分解结果为 $R_1(AB),R_2(AC),R_3(AD)$</li>
+</ul>
+</li>
+<li>$R_1,R_2$ 没必要分开</li>
+<li>优化方法：基于 $X\to A$ 的 BCNF 分解，<span style="font-weight:bold;color:red">将右边扩展为 $X$ 的闭包</span><ul>
+<li>分解结果为 $R_1(ABC),R_2(AD)$</li>
+</ul>
+</li>
+</ul>
+<h3 id="达到-4NF-无损连接分解算法"><a href="#达到-4NF-无损连接分解算法" class="headerlink" title="达到 4NF 无损连接分解算法"></a>达到 4NF 无损连接分解算法</h3><ul>
+<li><p>给定关系模式 $R(U,F)$</p>
+<ul>
+<li>(1) 令 $\rho&#x3D;R(U,F)$</li>
+<li>(2) 检查 $\rho$ 中各关系模式是否属于BCNF，若是，则算法终止</li>
+<li>(3) 设 $\rho$ 中 $R_i(U_i,F_i)$ 不属于 BCNF<ul>
+<li>则存在非平凡多值依赖 $X\to\to A$，且 $X$ 不是 $R_i$ 的码</li>
+<li>将 $R_i$ 分解为 $\sigma&#x3D;{S_1(U_1),S_2(U_2)}$</li>
+<li>其中 $U_1&#x3D;XA,U_2&#x3D;U_i-A$</li>
+<li>以 $\sigma$ 代替 $R_i$，返回到 (2)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>一个例子</p>
+</li>
+</ul>
+<img src="05-2/image-20210520152425047.png" style="zoom:50%;" />
+
+
+
+<h3 id="丢失函数依赖的-BCNF-分解"><a href="#丢失函数依赖的-BCNF-分解" class="headerlink" title="丢失函数依赖的 BCNF 分解"></a>丢失函数依赖的 BCNF 分解</h3><ul>
+<li>若要求分解保持函数依赖，那么分解后的模式总可以达到 3NF，但不一定能达到 BCNF</li>
+<li>例子<ul>
+<li>$U&#x3D;(sno, tno, cno),F&#x3D;{(sno, cno)\to tno, tno\to cno}$</li>
+<li>不属于BCNF，分解为 $U_1&#x3D;(sno, tno),U_2&#x3D;(tno, cno),F_2&#x3D;{tno\to cno}$</li>
+<li>丢失了函数依赖 $(sno, cno)\to tno$</li>
+</ul>
+</li>
+</ul>
+<h3 id="达到-3NF-保持函数依赖的分解"><a href="#达到-3NF-保持函数依赖的分解" class="headerlink" title="达到 3NF 保持函数依赖的分解"></a>达到 3NF 保持函数依赖的分解</h3><ul>
+<li>求 $F$ 的最小覆盖 $F_{min}$</li>
+<li>找出不在 $F_{min}$ 中出现的属性，将它们构成一个关系模式，并从 $U$ 中去掉它们（剩余属性仍记为$U$）</li>
+<li>若有 $X\to A\in F_{min}$，且 $XA&#x3D;U$，$\rho&#x3D;{R}$，算法终止</li>
+<li>对  $F_{min}$ 按具有相同左部的原则进行分组（设为 $k$ 组）<ul>
+<li>每一组函数依赖所涉及的属性全体为 $U_i$</li>
+<li>令 $F_i$ 为 $F_{min}$在 $U_i$上的投影</li>
+<li>则 $\rho&#x3D;{R_1(U_1,F_1),\cdots,R_k(U_k,F_k)}$ 是 $R(U,F)$ 的一个保持函数依赖的分解</li>
+<li>并且每个 $R_i(U_i,F_i)\in 3NF$</li>
+</ul>
+</li>
+</ul>
+<h4 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h4><ul>
+<li>$U&#x3D;{A,B,C,D,E},F&#x3D;{A\to B,B\to C,AD\to E}$</li>
+<li>分组<ul>
+<li>${(AB),A\to B}$</li>
+<li>${(BC),B\to C}$</li>
+<li>${(ADE),AD\to E}$</li>
+</ul>
+</li>
+</ul>
+<h3 id="同时保持函数依赖和无损连接的分解"><a href="#同时保持函数依赖和无损连接的分解" class="headerlink" title="同时保持函数依赖和无损连接的分解"></a>同时保持函数依赖和无损连接的分解</h3><ul>
+<li>$R(ABC;A\to C, B\to C)$</li>
+<li>按保持无损连接分解，码为 $AB$<ul>
+<li>分解为 ${AC;A\to C},{AB}$</li>
+<li>丢失了函数依赖 $B\to C$</li>
+</ul>
+</li>
+<li>按保持函数依赖分解<ul>
+<li>进行分组 ${AC;A\to C},{BC;B\to C}$</li>
+<li>分解是有损的</li>
+</ul>
+</li>
+</ul>
+<img src="05-2/image-20210520155032495.png" style="zoom:50%;" />
+
+<ul>
+<li>如何在保持函数依赖的同时，进行无损分解？<ul>
+<li>从重构的表中删除不在原来表里的行</li>
+<li>怎么删除？和原来的表的码做一次连接</li>
+</ul>
+</li>
+<li>上述分解为 ${AC;A\to C},{BC;B\to C},{AB}$</li>
+</ul>
+<h4 id="分解算法"><a href="#分解算法" class="headerlink" title="分解算法"></a>分解算法</h4><ul>
+<li>设 $\rho&#x3D;{R_1(U_1,F_1),\cdots,R_k(U_k,F_k)}$ 是 $R(U,F)$ 的一个保持函数依赖的 3NF 分解</li>
+<li>设 $X$ 是 $R(U,F)$ 的码，若有某个 $U_i,X\subseteq U_i$ 则 $\rho$ 即为所求</li>
+<li>否则结果为 $\rho\cup {R^\ast(X,F_X)}$</li>
+</ul>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h3 id="其他分解方式"><a href="#其他分解方式" class="headerlink" title="其他分解方式"></a>其他分解方式</h3><ul>
+<li>先将所有的关系模式打散，然后合并<ul>
+<li>$R_1(AB;{A\to B})$</li>
+<li>$R_2(AC;{A\to C})$</li>
+<li>$R_3(AD; {A\to D})$</li>
+<li>合并为 $R(ABCD;A\to B,A\to C;A\to D)$</li>
+</ul>
+</li>
+</ul>
+<h3 id="悬挂元组"><a href="#悬挂元组" class="headerlink" title="悬挂元组"></a>悬挂元组</h3><ul>
+<li><strong>泛关系</strong><ul>
+<li>$R$ 分解为 $R_1,\cdots,R_n$ ，则 $r_1\bowtie r_2\bowtie\cdots\bowtie r_n$ 称为泛关系</li>
+</ul>
+</li>
+<li>在 $r_i$ 中出现，但在 $\prod_{R_i}(r_1\bowtie r_2\bowtie\cdots\bowtie r_n)$ 中没有出现的元组，称为<strong>悬挂元组</strong></li>
+<li>悬挂元组代表了不完整信息</li>
+</ul>
+<img src="05-2/image-20210520162648780.png" style="zoom:50%;" />
+
+<ul>
+<li>模式分解允许一些不完整信息在数据库中的记录</li>
+</ul>
+<h3 id="模式调优"><a href="#模式调优" class="headerlink" title="模式调优"></a>模式调优</h3><ul>
+<li>规范化为了消除异常，模式调优是追求性能</li>
+<li>$R(XYZ)$ 还是 $R_1(XY)$ 和 $R_2(XZ)$<ul>
+<li>一般情况下 $R$ 好于 $R_1$ 和 $R_2$，在下面情况下后者较好：<ul>
+<li>大多数用户的存取分别在两个集合上<ul>
+<li>$Y$ 经常访问，但是 $Z$ 很少访问</li>
+</ul>
+</li>
+<li>属性 $Y$ 和 $Z$ 的值占用很大空间</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="冗余列"><a href="#冗余列" class="headerlink" title="冗余列"></a>冗余列</h3><ul>
+<li>把一个表里的某一列，复制到另一个表中</li>
+<li>反规范化的设计</li>
+<li>冗余列的好处：避免表连接</li>
+<li>模式1<ul>
+<li>Order1(supplier_ID,part_ID,quantity,supplier_address)</li>
+<li>Supplier(supplier_ID,supplier_name,supplier_address)</li>
+</ul>
+</li>
+<li>模式2<ul>
+<li>Order2(supplier_ID,part_ID,quantity)</li>
+<li>Supplier(supplier_ID,supplier_name,supplier_address)</li>
+</ul>
+</li>
+<li>冗余列可以减少复杂查询中的表连接操作</li>
+<li>模式 1 有利于经常查询供应某种零件的供应商地址</li>
+<li>模式 2 有利于新订单的插入</li>
+</ul>
+<h3 id="星形模式"><a href="#星形模式" class="headerlink" title="星形模式"></a>星形模式</h3><img src="05-2/image-20210520163507285.png" style="zoom: 67%;" />
+
+<ul>
+<li>对于每个产品而言，产品分类是有冗余的</li>
+</ul>
+<h3 id="雪花模式：星形模式的规范化"><a href="#雪花模式：星形模式的规范化" class="headerlink" title="雪花模式：星形模式的规范化"></a>雪花模式：星形模式的规范化</h3><ul>
+<li>不是好的设计</li>
+<li>虽然没有冗余，但是如果需要看某个类别的销售情况，需要通过好几步才能实现，不直观，速度慢</li>
+</ul>
+<img src="05-2/image-20210520163631550.png" style="zoom:50%;" />
+
+<h3 id="冗余与分解"><a href="#冗余与分解" class="headerlink" title="冗余与分解"></a>冗余与分解</h3><ul>
+<li>分解通常使得对复杂查询的回答的效率更差，因为在查询求值期间必须执行额外的连接</li>
+<li>分解使得对简单查询的回答更有效，因为这种查询通常涉及相同关系的一小部分属性</li>
+<li>分解通常使得简单的更新事务更有效</li>
+<li>分解能降低存储空间的要求，因为它一般能消除冗余数据</li>
+<li>如果冗余级别低，则分解会增加存储的需求</li>
+</ul>
+<h3 id="垂直划分"><a href="#垂直划分" class="headerlink" title="垂直划分"></a>垂直划分</h3><ul>
+<li>将经常同时访问的属性放在同一个表里</li>
+<li>对每个查询，我们统计不同属性之间被同时访问的次数</li>
+<li><strong>事务-属性交叉矩阵</strong></li>
+</ul>
+<p><img src="/05-2/image-20210520164000533.png"></p>
+<ul>
+<li>统计结果</li>
+<li><strong>属性关联矩阵</strong></li>
+</ul>
+<p><img src="/05-2/image-20210520164045282.png"></p>
+<ul>
+<li><strong>属性带权关联图</strong></li>
+</ul>
+<img src="05-2/image-20210520164113081.png" style="zoom:50%;" />
+
+<ul>
+<li><strong>图分割</strong></li>
+</ul>
+<img src="05-2/image-20210520164130508.png" style="zoom:67%;" />
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/05/19/DB/CLJ/05-2/" data-id="cl9lj74aw00fl64tzeg4s2usa" data-title="数据库概论.陈立军.05.关系规范化(3)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/05/21/DB/CLJ/06/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          数据库概论.陈立军.06.事务
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/05/14/DB/CLJ/05-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">数据库概论.陈立军.05.关系规范化(2)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

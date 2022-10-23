@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>数据库概论.陈立军.06.事务 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="事务概念、事务的基本特性(ACID)、事务调度、串行与并行、可恢复调度、无级联调度、并发调度中的不一致现象">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.06.事务">
+<meta property="og:url" content="http://example.com/2021/05/21/DB/CLJ/06/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="事务概念、事务的基本特性(ACID)、事务调度、串行与并行、可恢复调度、无级联调度、并发调度中的不一致现象">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/06/image-20210521223649619.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/06/image-20210521234852488.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/06/image-20210522110153105.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/06/image-20210522110848800.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/06/image-20210522111134680.png">
+<meta property="og:image" content="http://example.com/2021/05/21/DB/CLJ/06/06/image-20210522111831336.png">
+<meta property="article:published_time" content="2021-05-21T05:04:27.000Z">
+<meta property="article:modified_time" content="2021-05-22T03:42:47.986Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/21/DB/CLJ/06/06/image-20210521223649619.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-DB/CLJ/06" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/05/21/DB/CLJ/06/" class="article-date">
+  <time class="dt-published" datetime="2021-05-21T05:04:27.000Z" itemprop="datePublished">2021-05-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/DB-CLJ/">DB.CLJ</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      数据库概论.陈立军.06.事务
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h1><h2 id="事务概念"><a href="#事务概念" class="headerlink" title="事务概念"></a>事务概念</h2><ul>
+<li>transaction（交易）</li>
+<li>交易的核心：<strong>完整性</strong></li>
+<li>Jim Gray：在事务处理方面做出巨大的贡献<ul>
+<li>书籍：transaction processing: concept and techniques</li>
+</ul>
+</li>
+<li>commitment<ul>
+<li>事务包含了很多操作，commitment 指把所有的操作完整的提交到数据库上</li>
+<li>It’s like bacon and eggs. The chicken participants. The pig commited.</li>
+</ul>
+</li>
+<li><strong>一致性条件</strong><ul>
+<li>银行转账，两个账户的总和在转账前后保持不变</li>
+<li>存在两个操作，转出账户余额减去转账金额，转入账户余额加上转账金额<ul>
+<li><strong>必须保证这组操作的整体性</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="事务定义"><a href="#事务定义" class="headerlink" title="事务定义"></a>事务定义</h3><ul>
+<li>事务是由一系列操作序列构成的执行单元，这些操作<strong>要么都做，要么都不做</strong>，是一个<strong>不可分割</strong>的工作单位</li>
+<li>${\color{red}\mathrm{All;or;None}}$</li>
+</ul>
+<h3 id="事务中的数据访问原语"><a href="#事务中的数据访问原语" class="headerlink" title="事务中的数据访问原语"></a>事务中的数据访问原语</h3><ul>
+<li>read(X)：从数据库传送数据项 X 到事务的工作区中<ul>
+<li><strong>从数据缓冲区读出来</strong></li>
+</ul>
+</li>
+<li>write(X)：从事务的工作区中将数据项 X 写回数据库</li>
+</ul>
+<img src="06/image-20210521223649619.png" style="zoom:50%;" />
+
+
+
+<h4 id="转账事务的原语表达"><a href="#转账事务的原语表达" class="headerlink" title="转账事务的原语表达"></a>转账事务的原语表达</h4><ul>
+<li>事务 T 从 A 帐户过户 50 到 B 帐户</li>
+</ul>
+<p>$$<br>\begin{aligned}<br>&amp;read(A);\<br>&amp;A :&#x3D; A –50;\<br>&amp;write(A);\<br>&amp;read(B);\<br>&amp;B :&#x3D; B + 50;\<br>&amp;write(B);\<br>\end{aligned}<br>$$</p>
+<ul>
+<li>电子商务：<strong>事务是现代信息系统的基石</strong></li>
+</ul>
+<h3 id="SQL中事务的定义"><a href="#SQL中事务的定义" class="headerlink" title="SQL中事务的定义"></a>SQL中事务的定义</h3><ul>
+<li>事务以 Begin transaction 开始，以 Commit transaction 或 Rollback transaction 结束<ul>
+<li>Commit transaction 表示<strong>提交</strong>，<strong>事务正常结束</strong></li>
+<li>Rollback transaction 表示事务非正常结束，<strong>撤消事务已做的操作</strong>，回滚到事务开始时状态</li>
+</ul>
+</li>
+<li>具体的结束方式，通过加入某些条件判断</li>
+<li>terminate 与 abort<ul>
+<li>Terminate：终止（中性）</li>
+<li>Abort：中止（失败，需要 rollback）</li>
+</ul>
+</li>
+</ul>
+<h3 id="事务执行模式"><a href="#事务执行模式" class="headerlink" title="事务执行模式"></a>事务执行模式</h3><h4 id="显式事务"><a href="#显式事务" class="headerlink" title="显式事务"></a>显式事务</h4><ul>
+<li>以 begin transaction 开始，以 commit 或 rollback 结束</li>
+</ul>
+<h4 id="隐含事务"><a href="#隐含事务" class="headerlink" title="隐含事务"></a>隐含事务</h4><ul>
+<li>事务自动开始，直到遇到 commit 或 rollback 时结束</li>
+<li>set implicit_transactions{ ON | OFF }</li>
+</ul>
+<h4 id="自动事务"><a href="#自动事务" class="headerlink" title="自动事务"></a>自动事务</h4><ul>
+<li>每个数据操作语句作为一个事务</li>
+<li>update SC set GRADE &#x3D; GRADE+15</li>
+</ul>
+<h3 id="事务中的错误检查"><a href="#事务中的错误检查" class="headerlink" title="事务中的错误检查"></a>事务中的错误检查</h3><ul>
+<li>GRADE 约束小于等于100，现在数据库中有两个 GRADE (80, 90)</li>
+<li>事务 <code>update SC set GRADE = GRADE+15</code> 操作的结果<ul>
+<li>(80,90)，事务出错，整个回滚</li>
+</ul>
+</li>
+<li>如下事务操作的结果<ul>
+<li>(85, 95)<ul>
+<li>不做设置的前提下，会将第一个操作提交</li>
+</ul>
+</li>
+<li>设置 <code>set XACT_ABORT ON</code> 之后结果为 (80,90)</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Begin</span> tran</span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">5</span></span><br><span class="line"><span class="comment">--没有违反 grade&lt;=100 约束</span></span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">20</span></span><br><span class="line"><span class="comment">--违反了 grade&lt;=100 约束</span></span><br><span class="line"><span class="keyword">Commit</span> tran</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如下事务操作的结果<ul>
+<li>(80, 90)</li>
+<li>rollback 把整个事务回滚</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Begin</span> tran</span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">5</span></span><br><span class="line"><span class="keyword">Update</span> SC</span><br><span class="line"><span class="keyword">Set</span> grade <span class="operator">=</span> grade<span class="operator">+</span><span class="number">20</span></span><br><span class="line">If @<span class="variable">@error</span><span class="operator">&lt;&gt;</span><span class="number">0</span> <span class="comment">-- 全局变量, 上一行语句操作设置</span></span><br><span class="line">    <span class="keyword">rollback</span> tran</span><br><span class="line"><span class="keyword">Commit</span> tran</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="事务基本特性ACID"><a href="#事务基本特性ACID" class="headerlink" title="事务基本特性ACID"></a>事务基本特性ACID</h3><ul>
+<li>$\mathrm{ACID:Atomicity;Consistency;Isolation;Durability}$</li>
+</ul>
+<h4 id="原子性-Atomicity"><a href="#原子性-Atomicity" class="headerlink" title="原子性(Atomicity)"></a>原子性(Atomicity)</h4><ul>
+<li>事务中包含的所有操作要么全做，要么全不做</li>
+<li>原子性由<strong>恢复机制</strong>实现<ul>
+<li>通过<strong>日志</strong>进行恢复</li>
+</ul>
+</li>
+</ul>
+<h4 id="一致性-Consistency"><a href="#一致性-Consistency" class="headerlink" title="一致性(Consistency)"></a>一致性(Consistency)</h4><ul>
+<li>事务的隔离执行必须保证数据库的一致性</li>
+<li>事务开始前，数据库处于一致性的状态；事务结束后，数据库必须仍处于一致性状态</li>
+<li><strong>数据库的一致性状态由用户来负责</strong></li>
+<li>如银行转帐，转帐前后两个帐户金额之和应保持不变<ul>
+<li>意大利香肠术，Salami technique</li>
+<li>偷小钱的盗窃术被称为意大利香肠术（意大利香肠切得很薄，偷一片看不出来）</li>
+</ul>
+</li>
+</ul>
+<h4 id="隔离性-Isolation"><a href="#隔离性-Isolation" class="headerlink" title="隔离性(Isolation)"></a>隔离性(Isolation)</h4><ul>
+<li>系统必须保证事务不受其它并发执行事务的影响</li>
+<li>对任何一对事务 T1，T2，在 T1 看来，T2 要么在 T1 开始之前已经结束，要么在 T1 完成之后再开始执行<ul>
+<li><strong>等价于串行执行的效果</strong></li>
+</ul>
+</li>
+<li>隔离性通过<strong>并发控制机制</strong>实现</li>
+</ul>
+<h4 id="持久性-Durability"><a href="#持久性-Durability" class="headerlink" title="持久性(Durability)"></a>持久性(Durability)</h4><ul>
+<li>一个事务一旦提交之后，它对数据库的影响必须是永久的</li>
+<li>系统发生故障不能改变事务的持久性<ul>
+<li>系统的<strong>抗故障能力</strong></li>
+<li>大企业的数据，备份，多个物理实体（物理上相隔较远，避免自然灾害的影响）</li>
+</ul>
+</li>
+<li>持久性通过<strong>恢复机制</strong>实现</li>
+<li>持久性：将来总能够再现这个事务</li>
+</ul>
+<h3 id="事务生命周期图"><a href="#事务生命周期图" class="headerlink" title="事务生命周期图"></a>事务生命周期图</h3><img src="06/image-20210521234852488.png" style="zoom:50%;" />
+
+<ul>
+<li>部分提交状态：事务的所有操作都做完了</li>
+<li>一个事务的所有操作都做完了，并不意味着一定能成功提交，因为要保证持久性<ul>
+<li>数据库在做完事务的所有操作之后，在向程序客户端发送成功消息之前，<strong>把这个事务对应的<span style="color:red">日志记录</span>从内存写入磁盘</strong></li>
+<li>如果系统崩溃，内存中的数据丢失了，可以从日志记录恢复数据</li>
+</ul>
+</li>
+</ul>
+<h2 id="事务调度"><a href="#事务调度" class="headerlink" title="事务调度"></a>事务调度</h2><ul>
+<li><strong>事务的执行顺序</strong>称为一个调度，表示事务的指令在系统中<strong>执行的时间顺序</strong></li>
+<li>一组事务的调度必须保证<ul>
+<li>包含了<strong>所有事务</strong>的操作指令</li>
+<li><strong>一个事务中指令的顺序必须保持不变</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="事务调度例子"><a href="#事务调度例子" class="headerlink" title="事务调度例子"></a>事务调度例子</h3><ul>
+<li>$T_1:i_{11},i_{12},T_2:i_{21},i_{22}$<ul>
+<li>$S_1:i_{11},i_{12},i_{21}$</li>
+<li>$S_2:i_{11},i_{22},i_{12},i_{21}$</li>
+<li>$S_2:i_{11},i_{21},i_{12},i_{22}$</li>
+</ul>
+</li>
+<li>$S_1,S_2$ 不是一个调度，$S_3$ 是一个调度</li>
+</ul>
+<h3 id="并行与串行"><a href="#并行与串行" class="headerlink" title="并行与串行"></a>并行与串行</h3><h4 id="串行调度"><a href="#串行调度" class="headerlink" title="串行调度"></a>串行调度</h4><ul>
+<li>在串行调度中，属于同一事务的指令紧挨在一起</li>
+<li>串行调度总是正确的</li>
+<li>对于有 $n$个事务的事务组，可以有 $n!$ 个有效调度</li>
+</ul>
+<h4 id="并行调度"><a href="#并行调度" class="headerlink" title="并行调度"></a>并行调度</h4><ul>
+<li>在并行调度中，来自不同事务的指令可以交叉执行</li>
+<li><strong>当并行调度等价于某个串行调度时，则称它是正确的</strong></li>
+<li>$n$ 个事务，$t_i$ 有 $k_i$ 条指令，则可能的并发调度有多少个<ul>
+<li>$\dfrac{(\sum k_i)!}{\prod(k_i!)}$</li>
+<li>事务内有序</li>
+</ul>
+</li>
+</ul>
+<h4 id="并行和串行的比较"><a href="#并行和串行的比较" class="headerlink" title="并行和串行的比较"></a>并行和串行的比较</h4><h5 id="基本比较"><a href="#基本比较" class="headerlink" title="基本比较"></a>基本比较</h5><ul>
+<li>并行事务有可能破坏数据库的一致性</li>
+<li>串行事务效率低</li>
+</ul>
+<h5 id="并行的优点"><a href="#并行的优点" class="headerlink" title="并行的优点"></a>并行的优点</h5><ul>
+<li>一个事务由不同的步骤组成，所涉及的系统资源也不同。这些步骤可以并发执行，<strong>提高系统的吞吐量</strong></li>
+<li>系统中存在着周期不等的各种事务，串行会导致难于预测的时延。如果各个事务所涉及的是数据库的不同部分，采用并发会<strong>减少平均响应时间</strong></li>
+</ul>
+<h3 id="事务调度例子-1"><a href="#事务调度例子-1" class="headerlink" title="事务调度例子"></a>事务调度例子</h3><ul>
+<li>两个转账事务<ul>
+<li>$T_1$：从 A 过户 50 到 B</li>
+<li>$T_2$：从 A 过户存款的 10% 到 B</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>\begin{aligned}<br>&amp;T1\<br>&amp;read(A);\<br>&amp;A :&#x3D; A −50;\<br>&amp;write(A);\<br>&amp;read(B);\<br>&amp;B :&#x3D; B + 50;\<br>&amp;write(B);\\<br>&amp;T2\<br>&amp;read(A);\<br>&amp;temp :&#x3D; A*0.1;\<br>&amp;A :&#x3D; A −temp;\<br>&amp;write(A);\<br>&amp;read(B);\<br>&amp;B :&#x3D; B + temp;\<br>&amp;write(B);\<br>\end{aligned}<br>$$</p>
+<ul>
+<li>开始状态：A&#x3D;1000，B&#x3D;2000，A+B&#x3D;3000</li>
+</ul>
+<h4 id="串行调度1"><a href="#串行调度1" class="headerlink" title="串行调度1"></a>串行调度1</h4><ul>
+<li>$T_1,T_2$</li>
+<li>结束状态：A&#x3D;855，B&#x3D;2145，A+B&#x3D;3000</li>
+</ul>
+<h4 id="串行调度2"><a href="#串行调度2" class="headerlink" title="串行调度2"></a>串行调度2</h4><ul>
+<li>$T_2,T_1$</li>
+<li>结束状态：A&#x3D;850，B&#x3D;2150，A+B&#x3D;3000</li>
+<li>串行调度可能会有不同的结果，但是都满足一致性，都是正确的</li>
+</ul>
+<h4 id="并行调度1"><a href="#并行调度1" class="headerlink" title="并行调度1"></a>并行调度1</h4><p>$$<br>\begin{aligned}<br>&amp;T1:;read(A);\<br>&amp;T1:;A :&#x3D; A −50;\<br>&amp;T1:;write(A);\<br>&amp;T2:;read(A);\<br>&amp;T2:;temp :&#x3D; A*0.1;\<br>&amp;T2:;A :&#x3D; A −temp;\<br>&amp;T2:;write(A);\<br>&amp;T1:;read(B);\<br>&amp;T1:;B :&#x3D; B + 50;\<br>&amp;T1:;write(B);\<br>&amp;T2:;read(B);\<br>&amp;T2:;B :&#x3D; B + temp;\<br>&amp;T2:;write(B);\<br>\end{aligned}<br>$$</p>
+<ul>
+<li>需要保证操作 4 在操作 3 之后，否则是错误的</li>
+<li>结束状态：A&#x3D;855，B&#x3D;2145，A+B&#x3D;3000</li>
+<li>等价于串行调度 $T_1,T_2$</li>
+</ul>
+<h4 id="并行调度2"><a href="#并行调度2" class="headerlink" title="并行调度2"></a>并行调度2</h4><p>$$<br>\begin{aligned}<br>&amp;T1:;read(A);\<br>&amp;T1:;A :&#x3D; A −50;\<br>&amp;T2:;read(A);\<br>&amp;T1:;write(A);\<br>&amp;T2:;temp :&#x3D; A*0.1;\<br>&amp;T2:;A :&#x3D; A −temp;\<br>&amp;T2:;write(A);\<br>&amp;T1:;read(B);\<br>&amp;T1:;B :&#x3D; B + 50;\<br>&amp;T1:;write(B);\<br>&amp;T2:;read(B);\<br>&amp;T2:;B :&#x3D; B + temp;\<br>&amp;T2:;write(B);\<br>\end{aligned}<br>$$</p>
+<ul>
+<li>错误的</li>
+<li>结束状态：A&#x3D;900，B&#x3D;2150，A+B&#x3D;3050</li>
+</ul>
+<h3 id="可恢复调度"><a href="#可恢复调度" class="headerlink" title="可恢复调度"></a>可恢复调度</h3><ul>
+<li>事务的恢复<ul>
+<li>一个事务失败了，应该能够撤消该事务对数据库的影响</li>
+<li>如果有其它事务读取了失败事务写入的数据，则该事务应该撤消</li>
+</ul>
+</li>
+<li>一个不可恢复调度的例子</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">T1</th>
+<th align="center">T2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">read(A)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">write(A)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">read(A)</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">commit</td>
+</tr>
+<tr>
+<td align="center">read(B)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">rollback</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<ul>
+<li>回滚 T1 的时候，T2 已经提交了，如果 T2 被撤销了，那么就违反了事务的持久性<ul>
+<li>在真实场景中， 会向 T2 发起一个<strong>补偿事务</strong></li>
+</ul>
+</li>
+</ul>
+<h4 id="可恢复调度定义"><a href="#可恢复调度定义" class="headerlink" title="可恢复调度定义"></a>可恢复调度定义</h4><ul>
+<li>对于每对事务 T1 与 T2，如果 T2 读取了 T1 所写的数据，则 T1 必须先于 T2 提交</li>
+</ul>
+<h3 id="无级联调度"><a href="#无级联调度" class="headerlink" title="无级联调度"></a>无级联调度</h3><ul>
+<li>级联调度<ul>
+<li>由于一个事务故障而导致一系列事务回滚</li>
+</ul>
+</li>
+<li>级联调度例子</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">T1</th>
+<th align="center">T2</th>
+<th align="center">T3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">read(A)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">read(B)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">write(B)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">read(A)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">write(A)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">read(A)</td>
+</tr>
+<tr>
+<td align="center">rollback</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<h4 id="无级联调度定义"><a href="#无级联调度定义" class="headerlink" title="无级联调度定义"></a>无级联调度定义</h4><ul>
+<li>对于每对事务 T1 与 T2，如果 T2 读取了 T1 所写的数据，则 T1 必须在 <strong>T2 读取</strong>之前提交</li>
+<li><strong>无级联调度必是可恢复调度</strong><ul>
+<li>要求比可恢复调度更加严格</li>
+</ul>
+</li>
+</ul>
+<h2 id="并发调度中的不一致现象"><a href="#并发调度中的不一致现象" class="headerlink" title="并发调度中的不一致现象"></a>并发调度中的不一致现象</h2><h3 id="丢失修改"><a href="#丢失修改" class="headerlink" title="丢失修改"></a>丢失修改</h3><ul>
+<li>两个事务 T1 和 T2 读入同一数据并修改，T1 提交的结果破坏了 T2 提交的结果，导致 T2 的修改丢失</li>
+<li>一个例子：售票窗口<ul>
+<li>下面的操作只反映了售票窗口 T1 的结果，但是没有反应售票窗口 T2 的结果</li>
+</ul>
+</li>
+</ul>
+<img src="06/image-20210522110153105.png" style="zoom:50%;" />
+
+<ul>
+<li><strong>写 —— 写</strong>不一致</li>
+</ul>
+<h3 id="读脏数据"><a href="#读脏数据" class="headerlink" title="读脏数据"></a>读脏数据</h3><ul>
+<li>事务 T1 修改某一数据，并将其写回磁盘，事务 T2 读取同一数据后，T1 由于某种原因被撤消，这时 T1 已修改过的数据恢复原值，T2 读到的数据与数据库中数据不一致，则 T2 读到的数据就是脏数据</li>
+<li>一个例子</li>
+</ul>
+<img src="06/image-20210522110848800.png" style="zoom:50%;" />
+
+<ul>
+<li><strong>写 —— 读</strong>不一致</li>
+</ul>
+<h3 id="不能重复读"><a href="#不能重复读" class="headerlink" title="不能重复读"></a>不能重复读</h3><ul>
+<li>事务 T2 读取某一数据后，事务 T1 对其做了修改，当 T2 再次读取该数据时，得到与前次不同的值</li>
+</ul>
+<img src="06/image-20210522111134680.png" style="zoom:50%;" />
+
+<ul>
+<li><strong>读 —— 写</strong>不一致</li>
+<li>发生概率比读脏数据小</li>
+<li>例子<ul>
+<li>r1(list) r2(list) w2(list) r2(count) w2(count) commit(t2) r1(count)</li>
+<li>r1(list) 和 r1(count) 不一致</li>
+</ul>
+</li>
+</ul>
+<h3 id="发生幻象-Phantom"><a href="#发生幻象-Phantom" class="headerlink" title="发生幻象(Phantom)"></a>发生幻象(Phantom)</h3><ul>
+<li>事务 T2 按一定条件读取了某些数据后，事务 T1 插入了一些满足这些条件的数据，当 T2 再次按相同条件读取数据时，发现多了一些记录</li>
+</ul>
+<img src="06/image-20210522111831336.png" style="zoom:50%;" />
+
+<ul>
+<li>不可重复读是指对同一条记录出现不一致情况，幻象指的是多出来或者少掉某些记录<ul>
+<li>防止幻象更难</li>
+<li>例如<ul>
+<li>防范不可重复读只需要将原来在数据库中的数据锁住</li>
+<li>防范幻象则比较难，怎么处理新来的数据</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/05/21/DB/CLJ/06/" data-id="cl9lj74ax00fr64tz2x03hvuk" data-title="数据库概论.陈立军.06.事务" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/05/22/DB/CLJ/06-1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          数据库概论.陈立军.06.事务(2) 事务隔离性
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/05/19/DB/CLJ/05-2/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">数据库概论.陈立军.05.关系规范化(3)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

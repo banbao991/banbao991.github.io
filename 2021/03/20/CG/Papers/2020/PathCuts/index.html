@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>(论文)[2020] Path Cuts, Efficient Rendering of Pure Specular Light Transport | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="pure specular、层次结构、解方程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2020] Path Cuts, Efficient Rendering of Pure Specular Light Transport">
+<meta property="og:url" content="http://example.com/2021/03/20/CG/Papers/2020/PathCuts/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="pure specular、层次结构、解方程">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/03/20/CG/Papers/2020/PathCuts/PathCuts/1616258430770.png">
+<meta property="article:published_time" content="2021-03-20T04:14:32.000Z">
+<meta property="article:modified_time" content="2021-07-08T13:48:18.934Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/03/20/CG/Papers/2020/PathCuts/PathCuts/1616258430770.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/Papers/2020/PathCuts" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/03/20/CG/Papers/2020/PathCuts/" class="article-date">
+  <time class="dt-published" datetime="2021-03-20T04:14:32.000Z" itemprop="datePublished">2021-03-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-Paper/">CG.Paper</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      (论文)[2020] Path Cuts, Efficient Rendering of Pure Specular Light Transport
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Path-Cuts-Efficient-Rendering-of-Pure-Specular-Light-Transport"><a href="#Path-Cuts-Efficient-Rendering-of-Pure-Specular-Light-Transport" class="headerlink" title="Path Cuts: Efficient Rendering of Pure Specular Light Transport"></a>Path Cuts: Efficient Rendering of Pure Specular Light Transport</h1><h2 id="Key-Words"><a href="#Key-Words" class="headerlink" title="Key Words"></a>Key Words</h2><ul>
+<li>点光源，针孔摄像机，pure specular，multi-bounce，path-space</li>
+<li>reflections and refractions<ul>
+<li>反射和折射</li>
+</ul>
+</li>
+</ul>
+<h2 id="1-Introduction"><a href="#1-Introduction" class="headerlink" title="1. Introduction"></a>1. Introduction</h2><ul>
+<li>传统的渲染方法，<strong>蒙特卡洛方法</strong>找到一条从光源到相机的路径</li>
+<li>none of them are able to find multi-bounce pure specular light paths from a point light to a pinhole camera</li>
+<li>之前的方法<ul>
+<li>初始化为一条不可接受的的路径（可能是不太正确的路径，但是很接近最终解）</li>
+<li>根据求解器求解出一条正确的路径（牛顿法）</li>
+<li>可以解决，但是有<strong>局部性问题</strong></li>
+</ul>
+</li>
+<li>Walter’s method：全局的方法<ul>
+<li>using a hierarchical data structure on top of meshes with interpolated normals, but only works for <strong>a single refraction</strong>.</li>
+</ul>
+</li>
+<li>论文的方法<ul>
+<li>we enumerate the discrete set of admissible pure specular paths of <strong>a given length</strong> and <strong>type</strong><br>  connecting the light and the camera. We <strong>globally</strong> slice the path space into small regions</li>
+<li>within a region we solve the <strong>local</strong> problem of refining the path to become admissible</li>
+</ul>
+</li>
+<li>解决的问题<ul>
+<li>We use a path space hierarchy combined with interval arithmetic bounds to efficiently prune non-contributing regions of path space, and to slice the path space into regions small enough that local refinement becomes feasible.<ul>
+<li>路径空间划分，剪枝，每个小区域求局部解</li>
+</ul>
+</li>
+<li>We use an automatic differentiation tool and a Newton-based solver to find an admissible specular path within a given path space region, and splat its contribution onto the image plane.<ul>
+<li>自动微分工具，基于牛顿法的求解器</li>
+<li>给定一个区域内的求解，然后在全局上加入它的贡献</li>
+</ul>
+</li>
+<li>We show that our purely specular solution can be used to initialize paths for other algorithms, such as an MCMC-based approach to render with small but non-zero roughness.<ul>
+<li>论文算法的到的路径可以用于其他算法初始值的设定</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>评价<ul>
+<li>ours is the <strong>first</strong> approach to directly focus on multi-bounce purely specular paths on <strong>complex geometric surfaces given by triangle meshes</strong> with interpolated normals.</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-相关工作"><a href="#2-相关工作" class="headerlink" title="2. 相关工作"></a>2. 相关工作</h2><ul>
+<li>费马原理，牛顿法求解中间结点<ul>
+<li>优化问题，最大化&#x2F;最小化长度</li>
+</ul>
+</li>
+<li>Walter<ul>
+<li>费马定理在现实场景中不太使用（图元的不同法线、几何）</li>
+<li>the admissible paths are simply the ones whose vertices align the normal vector with the (refractive) half vector.</li>
+<li>limited to a <strong>single</strong> refractive surface event<ul>
+<li>不容易扩展到 k-bounce</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Markov chain Monte Carlo<ul>
+<li>this method does not work for pure specular paths</li>
+<li>and requires the Markov chain light transport setting to be applicable.</li>
+</ul>
+</li>
+<li>Manifold next event estimation (MNEE)<ul>
+<li>the method can connect any shading point on a non-specular surface, through one or more refractions, to a light source sample.</li>
+<li>没有全局搜索</li>
+<li>存在局部性问题，多解则不能很好工作</li>
+</ul>
+</li>
+<li>half vector space light transport (HSLT)<ul>
+<li>a path is represented by its start and end point constraints and a sequence of generalized half vectors</li>
+<li>HSLT does not require a specular&#x2F;non-specular classification of the path vertices</li>
+</ul>
+</li>
+<li>最近的工作<ul>
+<li>Recently, concurrent work by Zeltner et al. [2020] presented a specular manifold sampling technique, which is able to handle <strong>glints</strong>, <strong>reflective&#x2F;refractive caustics</strong>, and <strong>specular-diffuse-specular light transport</strong></li>
+<li>解决闪烁，焦散问题</li>
+</ul>
+</li>
+<li><strong>Interval arithmetic</strong></li>
+<li><strong>Glint rendering methods</strong></li>
+<li><strong>Lightcuts</strong><ul>
+<li>虚拟光源</li>
+<li>层次结构</li>
+</ul>
+</li>
+<li>Inspired by the idea of lightcuts, we propose path cuts to organize all the triangles, <strong>whether geometric or tessellated from bump&#x2F;normal maps</strong>, into a <strong>hierarchy</strong>.</li>
+<li>We use the path cuts to efficiently prune non-contributing areas of the path space; i.e. regions where the alignment of the normal and half vectors is guaranteed to be impossible.</li>
+</ul>
+<h2 id="3-PATH-SPACE-TRAVERSAL-USING-PATH-CUTS"><a href="#3-PATH-SPACE-TRAVERSAL-USING-PATH-CUTS" class="headerlink" title="3. PATH SPACE TRAVERSAL USING PATH CUTS"></a>3. PATH SPACE TRAVERSAL USING PATH CUTS</h2><ul>
+<li>For each number of <strong>bounces k</strong> the problem needs to be solved independently</li>
+<li>different <strong>path types</strong> of a given length are themselves independent.</li>
+</ul>
+<h3 id="基本量"><a href="#基本量" class="headerlink" title="基本量"></a>基本量</h3><ul>
+<li>k-bounces<ul>
+<li>path vertices：k+2<ul>
+<li>light（L），k-bounces，pinhole camera（E）</li>
+</ul>
+</li>
+<li>k+1 segments</li>
+</ul>
+</li>
+<li>bounce point：$x_i$</li>
+<li>场景由 n 个带有插值法线的<strong>三角形</strong>组成 $T_i$</li>
+<li>scene surface：$\mathcal{M}$</li>
+</ul>
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><ul>
+<li>Our idea is to first isolate all k-tuples of triangles that could give rise to an admissible path, then find those paths within the k-tuple using a root solver. In this section, we focus on the first part, finding potentially contributing k-tuples of triangles.</li>
+<li>then find those paths within the k-tuple using a root solver.</li>
+<li>In this section, we focus on the first part, finding potentially contributing k-tuples of triangles.</li>
+</ul>
+<h3 id="3-1-Path-cuts-for-hierarchical-pruning"><a href="#3-1-Path-cuts-for-hierarchical-pruning" class="headerlink" title="3.1 Path cuts for hierarchical pruning"></a>3.1 Path cuts for hierarchical pruning</h3><ul>
+<li>brute-force：暴搜<ul>
+<li>$O(n^k)$</li>
+</ul>
+</li>
+<li>树层次结构 tree hierarchy $\mathcal{H}$<ul>
+<li>Each node $S_i\in\mathcal{H}$  represents a surface <strong>patch</strong> on $\mathcal{M}$, and records the 3D interval (bounding box) $N_i$ of all surface normals and the 3D interval (bounding box) $P_i$ of all surface positions in this patch.</li>
+<li><strong>Note that this “root” path cut is for the entire image, as our method is independent of pixels.</strong></li>
+</ul>
+</li>
+<li>找路径时考虑 $\mathcal{H^k}&#x3D;\mathcal{H}\times\mathcal{H}\times\cdots\times\mathcal{H}$</li>
+<li>假使我们选中了 $(S_{j_1},\cdots,S_{j_K})\in\mathcal{H^k}$</li>
+<li>“thick path”<ul>
+<li>the set of all paths from the light to the camera whose vertices are within the corresponding nodes</li>
+<li>恰好在上面的结点中</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>L\to(x_1\in S_{j_1})\to(x_2\in S_{j_2})\to\cdots\to(x_k\in S_{j_k})\to E<br>$$</p>
+<ul>
+<li><strong>We denote such a “thick path” as a path cut, in analogy to multidimensional lightcuts.</strong></li>
+</ul>
+<h4 id="Insight"><a href="#Insight" class="headerlink" title="Insight"></a>Insight</h4><ul>
+<li>if we can quickly determine whether a path cut potentially contains an admissible specular path, we can use this information to prune the path space to quickly converge to contributing paths.</li>
+<li>怎么判断 path cut 是否含有一个可接受的结果（specular path）？</li>
+<li>conservative（保守）<ul>
+<li>existence of one or more admissible paths has to be always correctly detected.</li>
+<li>The reverse need not be true: if we cannot prove non-existence, we can always subdivide the path cut.</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-2-Validating-a-path-cut"><a href="#3-2-Validating-a-path-cut" class="headerlink" title="3.2 Validating a path cut"></a>3.2 Validating a path cut</h3><ul>
+<li><p>a pure specular path is admissible</p>
+<ul>
+<li>at each surface bounce, the normal vector is aligned with the (reflective or refractive) half vector.</li>
+</ul>
+</li>
+<li><p>test locally</p>
+</li>
+</ul>
+<img src="PathCuts/1616258430770.png" style="zoom: 80%;" />
+
+<ul>
+<li><strong>interval arithmetic</strong>：区间算术</li>
+<li>对于层次结构中的结点 $S_i$ 做<strong>包围盒</strong>（AABB）<ul>
+<li>$P_i$ ：$S_i$ 中点的位置</li>
+<li>$N_i$：$S_i$ 中法线的位置</li>
+</ul>
+</li>
+<li>所有可能的从 $S_{i-1}$ 到 $S_i$ 的入射方向、出射方向<ul>
+<li>$D_{in}^i&#x3D;normalize(P_{i-1} −P_i)$</li>
+<li>$D_{out}^i&#x3D;-D_{in}^{i+1}&#x3D;normalize(P_{i+1}−P_i)$</li>
+</ul>
+</li>
+<li>half vector<ul>
+<li>$H_i&#x3D;normalize(D_{out}^i+D_{in}^i)$</li>
+</ul>
+</li>
+<li>判断 $H_i\bigcap N_i$ 是否为空，即可判断是否存在法线和半角矢量对齐（相等）</li>
+<li>对每一次 bounce 做上面的判断，如果存在一个 $i$ 使得 $H_i\bigcap N_i$ 为空，那么不可能产生一条可行的光路<ul>
+<li>剪枝 prun</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-3-Subdividing-a-path-cut"><a href="#3-3-Subdividing-a-path-cut" class="headerlink" title="3.3 Subdividing a path cut"></a>3.3 Subdividing a path cut</h3><ul>
+<li>Once we know that a path cut has potential to contribute a pure specular path, we subdivide this path cut.<ul>
+<li>如果一条 path cut 有可能产生纯反射光路，则对其进行细分</li>
+</ul>
+</li>
+</ul>
+<h4 id="细分方式"><a href="#细分方式" class="headerlink" title="细分方式"></a>细分方式</h4><p>（1）简单的细分</p>
+<ul>
+<li>把所有的非叶子结点都展开</li>
+<li>复杂度变回去了，很高</li>
+</ul>
+<p>（2）随机选择一个非叶子结点进行展开</p>
+<p>（3）展开最大的结点</p>
+<ul>
+<li>largest bounding box</li>
+<li><strong>确实很直观</strong></li>
+</ul>
+<p>（4）展开 $H_i\bigcap N_i$ 区间最大的结点</p>
+<ul>
+<li>实验验证效果不好，能够看见比方法（3）更多的结点</li>
+</ul>
+<h4 id="细分结束"><a href="#细分结束" class="headerlink" title="细分结束"></a>细分结束</h4><ul>
+<li>As we repeat the subdivision process, finally we will end up with path cuts that consist of <strong>only leaf nodes</strong>, i.e. <strong>one triangle per bounce</strong>.</li>
+</ul>
+<h4 id="一个细分的问题"><a href="#一个细分的问题" class="headerlink" title="一个细分的问题"></a>一个细分的问题</h4><ul>
+<li><span style="color:red;font-weight:bold">怎么处理细分，结点数变化怎么处理，分成两条 path cut 吗？</span><ul>
+<li>感觉确实没问题，复杂度也不高，只需要检查当前展开的结点和两边结点的连接关系即可</li>
+</ul>
+</li>
+</ul>
+<h2 id="4-SOLVING-FOR-A-SPECULAR-LIGHT-PATH"><a href="#4-SOLVING-FOR-A-SPECULAR-LIGHT-PATH" class="headerlink" title="4. SOLVING FOR A SPECULAR LIGHT PATH"></a>4. SOLVING FOR A SPECULAR LIGHT PATH</h2><ul>
+<li>现在的结果是找到了一条 path cut，每个结点都是三角形</li>
+</ul>
+<p>$$<br>L\to(x_1\in T_1)\to(x_2\in T_2)\to\cdots\to(x_k\in T_k)\to E<br>$$</p>
+<ul>
+<li>现在的问题<ul>
+<li>find its <strong>contribution</strong> to the image plane</li>
+<li>也就是说找到光路</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-1-Finding-an-admissible-path"><a href="#4-1-Finding-an-admissible-path" class="headerlink" title="4.1 Finding an admissible path"></a>4.1 Finding an admissible path</h3><ul>
+<li>Finding such a light path is trivial <strong>if the triangles are flat mirrors</strong> (i.e. they <strong>do not have interpolated shading normals</strong> distinct from the geometric normal).<ul>
+<li>We just need to repeatedly take the virtual image of the point light across the plane containing $T_i$ and finally connect it to the camera.</li>
+<li>把光源 $L$ 做 $T_1$ 的虚像得到 $I_1$，然后把 $I_1$ 做 $T_2$ 的虚像得到 $I_2$，重复这个过程得到 $I_K$，连接 $I_K$ 和 $E$ 即可得到光路</li>
+<li><strong>平面镜成像原理</strong></li>
+</ul>
+</li>
+<li>However, this does not cover common situations with <strong>refractions</strong> and <strong>normal interpolation</strong> (curvature).<ul>
+<li>curvature：曲率</li>
+</ul>
+</li>
+<li>In the general case, we need to find the vertex locations using a <strong>root solver</strong>.</li>
+<li>使用重心坐标系 $\alpha_i,\beta_i,\gamma_i$<ul>
+<li>$\alpha_i+\beta_i+\gamma_i&#x3D;1$</li>
+</ul>
+</li>
+<li>知道了 $\alpha_i,\beta_i$ 可以通过三个顶点插值出法线 $n_i(\alpha_i,\beta_i)$ 和顶点的位置 $x_i(\alpha_i,\beta_i)$</li>
+<li>继而可以求出入射光线的方向 $normalize(x_{i-1}-x_i)$，入射光线的方向 $normalize(x_{i+1}-x_i)$</li>
+<li>接着求出半角矢量 $h_i(\alpha_i,\beta_i)$<ul>
+<li><span style="color:red;font-weight:bold">感觉不太对，应该是下面这个，但是不影响</span><ul>
+<li>${\color{red}h_i(\alpha_i,\beta_i,\alpha_{i-1},\beta_{i-1},\alpha_{i+1},\beta_{i+1})}$</li>
+</ul>
+</li>
+<li>半角矢量可以应用在<strong>反射</strong>和<strong>折射</strong>上面</li>
+</ul>
+</li>
+<li>按照惯例，我们假设法线和半角矢量指向折射率较低的介质（一般但不一定是空气）</li>
+<li>约束条件：逐渐缩小如下值（希望相等）<ul>
+<li>$C_i(\alpha_i,\beta_i)&#x3D;\mathrm{n}_i(\alpha_i,\beta_i)-\mathrm{h}_i(\alpha_i,\beta_i)$</li>
+</ul>
+</li>
+<li>在三角形内部<ul>
+<li>$\alpha_i\ge0,\beta_i\ge0,\alpha_i+\beta_i\le1$</li>
+</ul>
+</li>
+<li>整条路径的限制条件</li>
+</ul>
+<p>$$<br>C(\alpha_1,\beta_1,\cdots,\alpha_k,\beta_k)&#x3D;(C_1,C_2,\cdots,C_k)<br>$$</p>
+<ul>
+<li>the constraint function has 2k variables and 3k output values.<ul>
+<li>An alternative with 2k output values can be defined by projecting the normals and half vectors into the local geometric space, and dropping their 𝑧 coordinates. We found this alternative formulation gives equivalent results and is slightly slower due to the extra vector transformations.</li>
+</ul>
+</li>
+<li><strong>Newton iteration</strong><ul>
+<li>This requires solving a 3k × 2k linear system, in the least-squares sense, at each iteration.</li>
+<li>限制迭代次数<ul>
+<li>We bound the maximum number of iterations to 5.</li>
+<li>If after reaching the maximum terations, the resulting vertices are not all within their respective triangles, we assume there is no solution.</li>
+</ul>
+</li>
+<li>求解出来之后，我们对相邻的两个三角形做<strong>可见性测试</strong><ul>
+<li>The visibility test can be skipped for objects known to be convex.</li>
+<li><span style="color:red;font-weight:bold">为什么不需要</span></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-2-The-contribution-of-an-admissible-path"><a href="#4-2-The-contribution-of-an-admissible-path" class="headerlink" title="4.2 The contribution of an admissible path"></a>4.2 The contribution of an admissible path</h3><ul>
+<li>影响强度的因素<ul>
+<li>The contribution of the path to the image consists of the product of several terms:<ul>
+<li>visibility (already handled above)</li>
+<li>light intensity</li>
+<li>the product of Fresnel terms along the path</li>
+<li>volumetric absorption</li>
+<li><strong>the generalized geometry term</strong></li>
+<li><strong>and the pixel importance function value</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>这里只考虑最后两个因素（其他不需要在这里讨论）</li>
+<li>precisely define our camera model as a <strong>pinhole camera</strong>, with <strong>a sensor plane</strong> at a distance of <strong>1 world unit</strong> from the camera position (pinhole)</li>
+<li><strong>For the purposes of the explanation below, the camera endpoint P of the path is thus on the sensor, not on the pinhole C itself.</strong></li>
+</ul>
+<h4 id="Pixel-importance-function-value"><a href="#Pixel-importance-function-value" class="headerlink" title="Pixel importance function value"></a>Pixel importance function value</h4><ul>
+<li>Consider a ray $(P,\omega)$ leaving the sensor point $P$ in direction $\omega &#x3D; normalize(C-P)$</li>
+<li>$W_{ij}(P,\omega)$</li>
+<li>We will need to include the corresponding $W_{ij}$ in the path contribution</li>
+<li>$W_{ij}$ 对谁归一化（和为1）<ul>
+<li>These units <strong>cannot</strong> be <strong>pixels</strong>, otherwise the brightness of specular contributions would change with image resolution.</li>
+<li>Instead, we find that the normalization has to be with respect to real world units, on the image sensor <strong>at a distance of 1 unit from C</strong>.</li>
+</ul>
+</li>
+<li>if the horizontal field-of- view is $\theta$ and the aspect ratio (height&#x2F;width) is $r$ , the area of the image plane in world units is $A$<ul>
+<li>$A&#x3D;4r\tan^2(\dfrac{\theta}{2})$</li>
+</ul>
+</li>
+<li>归一化<ul>
+<li>$W_{ij}(P,\omega)&#x3D;\dfrac{K_{ij}mn}{A}$<ul>
+<li>像素分辨率 $m\times n$</li>
+</ul>
+</li>
+<li>Here we first define $K_{ij}$ to be the pixel reconstruction filter normalized in pixel units,</li>
+<li>and then include the additional factor of $\dfrac{mn}{A}$ to make $W_{ij}$ normalized in world units.</li>
+</ul>
+</li>
+<li>图形学渲染：radiance meter<ul>
+<li>brightness to change with image resolution</li>
+</ul>
+</li>
+<li>实际的摄像机：photon counter<ul>
+<li>brightness to change with image resolution</li>
+</ul>
+</li>
+</ul>
+<h4 id="Generalized-geometry-term-GGT"><a href="#Generalized-geometry-term-GGT" class="headerlink" title="Generalized geometry term(GGT)"></a>Generalized geometry term(GGT)</h4><ul>
+<li><span style="color:red;font-weight:bold">这部分暂时没啥看懂</span></li>
+<li>“intensity” or “distance correction factor”</li>
+<li>Consider the ray propagation function $F:\mathbb{R^2}\to\mathbb{R^2}$ that maps a neighborhood of the camera sensor point $P$ through the admissible specular path $\bar{x}$ to the imaginary plane crossing the point light position, orthogonal to the last path segment. The GGT is the value</li>
+</ul>
+<p>$$<br>G(\bar{x})&#x3D;\dfrac{1}{|\det J_F(P)|}<br>$$</p>
+<ul>
+<li>We initialize position differentials $P_x$ and $P_y$ of unit length on the camera sensor plane, and trace them along the specular path to the imaginary plane crossing the point light position, orthogonal to the last path segment, finding the final position differentials $L_x$ and $L_y$. Finally, we can compute the GGT as</li>
+</ul>
+<p>$$<br>G(\bar{x})&#x3D;\dfrac{1}{|L_x\times L_y|}<br>$$</p>
+<ul>
+<li>$|L_x\times L_y|$ 很小，结果不真实<ul>
+<li>$|L_x\times L_y|\approx||L_x||\cdot||L_y||\cdot\max{\epsilon,|normalize(L_y)\times normalize(L_y)|),}$</li>
+<li>A value of $\epsilon &#x3D; 0.01$ works well in general.</li>
+<li>We observe that this regularization solves the issue of occasional very bright glints, while not affecting the remaining glints.</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-3-Multiple-solutions"><a href="#4-3-Multiple-solutions" class="headerlink" title="4.3 Multiple solutions"></a>4.3 Multiple solutions</h3><ul>
+<li>解可能不止一个<ul>
+<li>虽然我们实验上都是得到一个解，但是这不一定理论正确</li>
+</ul>
+</li>
+</ul>
+<h4 id="Finding-all-discrete-solutions"><a href="#Finding-all-discrete-solutions" class="headerlink" title="Finding all discrete solutions"></a>Finding all discrete solutions</h4><ul>
+<li>问题<ul>
+<li>Even if a single solution exists, standard Newton’s method still does not theoretically guarantee that the solution will be found.<ul>
+<li>一个解但是没找到</li>
+</ul>
+</li>
+<li>Furthermore, there is a possibility of multiple discrete solutions<ul>
+<li>多个解</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Both of these issues can be theoretically handled with the interval version of Newton’s method, as suggested by Mitchell and Hanrahan [1992] and Walter [2009].</li>
+<li>我们实验发现差不多<ul>
+<li>可能的解释</li>
+<li>our meshes already subdivided to small enough triangles, so multiple solutions within a single triangle do not frequently occur in practice</li>
+</ul>
+</li>
+</ul>
+<h4 id="Infinite-solution-regions"><a href="#Infinite-solution-regions" class="headerlink" title="Infinite solution regions"></a>Infinite solution regions</h4><ul>
+<li>圆柱体，内部纯反射，光源和针孔摄像机放置在两头，中间的圆给出无穷多个解<ul>
+<li>无法求解</li>
+<li>法线并非插值得到</li>
+</ul>
+</li>
+<li>只能求解三角形，而且内部的法线是由插值得到的图形</li>
+</ul>
+<h2 id="7-CONCLUSION-AND-FUTURE-WORK"><a href="#7-CONCLUSION-AND-FUTURE-WORK" class="headerlink" title="7. CONCLUSION AND FUTURE WORK"></a>7. CONCLUSION AND FUTURE WORK</h2><ul>
+<li>We use a path space hierarchy combined with interval arithmetic bounds to efficiently prune non-contributing regions of path space, and to slice the path space into small region where the search problem becomes local. Finally, we isolate admissible specular paths by a Newton solver applied to a constraint function, whose gradients are computed by automatic differentiation.We discuss in detail how such discovered paths should contribute to the image plane.</li>
+</ul>
+<h1 id="作者报告"><a href="#作者报告" class="headerlink" title="作者报告"></a>作者报告</h1><ul>
+<li>视频：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Mi4y1N7Np">https://www.bilibili.com/video/BV1Mi4y1N7Np</a></li>
+<li>南京理工大学 王贝贝</li>
+<li>GAMES 链接：<a target="_blank" rel="noopener" href="http://games-cn.org/games-webinar-20210401-177/">http://games-cn.org/games-webinar-20210401-177/</a></li>
+<li>代码：<a target="_blank" rel="noopener" href="https://github.com/wangningbei/mbglints">https://github.com/wangningbei/mbglints</a></li>
+</ul>
+<h2 id="notes"><a href="#notes" class="headerlink" title="notes"></a>notes</h2><ul>
+<li><p>现有的方法解决不能解决问题</p>
+<ul>
+<li>BDPT：很难在交汇处实现完美的镜面反射。折射</li>
+<li>MLT：思路是在一开始的种子路径上，使用小的偏移找到新的路径<ul>
+<li>一开始的种子路径很难找到</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>论文的方法是确定性的结果，是没有噪声的</p>
+</li>
+<li><p>我们的方法可以作为 MLT 的种子路径</p>
+</li>
+<li><p>只能支持点光源</p>
+</li>
+<li><p>展示是基于 CPU</p>
+</li>
+</ul>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><ul>
+<li>bounce 比较多的时候，搜索代价变大<ul>
+<li>论文最多 4-bounces</li>
+</ul>
+</li>
+<li>牛顿法不能求出所有解<ul>
+<li>区间牛顿法可以，但是代价大</li>
+<li>划分区间，用一个条件判断使得否只有唯一解，如果只有唯一解，利用牛顿法求解，否则继续细分</li>
+</ul>
+</li>
+<li>AABB 包围盒比较松，在做法线和半角矢量是否有交判断中比较松（不能提前排除无解可能性）</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/03/20/CG/Papers/2020/PathCuts/" data-id="cl9lj74e001bb64tzblvgb5ar" data-title="(论文)[2020] Path Cuts, Efficient Rendering of Pure Specular Light Transport" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/03/21/CG/YLQ-GAMES101/07/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          GAMES101.闫令琪.07.材质与外观(Lecture 17)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/03/18/CG/YLQ-GAMES101/06/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">GAMES101.闫令琪.06.光线追踪(3).蒙特卡洛路径追踪(Lecture 15-16)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

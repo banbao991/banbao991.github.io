@@ -1,0 +1,2794 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/page/25/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-CG/LS/06" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/02/02/CG/LS/06/" class="article-date">
+  <time class="dt-published" datetime="2021-02-02T12:19:29.000Z" itemprop="datePublished">2021-02-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/02/02/CG/LS/06/">计算机图形学.李胜.06.隐藏面的消除</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h1><ul>
+<li>空间遮挡关系</li>
+<li>隐藏面&#x2F;线、可见面&#x2F;线</li>
+<li>不同模型<ul>
+<li><strong>表面模型</strong>：<strong>面消隐</strong></li>
+<li><strong>线框模型</strong>：<strong>线消隐</strong></li>
+</ul>
+</li>
+<li>深度<ul>
+<li>早期的深度：<strong>近大远小</strong></li>
+<li>现在的深度：<strong>近小远大</strong></li>
+<li>因此在消隐算法中会有初始化以及比大小的不同</li>
+</ul>
+</li>
+</ul>
+<h2 id="消隐的两类方法"><a href="#消隐的两类方法" class="headerlink" title="消隐的两类方法"></a>消隐的两类方法</h2><ul>
+<li>以像素为循环核心</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(窗口内的每一个像素) &#123;</span><br><span class="line">    确定距视点最近的物体;</span><br><span class="line">    用该物体表面的颜色显示像素;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>以物体为循环核心</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(场景中的每一个物体) &#123;</span><br><span class="line">    将该物体与场景中的其它物体进行比较, 确定其表面的可见部分;</span><br><span class="line">    显示该物体表面的可见部分;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="提高消隐算法效率的常用方法"><a href="#提高消隐算法效率的常用方法" class="headerlink" title="提高消隐算法效率的常用方法"></a>提高消隐算法效率的常用方法</h1><h2 id="利用连贯性"><a href="#利用连贯性" class="headerlink" title="利用连贯性"></a>利用连贯性</h2><ul>
+<li>物体、面、区域、扫描线</li>
+</ul>
+<h2 id="将透视投影变换为平行投影"><a href="#将透视投影变换为平行投影" class="headerlink" title="将透视投影变换为平行投影"></a>将透视投影变换为平行投影</h2><ul>
+<li>消隐与投影方式有关<ul>
+<li>投影中心位置，投影方向</li>
+</ul>
+</li>
+<li>平行投影的遮挡关系更好确定</li>
+<li>现代硬件的实现一般都是 <strong>z-buffer</strong></li>
+</ul>
+<h2 id="包围盒技术"><a href="#包围盒技术" class="headerlink" title="包围盒技术"></a>包围盒技术</h2><ul>
+<li>包围盒：包围目标的简单形体</li>
+<li>常用包围盒：长方体、球、圆柱</li>
+<li><strong>避免盲目求交</strong><ul>
+<li>如果包围盒不相交，那么物体也一定不会相交</li>
+<li>包围盒的求交比物体更加简单</li>
+</ul>
+</li>
+<li>初级的筛查</li>
+</ul>
+<h2 id="常用的包围盒方法"><a href="#常用的包围盒方法" class="headerlink" title="常用的包围盒方法"></a>常用的包围盒方法</h2><ul>
+<li>OBB：面平行<ul>
+<li>紧致的包围盒</li>
+<li>包围盒的所有面和物体切平面平行</li>
+<li>可以使用 PCA 的方法找出主轴（3D有3根主轴）</li>
+</ul>
+</li>
+<li>AABB：轴平齐<ul>
+<li>例如3D，包围盒的所有面都是和轴垂直的简单，不准确</li>
+</ul>
+</li>
+</ul>
+<p><img src="/06/OBB-AABB.png"></p>
+<ul>
+<li>k-DoP：划分为多个轴，每个轴向找切线</li>
+</ul>
+<img src="06/4-DoP-2D.png" alt="1612319866629" style="zoom:70%;" />
+
+<img src="06/8-DoP-2D.png" alt="1612319889825" style="zoom:70%;" />
+
+<ul>
+<li>层次包围盒<ul>
+<li>树状结构</li>
+<li>包围盒套包围盒</li>
+<li>从根出来进行逐个判断，提高效率</li>
+</ul>
+</li>
+</ul>
+<h2 id="背面剔除"><a href="#背面剔除" class="headerlink" title="背面剔除"></a>背面剔除</h2><ul>
+<li>前向面和后向面（背面）<ul>
+<li>背面是不可见的</li>
+</ul>
+</li>
+<li>使用法向判断</li>
+<li>需要指定 FrontFace<ul>
+<li>顺时针（CW）clockwise</li>
+<li>逆时针（CCW）counterclockwise</li>
+</ul>
+</li>
+</ul>
+<h2 id="空间分割技术"><a href="#空间分割技术" class="headerlink" title="空间分割技术"></a>空间分割技术</h2><ul>
+<li>并行渲染</li>
+</ul>
+<h2 id="物体的分层表示"><a href="#物体的分层表示" class="headerlink" title="物体的分层表示"></a>物体的分层表示</h2><ul>
+<li>小汽车<ul>
+<li>车身<ul>
+<li>车头</li>
+<li>车尾</li>
+</ul>
+</li>
+<li>左前轮</li>
+<li>左后轮</li>
+<li>右后轮</li>
+<li>右前轮</li>
+</ul>
+</li>
+</ul>
+<h1 id="消隐算法"><a href="#消隐算法" class="headerlink" title="消隐算法"></a>消隐算法</h1><ul>
+<li>消隐的基本（核心）问题：<span style="color:red;font-weight:bold">排序</span></li>
+<li>整体排序：画家算法</li>
+<li>点排序：z-buffer算法、光线投射算法</li>
+<li>区间排序：扫描线算法</li>
+<li>区域排序：区域子分算法</li>
+</ul>
+<h2 id="画家算法"><a href="#画家算法" class="headerlink" title="画家算法"></a>画家算法</h2><ul>
+<li><p>3D 待绘制的物体进行排序，<strong>远处先画，近处后画</strong></p>
+<ul>
+<li>对场景中的多边形按深度进行排序</li>
+<li>形成深度优先级表</li>
+<li>按从远到近的顺序显示多边形</li>
+</ul>
+</li>
+<li><p>一维空间（数轴）上点的排序</p>
+</li>
+<li><p>二维平面上直线段的排序</p>
+<ul>
+<li>两条直线段可能相交<ul>
+<li>分类讨论，包围盒</li>
+</ul>
+</li>
+</ul>
+  <img src="06/2D-sort.png" alt="1612321712197" style="zoom:70%;" />
+</li>
+<li><p>三维空间中多边形的排序</p>
+<ul>
+<li>连环套问题<ul>
+<li>解套：拆分单个面片</li>
+</ul>
+</li>
+</ul>
+  <img src="06/3D-sort.png" alt="1612322086268" style="zoom:70%;" /></li>
+</ul>
+<h2 id="z-buffer-算法"><a href="#z-buffer-算法" class="headerlink" title="z-buffer 算法"></a>z-buffer 算法</h2><ul>
+<li>窗口与缓冲器<ul>
+<li>绘图窗口</li>
+<li>帧缓冲器：存放对应像素的颜色</li>
+<li>z（深度）缓冲器：存放对应像素的深度值</li>
+</ul>
+</li>
+<li>z 缓冲器算法<ul>
+<li>初始化所有像素深度值为 1（最大深度），颜色值为背景色</li>
+<li>对多边形的投影区域的每一个像素循环<ul>
+<li>逐像素比较深度，若小于 z-buffer 中存的深度，则更新两个缓冲器</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>优点<ul>
+<li>算法简单、稳定</li>
+<li>便于硬件加速</li>
+<li>不需要整个场景的几何数据</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>需要 z 缓冲器</li>
+<li>计算复杂度大<ul>
+<li>需要计算的像素深度值次数 &#x3D; 多边形个数*多边形平均占据的像素个数</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="扫描线-z-buffer-算法"><a href="#扫描线-z-buffer-算法" class="headerlink" title="扫描线 z-buffer 算法"></a>扫描线 z-buffer 算法</h2><ul>
+<li><p>经典但是过时的算法</p>
+</li>
+<li><p>早期在 z-buffer 数量不够时提出的算法</p>
+</li>
+<li><p>需要的 z-buffer 数目从原来的<span style="color:red;font-weight:bold">整个窗口</span>减少到<span style="color:red;font-weight:bold">一条扫描线</span></p>
+<ul>
+<li>随着技术发展，z-buffer 已经不再是稀缺资源，可以支持整个窗口，因此现在很少用</li>
+</ul>
+</li>
+<li><p>扫描线 z-buffer 算法</p>
+<ul>
+<li>将窗口划分为多条扫描线<ul>
+<li>初始化扫描线对应的两个缓冲器</li>
+<li>对每个多边形循环<ul>
+<li>求出每个多边形的投影区域与扫描线的的相交区间</li>
+<li>比较深度与对应像素在 z-buffer 中的深度值，看是否需要更新两个缓冲器</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>复杂度高</p>
+<ul>
+<li>每一条扫描线都需要和多边形进行相交测试</li>
+<li>需要计算相交区间的深度值</li>
+</ul>
+</li>
+</ul>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><h4 id="1-多边形顶点数组"><a href="#1-多边形顶点数组" class="headerlink" title="(1) 多边形顶点数组"></a>(1) 多边形顶点数组</h4><ul>
+<li>二维数组 $P[i][j]$，元素是三维坐标<ul>
+<li>第 i 个多边形的第 j 个顶点</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-多边形"><a href="#2-多边形" class="headerlink" title="(2) 多边形"></a>(2) 多边形</h4><ul>
+<li>平面信息：a,b,c,d</li>
+<li>多边形所在平面：$f(u,v,n)&#x3D;au+bv+cn+d&#x3D;0$</li>
+<li>多边形颜色值：color</li>
+<li>投影的最大 v 坐标：$v_{max}$</li>
+<li>多边形的序号：PI</li>
+<li>指向下一个多边形结构的指针：nextP</li>
+</ul>
+<h4 id="3-多边形分类表-PT"><a href="#3-多边形分类表-PT" class="headerlink" title="(3) 多边形分类表 PT"></a>(3) 多边形分类表 PT</h4><ul>
+<li>一维数组，长度等于绘图窗口内扫描线的数目，元素为多边形</li>
+<li>如果一个多边形的投影的最小 v 坐标为 v，那么它就属于 v 类</li>
+</ul>
+<h4 id="4-活化多边形表-APL"><a href="#4-活化多边形表-APL" class="headerlink" title="(4) 活化多边形表 APL"></a>(4) 活化多边形表 APL</h4><ul>
+<li>记录投影与当前扫描线相交的多边形</li>
+<li>多边形在 APL 中的顺序无关紧要</li>
+</ul>
+<h4 id="5-边"><a href="#5-边" class="headerlink" title="(5) 边"></a>(5) 边</h4><ul>
+<li>用于记录多边形的一条边</li>
+<li>边结构<ul>
+<li>边投影<strong>上</strong>端点的 v 坐标：$v_{max}$</li>
+<li>边投影<strong>下</strong>端点的 u 坐标：u</li>
+<li>边投影<strong>下</strong>端点的 n 坐标：n</li>
+<li>在该边上 v 值增加一个单位时，u 坐标的变化量：$\Delta u$</li>
+<li>指向下一个边结构的指针：nextE</li>
+</ul>
+</li>
+</ul>
+<h4 id="6-边分类表-ET"><a href="#6-边分类表-ET" class="headerlink" title="(6) 边分类表 ET"></a>(6) 边分类表 ET</h4><ul>
+<li>当一个多边形<strong>进入</strong>活化多边形表的时候，需要为其建立一个边分类表<ul>
+<li>不处理的就不需要建立了</li>
+</ul>
+</li>
+<li>对非水平边进行分类的一维数组</li>
+<li>一维数组，长度等于扫描线的数目，元素为边</li>
+<li>若一条边的下端点的 v 坐标为 v，则将该边归为第 v 类</li>
+</ul>
+<h4 id="7-边对"><a href="#7-边对" class="headerlink" title="(7) 边对"></a>(7) 边对</h4><ul>
+<li>在一条扫描线上，同一多边形的相邻两条边称为边对</li>
+</ul>
+<p><img src="/06/edge-pair.jpg"></p>
+<ul>
+<li>扫描线 3 对应的边对：$e_0e_1$</li>
+<li>扫描线 6 对应的边对：$e_0e_4,e_3e_2$</li>
+<li>边对中包含了大量信息，是该消隐算法的核心单元</li>
+</ul>
+<h5 id="边对包含信息"><a href="#边对包含信息" class="headerlink" title="边对包含信息"></a>边对包含信息</h5><ul>
+<li>$u_l$：边对左侧边与扫描线交点的 u 坐标</li>
+<li>$\Delta u_l$：当沿左侧边 v 坐标递增一个像素时，u 坐标的增量</li>
+<li>$v_{lmax}$：左侧边投影的上端点的 v 坐标</li>
+<li>$u_r,\Delta u_r,v_{rmax}$</li>
+<li>$n_l$：左侧边与扫描线的交点处的多边形的 n 坐标（深度）</li>
+<li>$\Delta n_u$：当沿着扫描线 u 递增一个像素时，多边形所在平面的 n 坐标的增量<ul>
+<li>$f(u,v,n)&#x3D;au+bv+cn+d&#x3D;0\Rightarrow\Delta n_u&#x3D;\dfrac{-a}{c}(c\ne0)$</li>
+</ul>
+</li>
+<li>$\Delta n_v&#x3D;\dfrac{-b}{c}(c\ne0)$</li>
+<li>PI：多边形序号</li>
+<li>nextEP：指向下一个边对结构的指针，用于将边连接成链表</li>
+</ul>
+<h4 id="8-活化边对表-AEPL"><a href="#8-活化边对表-AEPL" class="headerlink" title="(8) 活化边对表 AEPL"></a>(8) 活化边对表 AEPL</h4><ul>
+<li>记录了活化多边形表中与当前扫描线相交的边对（顺序无关紧要）</li>
+</ul>
+<h3 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h3><ul>
+<li><p>建立多边形分类表 PT</p>
+</li>
+<li><p>置活化多边形表 APL 为空，置活化边对表为空</p>
+</li>
+<li><p>对每条扫描线执行以下操作</p>
+<ul>
+<li>置帧缓冲器第 v 行的各单元为背景色</li>
+<li>置 z 缓冲器个单元的值为 1（最大的深度值）</li>
+<li>检查 PT 的第 v 类是否非空，如果非空，则将该类的多边形去除加入到 APL 中</li>
+<li>对新加入 APL 的每个多边形，为其建立边分类表 ET</li>
+<li>对新加入 APL 的每个多边形，若他的 ET 中第 v 类非空，将其中的边对出插入 APEL 中</li>
+<li>对 APEL 中的每一个边对，执行以下步骤</li>
+</ul>
+<p>  $$<br>  \begin{aligned}<br>  &amp;深度值 n&#x3D;n_l\<br>  &amp;for(u &#x3D; u_l; u &lt;&#x3D; u_r; u &#x3D; u + 1) {\<br>  &amp;\qquad if(n &lt; z 缓冲器中第 u 个单元的深度值) {\<br>  &amp;\qquad\qquad 置帧缓冲器第 (u,v) 单元的值为当前便对所属的多边形的颜色;\<br>  &amp;\qquad\qquad 置 z 缓冲器第 u 单元的值为 n;\<br>  &amp;\qquad}\<br>  &amp;\qquad n &#x3D; n + \Delta n_u; &#x2F;&#x2F; 计算下一个像素 (u + 1,v) 处的深度值\<br>  &amp;}\</p>
+</li>
+</ul>
+<p>\end{aligned}<br>    $$</p>
+<pre><code>+ 检查 APL，删除那些满足 $v=v_&#123;max&#125;$ 的多边形，释放该多边形的 ET，并从 AEPL 中删除属于该多边形的边对
++ 检查 AEPL 中的边对，执行以下步骤
+    + 若 $v_&#123;lmax&#125;=v$ 或者 $v_&#123;rmax&#125;=v$ ，删除边对的左侧边或者右侧边
+        + 若边对的左侧边和右侧边都被删除了，则从 AEPL 中将这个边对删去
+        + 若边对只被删去一条边，那么从其所属的多边形找另一条边和其配对成为新的边对，加入 APEL
++ 将扫描线向下移动一个像素 v = v + 1
+</code></pre>
+<h3 id="算法说明"><a href="#算法说明" class="headerlink" title="算法说明"></a>算法说明</h3><ul>
+<li>一定配对<ul>
+<li>一条直线和封闭多边形相交的边数为偶数（不计直线和多边形顶点的相交）</li>
+</ul>
+</li>
+<li>删除 AEPL 中的边对<ul>
+<li>扫描线<strong>从下向上</strong>移动</li>
+<li>删除时整个边对之间的区域都被上色了</li>
+</ul>
+</li>
+</ul>
+<h3 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h3><ul>
+<li>和 z 缓冲器相比改进的地方<ul>
+<li>将窗口分割成扫描线，只需要一条扫描线的 z-buffer</li>
+<li>采用多边形分类表、活化多边形表避免多边形与扫描线的盲目求交</li>
+<li>利用边、边的分类表、边对、活化边对表避免边与扫描线的盲目求交</li>
+<li>利用连贯性计算深度</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>在每一个被多边形覆盖像素处需要计算深度值</li>
+<li>被多个多边形覆盖的像素需要多次计算深度值</li>
+</ul>
+</li>
+</ul>
+<h2 id="扫描线算法"><a href="#扫描线算法" class="headerlink" title="扫描线算法"></a>扫描线算法</h2><ul>
+<li><p>相较于 z-buffer 扫描线算法的改进</p>
+<ul>
+<li>在一条扫描线上，以区间为单位确定多边形的可见性<ul>
+<li>在一条扫描线上，每个区间只需要计算一次深度值</li>
+</ul>
+</li>
+<li>不需要 z-buffer</li>
+</ul>
+</li>
+<li><p>算法思想</p>
+<ul>
+<li>两个多边形（记作 $P_1,P_2$） 的边界将扫描线分割为多个区间</li>
+<li>覆盖每段区间的多边形可能有 0 个或者多个，但是只有一个可见</li>
+<li>因此对于每段区间，我们只需要任取一个点，计算深度，找到深度最小的点，用它所在多边形的颜色为当前像素点上色即可（帧缓冲器）</li>
+</ul>
+</li>
+<li><p>算法局限</p>
+<ul>
+<li>要求多边形不能相互贯穿</li>
+</ul>
+<p>  <img src="/06/scanline.png"></p>
+<ul>
+<li>否则需要计算多边形相交的点作分界（让算法复杂度变高）</li>
+<li>如上图<ul>
+<li>区间 $[0,u_1],[u_1,u_2],[u_2,u_3],[u_3,u_4],[u_4,u_{max}]$</li>
+<li>出现贯穿的情况，在区间 $,[u_2,u_3]$ 中出现深度变化</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="区域子分算法"><a href="#区域子分算法" class="headerlink" title="区域子分算法"></a>区域子分算法</h2><ul>
+<li>不把像素孤立起来看待，考虑<strong>区域连贯性</strong><ul>
+<li>扫描线算法中的区间本质也是一种对于区域连贯性的考虑</li>
+</ul>
+</li>
+<li>利用区域的连贯性提高排序的效率<ul>
+<li>分割窗口直到窗口足够简单</li>
+</ul>
+</li>
+<li>窗口足够简单：满足以下几种条件之一即可<ul>
+<li>窗口为空：所有多边形和当前窗口的关系都是<strong>分离</strong></li>
+<li>窗口内仅包含一个多边形：仅有一个多边形与当前窗口<strong>相交</strong>或者<strong>包含</strong>于当前窗口</li>
+<li>窗口被一个多边形<strong>包围</strong>，并且它是离视点最近的</li>
+</ul>
+</li>
+<li><strong>四叉树</strong></li>
+</ul>
+<h2 id="光线投射算法"><a href="#光线投射算法" class="headerlink" title="光线投射算法"></a>光线投射算法</h2><ul>
+<li>基本问题：光线与物体表面求交</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(v = <span class="number">0</span>; v &lt;= vmax; v++) &#123;</span><br><span class="line">    <span class="keyword">for</span>(u = <span class="number">0</span>; u &lt;= umax; u++) &#123;</span><br><span class="line">        形成通过像素(u,v)的投影线;</span><br><span class="line">        <span class="keyword">for</span>(场景中的每一个多边形)&#123;</span><br><span class="line">            将投影线与多边形求交;</span><br><span class="line">            <span class="keyword">if</span>(有交点) &#123;</span><br><span class="line">                以最近交点所属多边形的颜色显示像素(u,v);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                以背景颜色显示像素(u,v);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>特殊情况<ul>
+<li>光线穿越物体的边缘 &#x2F; 顶点</li>
+<li>需要自己定义 visible &#x2F; invisible</li>
+</ul>
+</li>
+</ul>
+<h1 id="半-透明问题"><a href="#半-透明问题" class="headerlink" title="(半)透明问题"></a>(半)透明问题</h1><ul>
+<li>z-buffer test：用于确定物体的深度关系</li>
+<li>如果物体透明怎么办？</li>
+<li>顺序？<ul>
+<li>需要考虑混合顺序：排序</li>
+<li>去除透明物体，融合半透明物体与最近的不透明物体</li>
+</ul>
+</li>
+</ul>
+<p><img src="/06/transparent.png"></p>
+<ul>
+<li>排序<ul>
+<li>order dependent transparency：物体级别的排序<ul>
+<li>显式对物体进行排序</li>
+</ul>
+</li>
+<li>order independent transparency：片元级别的排序</li>
+</ul>
+</li>
+</ul>
+<h2 id="A-buffer-算法"><a href="#A-buffer-算法" class="headerlink" title="A-buffer 算法"></a>A-buffer 算法</h2><ul>
+<li>order dependent transparency</li>
+<li>对于每个像素，形成一个链表结构<ul>
+<li>链表内按照深度排序，之后可以通过类似于之前的方式进行上色</li>
+</ul>
+</li>
+</ul>
+<h2 id="Depth-Peeling-深度剥离"><a href="#Depth-Peeling-深度剥离" class="headerlink" title="Depth Peeling 深度剥离"></a>Depth Peeling 深度剥离</h2><ul>
+<li>order independent transparency</li>
+<li>多次渲染<ul>
+<li>每次渲染去除之前已经渲染的片元，把剩下的片元都当作不透明的处理</li>
+<li>相当于每次渲染得到深度最小的片元结果，将其存到一个 buffer 里面</li>
+<li>最后融合这些 buffer</li>
+</ul>
+</li>
+<li>浪费了大量片元，大量空间都是空白的</li>
+</ul>
+<h2 id="半透明顺序"><a href="#半透明顺序" class="headerlink" title="半透明顺序"></a>半透明顺序</h2><ul>
+<li>如提前知道半透明的顺序，直接排序即可</li>
+<li>如果不知道，可以使用 A-buffer 或者 Depth Peeling 等算法</li>
+</ul>
+<h2 id="Dual-Depth-Peeling-双向深度剥离"><a href="#Dual-Depth-Peeling-双向深度剥离" class="headerlink" title="Dual Depth Peeling 双向深度剥离"></a>Dual Depth Peeling 双向深度剥离</h2><ul>
+<li>渲染次数减半</li>
+</ul>
+<h2 id="光线跟踪"><a href="#光线跟踪" class="headerlink" title="光线跟踪"></a>光线跟踪</h2><ul>
+<li><strong>非传统渲染管线</strong></li>
+<li>直接考虑了半透明的信息</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/02/02/CG/LS/06/" data-id="cl9lj7495004764tz8f3dfzpa" data-title="计算机图形学.李胜.06.隐藏面的消除" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-CG/LS/05-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/31/CG/LS/05-2/" class="article-date">
+  <time class="dt-published" datetime="2021-01-31T14:50:41.000Z" itemprop="datePublished">2021-01-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/31/CG/LS/05-2/">计算机图形学.李胜.05.投影(3)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="三维图形的显示流程图"><a href="#三维图形的显示流程图" class="headerlink" title="三维图形的显示流程图"></a>三维图形的显示流程图</h1><ul>
+<li><p>模型坐标系</p>
+<ul>
+<li>模型变换 $\downarrow$</li>
+</ul>
+</li>
+<li><p>世界坐标系</p>
+<ul>
+<li>观察变换  $\downarrow$</li>
+</ul>
+</li>
+<li><p>观察坐标系</p>
+<ul>
+<li>规范化变换 $\downarrow$</li>
+</ul>
+</li>
+<li><p>规范化投影坐标系</p>
+<ul>
+<li>关于视见体的裁剪  $\downarrow$</li>
+<li>投影  $\downarrow$</li>
+</ul>
+</li>
+<li><p>投影平面</p>
+<ul>
+<li>窗口至视区的变换  $\downarrow$</li>
+</ul>
+</li>
+<li><p>设备坐标系</p>
+<ul>
+<li>显示</li>
+</ul>
+</li>
+</ul>
+<h2 id="模型变换"><a href="#模型变换" class="headerlink" title="模型变换"></a>模型变换</h2><ul>
+<li>模型坐标系 Modeling Coordinate<ul>
+<li>物体的局部坐标系</li>
+<li>在模型坐标系中物体的<strong>表示简单</strong></li>
+</ul>
+</li>
+<li>模型变换 Modeling Transformation</li>
+<li>将物体从本身的模型坐标系变换到上层物体的模型坐标系（或世界坐标系）的几何变换</li>
+</ul>
+<h2 id="何时裁剪"><a href="#何时裁剪" class="headerlink" title="何时裁剪"></a>何时裁剪</h2><ul>
+<li>投影之前：三维裁剪<ul>
+<li>裁剪相对复杂</li>
+<li>只需要对可见的物体进行投影变换</li>
+</ul>
+</li>
+<li>投影之后：二位裁剪<ul>
+<li>裁剪相对简单</li>
+<li>需要对所有的物体进行投影变换</li>
+</ul>
+</li>
+<li>为什么需要在投影之前进行裁剪<ul>
+<li>三维物体的表面通常被离散表示成多边形或折线，而这类简单图元的三维裁剪比较简单</li>
+<li>三维图形在显示过程中需要被消隐，消隐需要图形的深度信息，所以必须在投影之前完成</li>
+</ul>
+</li>
+</ul>
+<h2 id="规范视见体"><a href="#规范视见体" class="headerlink" title="规范视见体"></a>规范视见体</h2><ul>
+<li>规范视见体的引入可以<strong>简化裁剪</strong></li>
+<li>规范化变化：将任意视见体变换成规范视见体的变换</li>
+<li>规范投影坐标（三维屏幕坐标 ）：经规范化的观察坐标系</li>
+</ul>
+<h3 id="平行投影的规范视见体"><a href="#平行投影的规范视见体" class="headerlink" title="平行投影的规范视见体"></a>平行投影的规范视见体</h3><ul>
+<li>半立方体</li>
+</ul>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>u&#x3D;-1,u&#x3D;1\<br>v&#x3D;-1,v&#x3D;1\<br>n&#x3D;-1,n&#x3D;0<br>\end{array}<br>\right.<br>$$</p>
+<h3 id="透视投影的规范视见体"><a href="#透视投影的规范视见体" class="headerlink" title="透视投影的规范视见体"></a>透视投影的规范视见体</h3><ul>
+<li>四棱台</li>
+</ul>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>u&#x3D;-n,u&#x3D;n\<br>v&#x3D;-n,v&#x3D;n\<br>n&#x3D;-1,n&#x3D;-n_{min}<br>\end{array}<br>\right.<br>$$</p>
+<h3 id="平行投影视见体的规范化"><a href="#平行投影视见体的规范化" class="headerlink" title="平行投影视见体的规范化"></a>平行投影视见体的规范化</h3><ul>
+<li>将任意的平行投影视见体变换为规范平行投影视见体</li>
+<li>变换的分解与合成</li>
+<li>例如之前的 OpenGL 的变换推导</li>
+</ul>
+<h3 id="透视投影视见体的规范化"><a href="#透视投影视见体的规范化" class="headerlink" title="透视投影视见体的规范化"></a>透视投影视见体的规范化</h3><ul>
+<li>将任意的透视投影视见体变换为规范透视投影视见体</li>
+<li>变换的分解与合成</li>
+<li>例如之前的 OpenGL 的变换推导</li>
+</ul>
+<h3 id="规范视见体之间的变换"><a href="#规范视见体之间的变换" class="headerlink" title="规范视见体之间的变换"></a>规范视见体之间的变换</h3><ul>
+<li>将透视投影的规范视见体变换为平行投影的规范视见体</li>
+<li>原因<ul>
+<li>关于长方体的裁剪较关于正四棱台的裁剪简单</li>
+<li>平行投影较透视投影简单</li>
+<li>透视投影与平行投影都采用同一套裁剪与投影程序，处理一致，便于用硬件实现</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;\dfrac{1}{1-n_{min}}&amp;\dfrac{n_{min}}{1-n_{min}}\<br>0&amp;0&amp;-1&amp;0<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>$n_{min}\ge0$</li>
+</ul>
+<h1 id="三维裁剪"><a href="#三维裁剪" class="headerlink" title="三维裁剪"></a>三维裁剪</h1><h2 id="两种方法"><a href="#两种方法" class="headerlink" title="两种方法"></a>两种方法</h2><ul>
+<li>将齐次坐标转换为三维坐标，在三维空间对视见体裁剪<ul>
+<li>三维裁剪相对容易</li>
+<li>需要将齐次坐标转换为三维坐标</li>
+</ul>
+</li>
+<li>直接在四维齐次坐标空间中进行裁剪<ul>
+<li>不需要将齐次坐标转换为三维坐标</li>
+<li>有理曲线曲面可以直接用齐次坐标来表示，对它们的裁剪只能在齐次坐标空间中进行</li>
+<li>四维裁剪相对复杂</li>
+</ul>
+</li>
+</ul>
+<h2 id="关于规范视见体的裁剪"><a href="#关于规范视见体的裁剪" class="headerlink" title="关于规范视见体的裁剪"></a>关于规范视见体的裁剪</h2><ul>
+<li>直线段裁剪的Cohen_Sutherland算法、梁_Barskey算法的直接推广</li>
+<li>多边形裁剪的Sutherland_Hodgman算法的直接推广</li>
+<li>齐次坐标空间中的裁剪<ul>
+<li>四维裁剪体的定义</li>
+</ul>
+</li>
+</ul>
+<h1 id="相机的任意控制"><a href="#相机的任意控制" class="headerlink" title="相机的任意控制"></a>相机的任意控制</h1><h2 id="欧拉变换"><a href="#欧拉变换" class="headerlink" title="欧拉变换"></a>欧拉变换</h2><ul>
+<li><p>Euler 变换</p>
+</li>
+<li><p>缺省视域方向</p>
+<ul>
+<li>视线为 -z 轴</li>
+<li>头顶朝向为 +y 轴</li>
+<li>右手系</li>
+</ul>
+</li>
+<li><p>$E(h,p,r)&#x3D;R_z(r)R_x(p)R_y(h)$</p>
+<ul>
+<li>旋转顺序：${\color{red}yzx}$</li>
+</ul>
+</li>
+<li><p>正交矩阵 $E$</p>
+<ul>
+<li>$E^{-1}&#x3D;E^T&#x3D;(R_zR_xR_y)^T&#x3D;R_y^TR_x^TR_z^T$</li>
+</ul>
+</li>
+<li><p>方向规定：</p>
+<ul>
+<li>$head&#x2F;yaw:z\to x$</li>
+<li>$pitch:y\to z$</li>
+<li>$roll:y\to x$<ul>
+<li><span style="color:red;font-weight:bold">和右手系相反</span></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Gimbal lock：万向锁</p>
+<ul>
+<li>一个自由度缺失</li>
+<li>旋转一直都是在物体所在的局部坐标系变换<ul>
+<li>在旋转的过程中，某个轴旋转的时候与一开始的某个其他轴重合</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>$c$ 表示 $\cos$，$s$ 表示 $\sin$</p>
+</li>
+</ul>
+<p>$$<br>E(h,p,r)&#x3D;<br>\begin{bmatrix}<br>c_yc_z-s_xs_ys_z&amp;-c_xc_z&amp;s_yc_z+s_xc_ys_z&amp;0\<br>c_ys_z+s_xs_yc_z&amp;c_xc_z&amp;s_ys_z-s_xc_yc_z&amp;0\<br>-s_yc_x&amp;s_x&amp;c_xc_y&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<p>$$<br>E(h,p,r)&#x3D;<br>\begin{bmatrix}<br>c_hc_r-s_ps_hs_r&amp;-c_pc_r&amp;s_hc_r+s_pc_hs_r&amp;0\<br>c_hs_r+s_ps_hc_r&amp;c_pc_r&amp;s_hs_r-s_pc_hc_r&amp;0\<br>-s_hc_p&amp;s_p&amp;c_pc_h&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>当 $p&#x3D;\dfrac{\pi}{2}$ 时，自由度损失</li>
+</ul>
+<p>$$<br>E(h,p,r)&#x3D;<br>\begin{bmatrix}<br>c_hc_r-s_hs_r&amp;0&amp;s_hc_r+c_hs_r&amp;0\<br>c_hs_r+s_hc_r&amp;0&amp;s_hs_r-c_hc_r&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<p>$$<br>E(h,p,r)&#x3D;<br>\begin{bmatrix}<br>\cos(h+r)&amp;0&amp;\sin(h+r)&amp;0\<br>\sin(h+r)&amp;0&amp;-\cos(h+r)&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>万向锁产生，$h,r$ 共轴</li>
+</ul>
+<h2 id="四元数-Quaternion"><a href="#四元数-Quaternion" class="headerlink" title="四元数 Quaternion"></a>四元数 Quaternion</h2><ul>
+<li>最早由 Sir William Rowan Hamilton 于 1843 年提出，从复数推广到四维空间</li>
+<li>1985年，Shoemake 把四元数引入计算机图形学</li>
+<li>在表示旋转和朝向方面，优于Euler角。具有表示紧凑，朝向插值稳定的优点，在虚拟现实系统中，常用于表示各种视点（camera）的旋转变换</li>
+<li>定义<ul>
+<li>$\vec{q}&#x3D;(\vec{q_v},q_w)&#x3D;(iq_x+jq_y+kq_z+q_w)&#x3D;\vec{q_v}+q_w$</li>
+<li>$\vec{q_v}&#x3D;(iq_x+jq_y+kq_z)&#x3D;(q_x,q_y,q_z)$</li>
+<li>$i^2&#x3D;j^2&#x3D;k^2&#x3D;1,ij&#x3D;-ji&#x3D;k,jk&#x3D;-kj&#x3D;i,ki&#x3D;-ik&#x3D;j$<ul>
+<li>感觉和 xyz 坐标系差不多</li>
+</ul>
+</li>
+<li>$q_w$ 称为<strong>实部</strong>，$\vec{q_v}$ 称为<strong>虚部</strong></li>
+<li>$i,j,k$ 称为虚轴</li>
+</ul>
+</li>
+</ul>
+<h3 id="四元数性质"><a href="#四元数性质" class="headerlink" title="四元数性质"></a>四元数性质</h3><ul>
+<li>四元数乘法：直接展开即可</li>
+</ul>
+<p>$$<br>\begin{aligned}<br>\vec{q}\vec{r}&#x3D;&amp;(iq_x+jq_y+kq_z+q_w)(ir_x+jr_y+kr_z+r_w)\<br>&#x3D;&amp;(\vec{q_v}\times\vec{r_v}+r_w\vec{q_v}+q_w\vec{r_v},q_wr_w-\vec{q_v}\cdot\vec{r_w})\<br>&#x3D;&amp;(q_yr_z-q_zr_y+r_wq_x+q_wr_x,\<br>&amp;q_zr_x-q_xr_z+r_wq_y+q_wr_y,\<br>&amp;q_xr_y-q_yr_x+r_wq_z+q_wr_z,\<br>&amp;q_wr_w-q_xr_x-q_yr_y-q_zr_z)<br>\end{aligned}<br>$$</p>
+<ul>
+<li>四元数加法：实部虚部分开做加法<ul>
+<li>$\vec{q}+\vec{r}&#x3D;(\vec{q_v}+\vec{r_v},q_w+r_w)$</li>
+</ul>
+</li>
+<li>四元数共轭<ul>
+<li>$\vec{q}^\star&#x3D;(-\vec{q_v},q_w)$</li>
+</ul>
+</li>
+<li>四元数范数<ul>
+<li>$n(\vec{q})&#x3D; \Vert \vec{q}^2\Vert &#x3D;\vec{q}\vec{q}^\star&#x3D;\vec{q}^\star\vec{q}&#x3D;\vec{q_v}\cdot\vec{q_v}+q_w^2&#x3D;\vec{q_x}^2+\vec{q_y}^2+\vec{q_z}^2+q_w^2$</li>
+</ul>
+</li>
+<li>四元数的逆<ul>
+<li>$\vec{q}^{-1}&#x3D;\dfrac{\vec{q}^\star}{\Vert\vec{q}^2\Vert}$</li>
+</ul>
+</li>
+<li>共轭法则<ul>
+<li>$(\vec{q}^\star)^\star&#x3D;\vec{q}$</li>
+<li>$(\vec{q}+\vec{r})^\star&#x3D;\vec{q}^\star+\vec{r}^\star$</li>
+<li>$(\vec{q}\vec{r})^\star&#x3D;\vec{r}^\star\vec{q}^\star$</li>
+</ul>
+</li>
+<li>范数法则<ul>
+<li>$n(\vec{q})&#x3D;n(\vec{q}^\star)$</li>
+<li>$n(\vec{q}\vec{r})&#x3D;n(\vec{q})n(\vec{r})$</li>
+</ul>
+</li>
+<li>线性性质<ul>
+<li>$\vec{p}(s\vec{q}+t\vec{r})&#x3D;s\vec{p}\vec{q}+t\vec{p}\vec{r}$</li>
+<li>$(s\vec{q}+t\vec{r})\vec{p}&#x3D;s\vec{q}\vec{p}+t\vec{r}\vec{p}$</li>
+</ul>
+</li>
+<li>交换律<ul>
+<li>$(\vec{p}\vec{q})\vec{r}&#x3D;\vec{p}(\vec{q}\vec{r})$</li>
+</ul>
+</li>
+<li>单位四元数<ul>
+<li>$n(\vec{q})&#x3D;1$</li>
+<li>可以写成 $\vec{q}&#x3D;(\sin\phi\vec{u_q},\cos\phi)&#x3D;\sin\phi\vec{u_q}+\cos\phi$，其中 $\Vert\vec{u_q}\Vert&#x3D;1$</li>
+<li>$\vec{q}&#x3D;\sin\phi\vec{u_q},\cos\phi&#x3D;e^{\phi\vec{u_q}}$<ul>
+<li>参照单位复数 $\cos\phi+i\sin\phi&#x3D;e^{i\phi}$</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>单位四元数对数运算<ul>
+<li>$\ln\vec{q}&#x3D;\phi\vec{u_q}$</li>
+</ul>
+</li>
+<li>单位四元数指数运算<ul>
+<li>$\vec{q}^t&#x3D;e^{t\phi\vec{u_q}}&#x3D;\sin(t\phi)\vec{u_q}+\cos(t\phi)$</li>
+</ul>
+</li>
+</ul>
+<h3 id="四元数变换"><a href="#四元数变换" class="headerlink" title="四元数变换"></a>四元数变换</h3><ul>
+<li>单位四元数的最重要性质：能表示任意、旋转，而且表示简单、紧凑</li>
+<li>给定向量 $\vec{p}&#x3D;(p_x,p_y,p_z,p_w)^T$ 和单位四元数 $\vec{q}&#x3D;(\sin\phi\vec{u_q},\cos\phi)$<ul>
+<li>$\vec{q}\vec{p}\vec{q}^{-1}$ 把 $p$ 绕单位轴 $\vec{u_q}$ 旋转 ${\color{red}2\phi}$ 角度</li>
+<li>${\color{red}\mathrm{Proof}}$<ul>
+<li>可以通过最原始的旋转进行验证<ul>
+<li>以单位旋转轴为 z 轴建立新坐标系，坐标系变换</li>
+<li>套用旋转矩阵</li>
+<li>坐标系逆变换</li>
+</ul>
+</li>
+<li>对比得到的矩阵是否一致</li>
+</ul>
+</li>
+<li>旋转模长不变是显然的<ul>
+<li>$\Vert\vec{q}\vec{p}\vec{q}^{-1}\Vert&#x3D;\Vert\vec{q}\Vert\Vert\vec{p}\Vert\Vert\vec{q}^\star\Vert&#x3D;\Vert\vec{p}\Vert$</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="绕任意单位轴的旋转矩阵"><a href="#绕任意单位轴的旋转矩阵" class="headerlink" title="绕任意单位轴的旋转矩阵"></a>绕任意单位轴的旋转矩阵</h4><ul>
+<li>绕单位轴 $(a,b,c)$ 旋转 $\theta$ 的旋转矩阵</li>
+</ul>
+<h5 id="1-建立新坐标系"><a href="#1-建立新坐标系" class="headerlink" title="(1) 建立新坐标系"></a>(1) 建立新坐标系</h5><ul>
+<li>$n&#x3D;(n_x,n_y,n_z)$</li>
+<li>$u&#x3D;(0,\dfrac{-n_z}{\sqrt{n_y^2+n_z^2}},\dfrac{n_y}{\sqrt{n_y^2+n_z^2}})$</li>
+<li>$v&#x3D;n\times u&#x3D;(\sqrt{n_y^2+n_z^2},\dfrac{-n_xn_y}{\sqrt{n_y^2+n_z^2}},\dfrac{-n_xn_z}{\sqrt{n_y^2+n_z^2}})$</li>
+</ul>
+<h5 id="2-坐标变换矩阵"><a href="#2-坐标变换矩阵" class="headerlink" title="(2) 坐标变换矩阵"></a>(2) 坐标变换矩阵</h5><ul>
+<li>$xyz\to uvn$</li>
+</ul>
+<p>$$<br>M_1&#x3D;\begin{bmatrix}<br>u_x &amp; u_y &amp; u_z &amp; 0\<br>v_x &amp; v_y &amp; v_z &amp; 0\<br>n_x &amp; n_y &amp; n_z &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+<h5 id="3-绕-n-z-轴旋转角度-theta"><a href="#3-绕-n-z-轴旋转角度-theta" class="headerlink" title="(3) 绕 n(z) 轴旋转角度 $\theta$"></a>(3) 绕 n(z) 轴旋转角度 $\theta$</h5><p>$$<br>M_2&#x3D;<br>\begin{bmatrix}<br>\cos\theta &amp; -\sin\theta &amp; 0 &amp; 0\<br>\sin\theta &amp; \cos\theta &amp; 0 &amp; 0\<br>0 &amp; 0 &amp; 1&amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+<h5 id="4-坐标变换逆变换"><a href="#4-坐标变换逆变换" class="headerlink" title="(4) 坐标变换逆变换"></a>(4) 坐标变换逆变换</h5><ul>
+<li>正交矩阵 $M_1$</li>
+</ul>
+<p>$$<br>M_3&#x3D;M_1^{-1}&#x3D;M_1^T<br>$$</p>
+<h5 id="5-结果"><a href="#5-结果" class="headerlink" title="(5) 结果"></a>(5) 结果</h5><ul>
+<li>$M_3M_2M_1$</li>
+<li>$c$ 表示 $\cos\theta$，$s$ 表示 $\sin\theta$</li>
+</ul>
+<p>$$<br>\begin{bmatrix}<br>n_x^2+(u_x^2+v_x^2)c&amp;n_xn_y-n_zs+(u_xu_y+v_xv_y)c&amp;n_xn_z+n_ys+(u_xu_z+v_xv_z)c&amp;0\<br>n_xn_y+n_xs+(u_xu_y+v_xv_y)c&amp;(u_y^2+v_y^2)c+n_y^2&amp;n_yn_z-n_xs+(u_yu_z+v_yv_z)c&amp;0\<br>n_xn_z-n_ys+(u_xu_z+v_xv_z)c&amp;n_yn_z+n_xs+(u_yu_z+v_yv_z)c&amp;(u_z^2+v_z^2)c+n_z^2&amp;0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+<p>$$<br>M(\vec{n},\theta)&#x3D;M_3M_2M_1&#x3D;<br>\begin{bmatrix}<br>n_x^2(1-c)+c &amp; n_xn_y(1-c)-n_zs&amp; n_xn_z(1-c)+n_ys&amp; 0\<br>n_xn_y(1-c)+n_zs &amp; n_y^2(1-c)+c &amp; n_yn_z(1-c)-n_xs &amp; 0\<br>n_xn_z(1-c)-n_ys &amp; n_yn_z(1-c)+n_xs &amp; n_z^2(1-c)+c &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+<h4 id="四元数转化为矩阵形式"><a href="#四元数转化为矩阵形式" class="headerlink" title="四元数转化为矩阵形式"></a>四元数转化为矩阵形式</h4><p>$$<br>\begin{aligned}<br>\vec{q}\vec{p}\vec{q}^{-1}&#x3D;&amp;(q_x,q_y,q_z,q_w)(p_x,p_y,p_z,p_w)(-q_x,-q_y,-q_z,q_w)\<br>&#x3D;&amp;(q_yp_z-q_zp_y+p_wq_x+q_wp_x,\<br>&amp;q_zp_x-q_xp_z+p_wq_y+q_wp_y,\<br>&amp;q_xp_y-q_yp_x+p_wq_z+q_wp_z,\<br>&amp;q_wp_w-q_xp_x-q_yp_y-q_zp_z)(-q_x,-q_y,-q_z,q_w)\<br>&#x3D;&amp;\cdots<br>\end{aligned}<br>$$</p>
+<ul>
+<li>展开即可<ul>
+<li>展开第一项，后面的可以根据循环对称性进行推导</li>
+</ul>
+</li>
+<li>表示方便，我们写成矩阵形式 $\vec{q}\vec{p}\vec{q}^{-1}&#x3D;M^q\vec{p}$</li>
+</ul>
+<p>$$<br>M^q&#x3D;<br>\begin{bmatrix}<br>1-2(q_y^2+q_z^2)&amp;2(q_xq_y-q_zq_w)&amp;2(q_xq_z+q_yq_w)&amp;0\<br>2(q_xq_y+q_zq_w)&amp;1-2(q_x^2+q_z^2)&amp;2(q_yq_z-q_xq_w)&amp;0\<br>2(q_xq_z-q_yq_w)&amp;2(q_yq_z+q_xq_w)&amp;1-2(q_x^2+q_y^2)&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>如果 $\vec{q}$ 不是单位四元数，那么上面的 $2$ 全部得换成 $\dfrac{2}{n(\vec{q})}$</li>
+<li>对比 $M(\vec{n},\theta)$ 确实是一致的<ul>
+<li>$\vec{q}&#x3D;(n_x\sin\phi,n_y\sin\phi,n_z\sin\phi,\cos\phi)$</li>
+<li>$\theta&#x3D;2\phi$</li>
+<li>逐个验证即可</li>
+</ul>
+</li>
+</ul>
+<h4 id="矩阵形式转化为四元数"><a href="#矩阵形式转化为四元数" class="headerlink" title="矩阵形式转化为四元数"></a>矩阵形式转化为四元数</h4><ul>
+<li>根据矩阵的性质来进行计算四元数 $\vec{q}$</li>
+</ul>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>tr(M)&#x3D;4q_w^2\<br>m_{21}-m_{12}&#x3D;4q_xq_w\<br>m_{02}-m_{20}&#x3D;4q_yq_w\<br>m_{10}-m_{01}&#x3D;4q_zq_w<br>\end{array}<br>\right.<br>$$</p>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>q_w&#x3D;\dfrac{1}{2}\sqrt{tr(M)}\<br>q_x&#x3D;\dfrac{m_{21}-m_{12}}{4q_w}\<br>q_y&#x3D;\dfrac{m_{02}-m_{20}}{4q_w}\<br>q_z&#x3D;\dfrac{m_{10}-m_{01}}{4q_w}<br>\end{array}<br>\right.<br>$$</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/31/CG/LS/05-2/" data-id="cl9lj7493003z64tzay1cc8ca" data-title="计算机图形学.李胜.05.投影(3)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-CG/LS/05-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/31/CG/LS/05-1/" class="article-date">
+  <time class="dt-published" datetime="2021-01-31T06:27:18.000Z" itemprop="datePublished">2021-01-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/31/CG/LS/05-1/">计算机图形学.李胜.05.投影(2)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="OpenGL-中的投影矩阵"><a href="#OpenGL-中的投影矩阵" class="headerlink" title="OpenGL 中的投影矩阵"></a>OpenGL 中的投影矩阵</h1><ul>
+<li>vmath:Frusutm()</li>
+</ul>
+<p>$$<br>\begin{bmatrix}<br>\dfrac{2near}{right-left}&amp;0&amp;A&amp;0\<br>0&amp;\dfrac{2near}{top-bottom}&amp;B&amp;0\<br>0&amp;0&amp;C&amp;D\<br>0&amp;0&amp;-1&amp;0\<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>其中 $A,B,C,D$ 含义如下</li>
+</ul>
+<p>$$<br>A&#x3D;\dfrac{left+right}{right-left}<br>$$</p>
+<p>$$<br>B&#x3D;\dfrac{top+bottom}{top-bottom}<br>$$</p>
+<p>$$<br>C&#x3D;-\dfrac{far+near}{far-near}<br>$$</p>
+<p>$$<br>D&#x3D;-\dfrac{2far\cdot near}{far-near}<br>$$</p>
+<ul>
+<li>其中 $far,near,top,bottom,left,right$ 表示6个裁剪面<ul>
+<li>实际的裁剪面<ul>
+<li>$far,near$ 使用的是绝对值<ul>
+<li>因为一定是负数</li>
+</ul>
+</li>
+<li>${\color{red}-far,-near},top,bottom,left,right$</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>坐标变换：<ul>
+<li><strong>现实坐标系中的视见体</strong> 转化为 <strong>OpenGL中的立方体</strong> $[-1,1]$</li>
+</ul>
+</li>
+</ul>
+<p><img src="/05-1/xyz_OpenGL.png"></p>
+<ul>
+<li>投影中心 $(0,0,0)$</li>
+<li>投影平面 $z&#x3D;-near$</li>
+<li>推导过程中裁剪面使用单词首字母代替</li>
+</ul>
+<h2 id="推导一：投影角度"><a href="#推导一：投影角度" class="headerlink" title="推导一：投影角度"></a>推导一：投影角度</h2><ul>
+<li>投影+规范化</li>
+</ul>
+<h3 id="1-投影"><a href="#1-投影" class="headerlink" title="(1) 投影"></a>(1) 投影</h3><ul>
+<li>将视见体中的点投影到 $z&#x3D;-n$ 上</li>
+<li>以俯视图为例推导坐标关系（$x,z$）</li>
+</ul>
+<img src="05-1/projection_01.png" alt="1612082808631" style="zoom:50%;" />
+
+<ul>
+<li>$z_p&#x3D;-n$</li>
+<li>$x_p&#x3D;\dfrac{nx_e}{-z_e}$</li>
+<li>利用侧视图可以得到 $y_p&#x3D;\dfrac{ny_e}{-z_e}$</li>
+</ul>
+<h3 id="2-规范化"><a href="#2-规范化" class="headerlink" title="(2) 规范化"></a>(2) 规范化</h3><ul>
+<li><p>$x_p\in[l,r]\rightarrow x_n\in[-1,1]$</p>
+</li>
+<li><p>$y_p\in[b,t]\rightarrow y_n\in[-1,1]$</p>
+</li>
+<li><p>以 $x$ 的推导为例</p>
+<ul>
+<li>$\dfrac{x_p-l}{r-l}&#x3D;\dfrac{x_n-(-1)}{1-(-1)}$</li>
+<li>$x_n&#x3D;2\dfrac{x_p-l}{r-l}-1&#x3D;\dfrac{2}{r-l}x_p-\dfrac{r+l}{r-l}&#x3D;\dfrac{2n}{-z_e(r-l)}x_e-\dfrac{r+l}{r-l}$</li>
+<li>$x_n&#x3D;\dfrac{\dfrac{2n}{r-l}x_e+\dfrac{z_e(r+l)}{r-l}}{-z_e}$</li>
+</ul>
+</li>
+<li><p>同理</p>
+<ul>
+<li>$y_n&#x3D;\dfrac{\dfrac{2n}{t-b}y_e+\dfrac{z_e(t+b)}{t-b}}{-z_e}$</li>
+</ul>
+</li>
+<li><p>写成矩阵的形式</p>
+<ul>
+<li><p>为了计算的方便，我们把分母放到最终的齐次坐标化简中去</p>
+</li>
+<li><p>$w_c&#x3D;-z_e,x_n&#x3D;\dfrac{x_c}{w_c},y_n&#x3D;\dfrac{y_c}{w_c}$</p>
+</li>
+<li><p>$$<br>  \begin{bmatrix}<br>  \dfrac{2n}{r-l}&amp;0&amp;\dfrac{r+l}{r-l}&amp;0\<br>  0&amp;\dfrac{2n}{t-b}&amp;\dfrac{t+b}{t-b}&amp;0\<br>  \cdot&amp;\cdot&amp;\cdot&amp;\cdot\<br>  0&amp;0&amp;-1&amp;0<br>  \end{bmatrix}<br>  \begin{bmatrix}<br>  x_e\y_e\z_e\w_e</p>
+<h1 id="end-bmatrix"><a href="#end-bmatrix" class="headerlink" title="  \end{bmatrix}"></a>  \end{bmatrix}</h1><p>  \begin{bmatrix}<br>  x_c\y_c\z_c\w_c<br>  \end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-记录深度信息"><a href="#3-记录深度信息" class="headerlink" title="(3) 记录深度信息"></a>(3) 记录深度信息</h3><p>$$<br>\begin{bmatrix}<br>\dfrac{2n}{r-l}&amp;0&amp;\dfrac{r+l}{r-l}&amp;0\<br>0&amp;\dfrac{2n}{t-b}&amp;\dfrac{t+b}{t-b}&amp;0\<br>0&amp;0&amp;A&amp;B\<br>0&amp;0&amp;-1&amp;0<br>\end{bmatrix}<br>\begin{bmatrix}<br>x_e\y_e\z_e\w_e<br>\end{bmatrix}<br>&#x3D;<br>\begin{bmatrix}<br>x_c\y_c\z_c\w_c<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li><p>我们可以看到， $z_n$ 并没有被用上，我们可以用来记录深度信息</p>
+</li>
+<li><p>$z_n&#x3D;\dfrac{z_c}{w_c}&#x3D;\dfrac{Az_e+Bw_e}{w_c}&#x3D;\dfrac{Az_e+B}{-z_e}&#x3D;-A+\dfrac{B}{-z_e}$</p>
+</li>
+<li><p>$z_e\in[{\color{red}-f},-n]\rightarrow z_n\in[{\color{red}1},-1]$</p>
+<ul>
+<li><span style="color:red;font-weight:bold">深度值越远越大</span></li>
+</ul>
+</li>
+<li><p>$$<br>  \left{<br>  \begin{array}{<strong>lr</strong>}<br>  1&#x3D;-A+\dfrac{B}{f}\<br>  -1&#x3D;-A+\dfrac{B}{n}<br>  \end{array}<br>  \right.<br>  \Rightarrow<br>  \left{<br>  \begin{array}{<strong>lr</strong>}<br>  A&#x3D;-\dfrac{f+n}{f-n}\<br>  B&#x3D;-\dfrac{2nf}{f-n}<br>  \end{array}<br>  \right.<br>  $$</p>
+</li>
+</ul>
+<h2 id="推导二：变换角度"><a href="#推导二：变换角度" class="headerlink" title="推导二：变换角度"></a>推导二：变换角度</h2><ul>
+<li>错切+缩放+规范化</li>
+</ul>
+<h3 id="1-错切"><a href="#1-错切" class="headerlink" title="(1) 错切"></a>(1) 错切</h3><ul>
+<li>错切至关于 z 轴中心对称</li>
+</ul>
+<img src="05-1/projection_02.png" alt="1612084162326" style="zoom:50%;" />
+
+<ul>
+<li>$-x$ 方向：$\tan\theta_x&#x3D;\dfrac{1}{2}\cdot\dfrac{l+r}{-n}$<ul>
+<li>$\Rightarrow +x:\tan\theta_x’&#x3D;\dfrac{l+r}{2n}$</li>
+</ul>
+</li>
+<li>$-y$ 方向：$\tan\theta_y&#x3D;\dfrac{1}{2}\cdot\dfrac{t+b}{-n}$<ul>
+<li>$\Rightarrow +y:\tan\theta_y’&#x3D;\dfrac{t+b}{2n}$</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>M_1&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;\dfrac{l+r}{2n}&amp;0\<br>0&amp;1&amp;\dfrac{t+b}{2n}&amp;0\<br>0&amp;0&amp;1&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<h3 id="2-缩放"><a href="#2-缩放" class="headerlink" title="(2) 缩放"></a>(2) 缩放</h3><ul>
+<li>缩放的结果<ul>
+<li>$x:[l,r]\to[-1,1]$</li>
+<li>$y:[b,t]\to[-1,1]$</li>
+<li>$z:[{\color{red}-f},-n]\to [{\color{red}-1},-\dfrac{f}{n}]$<ul>
+<li>因此，对应着投影平面 $z&#x3D;-1$ 的是后裁剪面 $z&#x3D;-f$</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>M_2&#x3D;<br>\begin{bmatrix}<br>\dfrac{2n}{(r-l)f}&amp;0&amp;0&amp;0\<br>0&amp;\dfrac{2n}{(t-b)f}&amp;0&amp;0\<br>0&amp;0&amp;\dfrac{1}{f}&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>等价于 $M_2’$（化成标准齐次坐标是一样的）</li>
+</ul>
+<p>$$<br>M_2’&#x3D;<br>\begin{bmatrix}<br>\dfrac{2n}{r-l)f}&amp;0&amp;0&amp;0\<br>0&amp;\dfrac{2n}{t-b}&amp;0&amp;0\<br>0&amp;0&amp;1&amp;0\<br>0&amp;0&amp;0&amp;f<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>以上形成的视见体其实是一个棱台<ul>
+<li>顶点为 $(0,0,0)$ 底面为 $(-1,-1,0),(-1,1,0),(1,1,0),(1,-1,0)$ 的四棱锥被平面 $z&#x3D;-\dfrac{n}{f}$ 截成的四棱锥</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-透视-x3D-gt-平行"><a href="#3-透视-x3D-gt-平行" class="headerlink" title="(3) 透视&#x3D;&gt;平行"></a>(3) 透视&#x3D;&gt;平行</h3><ul>
+<li>将透视投影的规范视见体变换为平行投影的规范视见体<ul>
+<li>将上述四棱锥转换为长方体</li>
+<li>$x:[-1,1]\to[-1,1]$</li>
+<li>$y:[-1,1]\to[-1,1]$</li>
+<li>$z:[{\color{red}-1},-\dfrac{f}{n}]\to [-1,0]$</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>M_3&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;\dfrac{1}{1-n_{min}}&amp;\dfrac{n_{min}}{1-n_{min}}\<br>0&amp;0&amp;-1&amp;0<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>$z_{min}\ge0$</li>
+</ul>
+<p>$$<br>M_3&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;\dfrac{f}{f-n}&amp;\dfrac{n}{f-n}\<br>0&amp;0&amp;-1&amp;0<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>推导过程和 <strong>推导一的投影</strong> 相似<ul>
+<li>$\dfrac{x_p}{z_p}&#x3D;\dfrac{x_n}{-1},\dfrac{y_p}{z_p}&#x3D;\dfrac{y_n}{-1}$</li>
+<li>$x_n&#x3D;\dfrac{x_p}{-z_p},y_n&#x3D;\dfrac{y_p}{-z_p}$</li>
+</ul>
+</li>
+<li>得到矩阵如下</li>
+</ul>
+<p>$$<br>M_3&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>0&amp;1&amp;0&amp;0\<br>\cdot&amp;\cdot&amp;\cdot&amp;\cdot\<br>0&amp;0&amp;-1&amp;0<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>将第三行用于记录深度信息</li>
+</ul>
+<p>$$<br>M_3&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;A&amp;B\<br>0&amp;0&amp;-1&amp;0<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li><p>$z_n&#x3D;\dfrac{Az_p+B}{-z_p}&#x3D;-A+\dfrac{B}{-z_p}$</p>
+<ul>
+<li>$$<br>  \left{<br>  \begin{array}{<strong>lr</strong>}<br>  -1&#x3D;-A+\dfrac{B}{1}\<br>  0&#x3D;-A+\dfrac{B}{n_{min}}<br>  \end{array}<br>  \right.<br>  \Rightarrow<br>  \left{<br>  \begin{array}{<strong>lr</strong>}<br>  A&#x3D;\dfrac{1}{1-n_{min}}\<br>  B&#x3D;\dfrac{n_{min}}{1-n_{min}}<br>  \end{array}<br>  \right.<br>  $$</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-平移"><a href="#4-平移" class="headerlink" title="(4) 平移"></a>(4) 平移</h3><ul>
+<li>$x:[-1,-1]\to[-1,1]$</li>
+<li>$y:[-1,-1]\to[-1,1]$</li>
+<li>$z:[-1,0]\to -[\dfrac{1}{2},\dfrac{1}{2}]$</li>
+</ul>
+<p>$$<br>M_4&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;1&amp;\dfrac{1}{2}\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<h3 id="5-尺缩"><a href="#5-尺缩" class="headerlink" title="(5) 尺缩"></a>(5) 尺缩</h3><ul>
+<li>$x:[-1,-1]\to[-1,1]$</li>
+<li>$y:[-1,-1]\to[-1,1]$</li>
+<li>$z:[-\dfrac{1}{2},\dfrac{1}{2}]\to [-1,1]$</li>
+</ul>
+<p>$$<br>M_5&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;2&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<h3 id="6-深度变换"><a href="#6-深度变换" class="headerlink" title="(6) 深度变换"></a>(6) 深度变换</h3><ul>
+<li>深度越大 $z$ 越大</li>
+</ul>
+<p>$$<br>M_6&#x3D;<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;-1&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<h3 id="7-结果"><a href="#7-结果" class="headerlink" title="(7) 结果"></a>(7) 结果</h3><ul>
+<li>与上面一致</li>
+</ul>
+<p>$$<br>M_6M_5M_4M_3M_2’M_1<br>$$</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/31/CG/LS/05-1/" data-id="cl9lj7492003v64tz9dkt1bbh" data-title="计算机图形学.李胜.05.投影(2)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-CG/LS/05" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/29/CG/LS/05/" class="article-date">
+  <time class="dt-published" datetime="2021-01-29T02:41:44.000Z" itemprop="datePublished">2021-01-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/29/CG/LS/05/">计算机图形学.李胜.05.投影(1)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="三维图形的基本问题"><a href="#三维图形的基本问题" class="headerlink" title="三维图形的基本问题"></a>三维图形的基本问题</h1><ul>
+<li>在二维屏幕上显示三维物体<ul>
+<li><strong>投影</strong></li>
+</ul>
+</li>
+<li>三维形体的表示<ul>
+<li><strong>各种用于形体表示的理论、模型、方法</strong></li>
+</ul>
+</li>
+<li>反映遮挡关系<ul>
+<li><strong>消除隐藏面与隐藏线</strong></li>
+</ul>
+</li>
+<li>产生真实感图形<ul>
+<li><strong>建立光照明模型、开发真实感图形绘制方法</strong></li>
+</ul>
+</li>
+</ul>
+<h1 id="平面几何投影"><a href="#平面几何投影" class="headerlink" title="平面几何投影"></a>平面几何投影</h1><ul>
+<li>投影<ul>
+<li>将 n 维的店变换成小于 n 维的点</li>
+<li>3 &#x3D;&gt; 2</li>
+</ul>
+</li>
+<li>投影中心<ul>
+<li><strong>COP</strong>：Center Of Projection</li>
+<li>视觉系统：观察点、视点</li>
+<li>电影放映机：光源</li>
+</ul>
+</li>
+<li>投影平面<ul>
+<li>又称为观察平面 VP（View Plane）</li>
+<li><strong>不经过投影中心</strong></li>
+<li>平面（照相机底片），曲面（球幕电影、视网膜）</li>
+</ul>
+</li>
+<li>投影线<ul>
+<li>从投影中心向物体上各点发出的射线</li>
+<li>直线：光线</li>
+<li>曲线：光线跟踪</li>
+</ul>
+</li>
+<li>平面几何投影<ul>
+<li>投影面为平面</li>
+<li>投影线为直线</li>
+<li>包括透视投影和平行投影<ul>
+<li><strong>透视投影</strong>：投影中心与投影平面之间的距离<strong>有限</strong></li>
+<li><strong>平行投影</strong>：投影中心与投影平面之间的距离<strong>无限</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>透视投影<ul>
+<li><strong>灭点</strong>：不平行于投影平面的平行线，经过透视投影之后收敛于一点，称为灭点</li>
+<li><strong>主灭点</strong>：平行于坐标轴的平行线的灭点</li>
+<li>按照主灭点个数分类<ul>
+<li>一点透视：投影平面平行于 xOy 平面</li>
+<li>两点透视：投影平面平行于 y 轴，与 x、z 轴都有交点</li>
+<li>三点透视：投影平面与 x、y、z 轴都有交点</li>
+</ul>
+</li>
+<li>产生<strong>近大远小</strong>的视觉效果，由它产生的<strong>图形深度感强</strong>，看起来更加真实</li>
+</ul>
+</li>
+<li>《最后的晚餐》：只有一个主灭点，耶稣的头部</li>
+<li>平行投影</li>
+<li>正投影与斜投影<ul>
+<li>正投影：投影方向<strong>垂直</strong>于投影平面</li>
+<li>斜投影：投影方向<strong>不垂直</strong>投影平面</li>
+</ul>
+</li>
+<li>三视图<ul>
+<li>正视图、侧视图、俯视图</li>
+<li><span style="color:red;font-weight:bold">不能无误的重现原模型</span></li>
+</ul>
+</li>
+</ul>
+<h1 id="观察坐标系中的投影变换"><a href="#观察坐标系中的投影变换" class="headerlink" title="观察坐标系中的投影变换"></a>观察坐标系中的投影变换</h1><ul>
+<li><p>观察坐标系：</p>
+<ul>
+<li><strong>VRC</strong>：View Reference Coordinate</li>
+<li>照相机所在坐标系</li>
+</ul>
+</li>
+<li><p>建立观察坐标系</p>
+<ul>
+<li><p>坐标原点：<strong>VRP</strong>（View Reference Point）</p>
+<ul>
+<li>聚焦参考点与投影平面上的投影</li>
+</ul>
+</li>
+<li><p>n 轴</p>
+<ul>
+<li>照相机的镜头方向（<strong>投影平面的法向</strong>）</li>
+</ul>
+</li>
+<li><p>v 轴</p>
+<ul>
+<li>照相机向上的方向（<strong>观察正向 VUP 在投影平面的投影</strong>）</li>
+</ul>
+</li>
+<li><p>u 轴</p>
+<ul>
+<li><p>$u&#x3D;v\times n$</p>
+</li>
+<li><p>叉乘转化为矩阵</p>
+<ul>
+<li><p>$\vec{a}\times\vec{b}&#x3D;(a_2b_3-b_2a_3,a_3b_1-b_3a_1,a_1b_2-b_1a_2)$</p>
+<ul>
+<li>$(a_1\vec{i}+a_2\vec{j}+a_3\vec{k})\times(b_1\vec{i}+b_2\vec{j}+b_3\vec{k})$ 展开即可</li>
+</ul>
+</li>
+<li><p>$$<br>  \begin{bmatrix}<br>  0 &amp; -a_3 &amp; a_2 \<br>  a_3 &amp; 0 &amp; -a_1 \<br>  -a_2 &amp; a_1 &amp; 0<br>  \end{bmatrix}<br>  \begin{bmatrix}<br>  b_1 \<br>  b_2 \<br>  b_3<br>  \end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>$(u,v,n)$</p>
+</li>
+<li><p>投影平面：$n&#x3D;0$</p>
+</li>
+<li><p>投影中心：$(0,0,d)$</p>
+</li>
+<li><p>视见体：三维裁剪窗口</p>
+<ul>
+<li>6 个裁剪面</li>
+</ul>
+</li>
+<li><p>投影参考点：<strong>PRP</strong>（Projection Reference Point）</p>
+<ul>
+<li>透视投影：COP &#x3D; PRP</li>
+<li>平行投影：投影方向（DOP）&#x3D; 窗口中心 CW 和 PRP 的连线</li>
+</ul>
+</li>
+<li><p>投影参数表</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">参数</th>
+<th align="center">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">投影类型</td>
+<td align="center">定义投影是平行投影还是透视投影</td>
+</tr>
+<tr>
+<td align="center">观察参考点 $VRP$</td>
+<td align="center">在世界坐标系中指定，为观察坐标系原点</td>
+</tr>
+<tr>
+<td align="center">观察平面法向 $VPN$</td>
+<td align="center">在世界坐标系中指定，为观察坐标的 $n$ 轴</td>
+</tr>
+<tr>
+<td align="center">观察正向 $VUP$</td>
+<td align="center">在世界坐标系中指定，确定观察坐标系的 $v$ 轴</td>
+</tr>
+<tr>
+<td align="center">投影参考点 $PRP$</td>
+<td align="center">在观察坐标系中指定确定投影中心或投影方向</td>
+</tr>
+<tr>
+<td align="center">前裁剪面裁距 $F$</td>
+<td align="center">在观察坐标系中指定，$n&#x3D;F$ 为前裁剪面</td>
+</tr>
+<tr>
+<td align="center">后裁剪面裁距 $B$</td>
+<td align="center">在观察坐标系中指定，$n&#x3D;B$ 为后裁剪面</td>
+</tr>
+<tr>
+<td align="center">窗口 $u_{min},u_{max},v_{min},v_{max}$</td>
+<td align="center">在观察坐标系的uv平面上指定，确定窗口与视见体</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong>窗口不一定关于原点对称</strong></li>
+</ul>
+<h2 id="三维空间直线参数方程"><a href="#三维空间直线参数方程" class="headerlink" title="三维空间直线参数方程"></a>三维空间直线参数方程</h2><ul>
+<li>过顶点 $A(x_0,y_0,z_0)$，方向向量 $(m,n,p)$，直线参数方程如下</li>
+</ul>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>x&#x3D;t(m-x_0)+x_0\<br>y&#x3D;t(n-y_0)+y_0\<br>z&#x3D;t(p-z_0)+z_0<br>\end{array}<br>\right.or<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>x&#x3D;tm+x_0\<br>y&#x3D;tn+y_0\<br>z&#x3D;tp+z_0<br>\end{array}<br>\right.<br>$$</p>
+<h2 id="透视投影变换求解"><a href="#透视投影变换求解" class="headerlink" title="透视投影变换求解"></a>透视投影变换求解</h2><ul>
+<li><p>投影中心$(0,0,d)$，待投影点 $P(u_p,v_p,n_p)$，求解在投影平面 $n&#x3D;0$ 的投影点 $Q(u_q,v_q,n_q)$</p>
+</li>
+<li><p>投影线的参数方程（经过投影中心$(0,0,d)$）<br>  $$<br>  \left{<br>  \begin{array}{<strong>lr</strong>}<br>  u&#x3D;tu_p &amp;  \<br>  v&#x3D;tv_p &amp; t\ge 0\<br>  n&#x3D;t(n_p-d)+d &amp;<br>  \end{array}<br>  \right.<br>  $$</p>
+</li>
+<li><p>求解，令 $n&#x3D;0$</p>
+</li>
+</ul>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>u_q&#x3D;\dfrac{u_p}{1-\dfrac{n_p}{d}} \<br>v_q&#x3D;\dfrac{v_p}{1-\dfrac{n_p}{d}} \<br>n_q&#x3D;0<br>\end{array}<br>\right.<br>$$</p>
+<ul>
+<li>将其写作矩阵形式 $Q&#x3D;M_{per}P$<ul>
+<li>注意得到的结果需要进行标准化 $h\ne 1$</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 0 &amp; 0\<br>0 &amp; 1 &amp; 0 &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 0\<br>0 &amp; 0 &amp; -\dfrac{1}{d} &amp;1\<br>\end{bmatrix}<br>$$</p>
+<h2 id="平行投影变换求解"><a href="#平行投影变换求解" class="headerlink" title="平行投影变换求解"></a>平行投影变换求解</h2><ul>
+<li>投影平面 $n&#x3D;0$，投影方向 $(0,0,-1)$，待投影点为 $P(u_p,v_p,n_p)$，求投影点 $Q(u_q,v_q,n_q)$</li>
+<li>$Q(u_p,v_p,0)$</li>
+<li>将其写作矩阵形式 $Q&#x3D;M_{ori}P$</li>
+</ul>
+<p>$$<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 0 &amp; 0\<br>0 &amp; 1 &amp; 0 &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>$\lim_\limits{d\to\infty}M_{per}&#x3D;M_{ori}$</li>
+</ul>
+<h1 id="世界坐标系WC到观察坐标系VRC的变换"><a href="#世界坐标系WC到观察坐标系VRC的变换" class="headerlink" title="世界坐标系WC到观察坐标系VRC的变换"></a>世界坐标系WC到观察坐标系VRC的变换</h1><ul>
+<li>条件<ul>
+<li>WC：xyz，VRC：uvn</li>
+<li><strong>VRC</strong> 的坐标原点 <strong>VRP</strong> $(VRP_x,VRP_y,VRP_z)$</li>
+<li>投影平面法向 $\vec{VPN}$</li>
+<li>观察正向 $\vec{VUP}$</li>
+</ul>
+</li>
+<li>做如下记号</li>
+</ul>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>\vec{n}&#x3D;\dfrac{\vec{VPN}}{|\vec{VPN}|}&#x3D;[n_x,n_y,n_z]\<br>\vec{u}&#x3D;\dfrac{\vec{VUP}\times\vec{VPN}}{|\vec{VUP}\times\vec{VPN}|}&#x3D;[u_x,u_y,u_z] \<br>\vec{v}&#x3D;\vec{n}\times\vec{u}<br>\end{array}<br>\right.<br>$$</p>
+<ul>
+<li>先平移后旋转</li>
+</ul>
+<p>$$<br>M_{WC\to VRC}&#x3D;<br>\begin{bmatrix}<br>u_x &amp; u_y &amp; u_z &amp; 0\<br>v_x &amp; v_y &amp; v_z &amp; 0\<br>n_x &amp; n_y &amp; n_z &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 0 &amp; -VRP_x\<br>0 &amp; 1 &amp; 0 &amp; -VRP_y\<br>0 &amp; 0 &amp; 1 &amp; -VRP_z\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>&#x3D;RT<br>$$</p>
+<ul>
+<li><p>证明1：直接通过线性代数的知识，两个空间的正交变换为 $R$</p>
+<ul>
+<li>直接验证结果也是显然正确的</li>
+</ul>
+</li>
+<li><p>证明2：参考《计算机图形学 倪眀田 吴良芝》P143-145</p>
+<ul>
+<li><p>平移变换显然，我们只考虑两个坐标系的原点相同旋转部分</p>
+</li>
+<li><p>通过解构的方法证明</p>
+</li>
+<li><p>步骤如下</p>
+  <img src="05/001.jpg" style="zoom:Infinity%;" />
+
+<ul>
+<li><p>绕 x 轴旋转角度 $\theta_x$ 使得 n 轴落于 xOz 平面<br>  $$<br>  \cos\theta_x&#x3D;\dfrac{n_z}{\sqrt{n_y^2+n_z^2}},\qquad<br>  \sin\theta_x&#x3D;\dfrac{n_y}{\sqrt{n_y^2+n_z^2}}<br>  $$</p>
+</li>
+<li><p>绕 y 轴旋转角度 $\theta_y$ 使得 n 轴和 z 轴同向且重合<br>  $$<br>  \cos\theta_y&#x3D;\sqrt{n_y^2+n_z^2},\qquad<br>  \sin\theta_y&#x3D;n_x<br>  $$</p>
+</li>
+<li><p>绕 z 轴旋转角度 $\theta_z$ 使得 u 轴和 x 轴同向且重合</p>
+<ul>
+<li><p>这一部分比较麻烦，可以先用上面的变换得到在世界坐标系中单位向量对应的点 $\vec{u}$ 的位置</p>
+</li>
+<li><p>注意有</p>
+<ul>
+<li>$\vec{u}\cdot\vec{n}&#x3D;u_xn_x+u_yn_y+u_zn_z&#x3D;0$</li>
+<li>$\vec{n}\times\vec{u}&#x3D;(n_yu_z-u_yn_z,n_zu_x-u_zn_x,n_xu_y-u_xn_y)&#x3D;(v_x,v_y,v_z)$</li>
+</ul>
+</li>
+<li><p>$$<br>  R_y(\theta_y)&#x3D;<br>\begin{bmatrix}<br>\sqrt{n_y^2+n_z^2} &amp; 0 &amp; -n_x &amp; 0\<br>0 &amp; 1 &amp; 0 &amp; 0\<br>n_x &amp; 0 &amp; \sqrt{n_y^2+n_z^2} &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}\<br>  $$</p>
+</li>
+<li><p>$$<br>  R_x(\theta_x)&#x3D;<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 0 &amp; 0\<br>0 &amp; \dfrac{n_z}{\sqrt{n_y^2+n_z^2}} &amp; -\dfrac{n_y}{\sqrt{n_y^2+n_z^2}} &amp; 0\<br>0 &amp; \dfrac{n_y}{\sqrt{n_y^2+n_z^2}} &amp; \dfrac{n_z}{\sqrt{n_y^2+n_z^2}} &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}\<br>  $$</p>
+</li>
+<li><p>$$<br>  R_y(\theta_y)R_x(\theta_x)&#x3D;<br>\begin{bmatrix}<br>\sqrt{n_y^2+n_z^2} &amp; -\dfrac{n_xn_y}{\sqrt{n_y^2+n_z^2}} &amp; -\dfrac{n_xn_z}{\sqrt{n_y^2+n_z^2}} &amp; 0\<br>0 &amp; \dfrac{n_z}{\sqrt{n_y^2+n_z^2}} &amp; -\dfrac{n_y}{\sqrt{n_y^2+n_z^2}} &amp; 0\<br>n_x &amp; n_y &amp; n_z &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>  $$</p>
+</li>
+<li><p>$$<br> \vec{u}&#x3D;R_y(\theta_y)R_x(\theta_x)\begin{bmatrix}<br>   u_x\ u_y\ u_z\ 1<br>   \end{bmatrix}<br>   &#x3D;<br>   \begin{bmatrix}<br>   \dfrac{u_x}{\sqrt{n_y^2+n_z^2}}\<br>   \dfrac{u_yn_z-u_zn_y}{\sqrt{n_y^2+n_z^2}}\<br>   0\<br>   1\<br>   \end{bmatrix}<br> $$</p>
+</li>
+<li><p>此时的 $|\vec{u}|&#x3D;1$，旋转不改变长度</p>
+<ul>
+<li>那么同时就会有 $u_x^2+v_x^2+n_x^2&#x3D;1$</li>
+</ul>
+</li>
+<li><p>或者直接计算</p>
+<ul>
+<li><p>$$<br>  \begin{aligned}<br>  &amp;u_x^2+(u_yn_z-u_zn_y)^2 \<br>  &#x3D;\ &amp;u_x^2+v_x^2\<br>  &amp; u_x^2+(u_yn_z-u_zn_y)^2 \<br>  &#x3D;\ &amp;u_x^2+u_y^2n_z^2+u_z^2n_y^2-2n_yu_yn_zu_z\<br>  &#x3D;\ &amp;u_x^2+u_y^2(1-n_x^2-n_y^2)+u_z^2(1-n_x^2-n_z^2)-2n_yu_yn_zu_z\<br>  &#x3D;\ &amp;1-u_y^2n_x^2-u_y^2n_y^2-u_z^2n_x^2-u_z^2n_z^2-2n_yu_yn_zu_z\<br>  &#x3D;\ &amp;1-u_y^2n_x^2-u_z^2n_x^2-(u_yn_y+u_zn_z)^2\<br>  &#x3D;\ &amp;1-u_y^2n_x^2-u_z^2n_x^2-(u_xn_x)^2\<br>  &#x3D;\ &amp;1-n_x^2\<br>  \end{aligned}<br>  $$</p>
+</li>
+<li><p>$\Rightarrow u_x^2+v_x^2+n_x^2&#x3D;1$</p>
+</li>
+</ul>
+</li>
+<li><p>此时可以推导出 $\theta_z$</p>
+</li>
+<li><p>$$<br>\cos(-\theta_z)&#x3D;\dfrac{u_x}{\sqrt{n_y^2+n_z^2}}<br>$$</p>
+</li>
+<li><p>$$<br>\sin(-\theta_z)&#x3D;\dfrac{u_yn_z-u_zn_y}{\sqrt{n_y^2+n_z^2}}<br>$$</p>
+</li>
+<li><p>$$<br>\cos(\theta_z)&#x3D;\dfrac{u_x}{\sqrt{n_y^2+n_z^2}}&#x3D;\dfrac{v_yn_z-n_yv_z}{\sqrt{n_y^2+n_z^2}}<br>$$</p>
+</li>
+<li><p>$$<br>\sin(\theta_z)&#x3D;-\dfrac{u_yn_z-u_zn_y}{\sqrt{n_y^2+n_z^2}}&#x3D;\dfrac{v_x}{\sqrt{n_y^2+n_z^2}}<br>$$</p>
+</li>
+<li><p>乘法时根据次数把 $\sin\theta_x,\cos\theta_z$ 展开为不同形式<br>$$<br>R_z(\theta_z)&#x3D;<br>  \begin{bmatrix}<br>  \cos\theta_z &amp; -\sin\theta_z &amp; 0 &amp; 0\<br>  \sin\theta_z  &amp; \cos\theta_z &amp; 0 &amp; 0\<br>  0 &amp; 0 &amp; 1 &amp; 0\<br>  0 &amp; 0 &amp; 0 &amp; 1\<br>  \end{bmatrix}\<br>$$</p>
+</li>
+<li><p>$$<br>R_z(\theta_z)R_y(\theta_y)R_x(\theta_x)&#x3D;<br>\begin{bmatrix}<br>u_x &amp; u_y &amp; u_z &amp; 0\<br>v_x &amp; v_y &amp; v_z &amp; 0\<br>n_x &amp; n_y &amp; n_z &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/29/CG/LS/05/" data-id="cl9lj7494004364tzhh26cn6p" data-title="计算机图形学.李胜.05.投影(1)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-CG/LS/04" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/28/CG/LS/04/" class="article-date">
+  <time class="dt-published" datetime="2021-01-28T02:27:56.000Z" itemprop="datePublished">2021-01-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/28/CG/LS/04/">计算机图形学.李胜.04.几何变换</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="二维基本变换"><a href="#二维基本变换" class="headerlink" title="二维基本变换"></a>二维基本变换</h1><h2 id="1-平移变换"><a href="#1-平移变换" class="headerlink" title="1. 平移变换"></a>1. 平移变换</h2><ul>
+<li><p>$\vec{P’}&#x3D;\vec{P}+\vec{T}$</p>
+</li>
+<li><p>$$<br>  \begin{bmatrix} x’ \ y’ \end{bmatrix} &#x3D; \begin{bmatrix} x \ y \end{bmatrix}+\begin{bmatrix}t_x \ t_y\end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+<h2 id="2-旋转变换"><a href="#2-旋转变换" class="headerlink" title="2. 旋转变换"></a>2. 旋转变换</h2><ul>
+<li><p>$\vec{P’}&#x3D;R_{\theta}\cdot\vec{P}$</p>
+</li>
+<li><p>$$<br>  R_{\theta}&#x3D;\begin{bmatrix}\cos<br>  \theta &amp; -\sin\theta  \ \sin\theta&amp;\cos\theta\end{bmatrix}<br>  $$</p>
+</li>
+<li><p>$R_{\theta}&#x3D;R_{-\theta}^{-1}$</p>
+</li>
+</ul>
+<h2 id="3-尺度变换"><a href="#3-尺度变换" class="headerlink" title="3. 尺度变换"></a>3. 尺度变换</h2><ul>
+<li><p>$\vec{P’}&#x3D;S\cdot\vec{P}$</p>
+</li>
+<li><p>$$<br>  S&#x3D;\begin{bmatrix}s_x &amp; 0 \ 0 &amp; s_y \end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+<h1 id="齐次坐标"><a href="#齐次坐标" class="headerlink" title="齐次坐标"></a>齐次坐标</h1><ul>
+<li><strong>统一变换</strong></li>
+<li>n 维向量使用 <span style="color:red;font-weight:bold">n+1</span> 维向量表示<ul>
+<li>使用直线来表示点</li>
+</ul>
+</li>
+<li>$(x,y)$ 使用 $(hx,hy,h),h\ne 0$ 来表示<ul>
+<li>标准齐次坐标：$h&#x3D;1$</li>
+</ul>
+</li>
+<li>统一变换为 $\vec{P’}&#x3D;M\cdot\vec{P}$</li>
+</ul>
+<h2 id="1-平移变换-1"><a href="#1-平移变换-1" class="headerlink" title="1. 平移变换"></a>1. 平移变换</h2><ul>
+<li><p><strong>translate</strong></p>
+</li>
+<li><p>$$<br>  M&#x3D;T(t_x,t_y)&#x3D;\begin{bmatrix}1 &amp; 0 &amp; t_x \ 0 &amp; 1 &amp; t_y \ 0 &amp; 0 &amp; 1 \end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+<h2 id="2-旋转变换-1"><a href="#2-旋转变换-1" class="headerlink" title="2. 旋转变换"></a>2. 旋转变换</h2><ul>
+<li></li>
+<li><p>$$<br>  M&#x3D;R(\theta)&#x3D;\begin{bmatrix}\cos\theta &amp; -\sin\theta &amp; 0 \ \sin\theta &amp; \cos\theta &amp; 0 \ 0 &amp; 0 &amp; 1 \end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+<h2 id="3-尺度变换-1"><a href="#3-尺度变换-1" class="headerlink" title="3. 尺度变换"></a>3. 尺度变换</h2><ul>
+<li></li>
+<li><p>$$<br>  M&#x3D;S(s_x,s_y)&#x3D;\begin{bmatrix}s_x &amp; 0 &amp; 0 \ 0 &amp; s_y &amp; 0 \ 0 &amp; 0 &amp; 1 \end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+<h2 id="4-复杂的变换"><a href="#4-复杂的变换" class="headerlink" title="4. 复杂的变换"></a>4. 复杂的变换</h2><ul>
+<li><span style="color:red;font-weight:bold">解构成基本变换</span></li>
+</ul>
+<h3 id="1-对任意点的旋转"><a href="#1-对任意点的旋转" class="headerlink" title="(1) 对任意点的旋转"></a>(1) 对任意点的旋转</h3><ul>
+<li><p>平移参考点到原点</p>
+</li>
+<li><p>旋转</p>
+</li>
+<li><p>将参考点移回去</p>
+</li>
+<li><p>3 个矩阵变换</p>
+<ul>
+<li><strong>注意矩阵乘法不可交换</strong>，需要正确考虑顺序</li>
+</ul>
+</li>
+<li><p><strong>两种模式</strong></p>
+<ul>
+<li>固定坐标系模式：先调用的先执行</li>
+<li>活动坐标系模式：后调用的先执行（<span style="color:red;font-weight:bold">OpenGL</span>）<ul>
+<li>变换结束之后更新的是坐标系</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>左乘 vs 右乘</p>
+<ul>
+<li><p>左乘：行变换</p>
+<ul>
+<li>$$<br>  M\begin{pmatrix}x_1 \ x_2 \ x_3 \end{pmatrix}<br>  $$</li>
+</ul>
+</li>
+<li><p>右乘：列变换</p>
+<ul>
+<li>$$<br>  \begin{pmatrix}x_1, x_2, x_3 \end{pmatrix}M<br>  $$</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-对任意参考点的放缩"><a href="#2-对任意参考点的放缩" class="headerlink" title="(2) 对任意参考点的放缩"></a>(2) 对任意参考点的放缩</h3><ul>
+<li>同理</li>
+</ul>
+<h2 id="5-对称变换"><a href="#5-对称变换" class="headerlink" title="5. 对称变换"></a>5. 对称变换</h2><ul>
+<li><strong>symmetric</strong></li>
+</ul>
+<h3 id="1-关于-x-轴的对称变换"><a href="#1-关于-x-轴的对称变换" class="headerlink" title="(1) 关于 x 轴的对称变换"></a>(1) 关于 x 轴的对称变换</h3><ul>
+<li><p>$y\rightarrow -y$</p>
+</li>
+<li><p>$$<br>  M&#x3D;\begin{bmatrix}1 &amp; 0 &amp; 0 \ 0 &amp; -1 &amp; 0 \ 0 &amp; 0 &amp; 1 \end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+<h3 id="2-关于-y-轴的对称变换"><a href="#2-关于-y-轴的对称变换" class="headerlink" title="(2) 关于 y 轴的对称变换"></a>(2) 关于 y 轴的对称变换</h3><ul>
+<li><p>$x\rightarrow -x$</p>
+</li>
+<li><p>$$<br>  M&#x3D;\begin{bmatrix}1 &amp; 0 &amp; 0 \ 0 &amp; -1 &amp; 0 \ 0 &amp; 0 &amp; 1 \end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+<h3 id="3-关于任意轴的对称变换"><a href="#3-关于任意轴的对称变换" class="headerlink" title="(3) 关于任意轴的对称变换"></a>(3) 关于任意轴的对称变换</h3><ul>
+<li><strong>解构</strong></li>
+<li>步骤<ul>
+<li>平移轴至过原点</li>
+<li>绕原点旋转轴至与 x 轴或 y 轴重合</li>
+<li>对称变换</li>
+<li>旋转回去</li>
+<li>平移回去</li>
+</ul>
+</li>
+</ul>
+<h2 id="6-错切变换"><a href="#6-错切变换" class="headerlink" title="6. 错切变换"></a>6. 错切变换</h2><ul>
+<li><strong>shear</strong></li>
+</ul>
+<h3 id="1-以-y-轴为依赖轴，y-x3D-0-为参考轴"><a href="#1-以-y-轴为依赖轴，y-x3D-0-为参考轴" class="headerlink" title="(1) 以 y 轴为依赖轴，y&#x3D;0 为参考轴"></a>(1) 以 y 轴为依赖轴，y&#x3D;0 为参考轴</h3><ul>
+<li><p>y 不变，x 错切</p>
+</li>
+<li><p>$$<br>  M&#x3D;\begin{bmatrix}1 &amp; sh_x &amp; 0 \ 0 &amp; 1 &amp; 0 \ 0 &amp; 0 &amp; 1 \end{bmatrix},sh_x&#x3D;tan\alpha<br>  $$</p>
+</li>
+</ul>
+<img src="04/shear_y_y=0.png" alt="img" style="zoom:30%;" />
+
+
+
+<h3 id="2-以-y-轴为依赖轴，-y-x3D-y-ref-为参考轴"><a href="#2-以-y-轴为依赖轴，-y-x3D-y-ref-为参考轴" class="headerlink" title="(2) 以 y 轴为依赖轴，$y&#x3D;y_{ref}$ 为参考轴"></a>(2) 以 y 轴为依赖轴，$y&#x3D;y_{ref}$ 为参考轴</h3><ul>
+<li><p>平移，错切（y&#x3D;0），反平移</p>
+</li>
+<li><p>$$<br>  M&#x3D;\begin{bmatrix}1 &amp; sh_x(1-y_{ref}) &amp; 0 \ 0 &amp; 1 &amp; 0 \ 0 &amp; 0 &amp; 1 \end{bmatrix},sh_x&#x3D;tan\alpha<br>  $$</p>
+</li>
+</ul>
+<img src="04/shear_y_y_ref.png" alt="img" style="zoom: 50%;" />
+
+<h3 id="3-以-x-轴为依赖轴，x-x3D-0-为参考轴"><a href="#3-以-x-轴为依赖轴，x-x3D-0-为参考轴" class="headerlink" title="(3) 以 x 轴为依赖轴，x&#x3D;0 为参考轴"></a>(3) 以 x 轴为依赖轴，x&#x3D;0 为参考轴</h3><ul>
+<li><p>x 不变，y 错切</p>
+</li>
+<li><p>$$<br>  M&#x3D;\begin{bmatrix}1 &amp; 0 &amp; 0 \ sh_y &amp; 1 &amp; 0 \ 0 &amp; 0 &amp; 1 \end{bmatrix},sh_x&#x3D;tan\beta<br>  $$</p>
+</li>
+</ul>
+<img src="04/shear_x_x=0.png" alt="img" style="zoom: 40%;" />
+
+
+
+<h3 id="4-以-x-轴为依赖轴，-x-x3D-x-ref-为参考轴"><a href="#4-以-x-轴为依赖轴，-x-x3D-x-ref-为参考轴" class="headerlink" title="(4) 以 x 轴为依赖轴，$x&#x3D;x_{ref}$ 为参考轴"></a>(4) 以 x 轴为依赖轴，$x&#x3D;x_{ref}$ 为参考轴</h3><ul>
+<li>$$<br>  M&#x3D;\begin{bmatrix}1 &amp; 0 &amp; 0 \ sh_y(1-x_{ref}) &amp; 1 &amp; 0 \ 0 &amp; 0 &amp; 1 \end{bmatrix},sh_x&#x3D;tan\beta<br>  $$</li>
+</ul>
+<img src="04/shear_x_x=ref.png" alt="1611837351710" style="zoom:50%;" />
+
+
+
+<h2 id="7-仿射变换"><a href="#7-仿射变换" class="headerlink" title="7. 仿射变换"></a>7. 仿射变换</h2><ul>
+<li><p>以上提到的变换都是仿射变换</p>
+</li>
+<li><p>Affine Transform</p>
+</li>
+<li><p>保持直线的平行性</p>
+</li>
+<li><p>正交投影属于仿射变换，透视投影不属于仿射变换</p>
+</li>
+<li><p>矩阵特征</p>
+</li>
+<li><p>$$<br>  \begin{bmatrix}a &amp; b &amp; c \ d &amp; e &amp; f \ 0 &amp; 0 &amp; 1 \end{bmatrix}<br>  $$</p>
+</li>
+</ul>
+<h1 id="二维图形的显示流程"><a href="#二维图形的显示流程" class="headerlink" title="二维图形的显示流程"></a>二维图形的显示流程</h1><ul>
+<li>世界坐标系（world coordinate）<ul>
+<li>或者称作用户坐标系（user coordinate）</li>
+</ul>
+</li>
+<li>局部坐标系（local coordinate）</li>
+<li>屏幕坐标系（screen coordinate）<ul>
+<li>或者称作设备坐标系（device coordinate）</li>
+</ul>
+</li>
+<li><strong>窗口</strong> 与 <strong>视区</strong><ul>
+<li>窗口：在世界坐标系中指定的矩形区域，用来指定要显示的图形</li>
+<li>视区：在设备坐标系上指定的矩形区域，用来指定窗口内的图形在屏幕上显示的大小及位置</li>
+</ul>
+</li>
+</ul>
+<h1 id="三维几何变换"><a href="#三维几何变换" class="headerlink" title="三维几何变换"></a>三维几何变换</h1><ul>
+<li>三维齐次坐标：$(x_h,y_h,z_h,h),h\ne 0$</li>
+<li>标准齐次坐标：$(x,y,z,1)$</li>
+<li>右手系：$\vec{x} \times \vec{y} &#x3D; \vec{z}$</li>
+</ul>
+<img src="04/xyz_right.png" alt="1611884054147" style="zoom:50%;" />
+
+<h2 id="1-平移-translate"><a href="#1-平移-translate" class="headerlink" title="1. 平移 translate"></a>1. 平移 translate</h2><p>$$<br>T(t_x,t_y,t_z)&#x3D;<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 0 &amp; t_x \<br>0 &amp; 1 &amp; 0 &amp; t_y \<br>0 &amp; 0 &amp; 1 &amp; t_z \<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>$$</p>
+<h2 id="2-尺度（放缩）-scale"><a href="#2-尺度（放缩）-scale" class="headerlink" title="2. 尺度（放缩） scale"></a>2. 尺度（放缩） scale</h2><p>$$<br>S(s_x,s_y,s_z)&#x3D;<br>\begin{bmatrix}<br>s_x &amp; 0 &amp; 0 &amp; 0 \<br>0 &amp; s_y &amp; 0 &amp; 0 \<br>0 &amp; 0 &amp; s_z &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>$$</p>
+<h2 id="3-旋转-rotate"><a href="#3-旋转-rotate" class="headerlink" title="3. 旋转 rotate"></a>3. 旋转 rotate</h2><ul>
+<li>正方向：大拇指指向绕的轴的方向，四指的方向即为正方向</li>
+</ul>
+<h3 id="1-绕-x-轴"><a href="#1-绕-x-轴" class="headerlink" title="(1) 绕 x 轴"></a>(1) 绕 x 轴</h3><ul>
+<li>x 不变</li>
+<li>相当于在 <strong>yOz</strong> 平面旋转 $\theta$</li>
+<li>划去 x 对应的列和行之后和二维相同</li>
+</ul>
+<p>$$<br>R_x(\theta)&#x3D;<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 0 &amp; 0 \<br>0 &amp; \cos\theta &amp; -\sin\theta &amp; 0 \<br>0 &amp; \sin\theta &amp; \cos\theta &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>$$</p>
+<h3 id="2-绕-y-轴"><a href="#2-绕-y-轴" class="headerlink" title="(2) 绕 y 轴"></a>(2) 绕 y 轴</h3><ul>
+<li>y 不变</li>
+<li>在 <strong>zOx</strong> 平面旋转 $\theta$<ul>
+<li>在 <strong>xOz</strong> 平面旋转 $-\theta$</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>R_y(\theta)&#x3D;<br>\begin{bmatrix}<br>\cos\theta &amp; 0 &amp; \sin\theta &amp; 0\<br>0 &amp; 1 &amp; 0 &amp; 0 \<br>-\sin\theta &amp; 0 &amp; \cos\theta &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>$$</p>
+<h3 id="3-绕-z-轴"><a href="#3-绕-z-轴" class="headerlink" title="(3) 绕 z 轴"></a>(3) 绕 z 轴</h3><ul>
+<li>z 不变</li>
+<li>绕 <strong>xOy</strong> 平面旋转 $\theta$</li>
+</ul>
+<p>$$<br>R_z(\theta)&#x3D;<br>\begin{bmatrix}<br>\cos\theta &amp; -\sin\theta &amp; 0 &amp; 0\<br>\sin\theta &amp; \cos\theta  &amp; 0 &amp; 0\<br>0 &amp; 0 &amp; 1 &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>$$</p>
+<h2 id="4-错切-shear"><a href="#4-错切-shear" class="headerlink" title="4. 错切 shear"></a>4. 错切 shear</h2><ul>
+<li>z 轴为依赖轴，z&#x3D;0 平面为参考平面</li>
+</ul>
+<p>$$<br>SH_z(sh_x,sh_y)&#x3D;<br>\begin{bmatrix}<br>1 &amp; 0 &amp; sh_x &amp; 0 \<br>0 &amp; 1 &amp; sh_y &amp; 0 \<br>0 &amp; 0 &amp; 1 &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>$$</p>
+<h2 id="5-对称变换-1"><a href="#5-对称变换-1" class="headerlink" title="5. 对称变换"></a>5. 对称变换</h2><ul>
+<li>关于 z&#x3D;0(xOy) 平面的对称变换</li>
+</ul>
+<p>$$<br>SY_{xy}&#x3D;<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 0 &amp; 0 \<br>0 &amp; 1 &amp; 0 &amp; 0 \<br>0 &amp; 0 &amp; -1 &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>$$</p>
+<h2 id="6-仿射变换一般形式"><a href="#6-仿射变换一般形式" class="headerlink" title="6. 仿射变换一般形式"></a>6. 仿射变换一般形式</h2><p>$$<br>A &#x3D;<br>\begin{bmatrix}<br>a_{11} &amp; a_{12} &amp; a_{13} &amp; a_{14} \<br>a_{21} &amp; a_{22} &amp; a_{23} &amp; a_{24} \<br>a_{31} &amp; a_{32} &amp; a_{33} &amp; a_{34} \<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>&#x3D;<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 0 &amp; a_{14} \<br>0 &amp; 1 &amp; 0 &amp; a_{24} \<br>0 &amp; 0 &amp; 1 &amp; a_{34} \<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>\cdot<br>\begin{bmatrix}<br>a_{11} &amp; a_{12} &amp; a_{13} &amp; 0 \<br>a_{21} &amp; a_{22} &amp; a_{23} &amp; 0 \<br>a_{31} &amp; a_{32} &amp; a_{33} &amp; 0 \<br>0 &amp; 0 &amp; 0 &amp; 1<br>\end{bmatrix}<br>&#x3D; T\cdot M<br>$$</p>
+<ul>
+<li>T 表示平移变换，M 表示其他变换<ul>
+<li>注意拆解顺序</li>
+</ul>
+</li>
+</ul>
+<h3 id="7-法向变换"><a href="#7-法向变换" class="headerlink" title="7. 法向变换"></a>7. 法向变换</h3><ul>
+<li>点坐标：$(x,y,z,{\color{red}1})$<ul>
+<li><strong>点</strong></li>
+</ul>
+</li>
+<li>法向坐标：$(x,y,z,{\color{red}0})$<ul>
+<li><strong>向量</strong></li>
+</ul>
+</li>
+<li>验证：<ul>
+<li>点 - 点 &#x3D; 向量</li>
+<li>向量 + 向量 &#x3D; 向量</li>
+<li>点 + 向量 &#x3D; 点</li>
+</ul>
+</li>
+<li><strong>向量变换</strong><ul>
+<li>取向量上两个不同点 $x_1,x_2$，变换矩阵 $A$</li>
+<li>原来的向量：$x_2-x_1$</li>
+<li>新的向量：$Ax_2-Ax_1$</li>
+</ul>
+</li>
+<li>切向量：$T$<ul>
+<li>变化矩阵 $M$</li>
+<li>$Mx_1-Mx_2&#x3D;M(x_1-x_2)&#x3D;M\cdot T$</li>
+</ul>
+</li>
+<li>法向量：$N$<ul>
+<li>原始条件：$N\cdot T&#x3D;N^TT&#x3D;0$</li>
+<li>$N’\cdot T’&#x3D;(GN)\cdot(MT)&#x3D;0$</li>
+<li>以上是向量乘法，转化为等价的矩阵乘法</li>
+<li>$(GN)\cdot (MT)&#x3D;(GN)^T(MT)&#x3D;N^TG^TMT&#x3D;0$</li>
+<li>$\Rightarrow G^TM&#x3D;I$</li>
+</ul>
+</li>
+<li>即法向量的变换矩阵 ${\color{red}G&#x3D;(M^{-1})^T}$<ul>
+<li>当矩阵 $M$ 为正交矩阵的时候，$G&#x3D;M$</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/28/CG/LS/04/" data-id="cl9lj7492003r64tzf5z8hqta" data-title="计算机图形学.李胜.04.几何变换" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Algebra/QWS/00" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/26/Algebra/QWS/00/" class="article-date">
+  <time class="dt-published" datetime="2021-01-26T13:15:49.000Z" itemprop="datePublished">2021-01-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/0/">0</a>►<a class="article-category-link" href="/categories/Algebra/">Algebra</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/26/Algebra/QWS/00/">高等代数.丘维声.00.说明</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="1-说明"><a href="#1-说明" class="headerlink" title="1.说明"></a>1.说明</h1><ul>
+<li>《高等代数》的学习笔记</li>
+<li>《高等代数》<ul>
+<li>大学高等代数课程创新教材</li>
+<li>丘维声著</li>
+<li>2010.06 第一版</li>
+<li>清华大学出版社</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/26/Algebra/QWS/00/" data-id="cl9lj748r001z64tze5rm5ysn" data-title="高等代数.丘维声.00.说明" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-CG/LS/03" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/26/CG/LS/03/" class="article-date">
+  <time class="dt-published" datetime="2021-01-26T12:27:56.000Z" itemprop="datePublished">2021-01-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/26/CG/LS/03/">计算机图形学.李胜.03.3D图形绘制流水线基础与图形编程</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Programmable-3D-Graphics-Pipeline"><a href="#Programmable-3D-Graphics-Pipeline" class="headerlink" title="Programmable 3D Graphics Pipeline"></a>Programmable 3D Graphics Pipeline</h1><h2 id="1-Vertex-Assembly"><a href="#1-Vertex-Assembly" class="headerlink" title="1. Vertex Assembly"></a>1. Vertex Assembly</h2><ul>
+<li><p>顶点装配</p>
+</li>
+<li><p>position（坐标）</p>
+</li>
+<li><p>normal（法向）</p>
+</li>
+<li><p>texture coordinate（纹理坐标）</p>
+</li>
+</ul>
+<h2 id="2-Vertex-Shader"><a href="#2-Vertex-Shader" class="headerlink" title="2. Vertex Shader"></a>2. Vertex Shader</h2><ul>
+<li>顶点着色器</li>
+</ul>
+<h3 id="1-transform"><a href="#1-transform" class="headerlink" title="(1) transform"></a>(1) transform</h3><ul>
+<li>TL：Transform and Lighting<ul>
+<li>坐标变换、光照计算</li>
+</ul>
+</li>
+<li>$P_{clip} &#x3D; (M_{model-view-projection})(P_{model})$<ul>
+<li>model to world：$P_{world}&#x3D;(M_{model})(P_{model})$</li>
+<li>world to eye：$P_{eye}&#x3D;(M_{view})(P_{world})$</li>
+<li>eye to clip：$P_{clip}&#x3D;(M_{projection})(P_{eye})$</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-vertex-gt-modified-vertex"><a href="#2-vertex-gt-modified-vertex" class="headerlink" title="(2) vertex -&gt; modified vertex"></a>(2) vertex -&gt; modified vertex</h3><ul>
+<li>Perform additional per-vertex computations<ul>
+<li>modify, add or remove attributes passed down the pipeline</li>
+</ul>
+</li>
+<li>uniforms：常量</li>
+<li>matrices：矩阵</li>
+<li>texture：几何细节更加丰富</li>
+<li>修改几何属性</li>
+<li>displacement mapping：位移贴图（映射）</li>
+</ul>
+<h2 id="3-Primitive-Assembly"><a href="#3-Primitive-Assembly" class="headerlink" title="3. Primitive Assembly"></a>3. Primitive Assembly</h2><ul>
+<li><p>图元</p>
+</li>
+<li><p><strong>group vertex</strong></p>
+<ul>
+<li>triangle，lines，…</li>
+</ul>
+</li>
+<li><p>逻辑坐标转化为物理坐标</p>
+</li>
+<li><p>裁剪</p>
+</li>
+</ul>
+<h2 id="4-Rasterizer"><a href="#4-Rasterizer" class="headerlink" title="4. Rasterizer"></a>4. Rasterizer</h2><ul>
+<li><p>光栅化</p>
+</li>
+<li><p>二维图元转化为<strong>像素点</strong></p>
+</li>
+<li><p>图元属性与 vertex assembly 中一致</p>
+</li>
+<li><p>aliasing：走样问题</p>
+</li>
+</ul>
+<h2 id="5-Fragment-Shader"><a href="#5-Fragment-Shader" class="headerlink" title="5. Fragment Shader"></a>5. Fragment Shader</h2><ul>
+<li>又被称为是 pixel shader</li>
+<li>根据光照和物体上色<ul>
+<li>线性插值，双线性插值</li>
+<li>输出颜色</li>
+</ul>
+</li>
+<li>光照计算，下述一般不会同时存在<ul>
+<li>per-fragment lighting（更好，更精细）</li>
+<li>per-vertex lighting</li>
+</ul>
+</li>
+<li>texture：<strong>贴图</strong></li>
+<li>bump mapping：凹凸贴图<ul>
+<li>扰动法向</li>
+</ul>
+</li>
+</ul>
+<h2 id="6-Per-Fragment-Tests"><a href="#6-Per-Fragment-Tests" class="headerlink" title="6. Per-Fragment Tests"></a>6. Per-Fragment Tests</h2><h3 id="1-scissor-test"><a href="#1-scissor-test" class="headerlink" title="(1) scissor test"></a>(1) scissor test</h3><ul>
+<li><p>裁剪：裁剪掉窗口之外的部分</p>
+</li>
+<li><p>原因：</p>
+<ul>
+<li>For performance</li>
+<li>Post-processing effects</li>
+<li>Multipass rendering</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-stencil-test"><a href="#2-stencil-test" class="headerlink" title="(2) stencil test"></a>(2) stencil test</h3><ul>
+<li>模板（ 蒙板 ）测试：<ul>
+<li>可以丢弃窗口中任意区域（以fragment 为单位）</li>
+<li>根据 stencil buffer 的内容，来丢弃不需要的 fragments</li>
+</ul>
+</li>
+<li><strong>位运算操作</strong></li>
+<li>实现：将模板写入模板缓冲区（stencil buffer），之后在测试中可以使用</li>
+</ul>
+<h3 id="3-depth-test"><a href="#3-depth-test" class="headerlink" title="(3) depth test"></a>(3) depth test</h3><ul>
+<li>又被称为 <strong>z-test</strong></li>
+<li>深度测试<ul>
+<li>例子：等高线，小偏移</li>
+<li>如果没有深度测试，那么由于深度相同&#x2F;浮点精度问题，线时隐时现</li>
+</ul>
+</li>
+</ul>
+<h2 id="7-Blending"><a href="#7-Blending" class="headerlink" title="7. Blending"></a>7. Blending</h2><ul>
+<li>混合</li>
+<li>Combine fragment color with framebuffer color<ul>
+<li>Can weight each color</li>
+<li>Can use different operations: +, -, etc.</li>
+</ul>
+</li>
+<li>实现半透明（Translucency）的效果</li>
+</ul>
+<h2 id="8-FrameBuffer"><a href="#8-FrameBuffer" class="headerlink" title="8. FrameBuffer"></a>8. FrameBuffer</h2><ul>
+<li>输出到 FrameBuffer</li>
+</ul>
+<h1 id="Evolution-of-the-Programmable"><a href="#Evolution-of-the-Programmable" class="headerlink" title="Evolution of the Programmable"></a>Evolution of the Programmable</h1><h2 id="1990s-之前"><a href="#1990s-之前" class="headerlink" title="1990s 之前"></a>1990s 之前</h2><ul>
+<li>显卡</li>
+<li>无 GPU 的概念，处理能力很弱</li>
+<li>图形工作站</li>
+</ul>
+<h2 id="90s"><a href="#90s" class="headerlink" title="90s"></a>90s</h2><ul>
+<li><p>Pre GPU</p>
+</li>
+<li><p>software rendering：软件渲染</p>
+</li>
+<li><p>为什么选择 GPU</p>
+<ul>
+<li><strong>并行</strong><ul>
+<li>Pipeline parallel</li>
+<li>Data parallel</li>
+<li>CPU and GPU executing in parallel</li>
+</ul>
+</li>
+<li><strong>硬件支持</strong><ul>
+<li>texture filtering</li>
+<li>rasterization</li>
+<li>sqrt</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="1996"><a href="#1996" class="headerlink" title="1996"></a>1996</h2><ul>
+<li>3dfx Voodoo</li>
+<li>软件：<ul>
+<li>vertex assembly，vertex shader，primitive assembly</li>
+</ul>
+</li>
+<li>硬件：<ul>
+<li>rasterizer，fragment shader，pre-fragment tests，blend，framebuffer</li>
+<li><strong>Fixed-function</strong> rasterization, texture mapping, depth testing, etc</li>
+<li><strong>4-6MB</strong> memory</li>
+<li><strong>PCI bus</strong><ul>
+<li>Peripheral Component Interconnect</li>
+<li>外围组件互连</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="1999"><a href="#1999" class="headerlink" title="1999"></a>1999</h2><ul>
+<li>Nvidia Geforce 256</li>
+<li><span style="color:red">全硬件实现</span></li>
+<li><strong>Fixed-function</strong> vertex shading（T&amp;L）</li>
+<li>Multi-texturing：bump maps, light maps, etc.</li>
+<li><span style="color:red">Direct3D</span> 7</li>
+<li><strong>AGP bus</strong><ul>
+<li>Accelerated Graphics Port</li>
+<li>加速图形端口</li>
+</ul>
+</li>
+</ul>
+<h2 id="2001"><a href="#2001" class="headerlink" title="2001"></a>2001</h2><ul>
+<li>Nvidia Geforce 3</li>
+<li>全硬件实现，但是 vertex shader 可以支持编程</li>
+<li>fragment shader 支持的不太好</li>
+<li>Direct3D 8</li>
+</ul>
+<h2 id="2004"><a href="#2004" class="headerlink" title="2004"></a>2004</h2><ul>
+<li>Nvidia Geforce 6</li>
+<li>支持很好的 vertex shader，fragment shader 编程</li>
+<li>vertex shader 可以支持读取 texture</li>
+<li>Multiple render targets<ul>
+<li>执行一遍就能输出多个渲染目标</li>
+</ul>
+</li>
+<li><strong>PCIe bus</strong><ul>
+<li>peripheral component interconnect express</li>
+<li>一种高速串行计算机扩展总线标准，2001年提出，旨在代替 PCI，PCI-X 和 AGP 总线标准</li>
+</ul>
+</li>
+<li><span style="color:red">OpenGL</span>  2 &#x2F; Direct3D 9</li>
+<li>架构：某一部分的架构是固定的，负载不均衡<ul>
+<li>6 vertex shader processors</li>
+<li>16 fragment shader processors</li>
+</ul>
+</li>
+</ul>
+<h2 id="2006"><a href="#2006" class="headerlink" title="2006"></a>2006</h2><ul>
+<li><p>Nvidia Geforce 8</p>
+</li>
+<li><p>在渲染管线 Vertex Shader 之后加入了 <span style="color:red;font-weight:bold">Geometry Shader</span></p>
+<ul>
+<li>Geometry Shader：1-&gt;n，一个几何图元生成多个几何图元</li>
+<li>Vertex Shader：1-&gt;1</li>
+</ul>
+</li>
+<li><p><span style="color:red">Unified shader processors</span>：统一着色器处理器</p>
+</li>
+<li><p>OpenGL 3 &#x2F; Direct3D 10</p>
+</li>
+<li><p>Support for GPU Compute</p>
+</li>
+<li><p>Geometry Shader</p>
+<ul>
+<li>可以读取 texture</li>
+<li><strong>粒子系统</strong>：Partical System<ul>
+<li>All-GPU Particle Systems</li>
+</ul>
+</li>
+<li>实例化：Instance<ul>
+<li>可以对原先数据作微小的变化，从而生成很多图案</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>任意点 O，三角形顶点 A，B，C，三角形 ABC 中任意一点 P</p>
+</li>
+</ul>
+<p>$$<br>\vec{OP}&#x3D;\frac{S_{\Delta_{PBC}}\cdot\vec{OA}+S_{\Delta_{PCA}}\cdot\vec{OB}+S_{\Delta_{PAB}}\cdot\vec{OC}}{S_{\Delta_{PBC}}+S_{\Delta_{PCA}}+S_{\Delta_{PAB}}}<br>$$</p>
+<ul>
+<li><p>证明方法：延长 AP 交 BC 于 D，之后反复利用如下定理即可</p>
+<ul>
+<li>线段 AB 上一点 C</li>
+</ul>
+<p>  $$<br>  \vec{OC}&#x3D;\frac{|\vec{CB}|\cdot\vec{OA}}{|\vec{AB}|}+\frac{|\vec{CA}|\cdot\vec{OB}}{|\vec{AB}|}<br>  $$</p>
+</li>
+<li><p>如果 P 为重心 G，那么有</p>
+</li>
+</ul>
+<p>$$<br>S_{\Delta_{GBC}}&#x3D;S_{\Delta_{GCA}}&#x3D;S_{\Delta_{GAB}} \<br>\vec{OG}&#x3D;\frac{\vec{OA}+\vec{OB}+\vec{OC}}{3}<br>$$</p>
+<ul>
+<li>做细分：subdivision</li>
+<li>勾边</li>
+<li>1 -&gt; n</li>
+</ul>
+<h3 id="Procedural-Geometry"><a href="#Procedural-Geometry" class="headerlink" title="Procedural Geometry"></a>Procedural Geometry</h3><ul>
+<li>Procedural Geometry Dynamic Vine Growth on the GPU</li>
+<li>藤蔓生长</li>
+<li>提供更多细分模板</li>
+</ul>
+<h3 id="Patched-x2F-Control-Points"><a href="#Patched-x2F-Control-Points" class="headerlink" title="Patched &#x2F; Control Points"></a>Patched &#x2F; Control Points</h3><ul>
+<li>Hull shader：参数</li>
+<li>Tessellation：镶嵌</li>
+<li>Domain Shader：实际生成的顶点位置</li>
+</ul>
+<h3 id="Displacement-Mapping"><a href="#Displacement-Mapping" class="headerlink" title="Displacement Mapping"></a>Displacement Mapping</h3><h2 id="Nivdia-G80"><a href="#Nivdia-G80" class="headerlink" title="Nivdia G80"></a>Nivdia G80</h2><ul>
+<li><strong>unify</strong></li>
+<li>统一了，没有物理上区分处理器处理哪一个部分（线程分配）</li>
+<li>发展趋势<ul>
+<li>全部可编程</li>
+<li>流程可以修改</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/26/CG/LS/03/" data-id="cl9lj7491003o64tz3kfq7i3s" data-title="计算机图形学.李胜.03.3D图形绘制流水线基础与图形编程" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-CG/LS/02" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/26/CG/LS/02/" class="article-date">
+  <time class="dt-published" datetime="2021-01-26T06:46:06.000Z" itemprop="datePublished">2021-01-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/26/CG/LS/02/">计算机图形学.李胜.02.图形硬件设备与系统</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="硬件发展"><a href="#硬件发展" class="headerlink" title="硬件发展"></a>硬件发展</h1><ul>
+<li>1950 MIT 旋风一号（Whirlwind I）</li>
+<li>1958 Calcomp 公司滚动式绘图仪</li>
+<li>1963 SKETCHPAD</li>
+<li>60年代中期：随机扫描显示器</li>
+<li>60年代后期：存储管式显示器</li>
+<li>1969：初期的显示器缓冲存储器</li>
+<li>80年代：光栅显示器，图形工作站</li>
+<li>90年代：液晶显示器</li>
+<li>90年代末：图形加速卡</li>
+</ul>
+<h1 id="图形绘制核心问题"><a href="#图形绘制核心问题" class="headerlink" title="图形绘制核心问题"></a>图形绘制核心问题</h1><ul>
+<li>1960s <strong>解决可见性问题</strong><ul>
+<li>隐藏线消除算法 Roberts (1963), Appel (1967)</li>
+<li>隐藏面消除算法 Warnock (1969), Watkins (1970)</li>
+<li>可见性 排序算法 Sutherland (1974)</li>
+</ul>
+</li>
+<li>1970s <strong>光栅化图形学</strong><ul>
+<li>漫反射光照 Gouraud (1971)</li>
+<li>镜面反射光照 Phong (1974)</li>
+<li>曲面表面 纹理映射 Blinn (1974)</li>
+<li>Z-buffer隐藏面消除算法 Catmull (1974)</li>
+<li>反混淆 Crow (1977)<ul>
+<li>混淆：锯齿、闪烁</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>1980s早期 <strong>全局光照明</strong><ul>
+<li>光线跟踪 Whitted (1980)</li>
+<li>辐射度方法 Goral, Torrance et al. (1984), Cohen (1985)</li>
+<li>绘制方程 Kajiya (1986)</li>
+</ul>
+</li>
+<li>1980s后期 <strong>照片真实感绘制技术</strong><ul>
+<li>shade trees （层次绘制树） Cook (1984)</li>
+<li>shading languages （高级绘制语言） Perlin (1985)</li>
+<li>RenderMan（真实感绘制工具）  Hanrahan and Lawson (1990)</li>
+</ul>
+</li>
+<li>1990s早期  <strong>非照片真实感绘制</strong><ul>
+<li>体绘制 Drebin et al. (1988), Levoy (1988)</li>
+<li>印象绘画风格 Haeberli (1990)</li>
+<li>自动钢笔画插图 Salesin et al. (1994-)</li>
+<li>美术绘制 Meier (1996)</li>
+</ul>
+</li>
+<li>2010 <strong>面向VR的渲染技术</strong><ul>
+<li>显示位置不同</li>
+<li>双目</li>
+<li>头盔</li>
+<li>镜面</li>
+</ul>
+</li>
+<li>2015 <strong>基于深度学习的图形渲染</strong></li>
+</ul>
+<h1 id="图形处理器"><a href="#图形处理器" class="headerlink" title="图形处理器"></a>图形处理器</h1><ul>
+<li>显卡<ul>
+<li>普通显卡：跑游戏卡不卡，超频性能好不好</li>
+<li>专业显卡：强大的性能、稳定性、绘图的精确</li>
+</ul>
+</li>
+<li><strong>GPU</strong> vs <strong>CPU</strong></li>
+<li>图形处理器 GPU<ul>
+<li>早期：简单的存储器和帧缓冲区<ul>
+<li>只起到图形的存储与传递作用</li>
+<li>一切操作由 CPU 控制</li>
+</ul>
+</li>
+<li>现在：不仅仅存储图形，能完成大部分图形函数<ul>
+<li>专业的图形卡已经具备很强的 3D 处理能力</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>图形处理器<ul>
+<li>显示主芯片：显卡的核心，俗称 GPU</li>
+<li>显示缓存：存储将要显示的图形信息和保存图形运算的中间数据</li>
+</ul>
+</li>
+<li>帧缓冲器<ul>
+<li>用来存储像素颜色（灰度）值的存储器就称为帧缓冲存储器</li>
+<li>一般比屏幕大小大得多<ul>
+<li>可存放多个页面，每个页面存放一幅位图</li>
+<li>离屏渲染： GPU在当前屏幕缓冲区以外新开辟一个缓冲区进行渲染操作<ul>
+<li>正在渲染的不是当前帧</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>GTX</strong> vs <strong>RTX</strong></li>
+<li>RTX：图灵架构<ul>
+<li>增加了 tensor core 以及 ray tracing core</li>
+</ul>
+</li>
+<li>传统光栅扫描显示系统<ul>
+<li>电子束按固定的扫描顺序进行扫描N条扫描线，每条扫描线有M个像素</li>
+<li>显示器的分辨率：M*N</li>
+<li>逻辑部件：<ul>
+<li>帧缓冲存储器(Frame Buffer)、视频控制器(video Controller )、显示处理器、CRT显示器<ul>
+<li>CRT 阴极射线管</li>
+</ul>
+</li>
+<li>帧缓存是数字设备，光栅显示器是模拟设备</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>点状影孔板工作原理<ul>
+<li>三支电子枪</li>
+<li>电子枪、影孔板中的一个小孔和一个像素呈一直线<ul>
+<li>小孔成像</li>
+<li>一个像素包括三色荧光点（很小并且充分靠近）<img src="/02/pic1.jpg"></li>
+</ul>
+</li>
+<li>调节各电子枪发生的电子束中所含<strong>电子的数目</strong>，即可控制<strong>各色光点亮度</strong></li>
+</ul>
+</li>
+<li>LCD&#x2F;LED 显示器<ul>
+<li>不会产生CRT那样的因为刷新频率低而出现的闪烁现象</li>
+<li><strong>没有电磁辐射</strong>，对人体健康没有任何影响</li>
+<li><strong>液晶</strong><ul>
+<li>电压 -&gt; 通过光的折射角度变化</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>扫描仪 &#x2F; 三维扫描仪<ul>
+<li>光学分辨率：dpi（dot per inch）</li>
+<li>应用<ul>
+<li>在线检测</li>
+<li>实物到CAD模型的转换</li>
+<li>复杂面型的快速测量等方面</li>
+<li>影视特技制作</li>
+<li>虚拟现实</li>
+<li>高级游成</li>
+<li>文物保护</li>
+</ul>
+</li>
+<li>类别<ul>
+<li>接触式与非接触式</li>
+<li>三维扫描仪与三维彩色扫描仪</li>
+<li>外表面扫描与内部扫描</li>
+<li>色扫描、线扫描与面扫描</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="一些应用"><a href="#一些应用" class="headerlink" title="一些应用"></a>一些应用</h1><ul>
+<li><p><strong>CAVE</strong></p>
+<ul>
+<li>A room with walls and&#x2F;or floor formed by rear projection screens</li>
+<li>一种基于投影的沉浸式虚拟现实显示系统</li>
+<li>handled -&gt; 3D Ready LCD -&gt; 3D Ready TV -&gt; CAVE</li>
+</ul>
+</li>
+<li><p>immersive virtual simulation</p>
+<ul>
+<li>沉浸式虚拟现实</li>
+<li>real people using simulated equipment in a (immersive) simulated world&#x2F;virtual environment</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">level</th>
+<th align="center"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">0</td>
+<td align="center">outside</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">inside</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">inside + perspective</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">inside + perspective + stereo</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>Gaming and Emerging Technology Laboratory (<strong>GET</strong>)</p>
+</li>
+<li><p>Kinect：流行的体感交互设备</p>
+<ul>
+<li><strong>Kinect传感器</strong><ul>
+<li>CMOS红外传感器</li>
+<li>该传感器通过黑白光谱的方式来感知环境：<ul>
+<li>纯黑代表无穷远，纯白代表无穷近</li>
+<li>黑白间的灰色地带对应物体到传感器的物理距离</li>
+<li>形成一幅代表周围环境的景深图像</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>图像处理器</strong><ul>
+<li>前景背景分割，并跟踪提取前景的变化和运动信息</li>
+</ul>
+</li>
+<li><strong>人工智能机器学习部件</strong><ul>
+<li>分割后玩家图像的每一个像素都被传送进一个辨别人体部位的机器学习系统中</li>
+<li>随后该系统将给出了某个特定像素属于哪个身体部位的可能性</li>
+</ul>
+</li>
+<li><strong>骨架系统</strong><ul>
+<li>根据追踪到的20个关节点来生成一幅骨架系统</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>3D打印</strong></p>
+<ul>
+<li>分层加工、叠加成型</li>
+<li>每一层的打印过程分为两步<ul>
+<li>在需要成型的区域喷洒一层特殊胶水，胶水液滴本身很小，且不易扩散</li>
+<li>是喷洒一层均匀的粉末，粉末遇到胶水会迅速固化黏结，而没有胶水的区域仍保持松散状态</li>
+</ul>
+</li>
+<li>3D打印是断层扫描的逆过程</li>
+</ul>
+</li>
+<li><p>增强现实&#x2F;混合现实眼镜</p>
+<ul>
+<li>Google Glasses<ul>
+<li>失败了，眩晕，散热</li>
+</ul>
+</li>
+<li>HoloLens（微软）<ul>
+<li>成功了</li>
+</ul>
+</li>
+<li>微型投影仪 + 摄像头 + 传感器 + 存储传输 + 操控设备</li>
+</ul>
+</li>
+</ul>
+<h1 id="图形软件系统"><a href="#图形软件系统" class="headerlink" title="图形软件系统"></a>图形软件系统</h1><ul>
+<li>图形软件系统<ul>
+<li>基本图形软件：<strong>支撑软件</strong></li>
+<li>应用图形软件：<strong>专用软件</strong></li>
+</ul>
+</li>
+<li>基本图形软件实现方法<ul>
+<li>图形软件包</li>
+<li>修改高级语言</li>
+<li>专用高级图形语言</li>
+</ul>
+</li>
+<li>图形支撑软件<ul>
+<li>第一层次是面向系统的，主要解决图形设备与计算机的通讯接口等问题，称为<strong>设备驱动程序</strong>，包括一些最基本的输入、输出程序，事实上，设备驱动程序现在已被作为操作系统一部分，由操作系统或设备硬件厂商开发</li>
+<li>第二层次是建立在驱动程序之上，完成图元的生成、设备的管理等功能，目前这个层次上的图形支撑软件已经标准化，如CGI等</li>
+<li>第三层次是在中间层基础上编写的，其主要任务是建立图形数据结构，定义、修改和输出图形，它是面向用户的，要求具有较强的交互功能，使用方便，风格好，概念明确，容易阅读，便于维护和移植，GKS、PHIGS、OpenGL、DirectX便属于这一层次的软件</li>
+</ul>
+</li>
+<li>可移植性的四个方面<ul>
+<li>应用程序在不同系统间的可移植性</li>
+<li>应用程序和图形设备的可移植性</li>
+<li>图形数据的可移植性</li>
+<li>程序员的可移植性</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/26/CG/LS/02/" data-id="cl9lj7490003k64tz6gw4ep3y" data-title="计算机图形学.李胜.02.图形硬件设备与系统" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-CG/LS/01" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/26/CG/LS/01/" class="article-date">
+  <time class="dt-published" datetime="2021-01-26T06:01:20.000Z" itemprop="datePublished">2021-01-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/26/CG/LS/01/">计算机图形学.李胜.01.图形学概述</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><p>4 Minutes for 40 Years_ A Brief Review of Modern Computer Graphics</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=lEbzFSRZcm0&ab_channel=RaymondYunFei">youtube地址</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1YK4y1Z75s/">bilibili搬运</a></li>
+</ul>
+</li>
+<li><p>计算机图形学是研究如何利用计算机生成、处理和显示图形的一门学科</p>
+</li>
+<li><p>光栅化图形学、光线跟踪</p>
+</li>
+<li><p>OpenGL，vulkan，DirectX</p>
+</li>
+<li><p>light and matter：光线与物体</p>
+<ul>
+<li>simulation，abstraction，representation</li>
+</ul>
+</li>
+<li><p>应用</p>
+<ul>
+<li>工业：CAD，精确表示，能不能做出来</li>
+<li>娱乐：逼真</li>
+<li>军事&#x2F;交互：表现力、真实感</li>
+</ul>
+</li>
+<li><p>CAD：波音777（boeing 777），无纸设计</p>
+</li>
+<li><p>昆仑发动机（An-70）</p>
+</li>
+<li><p>CAD，CAE，CAM一体化</p>
+<ul>
+<li>Design，Engineering，Manufactoring</li>
+<li>不仅仅是几何体，加入动力学参数等</li>
+</ul>
+</li>
+<li><p>3D打印</p>
+</li>
+<li><p>动画 Geri’s Game</p>
+<ul>
+<li>subdivision：细分（人物表情）</li>
+</ul>
+</li>
+<li><p>GPU -&gt; shader -&gt; tessellation shader（做细分工作）</p>
+</li>
+<li><p>modeling and rendering</p>
+<ul>
+<li>建模与渲染</li>
+</ul>
+</li>
+<li><p>绘制理论方法与技术</p>
+<ul>
+<li>光照明技术即材质表示与建模</li>
+<li>真实感绘制技术</li>
+<li>加速、实时（25-30帧&#x2F;秒）</li>
+</ul>
+</li>
+<li><p>应用</p>
+<ul>
+<li>医学：可视化</li>
+<li>动画</li>
+<li>全局光照明</li>
+<li>细微</li>
+<li>头发：非规则 + 多</li>
+<li>人脸：人的真假（很难）</li>
+</ul>
+</li>
+<li><p>NPR：non-photorealistic-rendering</p>
+<ul>
+<li>非真实感绘制</li>
+</ul>
+</li>
+<li><p>艺术馆风格绘制</p>
+</li>
+<li><p>VR：virtual reality</p>
+</li>
+<li><p>kinect：夹用交互娱乐设备</p>
+</li>
+<li><p>GPU</p>
+</li>
+<li><p>米开朗基罗计划</p>
+<ul>
+<li>点云大数据处理</li>
+<li>几何优化</li>
+</ul>
+</li>
+<li><p>游戏引擎</p>
+<ul>
+<li>引擎只是个框架，游戏开发者只需要填内容</li>
+<li>QuakeIII，Unreal Tournament</li>
+</ul>
+</li>
+<li><p>游戏研发：引擎 + 美工</p>
+</li>
+<li><p>图形（Graphics）与图象（Image）</p>
+<ul>
+<li>图象纯指计算机内以位图（Bitmap）形式存在的灰度或者彩色信息</li>
+<li>图形含有<strong>几何</strong>属性，或者说更强调场景的几何表示是由<strong>场景的几何模型</strong>和<strong>景物的物理属性</strong>共同组成的</li>
+</ul>
+</li>
+<li><p>相关学科</p>
+<ul>
+<li>CACD（Computer Aided Geometry Design）</li>
+<li>图象处理</li>
+<li>计算数学（逼近论）</li>
+<li>代数与几何</li>
+<li>计算机视觉与模式识别</li>
+</ul>
+</li>
+<li><p>图形与视觉</p>
+<ul>
+<li>灭点</li>
+<li>错觉</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/26/CG/LS/01/" data-id="cl9lj7490003h64tz4ml49m1d" data-title="计算机图形学.李胜.01.图形学概述" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-CG/LS/00" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/26/CG/LS/00/" class="article-date">
+  <time class="dt-published" datetime="2021-01-26T05:55:56.000Z" itemprop="datePublished">2021-01-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/0/">0</a>►<a class="article-category-link" href="/categories/CG/">CG</a>►<a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/26/CG/LS/00/">计算机图形学.李胜.00.说明</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="1-说明"><a href="#1-说明" class="headerlink" title="1. 说明"></a>1. 说明</h1><ul>
+<li>李胜老师开设的课程《计算机图形学》学习笔记</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/26/CG/LS/00/" data-id="cl9lj748z003e64tz7x9vebi1" data-title="计算机图形学.李胜.00.说明" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/24/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="page-number" href="/page/24/">24</a><span class="page-number current">25</span><a class="page-number" href="/page/26/">26</a><a class="extend next" rel="next" href="/page/26/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

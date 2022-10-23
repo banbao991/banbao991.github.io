@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>GAMES202.闫令琪.12.实时光线追踪 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="实时光线追踪、RTX、RTX 的降噪方法、Temporal(时间上的滤波方法)、TAA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES202.闫令琪.12.实时光线追踪">
+<meta property="og:url" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="实时光线追踪、RTX、RTX 的降噪方法、Temporal(时间上的滤波方法)、TAA">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/12/image-20210531212121853.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/12/image-20210531213131561.png">
+<meta property="og:image" content="http://example.com/12/image-20210531214157842.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/12/image-20210531214248561.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/12/image-20210531223422938.png">
+<meta property="og:image" content="http://example.com/12/image-20210531223725649.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/12/image-20210531224126028.png">
+<meta property="og:image" content="http://example.com/12/image-20210531234208290.png">
+<meta property="og:image" content="http://example.com/12/image-20210531234218006.png">
+<meta property="og:image" content="http://example.com/12/image-20210531234300669.png">
+<meta property="og:image" content="http://example.com/12/image-20210601000529916.png">
+<meta property="og:image" content="http://example.com/12/image-20210601000906122.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/12/image-20210531235727923.png">
+<meta property="og:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/12/image-20210601000246930.png">
+<meta property="article:published_time" content="2021-05-31T11:01:59.000Z">
+<meta property="article:modified_time" content="2021-05-31T16:15:21.486Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="YLQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/12/image-20210531212121853.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/YLQ-GAMES202/12" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/05/31/CG/YLQ-GAMES202/12/" class="article-date">
+  <time class="dt-published" datetime="2021-05-31T11:01:59.000Z" itemprop="datePublished">2021-05-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-GAMES202/">CG.GAMES202</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      GAMES202.闫令琪.12.实时光线追踪
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1YK4y1T7yY">https://www.bilibili.com/video/BV1YK4y1T7yY</a></li>
+</ul>
+<h1 id="Real-Time-Ray-Tracing"><a href="#Real-Time-Ray-Tracing" class="headerlink" title="Real-Time Ray Tracing"></a>Real-Time Ray Tracing</h1><ul>
+<li>一些复杂的材质在这门课上不讲了</li>
+<li>Volumetric &#x2F; scattering materials<ul>
+<li>人脸<ul>
+<li>《最终幻想七 重制版》 [Final Fantasy VII Remake]</li>
+</ul>
+</li>
+<li>毛发<ul>
+<li>《黑神话：悟空》 [Black Myth: Wukong]</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>背景知识比较多<ul>
+<li>RTE：散射介质中光线的传播</li>
+<li>BSSRDF：次表面散射<ul>
+<li>出射点和入射点可以不同的 BRDF</li>
+</ul>
+</li>
+<li>毛发内部的一次、多次散射</li>
+</ul>
+</li>
+<li>离线渲染课程<ul>
+<li>更复杂的光线传播方法<ul>
+<li>delta tracking：在散射介质中做光线的步进</li>
+</ul>
+</li>
+<li>复杂的材质<ul>
+<li>dual scattering：毛发渲染的一种方法</li>
+<li>layered materials：分层的材质</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>UE5 发布<ul>
+<li>一些技术的可能实现</li>
+<li>Nanite</li>
+<li>Lumen</li>
+</ul>
+</li>
+</ul>
+<h2 id="RTX"><a href="#RTX" class="headerlink" title="RTX"></a>RTX</h2><ul>
+<li>实时光线追踪</li>
+<li>早期的观点<ul>
+<li>“Ray tracing is the futureand ever will be.”</li>
+</ul>
+</li>
+<li>2018 RTX 系列硬件的推出使得实时光线追踪成为可能<ul>
+<li>图灵架构</li>
+<li>NVIDIA announced GeForce RTX series (Turing architecture)</li>
+</ul>
+</li>
+<li>RTRT 的应用场景<ul>
+<li>设计：汽车渲染</li>
+<li>影视动画</li>
+<li>…</li>
+</ul>
+</li>
+</ul>
+<img src="12/image-20210531212121853.png" alt="image-20210531212121853" style="zoom: 40%;" />
+
+<ul>
+<li>RTX 做了什么<ul>
+<li>做了很多 demo 展示效果：Impressive demos of RTRT<ul>
+<li>主要是高亮的场景（glossy）<ul>
+<li>一方面 glossy 材质方便求反射光线</li>
+<li>另一方面 diffuse 材质你看不出来与传统方法的区别</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Advanced ray traced effects：能够实现很多之前比较难做的效果<ul>
+<li>Shadows</li>
+<li>Reflections &amp; Specular</li>
+<li>Ambient Occlusion</li>
+<li>Global Illumination</li>
+</ul>
+</li>
+<li>RTX 是一种架构，允许我们 trace 光线</li>
+<li>RTX 是一种硬件上的突破，计算的很快<ul>
+<li>tensor core：加速神经网络</li>
+<li>rt core：针对 ray tracing 做的优化</li>
+<li>10 Giga rays per second<ul>
+<li>帧数、其他计算的考虑，最终的效果留给 RTRT 的时间能够达到 1spp<ul>
+<li>1 sample per pixel (2080Ti)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>RTX 支持降噪<ul>
+<li>1SPP 噪声严重</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="SPP"><a href="#SPP" class="headerlink" title="SPP"></a>SPP</h3><ul>
+<li>1 SPP path tracing：为了实现全局光照效果，至少 4 条光线<ul>
+<li>1 rasterization (primary) +</li>
+</ul>
+<ul>
+<li>1 ray (primary visibility) +</li>
+</ul>
+<ul>
+<li>1 ray (secondary bounce) +</li>
+<li>1 ray (secondary visibility)</li>
+</ul>
+</li>
+<li>primary hitpoint：第一次打中的点</li>
+<li>shadow ray：判断这个点对光源是否可见</li>
+<li>one bounce<ul>
+<li>secondary hitpoint</li>
+<li>shadow ray</li>
+</ul>
+</li>
+</ul>
+<img src="12/image-20210531213131561.png" style="zoom:50%;" />
+
+<ul>
+<li>一种优化<ul>
+<li>没必要对所有的像素进行一次 ray tracing</li>
+<li>先进行光栅化，可以更快</li>
+</ul>
+</li>
+<li>这样 1SPP 需要考虑的光线少了 1 条（找到 primary hitpoint 的光线光栅化做了）</li>
+<li>1 SPP 效果很差，噪声很严重</li>
+</ul>
+<p><img src="/12/image-20210531214157842.png"></p>
+<h3 id="RTX-的-denoising"><a href="#RTX-的-denoising" class="headerlink" title="RTX 的 denoising"></a>RTX 的 denoising</h3><ul>
+<li>State of the Art* Denoising Solution</li>
+</ul>
+<img src="12/image-20210531214248561.png" style="zoom:50%;" />
+
+<ul>
+<li>1SPP 变成这样的效果<ul>
+<li>震惊但是这是真的</li>
+</ul>
+</li>
+</ul>
+<h2 id="降噪-Denosing"><a href="#降噪-Denosing" class="headerlink" title="降噪 Denosing"></a>降噪 Denosing</h2><h3 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h3><ul>
+<li>目标<ul>
+<li>输入为 1SPP 的渲染结果</li>
+<li>没有模糊、没有 artifacts、保持所有的细节<ul>
+<li>overblur（高斯滤波的结果）</li>
+</ul>
+</li>
+<li>速度要快，降噪只是实时渲染的一小部分<ul>
+<li>每一帧降噪所花费的是时间小于 2ms</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>不可能，传统的方法都不行<ul>
+<li>Sheared filtering series (SF, AAF, FSF, MAAF, …)</li>
+<li>Other offline filtering methods (IPP, BM3D, APR, …)</li>
+<li>Deep learning series (CNN, Autoencoder, …)<ul>
+<li>现在来看，速度太慢了</li>
+<li>跑一个神经网络花费时间在 100 ms 左右</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Optix：Nvidia 的光追 API</li>
+</ul>
+<h3 id="工业界的解法"><a href="#工业界的解法" class="headerlink" title="工业界的解法"></a>工业界的解法</h3><ul>
+<li><p><strong>Temporal</strong>：时间上的滤波</p>
+</li>
+<li><p>关键想法：</p>
+<ul>
+<li>递归的思维</li>
+<li>需要滤波当前帧，我们认为<strong>前一帧是已经滤波好了的</strong></li>
+<li>假设场景的运动是连续的<ul>
+<li>利用上一帧的 shading 结果</li>
+</ul>
+</li>
+<li><strong>motion vector</strong>：用于找到对应的 shading point 在上一帧的位置</li>
+<li>结果相当于增加了 SPP（由于递归，SPP的增加是很多的）</li>
+</ul>
+</li>
+<li><p>motion vector</p>
+</li>
+</ul>
+<img src="12/image-20210531223422938.png" style="zoom:67%;" />
+
+<ul>
+<li>空间上的降噪<ul>
+<li>下一节课</li>
+</ul>
+</li>
+</ul>
+<h3 id="G-Buffer"><a href="#G-Buffer" class="headerlink" title="G-Buffer"></a>G-Buffer</h3><ul>
+<li>Geometry Buffer<ul>
+<li>光栅化得到的</li>
+</ul>
+</li>
+</ul>
+<p><img src="/12/image-20210531223725649.png"></p>
+<ul>
+<li>需要什么，保存什么<ul>
+<li>可以保存深度、法向、世界坐标系位置等各种信息</li>
+<li>保存的是屏幕空间的信息</li>
+</ul>
+</li>
+<li>生成 G-Buffer 通常认为是轻量级的</li>
+<li>使用 G-Buffer 是很快的</li>
+</ul>
+<h3 id="Back-Projection"><a href="#Back-Projection" class="headerlink" title="Back Projection"></a>Back Projection</h3><ul>
+<li>找对应点</li>
+<li>当前帧 $i$ 中的像素点 $x$，找到这个像素中的内容在上一帧 $i-1$ 中的位置 $x’$<ul>
+<li>$x,x’$ 在世界坐标系中具有相同的世界坐标系坐标</li>
+</ul>
+</li>
+</ul>
+<img src="12/image-20210531224126028.png" style="zoom:67%;" />
+
+<ul>
+<li>求出世界坐标系位置 $s$<ul>
+<li>如果有 G-Buffer 中，直接取出 $s$ 即可</li>
+<li>如果没有 G-Buffer，计算得到 $s &#x3D; M^{-1}V^{-1}P^{-1}E^{-1}x$<ul>
+<li>$E$ 视口变换，带 $’$ 表示上一帧结果</li>
+<li>需要用到深度信息，屏幕空间是 2D 的，变换是 3D 的</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>计算上一帧世界坐标系坐标  $s’$ 的位置（已经得到了世界坐标 $s$）<ul>
+<li>我们是知道物体怎么运动的，计算即可，我们拥有整个场景的运动信息</li>
+<li>$s’{\buildrel{T}\over\longrightarrow} s,s{\buildrel{T^{-1}}\over\longrightarrow} s’$</li>
+</ul>
+</li>
+<li>计算在上一帧中的位置 $x’$<ul>
+<li>$x’&#x3D;E’P’V’M’s’$</li>
+</ul>
+</li>
+<li>光流：找像素和像素在不同时间上的一个对应 optical flow<ul>
+<li>算 motion vector 本质上也是一种 optical flow</li>
+<li>motion vector 是完全物理正确的</li>
+<li>光流是根据内容推理，但是深度学习能够做的很好</li>
+</ul>
+</li>
+</ul>
+<h3 id="blending"><a href="#blending" class="headerlink" title="blending"></a>blending</h3><ul>
+<li>怎么结合得到的两张图</li>
+<li>符号定义（象形hhh）<ul>
+<li>$\sim$ ：unfiltered</li>
+<li>$-$：filtered</li>
+</ul>
+</li>
+<li>步骤<ul>
+<li>当前帧自己先做一次降噪（空间）<ul>
+<li>$\bar{C}^{(i)}&#x3D;Filter[\tilde{C}^{(i)}]$</li>
+<li>1SPP 情况下只依赖当前帧的结果，降噪效果是不可能很好的</li>
+</ul>
+</li>
+<li>Temporal（时间）<ul>
+<li>$\bar{C}^{(i)}&#x3D;\alpha\bar{C}^{(i)}+(1-\alpha)\bar{C}^{i-1}$</li>
+<li>对应像素而不是同一个像素</li>
+<li>通常 $\alpha\in[0.1,0.2]$</li>
+<li>说明用的内容主要是上一帧的内容，大胆的设想</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h3><ul>
+<li>1spp Ray Traced Global Illumination</li>
+</ul>
+<p><img src="/12/image-20210531234208290.png"></p>
+<ul>
+<li>1spp Ray Traced Global Illumination + Denoising</li>
+</ul>
+<p><img src="/12/image-20210531234218006.png"></p>
+<ul>
+<li>Ground Truth</li>
+</ul>
+<p><img src="/12/image-20210531234300669.png"></p>
+<ul>
+<li>滤波绝对不可能让一张有噪声的图变亮或者变暗，保持能量守恒<ul>
+<li>带噪声的图，很多噪点的能量可能是很高的，但是会被显示器给截断</li>
+<li>原始的 exr 图片，在 HDR 显示器上显示的结果，denoising 前后亮度应该相差不大</li>
+</ul>
+</li>
+<li>一些问题<ul>
+<li>缺失了一些信息，例如左上角圆台体中间条带的 contact shadow</li>
+<li>一些细节由于降噪变得模糊</li>
+</ul>
+</li>
+<li>1SPP 的效果!!!!!!</li>
+</ul>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><ul>
+<li>场景的第一帧怎么渲染？切换了场景？突变的光源（蹦迪）？<ul>
+<li>burn-in period：场景突变需要一段时间累计信息</li>
+<li>这是上面的方法是做不到的</li>
+</ul>
+</li>
+<li>向后走场景做不了<ul>
+<li>walking backwards in a hallway</li>
+<li>很多点上一帧还不在渲染结果内</li>
+<li>屏幕空间的问题</li>
+</ul>
+</li>
+<li>disocclusion：在新的一帧中从遮挡状态转变为不被遮挡的状态<ul>
+<li>这一帧的点在上一帧中被遮挡</li>
+<li>于是在上一帧中找到的对应点并不是真正的对应点，而是<strong>挡住对应点的点</strong></li>
+<li>屏幕空间的问题</li>
+</ul>
+</li>
+<li>detached&#x2F;lagging shadows<ul>
+<li>阴影的拖尾问题（shading 的问题）</li>
+<li>如下场景，场景、像机都不移动，于是任何一个像素 motion vector 为 0</li>
+<li>此时移动光源，造成阴影拖尾的现象</li>
+</ul>
+</li>
+</ul>
+<p><img src="/12/image-20210601000529916.png"></p>
+<ul>
+<li>glossy 反射的问题<ul>
+<li>反射的拖尾（shading 的问题）</li>
+<li>如下场景中，相机、地板、光源保持不动，于是地板的 motin vector 为 0</li>
+<li>移动椅子，我们发现，地板上的反射效果得过一会才能跟上物体的运动</li>
+<li>快速移动有延迟，滞后问题</li>
+</ul>
+</li>
+</ul>
+<p><img src="/12/image-20210601000906122.png"></p>
+<h3 id="问题解决"><a href="#问题解决" class="headerlink" title="问题解决"></a>问题解决</h3><h4 id="问题-3"><a href="#问题-3" class="headerlink" title="问题 3"></a>问题 3</h4><ul>
+<li>不能用，但是强行使用<ul>
+<li>Lagging：拖尾效果，鬼影</li>
+</ul>
+</li>
+</ul>
+<img src="12/image-20210531235727923.png" style="zoom:60%;" />
+
+<ul>
+<li>巧妙的使用</li>
+<li>Clamping<ul>
+<li>把上一帧的值先拉近到这一帧的结果</li>
+</ul>
+</li>
+<li>Detection<ul>
+<li>如果检测到不对应，则不使用上一帧的信息</li>
+<li>例如给物体标 ID，如果上一帧的 ID 不一致，则调整 $\alpha$ 的值（使用更少的上一帧信息）</li>
+</ul>
+</li>
+<li>这样的问题：引入了噪声（降噪效果变差）</li>
+</ul>
+<img src="12/image-20210601000246930.png" style="zoom:60%;" />
+
+
+
+<h2 id="TAA"><a href="#TAA" class="headerlink" title="TAA"></a>TAA</h2><ul>
+<li>The temporal accumulation is inspired by Temporal Anti-Aliasing (TAA)</li>
+<li>类似的想法</li>
+<li>论文<ul>
+<li>Temporally Reliable Motion Vectors for Real-time Ray Tracing</li>
+<li>[Eurographics]</li>
+<li>实用，能够解决一些问题，更多挖掘可用信息</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/05/31/CG/YLQ-GAMES202/12/" data-id="cl9lj749w009164tz3r3w5ebk" data-title="GAMES202.闫令琪.12.实时光线追踪" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/06/03/OS/xv6-labs/lab7-lock/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          xv6-labs-2020.lab7.lock
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/05/25/DB/CLJ/07/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">数据库概论.陈立军.07.并发控制</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

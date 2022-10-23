@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>计算机图形学.李胜.05.投影(3) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="投影(3) 欧拉变换、四元数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机图形学.李胜.05.投影(3)">
+<meta property="og:url" content="http://example.com/2021/01/31/CG/LS/05-2/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="投影(3) 欧拉变换、四元数">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-01-31T14:50:41.000Z">
+<meta property="article:modified_time" content="2021-06-24T03:40:06.548Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/LS/05-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/31/CG/LS/05-2/" class="article-date">
+  <time class="dt-published" datetime="2021-01-31T14:50:41.000Z" itemprop="datePublished">2021-01-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-LS/">CG.LS</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      计算机图形学.李胜.05.投影(3)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="三维图形的显示流程图"><a href="#三维图形的显示流程图" class="headerlink" title="三维图形的显示流程图"></a>三维图形的显示流程图</h1><ul>
+<li><p>模型坐标系</p>
+<ul>
+<li>模型变换 $\downarrow$</li>
+</ul>
+</li>
+<li><p>世界坐标系</p>
+<ul>
+<li>观察变换  $\downarrow$</li>
+</ul>
+</li>
+<li><p>观察坐标系</p>
+<ul>
+<li>规范化变换 $\downarrow$</li>
+</ul>
+</li>
+<li><p>规范化投影坐标系</p>
+<ul>
+<li>关于视见体的裁剪  $\downarrow$</li>
+<li>投影  $\downarrow$</li>
+</ul>
+</li>
+<li><p>投影平面</p>
+<ul>
+<li>窗口至视区的变换  $\downarrow$</li>
+</ul>
+</li>
+<li><p>设备坐标系</p>
+<ul>
+<li>显示</li>
+</ul>
+</li>
+</ul>
+<h2 id="模型变换"><a href="#模型变换" class="headerlink" title="模型变换"></a>模型变换</h2><ul>
+<li>模型坐标系 Modeling Coordinate<ul>
+<li>物体的局部坐标系</li>
+<li>在模型坐标系中物体的<strong>表示简单</strong></li>
+</ul>
+</li>
+<li>模型变换 Modeling Transformation</li>
+<li>将物体从本身的模型坐标系变换到上层物体的模型坐标系（或世界坐标系）的几何变换</li>
+</ul>
+<h2 id="何时裁剪"><a href="#何时裁剪" class="headerlink" title="何时裁剪"></a>何时裁剪</h2><ul>
+<li>投影之前：三维裁剪<ul>
+<li>裁剪相对复杂</li>
+<li>只需要对可见的物体进行投影变换</li>
+</ul>
+</li>
+<li>投影之后：二位裁剪<ul>
+<li>裁剪相对简单</li>
+<li>需要对所有的物体进行投影变换</li>
+</ul>
+</li>
+<li>为什么需要在投影之前进行裁剪<ul>
+<li>三维物体的表面通常被离散表示成多边形或折线，而这类简单图元的三维裁剪比较简单</li>
+<li>三维图形在显示过程中需要被消隐，消隐需要图形的深度信息，所以必须在投影之前完成</li>
+</ul>
+</li>
+</ul>
+<h2 id="规范视见体"><a href="#规范视见体" class="headerlink" title="规范视见体"></a>规范视见体</h2><ul>
+<li>规范视见体的引入可以<strong>简化裁剪</strong></li>
+<li>规范化变化：将任意视见体变换成规范视见体的变换</li>
+<li>规范投影坐标（三维屏幕坐标 ）：经规范化的观察坐标系</li>
+</ul>
+<h3 id="平行投影的规范视见体"><a href="#平行投影的规范视见体" class="headerlink" title="平行投影的规范视见体"></a>平行投影的规范视见体</h3><ul>
+<li>半立方体</li>
+</ul>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>u&#x3D;-1,u&#x3D;1\<br>v&#x3D;-1,v&#x3D;1\<br>n&#x3D;-1,n&#x3D;0<br>\end{array}<br>\right.<br>$$</p>
+<h3 id="透视投影的规范视见体"><a href="#透视投影的规范视见体" class="headerlink" title="透视投影的规范视见体"></a>透视投影的规范视见体</h3><ul>
+<li>四棱台</li>
+</ul>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>u&#x3D;-n,u&#x3D;n\<br>v&#x3D;-n,v&#x3D;n\<br>n&#x3D;-1,n&#x3D;-n_{min}<br>\end{array}<br>\right.<br>$$</p>
+<h3 id="平行投影视见体的规范化"><a href="#平行投影视见体的规范化" class="headerlink" title="平行投影视见体的规范化"></a>平行投影视见体的规范化</h3><ul>
+<li>将任意的平行投影视见体变换为规范平行投影视见体</li>
+<li>变换的分解与合成</li>
+<li>例如之前的 OpenGL 的变换推导</li>
+</ul>
+<h3 id="透视投影视见体的规范化"><a href="#透视投影视见体的规范化" class="headerlink" title="透视投影视见体的规范化"></a>透视投影视见体的规范化</h3><ul>
+<li>将任意的透视投影视见体变换为规范透视投影视见体</li>
+<li>变换的分解与合成</li>
+<li>例如之前的 OpenGL 的变换推导</li>
+</ul>
+<h3 id="规范视见体之间的变换"><a href="#规范视见体之间的变换" class="headerlink" title="规范视见体之间的变换"></a>规范视见体之间的变换</h3><ul>
+<li>将透视投影的规范视见体变换为平行投影的规范视见体</li>
+<li>原因<ul>
+<li>关于长方体的裁剪较关于正四棱台的裁剪简单</li>
+<li>平行投影较透视投影简单</li>
+<li>透视投影与平行投影都采用同一套裁剪与投影程序，处理一致，便于用硬件实现</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>\begin{bmatrix}<br>1&amp;0&amp;0&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;\dfrac{1}{1-n_{min}}&amp;\dfrac{n_{min}}{1-n_{min}}\<br>0&amp;0&amp;-1&amp;0<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>$n_{min}\ge0$</li>
+</ul>
+<h1 id="三维裁剪"><a href="#三维裁剪" class="headerlink" title="三维裁剪"></a>三维裁剪</h1><h2 id="两种方法"><a href="#两种方法" class="headerlink" title="两种方法"></a>两种方法</h2><ul>
+<li>将齐次坐标转换为三维坐标，在三维空间对视见体裁剪<ul>
+<li>三维裁剪相对容易</li>
+<li>需要将齐次坐标转换为三维坐标</li>
+</ul>
+</li>
+<li>直接在四维齐次坐标空间中进行裁剪<ul>
+<li>不需要将齐次坐标转换为三维坐标</li>
+<li>有理曲线曲面可以直接用齐次坐标来表示，对它们的裁剪只能在齐次坐标空间中进行</li>
+<li>四维裁剪相对复杂</li>
+</ul>
+</li>
+</ul>
+<h2 id="关于规范视见体的裁剪"><a href="#关于规范视见体的裁剪" class="headerlink" title="关于规范视见体的裁剪"></a>关于规范视见体的裁剪</h2><ul>
+<li>直线段裁剪的Cohen_Sutherland算法、梁_Barskey算法的直接推广</li>
+<li>多边形裁剪的Sutherland_Hodgman算法的直接推广</li>
+<li>齐次坐标空间中的裁剪<ul>
+<li>四维裁剪体的定义</li>
+</ul>
+</li>
+</ul>
+<h1 id="相机的任意控制"><a href="#相机的任意控制" class="headerlink" title="相机的任意控制"></a>相机的任意控制</h1><h2 id="欧拉变换"><a href="#欧拉变换" class="headerlink" title="欧拉变换"></a>欧拉变换</h2><ul>
+<li><p>Euler 变换</p>
+</li>
+<li><p>缺省视域方向</p>
+<ul>
+<li>视线为 -z 轴</li>
+<li>头顶朝向为 +y 轴</li>
+<li>右手系</li>
+</ul>
+</li>
+<li><p>$E(h,p,r)&#x3D;R_z(r)R_x(p)R_y(h)$</p>
+<ul>
+<li>旋转顺序：${\color{red}yzx}$</li>
+</ul>
+</li>
+<li><p>正交矩阵 $E$</p>
+<ul>
+<li>$E^{-1}&#x3D;E^T&#x3D;(R_zR_xR_y)^T&#x3D;R_y^TR_x^TR_z^T$</li>
+</ul>
+</li>
+<li><p>方向规定：</p>
+<ul>
+<li>$head&#x2F;yaw:z\to x$</li>
+<li>$pitch:y\to z$</li>
+<li>$roll:y\to x$<ul>
+<li><span style="color:red;font-weight:bold">和右手系相反</span></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Gimbal lock：万向锁</p>
+<ul>
+<li>一个自由度缺失</li>
+<li>旋转一直都是在物体所在的局部坐标系变换<ul>
+<li>在旋转的过程中，某个轴旋转的时候与一开始的某个其他轴重合</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>$c$ 表示 $\cos$，$s$ 表示 $\sin$</p>
+</li>
+</ul>
+<p>$$<br>E(h,p,r)&#x3D;<br>\begin{bmatrix}<br>c_yc_z-s_xs_ys_z&amp;-c_xc_z&amp;s_yc_z+s_xc_ys_z&amp;0\<br>c_ys_z+s_xs_yc_z&amp;c_xc_z&amp;s_ys_z-s_xc_yc_z&amp;0\<br>-s_yc_x&amp;s_x&amp;c_xc_y&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<p>$$<br>E(h,p,r)&#x3D;<br>\begin{bmatrix}<br>c_hc_r-s_ps_hs_r&amp;-c_pc_r&amp;s_hc_r+s_pc_hs_r&amp;0\<br>c_hs_r+s_ps_hc_r&amp;c_pc_r&amp;s_hs_r-s_pc_hc_r&amp;0\<br>-s_hc_p&amp;s_p&amp;c_pc_h&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>当 $p&#x3D;\dfrac{\pi}{2}$ 时，自由度损失</li>
+</ul>
+<p>$$<br>E(h,p,r)&#x3D;<br>\begin{bmatrix}<br>c_hc_r-s_hs_r&amp;0&amp;s_hc_r+c_hs_r&amp;0\<br>c_hs_r+s_hc_r&amp;0&amp;s_hs_r-c_hc_r&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<p>$$<br>E(h,p,r)&#x3D;<br>\begin{bmatrix}<br>\cos(h+r)&amp;0&amp;\sin(h+r)&amp;0\<br>\sin(h+r)&amp;0&amp;-\cos(h+r)&amp;0\<br>0&amp;1&amp;0&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>万向锁产生，$h,r$ 共轴</li>
+</ul>
+<h2 id="四元数-Quaternion"><a href="#四元数-Quaternion" class="headerlink" title="四元数 Quaternion"></a>四元数 Quaternion</h2><ul>
+<li>最早由 Sir William Rowan Hamilton 于 1843 年提出，从复数推广到四维空间</li>
+<li>1985年，Shoemake 把四元数引入计算机图形学</li>
+<li>在表示旋转和朝向方面，优于Euler角。具有表示紧凑，朝向插值稳定的优点，在虚拟现实系统中，常用于表示各种视点（camera）的旋转变换</li>
+<li>定义<ul>
+<li>$\vec{q}&#x3D;(\vec{q_v},q_w)&#x3D;(iq_x+jq_y+kq_z+q_w)&#x3D;\vec{q_v}+q_w$</li>
+<li>$\vec{q_v}&#x3D;(iq_x+jq_y+kq_z)&#x3D;(q_x,q_y,q_z)$</li>
+<li>$i^2&#x3D;j^2&#x3D;k^2&#x3D;1,ij&#x3D;-ji&#x3D;k,jk&#x3D;-kj&#x3D;i,ki&#x3D;-ik&#x3D;j$<ul>
+<li>感觉和 xyz 坐标系差不多</li>
+</ul>
+</li>
+<li>$q_w$ 称为<strong>实部</strong>，$\vec{q_v}$ 称为<strong>虚部</strong></li>
+<li>$i,j,k$ 称为虚轴</li>
+</ul>
+</li>
+</ul>
+<h3 id="四元数性质"><a href="#四元数性质" class="headerlink" title="四元数性质"></a>四元数性质</h3><ul>
+<li>四元数乘法：直接展开即可</li>
+</ul>
+<p>$$<br>\begin{aligned}<br>\vec{q}\vec{r}&#x3D;&amp;(iq_x+jq_y+kq_z+q_w)(ir_x+jr_y+kr_z+r_w)\<br>&#x3D;&amp;(\vec{q_v}\times\vec{r_v}+r_w\vec{q_v}+q_w\vec{r_v},q_wr_w-\vec{q_v}\cdot\vec{r_w})\<br>&#x3D;&amp;(q_yr_z-q_zr_y+r_wq_x+q_wr_x,\<br>&amp;q_zr_x-q_xr_z+r_wq_y+q_wr_y,\<br>&amp;q_xr_y-q_yr_x+r_wq_z+q_wr_z,\<br>&amp;q_wr_w-q_xr_x-q_yr_y-q_zr_z)<br>\end{aligned}<br>$$</p>
+<ul>
+<li>四元数加法：实部虚部分开做加法<ul>
+<li>$\vec{q}+\vec{r}&#x3D;(\vec{q_v}+\vec{r_v},q_w+r_w)$</li>
+</ul>
+</li>
+<li>四元数共轭<ul>
+<li>$\vec{q}^\star&#x3D;(-\vec{q_v},q_w)$</li>
+</ul>
+</li>
+<li>四元数范数<ul>
+<li>$n(\vec{q})&#x3D; \Vert \vec{q}^2\Vert &#x3D;\vec{q}\vec{q}^\star&#x3D;\vec{q}^\star\vec{q}&#x3D;\vec{q_v}\cdot\vec{q_v}+q_w^2&#x3D;\vec{q_x}^2+\vec{q_y}^2+\vec{q_z}^2+q_w^2$</li>
+</ul>
+</li>
+<li>四元数的逆<ul>
+<li>$\vec{q}^{-1}&#x3D;\dfrac{\vec{q}^\star}{\Vert\vec{q}^2\Vert}$</li>
+</ul>
+</li>
+<li>共轭法则<ul>
+<li>$(\vec{q}^\star)^\star&#x3D;\vec{q}$</li>
+<li>$(\vec{q}+\vec{r})^\star&#x3D;\vec{q}^\star+\vec{r}^\star$</li>
+<li>$(\vec{q}\vec{r})^\star&#x3D;\vec{r}^\star\vec{q}^\star$</li>
+</ul>
+</li>
+<li>范数法则<ul>
+<li>$n(\vec{q})&#x3D;n(\vec{q}^\star)$</li>
+<li>$n(\vec{q}\vec{r})&#x3D;n(\vec{q})n(\vec{r})$</li>
+</ul>
+</li>
+<li>线性性质<ul>
+<li>$\vec{p}(s\vec{q}+t\vec{r})&#x3D;s\vec{p}\vec{q}+t\vec{p}\vec{r}$</li>
+<li>$(s\vec{q}+t\vec{r})\vec{p}&#x3D;s\vec{q}\vec{p}+t\vec{r}\vec{p}$</li>
+</ul>
+</li>
+<li>交换律<ul>
+<li>$(\vec{p}\vec{q})\vec{r}&#x3D;\vec{p}(\vec{q}\vec{r})$</li>
+</ul>
+</li>
+<li>单位四元数<ul>
+<li>$n(\vec{q})&#x3D;1$</li>
+<li>可以写成 $\vec{q}&#x3D;(\sin\phi\vec{u_q},\cos\phi)&#x3D;\sin\phi\vec{u_q}+\cos\phi$，其中 $\Vert\vec{u_q}\Vert&#x3D;1$</li>
+<li>$\vec{q}&#x3D;\sin\phi\vec{u_q},\cos\phi&#x3D;e^{\phi\vec{u_q}}$<ul>
+<li>参照单位复数 $\cos\phi+i\sin\phi&#x3D;e^{i\phi}$</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>单位四元数对数运算<ul>
+<li>$\ln\vec{q}&#x3D;\phi\vec{u_q}$</li>
+</ul>
+</li>
+<li>单位四元数指数运算<ul>
+<li>$\vec{q}^t&#x3D;e^{t\phi\vec{u_q}}&#x3D;\sin(t\phi)\vec{u_q}+\cos(t\phi)$</li>
+</ul>
+</li>
+</ul>
+<h3 id="四元数变换"><a href="#四元数变换" class="headerlink" title="四元数变换"></a>四元数变换</h3><ul>
+<li>单位四元数的最重要性质：能表示任意、旋转，而且表示简单、紧凑</li>
+<li>给定向量 $\vec{p}&#x3D;(p_x,p_y,p_z,p_w)^T$ 和单位四元数 $\vec{q}&#x3D;(\sin\phi\vec{u_q},\cos\phi)$<ul>
+<li>$\vec{q}\vec{p}\vec{q}^{-1}$ 把 $p$ 绕单位轴 $\vec{u_q}$ 旋转 ${\color{red}2\phi}$ 角度</li>
+<li>${\color{red}\mathrm{Proof}}$<ul>
+<li>可以通过最原始的旋转进行验证<ul>
+<li>以单位旋转轴为 z 轴建立新坐标系，坐标系变换</li>
+<li>套用旋转矩阵</li>
+<li>坐标系逆变换</li>
+</ul>
+</li>
+<li>对比得到的矩阵是否一致</li>
+</ul>
+</li>
+<li>旋转模长不变是显然的<ul>
+<li>$\Vert\vec{q}\vec{p}\vec{q}^{-1}\Vert&#x3D;\Vert\vec{q}\Vert\Vert\vec{p}\Vert\Vert\vec{q}^\star\Vert&#x3D;\Vert\vec{p}\Vert$</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="绕任意单位轴的旋转矩阵"><a href="#绕任意单位轴的旋转矩阵" class="headerlink" title="绕任意单位轴的旋转矩阵"></a>绕任意单位轴的旋转矩阵</h4><ul>
+<li>绕单位轴 $(a,b,c)$ 旋转 $\theta$ 的旋转矩阵</li>
+</ul>
+<h5 id="1-建立新坐标系"><a href="#1-建立新坐标系" class="headerlink" title="(1) 建立新坐标系"></a>(1) 建立新坐标系</h5><ul>
+<li>$n&#x3D;(n_x,n_y,n_z)$</li>
+<li>$u&#x3D;(0,\dfrac{-n_z}{\sqrt{n_y^2+n_z^2}},\dfrac{n_y}{\sqrt{n_y^2+n_z^2}})$</li>
+<li>$v&#x3D;n\times u&#x3D;(\sqrt{n_y^2+n_z^2},\dfrac{-n_xn_y}{\sqrt{n_y^2+n_z^2}},\dfrac{-n_xn_z}{\sqrt{n_y^2+n_z^2}})$</li>
+</ul>
+<h5 id="2-坐标变换矩阵"><a href="#2-坐标变换矩阵" class="headerlink" title="(2) 坐标变换矩阵"></a>(2) 坐标变换矩阵</h5><ul>
+<li>$xyz\to uvn$</li>
+</ul>
+<p>$$<br>M_1&#x3D;\begin{bmatrix}<br>u_x &amp; u_y &amp; u_z &amp; 0\<br>v_x &amp; v_y &amp; v_z &amp; 0\<br>n_x &amp; n_y &amp; n_z &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+<h5 id="3-绕-n-z-轴旋转角度-theta"><a href="#3-绕-n-z-轴旋转角度-theta" class="headerlink" title="(3) 绕 n(z) 轴旋转角度 $\theta$"></a>(3) 绕 n(z) 轴旋转角度 $\theta$</h5><p>$$<br>M_2&#x3D;<br>\begin{bmatrix}<br>\cos\theta &amp; -\sin\theta &amp; 0 &amp; 0\<br>\sin\theta &amp; \cos\theta &amp; 0 &amp; 0\<br>0 &amp; 0 &amp; 1&amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+<h5 id="4-坐标变换逆变换"><a href="#4-坐标变换逆变换" class="headerlink" title="(4) 坐标变换逆变换"></a>(4) 坐标变换逆变换</h5><ul>
+<li>正交矩阵 $M_1$</li>
+</ul>
+<p>$$<br>M_3&#x3D;M_1^{-1}&#x3D;M_1^T<br>$$</p>
+<h5 id="5-结果"><a href="#5-结果" class="headerlink" title="(5) 结果"></a>(5) 结果</h5><ul>
+<li>$M_3M_2M_1$</li>
+<li>$c$ 表示 $\cos\theta$，$s$ 表示 $\sin\theta$</li>
+</ul>
+<p>$$<br>\begin{bmatrix}<br>n_x^2+(u_x^2+v_x^2)c&amp;n_xn_y-n_zs+(u_xu_y+v_xv_y)c&amp;n_xn_z+n_ys+(u_xu_z+v_xv_z)c&amp;0\<br>n_xn_y+n_xs+(u_xu_y+v_xv_y)c&amp;(u_y^2+v_y^2)c+n_y^2&amp;n_yn_z-n_xs+(u_yu_z+v_yv_z)c&amp;0\<br>n_xn_z-n_ys+(u_xu_z+v_xv_z)c&amp;n_yn_z+n_xs+(u_yu_z+v_yv_z)c&amp;(u_z^2+v_z^2)c+n_z^2&amp;0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+<p>$$<br>M(\vec{n},\theta)&#x3D;M_3M_2M_1&#x3D;<br>\begin{bmatrix}<br>n_x^2(1-c)+c &amp; n_xn_y(1-c)-n_zs&amp; n_xn_z(1-c)+n_ys&amp; 0\<br>n_xn_y(1-c)+n_zs &amp; n_y^2(1-c)+c &amp; n_yn_z(1-c)-n_xs &amp; 0\<br>n_xn_z(1-c)-n_ys &amp; n_yn_z(1-c)+n_xs &amp; n_z^2(1-c)+c &amp; 0\<br>0 &amp; 0 &amp; 0 &amp; 1\<br>\end{bmatrix}<br>$$</p>
+<h4 id="四元数转化为矩阵形式"><a href="#四元数转化为矩阵形式" class="headerlink" title="四元数转化为矩阵形式"></a>四元数转化为矩阵形式</h4><p>$$<br>\begin{aligned}<br>\vec{q}\vec{p}\vec{q}^{-1}&#x3D;&amp;(q_x,q_y,q_z,q_w)(p_x,p_y,p_z,p_w)(-q_x,-q_y,-q_z,q_w)\<br>&#x3D;&amp;(q_yp_z-q_zp_y+p_wq_x+q_wp_x,\<br>&amp;q_zp_x-q_xp_z+p_wq_y+q_wp_y,\<br>&amp;q_xp_y-q_yp_x+p_wq_z+q_wp_z,\<br>&amp;q_wp_w-q_xp_x-q_yp_y-q_zp_z)(-q_x,-q_y,-q_z,q_w)\<br>&#x3D;&amp;\cdots<br>\end{aligned}<br>$$</p>
+<ul>
+<li>展开即可<ul>
+<li>展开第一项，后面的可以根据循环对称性进行推导</li>
+</ul>
+</li>
+<li>表示方便，我们写成矩阵形式 $\vec{q}\vec{p}\vec{q}^{-1}&#x3D;M^q\vec{p}$</li>
+</ul>
+<p>$$<br>M^q&#x3D;<br>\begin{bmatrix}<br>1-2(q_y^2+q_z^2)&amp;2(q_xq_y-q_zq_w)&amp;2(q_xq_z+q_yq_w)&amp;0\<br>2(q_xq_y+q_zq_w)&amp;1-2(q_x^2+q_z^2)&amp;2(q_yq_z-q_xq_w)&amp;0\<br>2(q_xq_z-q_yq_w)&amp;2(q_yq_z+q_xq_w)&amp;1-2(q_x^2+q_y^2)&amp;0\<br>0&amp;0&amp;0&amp;1<br>\end{bmatrix}<br>$$</p>
+<ul>
+<li>如果 $\vec{q}$ 不是单位四元数，那么上面的 $2$ 全部得换成 $\dfrac{2}{n(\vec{q})}$</li>
+<li>对比 $M(\vec{n},\theta)$ 确实是一致的<ul>
+<li>$\vec{q}&#x3D;(n_x\sin\phi,n_y\sin\phi,n_z\sin\phi,\cos\phi)$</li>
+<li>$\theta&#x3D;2\phi$</li>
+<li>逐个验证即可</li>
+</ul>
+</li>
+</ul>
+<h4 id="矩阵形式转化为四元数"><a href="#矩阵形式转化为四元数" class="headerlink" title="矩阵形式转化为四元数"></a>矩阵形式转化为四元数</h4><ul>
+<li>根据矩阵的性质来进行计算四元数 $\vec{q}$</li>
+</ul>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>tr(M)&#x3D;4q_w^2\<br>m_{21}-m_{12}&#x3D;4q_xq_w\<br>m_{02}-m_{20}&#x3D;4q_yq_w\<br>m_{10}-m_{01}&#x3D;4q_zq_w<br>\end{array}<br>\right.<br>$$</p>
+<p>$$<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>q_w&#x3D;\dfrac{1}{2}\sqrt{tr(M)}\<br>q_x&#x3D;\dfrac{m_{21}-m_{12}}{4q_w}\<br>q_y&#x3D;\dfrac{m_{02}-m_{20}}{4q_w}\<br>q_z&#x3D;\dfrac{m_{10}-m_{01}}{4q_w}<br>\end{array}<br>\right.<br>$$</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/31/CG/LS/05-2/" data-id="cl9lj7493003z64tzay1cc8ca" data-title="计算机图形学.李胜.05.投影(3)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/02/02/CG/LS/06/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          计算机图形学.李胜.06.隐藏面的消除
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/01/31/CG/LS/05-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">计算机图形学.李胜.05.投影(2)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>(论文)[2011] RTSAH Traversal Order for Occlusion Rays | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="RTSAH 进行 occlusion rays 的加速">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2011] RTSAH Traversal Order for Occlusion Rays">
+<meta property="og:url" content="http://example.com/2021/09/13/CG/Papers/2011/rtsah/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="RTSAH 进行 occlusion rays 的加速">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-09-13T12:02:49.000Z">
+<meta property="article:modified_time" content="2021-09-22T03:38:11.468Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="occlusion">
+<meta property="article:tag" content="可见性">
+<meta property="article:tag" content="SAH">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/Papers/2011/rtsah" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/09/13/CG/Papers/2011/rtsah/" class="article-date">
+  <time class="dt-published" datetime="2021-09-13T12:02:49.000Z" itemprop="datePublished">2021-09-13</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CG-Paper/">CG.Paper</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      (论文)[2011] RTSAH Traversal Order for Occlusion Rays
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="RTSAH-Traversal-Order-for-Occlusion-Rays"><a href="#RTSAH-Traversal-Order-for-Occlusion-Rays" class="headerlink" title="RTSAH Traversal Order for Occlusion Rays"></a>RTSAH Traversal Order for Occlusion Rays</h1><h2 id="简要说明"><a href="#简要说明" class="headerlink" title="简要说明"></a>简要说明</h2><ul>
+<li>在 SAH 的基础上，加上一个可见性函数 V，进行对于 occlusion rays 的判定优化</li>
+</ul>
+<h2 id="1-Introduction"><a href="#1-Introduction" class="headerlink" title="1. Introduction"></a>1. Introduction</h2><ul>
+<li>RTSAH<ul>
+<li>ray termination surface area heuristic</li>
+</ul>
+</li>
+<li>能够加速树结构中具体遮挡结点的寻找<ul>
+<li>启发式的展开某个子结点，而不是传统的先展开近的子结点</li>
+<li>可以扩展到半透明的介质（避免了和半透明物体的再次求交）</li>
+</ul>
+</li>
+<li>2x speedups</li>
+<li>Unlike <strong>radiance rays</strong> where we are interested in <strong>the closest hit object</strong>, for <strong>occlusion rays</strong>, we are interested in <strong>whether any hit occurs</strong>.</li>
+<li>一些定义<ul>
+<li>occlusion rays：只返回可见性，而且不能改变方向</li>
+<li>radiance rays：scattering, reflection, refraction, …</li>
+</ul>
+</li>
+<li>对于 occlusion rays 我们只关心是否相交，因此遍历子结点的顺序可以不从近到远</li>
+</ul>
+<h2 id="2-background"><a href="#2-background" class="headerlink" title="2. background"></a>2. background</h2><h3 id="Surface-area-heuristic"><a href="#Surface-area-heuristic" class="headerlink" title="Surface area heuristic"></a>Surface area heuristic</h3><ul>
+<li>表面积启发式算法<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/lookof/p/3546320.html">关于 SAH 的介绍</a></li>
+</ul>
+</li>
+<li>SAH 的基本假设<ul>
+<li>所有的光线在整个场景中均匀分布</li>
+<li>光线不会被遮挡（击中一个物体后继续传播）</li>
+</ul>
+</li>
+<li>有如下概率公式</li>
+</ul>
+<p>$$<br>P(\mathrm{child\ hit|parent\ hit})&#x3D;\dfrac{\mathrm{SurfaceArea(child)}}{\mathrm{SurfaceArea(parent)}}<br>$$</p>
+<ul>
+<li>我们进行如下定义</li>
+</ul>
+<p>$$<br>P_x&#x3D;P(\mathrm{node\ x\ hit|x’parent\ hit})<br>$$</p>
+<ul>
+<li>我们假设每一次求交（intersection test）和结点遍历（node traversal step）的代价是一个固定值，$T_{\mathrm{intersection}},T_{\mathrm{step}}$</li>
+<li>结点遍历代价如下（递归定义）<ul>
+<li>$N_x$ 表示结点 $x$ 中的 object 个数</li>
+<li>$l,r$ 表示左子树与右子树</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>C_{\mathrm{node}}&#x3D;\left{<br>\begin{array}{<strong>ll</strong>}<br>P_lC_l+P_rC_r+T_{\mathrm{step}} &amp; \mathrm{if\ an\ inner\ node,}\<br>N_{\mathrm{parent}}T_{\mathrm{intersection}}+T_{\mathrm{step}} &amp; \mathrm{if\ a\ leaf.} \<br>\end{array}<br>\right.<br>$$</p>
+<ul>
+<li>在实际进行估计的时候，计算 $C_{\mathrm{cost}}$ 的时候可以把 $C_l,C_r$ 当作叶子结点处理<ul>
+<li>WALD I., HAVRAN V.: On building fast kd-trees for ray tracing, and on doing that in O(N logN). In Symposium on Interactive Ray Tracing (2006), pp. 61–70.</li>
+</ul>
+</li>
+<li>BSP vs BVH<ul>
+<li>BSP(binary space partitioning)、BVH(bounding volume hierarchy)</li>
+<li>BSP：没有重叠，按照从近到远的顺序找到的第一个交点就是结果</li>
+<li>BVH：可能有重叠，找到第一个交点之后可能还需要进一步判断<ul>
+<li>判断能否提前停止树上的查找就是一个比较强的优化（SAH 不考虑这个）</li>
+<li>SAH 加入这个判断反而可能变慢<ul>
+<li>HAVRAN V.: Heuristic Ray Shooting Algorithms. PhD thesis, Faculty of Electrical Engineering, Czech Technical University in Prague, 2001. 2</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-RTSAH"><a href="#3-RTSAH" class="headerlink" title="3. RTSAH"></a>3. RTSAH</h2><ul>
+<li>我们扩展了 SAH 算法，认为每一个结点都有一个连续的可见性函数 $V$</li>
+<li>简单化，我们认为非空的叶子结点（leaf）是完全不透明的（$V&#x3D;0$）,空的叶子结点是完全透明的（$V&#x3D;1$）<ul>
+<li>内部节点（interior node）由一些空的和非空的结点组成，$V$ 介于零一之间</li>
+<li><a href="#define_v">具体定义在下面</a></li>
+</ul>
+</li>
+<li><strong>在树中只要找到了一个结点相交，那么立即停止遍历</strong><ul>
+<li>因此如果遍历的时候进入了其中一个子结点，那么一定不会进入另一个子结点</li>
+</ul>
+</li>
+<li>$P_{lr}$ 表示光线同时穿过左右两个子结点的概率<ul>
+<li>$P_{jl}&#x3D;P_l-P_{lr}$：只穿过左子结点，不穿过右子结点的概率</li>
+<li>$P_{jr}&#x3D;P_r-P_{lr}$：只穿过左子结点，不穿过右子结点的概率</li>
+<li>$P_e&#x3D;1-(P_{jl}+P_{jr}+P_{lr})$：都未击中的概率</li>
+</ul>
+</li>
+<li>步骤（packetized ranged traversal）<ul>
+<li>我们先进入左子结点，看看是否存在光线和这个结点相交</li>
+<li>如果所有的光线都和这个结点相交，那么就不需要进行和另外一个结点的相交测试（intersection test）</li>
+<li>如果只有部分光线或者没有光线和这个结点相交，那么就需要继续对另外一个结点进行相交测试</li>
+</ul>
+</li>
+<li>我们可以得到优先遍历左子结点的代价函数<ul>
+<li>$T_{\mathrm{step}}$：left bounding box</li>
+<li>$P_lC_l$：遍历左子结点的代价（概率 $\times$ 代价）</li>
+<li>$(P_{jr}+P_{lr}V_l+P_e)T_{\mathrm{step}}$：right bounding box<ul>
+<li>$P_{jr}$：没有光线和左结点（的包围盒）相交</li>
+<li>$P_{lr}V_l$：和左结点（的包围盒）相交，但是没有和左结点中的物体相交</li>
+</ul>
+</li>
+<li>$(P_{jr}+P_{lr}V_l)C_{r}$：遍历右子结点的代价</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>leftFirst&#x3D;T_{\mathrm{step}}+P_lC_l+(P_{jr}+P_{lr}V_l)(T_{\mathrm{step}}+C_r)+P_eT_{\mathrm{step}}<br>$$</p>
+<ul>
+<li>右子结点优先</li>
+</ul>
+<p>$$<br>rightFirst&#x3D;T_{\mathrm{step}}+P_rC_r+(P_{jl}+P_{lr}V_r)(T_{\mathrm{step}}+C_l)+P_eT_{\mathrm{step}}<br>$$</p>
+<ul>
+<li>对于 radiance rays，我们希望优先进入距离光线起点比较近的子结点<ul>
+<li>我们假定光线是随机的、相互独立的</li>
+<li>我们假定每次都优先遍历比较近的子结点，代价如下</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>C_{\mathrm{node}}&#x3D;\dfrac{1}{2}(leftFirst+rightFirst)<br>$$</p>
+<ul>
+<li>对于 occlusion rays，我们希望优先进入的结点导致的结果是代价较小的（代价与光线无关）</li>
+</ul>
+<p>$$<br>C_{\mathrm{node}}&#x3D;\min(leftFirst+rightFirst)<br>$$</p>
+<ul>
+<li>叶子节点的代价和上面相同</li>
+</ul>
+<p>$$<br>C_{\mathrm{leaf\ node}}&#x3D;N_{\mathrm{parent}}T_{\mathrm{intersection}}+T_{\mathrm{step}}<br>$$</p>
+<ul>
+<li><span id="define_v">可见性函数 $V$ 的定义如下</span></li>
+</ul>
+<p>$$<br>V_{\mathrm{node}}&#x3D;\left{<br>\begin{array}{<strong>ll</strong>}<br>P_{jl}V_l+P_{jr}V_r+P_{lr}V_lV_r+P_e &amp; \mathrm{if\ an\ inner\ node,}\<br>0 &amp; \mathrm{if\ a\ nonempty\ leaf,} \<br>1 &amp; \mathrm{if\ a\ empty\ leaf.} \<br>\end{array}<br>\right.<br>$$</p>
+<ul>
+<li>$\dfrac{P_{lr}}{P_{l}}$ 可以看成是从左子结点离开到右子结点的一个 rays（energy）的一个辐射因子<ul>
+<li>我么可以通过 SAH 的方式计算 $P_l,P_r$，因此只需要找到上面说的辐射因子，便能够计算出 $P_{lr}$</li>
+<li>接着也能够计算出其他剩余的量：$P_{jl}&#x3D;P_l-P_{lr}$ 等</li>
+</ul>
+</li>
+<li>如何计算辐射因子？<ul>
+<li>论文：Practical applications of form factor computation in lighting calculations</li>
+<li>方法如下<ul>
+<li>decompose the node bounding boxes into their rectangular faces and then analytically compute the form factors between all valid face pairs and for the overlapped region (see [Cho02] for a good survey of the relevant equations).</li>
+<li><span style="color:red;font-weight:bold">TODO</span></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="BSP"><a href="#BSP" class="headerlink" title="BSP"></a>BSP</h3><ul>
+<li>对于 BSP 结构，代价函数是类似的</li>
+<li>$P_e&#x3D;0$，恰好把整个父节点的空间划分给了子结点</li>
+<li>$P_{lr}\ne0$，可能出现光线斜穿的情况</li>
+<li>BSP 不需要上面的辐射因子就能够计算 $P_{lr}$：$P_{lr}&#x3D;P_l+P_r-1$</li>
+<li>occlusion rays<ul>
+<li>$P_e&#x3D;0$</li>
+<li>我们不需要进行对另外一个子结点的包围盒求交测试（不和第一个相交，一定和第二个相交）</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>\begin{aligned}<br>leftFirst<br>&amp;&#x3D;T_{\mathrm{step}}+P_lC_l+(P_{jr}+P_{lr}V_l)C_{r}\<br>&amp;&#x3D;T_{\mathrm{step}}+(P_{jl}C_l+P_{lr}C_l)+(P_{jr}C_r+P_{lr}V_lC_r)\<br>&amp;&#x3D;T_{\mathrm{step}}+P_{jl}C_l+P_{jr}C_r+P_{lr}(C_l+V_lC_r)\<br>\end{aligned}<br>$$</p>
+<p>$$<br>C_{\mathrm{cost}}&#x3D;T_{\mathrm{step}}+P_{jl}C_l+P_{jr}C_r+P_{lr}\min\left{C_l+V_lC_r,C_r+V_rC_l\right}<br>$$</p>
+<h3 id="Approximate-BVH-RTSAH"><a href="#Approximate-BVH-RTSAH" class="headerlink" title="Approximate BVH RTSAH"></a>Approximate BVH RTSAH</h3><ul>
+<li>The BVH preprocess cost can be lowered at the expense of rendering performance by approximating the probabilities instead of finding them by sampling.<ul>
+<li>感觉是在说辐射因子的估计</li>
+</ul>
+</li>
+<li>在实时渲染中，我们可以假设 $P_e&#x3D;0$，可以起到一个加速的效果</li>
+</ul>
+<h2 id="4-Choosing-Traversal-Order-of-Occlusion-Rays"><a href="#4-Choosing-Traversal-Order-of-Occlusion-Rays" class="headerlink" title="4. Choosing Traversal Order of Occlusion Rays"></a>4. Choosing Traversal Order of Occlusion Rays</h2><ul>
+<li>按照上面说的方式比较即可，对于 BSP 树，可以优化（上面提到了）</li>
+</ul>
+<h3 id="Storage-overhead"><a href="#Storage-overhead" class="headerlink" title="Storage overhead"></a>Storage overhead</h3><ul>
+<li>我们只需要知道优先遍历那一个结点即可，而不在意具体的代价值的大小，因此只需要使用一个布尔变量记录即可（可以压缩到其他变量的某一个 bit 中）</li>
+</ul>
+<h3 id="Attenuated-occlusion-rays"><a href="#Attenuated-occlusion-rays" class="headerlink" title="Attenuated occlusion rays"></a>Attenuated occlusion rays</h3><ul>
+<li>半透明材质只是会使得光线有所衰减，而不会让它停止</li>
+<li>我们在判断 occlusion rays 的时候，只需要将上面的定义的函数 $V$ 修改一下<ul>
+<li>如果叶子结点包含的所有物体都是透明材质的，我们让它的 $V&#x3D;1$</li>
+</ul>
+</li>
+<li>对于<strong>只报告可见性</strong>的 occlusion rays，不按照从前往后的顺序去遍历，不会导致半透明物体的不正确渲染</li>
+<li>一个标准的从前向后处理半透明物体的 ray tracer，在加速结构中就应该处理好了半透明物体<ul>
+<li>击中半透明物体之后，应该投射出一条新的光线，继续和加速结构求交</li>
+<li>这样我们就不需要对其进行特殊处理</li>
+</ul>
+</li>
+<li>如果加速结构中没有实现，那么即使是从前向后遍历也可能会出现乱序的问题<ul>
+<li>一个结点内部的物体是没有顺序的，一个物体可能跨越多个结点</li>
+<li>一个简单的解决方案可以是，记录所有的交点，直到找到新的交点之后再进行着色处理</li>
+</ul>
+</li>
+</ul>
+<h2 id="8-conclusion"><a href="#8-conclusion" class="headerlink" title="8. conclusion"></a>8. conclusion</h2><ul>
+<li>We presented <strong>an improved version of the SAH</strong>, which we call the RTSAH, that takes into account <strong>ray termination</strong> and gives the <strong>expected traversal cost of radiance and occlusion rays through a tree</strong>. We then showed how the RTSAH can be used to guide the traversal of occlusion rays through a tree so that an intersection can be more efficiently located. The RTSAH traversal can try to avoid attenuating materials for a further improvement in traversal efficiency. The RTSAH can be computed faster than the tree can be built and there is practically no storage or rendering overhead for using it. For scenes that comprise mostly of occluded rays, the RTSAH traversal can give a substantial performance increase.</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/09/13/CG/Papers/2011/rtsah/" data-id="cl9lj74bu00m364tz6j5c25g2" data-title="(论文)[2011] RTSAH Traversal Order for Occlusion Rays" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/09/16/csharp/tds/00/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          C#程序设计.唐大仕.00.说明
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/08/16/CG/LLG-GAMES102/03/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">GAMES102.刘利刚.03.三次样条函数</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

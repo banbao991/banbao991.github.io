@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>数据库概论.陈立军.10.数据库存储(3) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="索引（B+树索引、哈希索引、位图索引、多维索引）、大数据存储">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库概论.陈立军.10.数据库存储(3)">
+<meta property="og:url" content="http://example.com/2021/07/22/DB/CLJ/10-2/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="索引（B+树索引、哈希索引、位图索引、多维索引）、大数据存储">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722115646764.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722115803243.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722115943985.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722120038047.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722120155032.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722121330812.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722121431617.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722122147024.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722122235492.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722122339863.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722122417849.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722122718846.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722122806181.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722123316608.png">
+<meta property="og:image" content="http://example.com/10-2/image-20210722123632190.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722130746330.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722131359686.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722131422357.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722131557310.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722131605858.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722131820957.png">
+<meta property="og:image" content="http://example.com/10-2/image-20210722132737633.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722133150398.png">
+<meta property="og:image" content="http://example.com/10-2/image-20210722133911722.png">
+<meta property="og:image" content="http://example.com/10-2/image-20210722133949553.png">
+<meta property="og:image" content="http://example.com/10-2/image-20210722134037499.png">
+<meta property="og:image" content="http://example.com/10-2/image-20210722134122970.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722134209891.png">
+<meta property="og:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722134419297.png">
+<meta property="article:published_time" content="2021-07-22T03:50:02.000Z">
+<meta property="article:modified_time" content="2021-07-22T05:45:51.052Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="DB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/07/22/DB/CLJ/10-2/10-2/image-20210722115646764.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-DB/CLJ/10-2" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/22/DB/CLJ/10-2/" class="article-date">
+  <time class="dt-published" datetime="2021-07-22T03:50:02.000Z" itemprop="datePublished">2021-07-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/DB-CLJ/">DB.CLJ</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      数据库概论.陈立军.10.数据库存储(3)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="数据库存储"><a href="#数据库存储" class="headerlink" title="数据库存储"></a>数据库存储</h1><h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h2><ul>
+<li>索引类型<ul>
+<li><strong>顺序索引</strong>：基于值的顺序排序</li>
+<li><strong>散列索引</strong>：基于将值平均分布到若干散列桶中</li>
+</ul>
+</li>
+<li>索引评价指标<ul>
+<li>访问类型</li>
+<li>访问时间</li>
+<li>插入时间</li>
+<li>删除时间</li>
+<li>空间开销</li>
+</ul>
+</li>
+<li>MySQL 索引</li>
+</ul>
+<img src="10-2/image-20210722115646764.png" style="zoom: 80%;" />
+
+
+
+<h3 id="B-树索引"><a href="#B-树索引" class="headerlink" title="B+树索引"></a>B+树索引</h3><ul>
+<li>树结点<ul>
+<li>Ki 是搜索码，Pi 是指针</li>
+</ul>
+</li>
+</ul>
+<img src="10-2/image-20210722115803243.png" style="zoom: 67%;" />
+
+<ul>
+<li>每个非叶结点有 $\lceil\dfrac{n}{2}\rceil$ 到 $n$ 个子女</li>
+<li>n&#x3D;3</li>
+</ul>
+<img src="10-2/image-20210722115943985.png" style="zoom:67%;" />
+
+
+
+<h4 id="插入操作"><a href="#插入操作" class="headerlink" title="插入操作"></a>插入操作</h4><ul>
+<li>插入可能导致结点分裂</li>
+</ul>
+<img src="10-2/image-20210722120038047.png" style="zoom: 80%;" />
+
+<h4 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h4><ul>
+<li>删除可能导致结点合并</li>
+</ul>
+<img src="10-2/image-20210722120155032.png" style="zoom: 67%;" />
+
+
+
+<h4 id="B-树-vs-二叉树"><a href="#B-树-vs-二叉树" class="headerlink" title="B+树 vs 二叉树"></a>B+树 vs 二叉树</h4><ul>
+<li>B+ 树胖而矮<ul>
+<li>假定树结点大小与磁盘块大小相等，为4k，n&#x3D;100，有1百万个搜索码，$\log_{50}(10^6)&#x3D;4$，访问 4 个磁盘结点</li>
+</ul>
+</li>
+<li>二叉树瘦而高<ul>
+<li>$\log_{2}(10^6)&#x3D;20$</li>
+</ul>
+</li>
+<li>二叉树：内存数据库</li>
+<li>B+树：外存索引</li>
+</ul>
+<h4 id="B树-vs-B-树"><a href="#B树-vs-B-树" class="headerlink" title="B树 vs B+树"></a>B树 vs B+树</h4><h5 id="B-树"><a href="#B-树" class="headerlink" title="B 树"></a>B 树</h5><ul>
+<li>所有的 key 值分布在<strong>整个树</strong>中</li>
+<li>所有的 key 值出现在<strong>一个结点</strong>中</li>
+<li><strong>搜索可以在非叶结点处结束</strong></li>
+</ul>
+<img src="10-2/image-20210722121330812.png" style="zoom: 67%;" />
+
+
+
+<h5 id="B-树-1"><a href="#B-树-1" class="headerlink" title="B+ 树"></a>B+ 树</h5><ul>
+<li>叶结点通过两个指针相互链接，<strong>顺序查询性能更高</strong></li>
+<li>叶结点来存储数据，而其他结点用于索引</li>
+</ul>
+<img src="10-2/image-20210722121431617.png" style="zoom:67%;" />
+
+<h5 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h5><ul>
+<li>B 树不管叶结点还是非叶结点都会保存数据，**导致在非叶结点中能保存的指针数量变少(fan out)**，要保存大量数据，只能增加树的高度，使得 IO 操作变多，查询性能变低</li>
+<li>B 树查询代价不固定，适合点查询</li>
+<li>B+ 树数据在叶结点上，叶子结点之间通过双向链表连接，有利于数据遍历</li>
+</ul>
+<h5 id="性能"><a href="#性能" class="headerlink" title="性能"></a>性能</h5><ul>
+<li>InnoDB 一棵 B+ 树可以存放多少行？</li>
+<li>假定一个页 16K，一行 1k，一页存放 16 行</li>
+<li>假定主码为 bigint，长度 8 字节，指针 6 字节，共 14 字节，一个页中能存放 16384&#x2F;14&#x3D;1170</li>
+<li>一棵高度为 2 的 B+ 树，能存放 1170 x 16 &#x3D; 18720 条这样的数据记录</li>
+<li>一个高度为 3 的 B+ 树可以存放：1170 x 1170 x 16 &#x3D; 21902400 条这样的记录</li>
+</ul>
+<h4 id="SQL-Server-数据查找"><a href="#SQL-Server-数据查找" class="headerlink" title="SQL Server 数据查找"></a>SQL Server 数据查找</h4><h5 id="堆上的表"><a href="#堆上的表" class="headerlink" title="堆上的表"></a>堆上的表</h5><ul>
+<li>无索引</li>
+<li>通过 IAM</li>
+</ul>
+<img src="10-2/image-20210722122147024.png" style="zoom:80%;" />
+
+
+
+<h5 id="聚簇索引"><a href="#聚簇索引" class="headerlink" title="聚簇索引"></a>聚簇索引</h5><ul>
+<li>物理相邻</li>
+</ul>
+<img src="10-2/image-20210722122235492.png" style="zoom:80%;" />
+
+
+
+<h5 id="堆上的非聚簇索引"><a href="#堆上的非聚簇索引" class="headerlink" title="堆上的非聚簇索引"></a>堆上的非聚簇索引</h5><img src="10-2/image-20210722122339863.png" style="zoom:80%;" />
+
+
+
+<h5 id="聚簇索引表上的非聚簇索引"><a href="#聚簇索引表上的非聚簇索引" class="headerlink" title="聚簇索引表上的非聚簇索引"></a>聚簇索引表上的非聚簇索引</h5><ul>
+<li>需要从聚簇索引去找</li>
+</ul>
+<img src="10-2/image-20210722122417849.png" style="zoom:80%;" />
+
+
+
+<h3 id="哈希索引"><a href="#哈希索引" class="headerlink" title="哈希索引"></a>哈希索引</h3><ul>
+<li><p>散列索引</p>
+</li>
+<li><p>桶（bucket）</p>
+<ul>
+<li>存储一条或多条记录的存储单元</li>
+</ul>
+</li>
+<li><p>散列（hash）</p>
+<ul>
+<li>散列函数 h(K)&#x3D;B</li>
+<li>K 是搜索码，B 是桶地址</li>
+</ul>
+</li>
+<li><p>桶溢出（bucket overflow）</p>
+<ul>
+<li>桶不足（insufficient bucket）</li>
+<li>偏斜（skew）</li>
+</ul>
+</li>
+<li><p>散列函数</p>
+<ul>
+<li>分布是均匀的，桶包含记录的个数是均匀的</li>
+<li>分布是随机的，散列值不能与搜索码值呈现出相关性</li>
+</ul>
+</li>
+<li><p>示意图</p>
+</li>
+</ul>
+<img src="10-2/image-20210722122718846.png" style="zoom:67%;" />
+
+<ul>
+<li>开链（溢出链）</li>
+</ul>
+<img src="10-2/image-20210722122806181.png" style="zoom:67%;" />
+
+
+
+<h4 id="MySQL-中的散列索引"><a href="#MySQL-中的散列索引" class="headerlink" title="MySQL 中的散列索引"></a>MySQL 中的散列索引</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> testtable(</span><br><span class="line">    fname <span class="type">varchar</span>(<span class="number">50</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    lname <span class="type">varchar</span>(<span class="number">50</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    key <span class="keyword">using</span> hash(fname)</span><br><span class="line">) ENGINE<span class="operator">=</span>MEMORY;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>AHI：innodb_adaptive_hash_index</li>
+<li>B+ 树索引的索引<ul>
+<li>当对某个页面访问次数满足一定条件时会将页面地址存于 Hash 表，下次查询时不需要 B+ 树那样从根结点到叶子结点逐级查找，只需一次哈希算法即可立刻定位到相应的位置</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">user</span>(</span><br><span class="line">    id <span class="type">int</span>,</span><br><span class="line">    email <span class="type">char</span>(<span class="number">100</span>),</span><br><span class="line">    email_hash <span class="type">int</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">trigger</span> user_hash_insert</span><br><span class="line">before <span class="keyword">insert</span> <span class="keyword">on</span> <span class="string">&#x27;user&#x27;</span></span><br><span class="line"><span class="keyword">for</span> <span class="keyword">each</span> <span class="type">row</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">    <span class="keyword">set</span> new.email_hash<span class="operator">=</span>crc32(new.email)</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> email, email_hash <span class="keyword">from</span> <span class="keyword">user</span></span><br><span class="line"><span class="keyword">where</span> email_hash<span class="operator">=</span>CRC32(&quot;F2dgTSWRBXSZ1d3O@gmail.com&quot;)</span><br><span class="line">    <span class="keyword">and</span> email<span class="operator">=</span>&quot;F2dgTSWRBXSZ1d3O@gmail.com&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="位图索引"><a href="#位图索引" class="headerlink" title="位图索引"></a>位图索引</h3><ul>
+<li>针对一些特殊的列建立索引</li>
+<li>列中的<strong>每一个值</strong>对应一个向量中的<strong>一位</strong></li>
+<li>向量的长度对应与记录的条数</li>
+<li><strong>不适合列中值的个数太多的情况</strong></li>
+</ul>
+<img src="10-2/image-20210722123316608.png" style="zoom: 67%;" />
+
+
+
+<h4 id="基于位图索引回答查询"><a href="#基于位图索引回答查询" class="headerlink" title="基于位图索引回答查询"></a>基于位图索引回答查询</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> cust</span><br><span class="line"><span class="keyword">from</span> BaseTable</span><br><span class="line"><span class="keyword">Where</span> Region<span class="operator">=</span><span class="string">&#x27;Asia&#x27;</span> <span class="keyword">and</span> Type<span class="operator">=</span><span class="string">&#x27;Dealer&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>基于位图索引的话就是向量的<strong>与或非操作</strong><ul>
+<li>BitMap for Region(Asia)：10100</li>
+<li>BitMap for Type(Dealer)：01101</li>
+<li>查询结果：向量与操作：00100</li>
+</ul>
+</li>
+</ul>
+<h4 id="位图索引与-B-树的比较"><a href="#位图索引与-B-树的比较" class="headerlink" title="位图索引与 B 树的比较"></a>位图索引与 B 树的比较</h4><ul>
+<li>位图索引适用于唯一值比较少的时候</li>
+</ul>
+<p><img src="/10-2/image-20210722123632190.png"></p>
+<h4 id="位图索引对分析查询的优势"><a href="#位图索引对分析查询的优势" class="headerlink" title="位图索引对分析查询的优势"></a>位图索引对分析查询的优势</h4><ul>
+<li>问题：在美国加州有多少男性未申请保险？</li>
+<li>设表中有 10M 个记录，每个记录长 800 字节，每一页 16K 字节</li>
+<li>传统全表扫描<ul>
+<li>则扫描此表共需 50 万次 I&#x2F;O 操作</li>
+</ul>
+</li>
+<li>位图位片索引是将属性列的域值按照某种方式进行垂直分割，然后以二进制位图的形式存储<ul>
+<li>对于 10M 个记录建立三列的位图索引共占（10Mbit*3列&#x2F;8) 字节的空间，每页 16K，则这些索引仅占 235 页，因此存取这些索引只要 235 次 I&#x2F;O 操作</li>
+</ul>
+</li>
+</ul>
+<h4 id="位片索引"><a href="#位片索引" class="headerlink" title="位片索引"></a>位片索引</h4><ul>
+<li>Bit-sliced Index</li>
+<li>位片索引是将<strong>属性列的域值</strong>按照某种方式进行<strong>垂直分割</strong>，然后<strong>以二进制位图的形式存储</strong></li>
+</ul>
+<img src="10-2/image-20210722130746330.png" style="zoom:67%;" />
+
+
+
+<h3 id="多维索引"><a href="#多维索引" class="headerlink" title="多维索引"></a>多维索引</h3><h4 id="多属性查询"><a href="#多属性查询" class="headerlink" title="多属性查询"></a>多属性查询</h4><ul>
+<li>where 10&lt;A&lt;20 and 10&lt;B&lt;20</li>
+<li>组合索引 idx1 on R(A, B) 或 idx2 on R(B, A)</li>
+<li>单列索引 idx1 on R(A)，idx2 on R(B)<ul>
+<li>AB 存在相关性的时候，使用单列估计存在偏差</li>
+<li>问题：对于查询结果的 Cardinality 估计偏差</li>
+</ul>
+</li>
+</ul>
+<h4 id="k-d-树"><a href="#k-d-树" class="headerlink" title="k-d 树"></a>k-d 树</h4><ul>
+<li>树顶层结点按一维划分，下一层按另一维划分，保持每侧各落入一半数据，直至结点数小于指定值</li>
+</ul>
+<img src="10-2/image-20210722131359686.png" style="zoom:50%;" />
+
+<h4 id="四叉树"><a href="#四叉树" class="headerlink" title="四叉树"></a>四叉树</h4><img src="10-2/image-20210722131422357.png" style="zoom:50%;" />
+
+
+
+<h4 id="R-树"><a href="#R-树" class="headerlink" title="R 树"></a>R 树</h4><ul>
+<li>二维 B 树</li>
+<li><strong>区域间有重叠</strong><ul>
+<li>划分的时候尽可能减小重叠</li>
+</ul>
+</li>
+</ul>
+<img src="10-2/image-20210722131557310.png" style="zoom:80%;" />
+
+<img src="10-2/image-20210722131605858.png" style="zoom:80%;" />
+
+
+
+<h2 id="大数据存储"><a href="#大数据存储" class="headerlink" title="大数据存储"></a>大数据存储</h2><h3 id="表分区"><a href="#表分区" class="headerlink" title="表分区"></a>表分区</h3><h4 id="数据分区"><a href="#数据分区" class="headerlink" title="数据分区"></a>数据分区</h4><img src="10-2/image-20210722131820957.png" style="zoom:67%;" />
+
+<ul>
+<li>使用分区的优点<ul>
+<li><strong>增强可用性</strong>：如果表的某个分区出现故障，表在其他分区的数据仍然可用</li>
+<li><strong>维护方便</strong>：如果表的某个分区出现故障，需要修复数据，只修复该分区即可</li>
+<li><strong>均衡I&#x2F;O</strong>：可以把不同的分区映射到磁盘以平衡I&#x2F;O，改善整个系统性能</li>
+<li><strong>改善查询性能</strong>：对分区对象的查询可以仅搜索自己关心的分区，提高检索速度</li>
+</ul>
+</li>
+</ul>
+<h4 id="Oracle"><a href="#Oracle" class="headerlink" title="Oracle"></a>Oracle</h4><ul>
+<li>Oracle 提供三种分区方法</li>
+<li><strong>范围分区</strong><ul>
+<li>根据某个属性值的范围，决定将该数据存储在哪个分区上</li>
+</ul>
+</li>
+<li><strong>散列分区</strong><ul>
+<li>通过分区编号将数据均匀散列到 I&#x2F;O 设备上，使得这些分区大小一致</li>
+</ul>
+</li>
+<li><strong>复合分区</strong><ul>
+<li>先使用范围分区，然后在每个分区内再使用散列分区</li>
+</ul>
+</li>
+</ul>
+<h4 id="SQL-Server"><a href="#SQL-Server" class="headerlink" title="SQL Server"></a>SQL Server</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建分区函数</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">partition</span> <span class="keyword">function</span> customer_partfunc(<span class="type">int</span>)</span><br><span class="line"><span class="keyword">as</span> <span class="keyword">range</span> <span class="keyword">right</span></span><br><span class="line"><span class="keyword">for</span> <span class="keyword">values</span>(<span class="number">250000</span>,<span class="number">500000</span>,<span class="number">750000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 创建分区架构</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">partition</span> scheme customer_partscheme</span><br><span class="line"><span class="keyword">as</span> <span class="keyword">partition</span> customer_partfunc</span><br><span class="line"><span class="keyword">to</span>(fg1,fg2,fg3,fg4)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 对表进行分区</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> customers(</span><br><span class="line">    FirstName nvarchar(<span class="number">40</span>),</span><br><span class="line">    LastName nvarchar(<span class="number">40</span>),</span><br><span class="line">    CustomerNumber <span class="type">int</span>)</span><br><span class="line"><span class="keyword">on</span> customer_partscheme(CustomerNumber)</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="物化视图"><a href="#物化视图" class="headerlink" title="物化视图"></a>物化视图</h3><ul>
+<li><strong>视图的计算结果被实际存储起来</strong></li>
+<li>物化视图可以看成是数据库的 <strong>cache</strong></li>
+<li>查询物化视图比重新计算视图要快许多</li>
+<li>需要进行物化视图与基本表之间的一致性维护</li>
+<li>应用场合<ul>
+<li>任何需要快速访问派生数据、或视图的重新计算非常昂贵、或查询需要耗费非常高的 CPU 和磁盘吞吐量的应用场合，都可以使用物化视图来提高效率</li>
+</ul>
+</li>
+<li>引入物化视图后的体系结构</li>
+</ul>
+<p><img src="/10-2/image-20210722132737633.png"></p>
+<h4 id="SQL-Server-1"><a href="#SQL-Server-1" class="headerlink" title="SQL Server"></a>SQL Server</h4><ul>
+<li>索引视图</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 定义视图</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">view</span> iv_avg_grade(s#,avg_grade,cnts)</span><br><span class="line"><span class="keyword">with</span> schemabinding</span><br><span class="line"><span class="keyword">as</span></span><br><span class="line"><span class="keyword">select</span> s#,<span class="built_in">avg</span>(grade),number<span class="operator">=</span>count_big(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">from</span> dbo.SC</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> s#</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 针对视图创建聚簇索引</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">unique</span> clustered index idx_avg_grade</span><br><span class="line"><span class="keyword">on</span> iv_avg_grade(s#)</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="Oracle-1"><a href="#Oracle-1" class="headerlink" title="Oracle"></a>Oracle</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> materialized <span class="keyword">view</span> my_grade_aggs</span><br><span class="line">bulid immediate</span><br><span class="line">refresh <span class="keyword">on</span> <span class="keyword">commit</span></span><br><span class="line">enable query rewrite</span><br><span class="line"><span class="keyword">as</span></span><br><span class="line"><span class="keyword">select</span> s#, <span class="built_in">avg</span>(grade)</span><br><span class="line"><span class="keyword">from</span> SC</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> s#</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="按列存储"><a href="#按列存储" class="headerlink" title="按列存储"></a>按列存储</h3><img src="10-2/image-20210722133150398.png" style="zoom:80%;" />
+
+<ul>
+<li>按行：访问单条纪录块</li>
+<li>按列：大规模处理数据快</li>
+<li>按列存储适合数据仓库、大规模数据分析的场合</li>
+</ul>
+<h4 id="按列存储的优点"><a href="#按列存储的优点" class="headerlink" title="按列存储的优点"></a>按列存储的优点</h4><ul>
+<li><strong>提高带宽利用率</strong><ul>
+<li>按列存储时，只有那些被查询访问的属性才会从磁盘读出；按行存储时，周围属性也被一并读出</li>
+</ul>
+</li>
+<li><strong>提高数据压缩率</strong><ul>
+<li>将同一个属性域的数据存储在一起，提高了局部性以及压缩比率</li>
+<li>传输压缩数据同样减少了带宽</li>
+</ul>
+</li>
+<li><strong>提高了 cache 局部性</strong><ul>
+<li>cacheline 比一个元组属性要大，因此按行存储时 cacheline 可能会包含不相关的周边属性，浪费 cache 的空间，减少命中率</li>
+</ul>
+</li>
+</ul>
+<h4 id="按列存储的缺点"><a href="#按列存储的缺点" class="headerlink" title="按列存储的缺点"></a>按列存储的缺点</h4><ul>
+<li><strong>增加了磁盘寻道时间</strong><ul>
+<li>如果需要并行读取多个列，在各个块读之间需要进行磁盘寻道</li>
+</ul>
+</li>
+<li><strong>增加插入操作的代价</strong><ul>
+<li>对于插入操作，按列存储的性能很差，因为对每条插入的元组都需要在磁盘的多个不同位置更新</li>
+</ul>
+</li>
+<li><strong>增加重构元组的代价</strong><ul>
+<li>按列存储如果想支持标准的关系数据库接口，就必须将多个列拼合起来，构成一条元组输出</li>
+</ul>
+</li>
+</ul>
+<h4 id="按列存储适合的场合"><a href="#按列存储适合的场合" class="headerlink" title="按列存储适合的场合"></a>按列存储适合的场合</h4><ul>
+<li>数据仓库<ul>
+<li>批量写、高带宽要求、查询计划经常是表扫描</li>
+</ul>
+</li>
+<li>Semantic Web<ul>
+<li>RDF</li>
+</ul>
+</li>
+<li>宽表<ul>
+<li>电子商务目录：包含2百万个零件，分成500个目录，每个目录包含4000个属性</li>
+<li>稀疏列</li>
+</ul>
+</li>
+</ul>
+<h4 id="RDF"><a href="#RDF" class="headerlink" title="RDF"></a>RDF</h4><ul>
+<li>资源描述框架</li>
+<li>三元组：&lt;标识名，属性名，属性值&gt;</li>
+</ul>
+<p><img src="/10-2/image-20210722133911722.png"></p>
+<ul>
+<li>稀疏的时候，按列存储，效率高</li>
+</ul>
+<p><img src="/10-2/image-20210722133949553.png"></p>
+<h4 id="稀疏属性的存储"><a href="#稀疏属性的存储" class="headerlink" title="稀疏属性的存储"></a>稀疏属性的存储</h4><h5 id="位置列表"><a href="#位置列表" class="headerlink" title="位置列表"></a>位置列表</h5><ul>
+<li>特别稀疏的时候直接存位置即可</li>
+</ul>
+<p><img src="/10-2/image-20210722134037499.png"></p>
+<h5 id="位串"><a href="#位串" class="headerlink" title="位串"></a>位串</h5><ul>
+<li>类似位图</li>
+</ul>
+<p><img src="/10-2/image-20210722134122970.png"></p>
+<h5 id="位置范围"><a href="#位置范围" class="headerlink" title="位置范围"></a>位置范围</h5><img src="10-2/image-20210722134209891.png"  />
+
+
+
+<h5 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h5><ul>
+<li>对于位置列表方式，代价是每个非空值的 32 位额外开销。如果一个列的稀疏度是98%，每个空值的开销是0.65位</li>
+<li>对于位串方式，位置表示的开销是列中的每个值（不管是否为空）都占用一个位。因此如果一个列的稀疏度是50%，每个空值的开销是 2 个位</li>
+<li>对于位置范围方式，每个<strong>非连续非空值的位置</strong>表示开销是 64 位</li>
+</ul>
+<h3 id="BLOB-存储"><a href="#BLOB-存储" class="headerlink" title="BLOB 存储"></a>BLOB 存储</h3><ul>
+<li>直接存储在数据库内<ul>
+<li>varchar(max), varbinary(max)</li>
+</ul>
+</li>
+<li>存储在文件系统中<ul>
+<li>数据库存储文件路径信息</li>
+</ul>
+</li>
+<li>FileStream<ul>
+<li>逻辑上 BLOB 对象与结构化数据是一体的，物理上是分离的</li>
+</ul>
+</li>
+</ul>
+<h3 id="数据压缩"><a href="#数据压缩" class="headerlink" title="数据压缩"></a>数据压缩</h3><img src="10-2/image-20210722134419297.png" style="zoom:80%;" />
+
+<ul>
+<li>MySQL 的 compressed 行结构，采用 zlib 压缩算法</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/07/22/DB/CLJ/10-2/" data-id="cl9lj74b100gn64tzcggv4b3w" data-title="数据库概论.陈立军.10.数据库存储(3)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/07/22/DB/CLJ/11/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          数据库概论.陈立军.11.各种连接操作
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/07/21/DB/CLJ/10-1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">数据库概论.陈立军.10.数据库存储(2)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

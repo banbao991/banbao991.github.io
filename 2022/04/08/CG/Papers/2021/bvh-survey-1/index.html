@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(2) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="关于层次包围盒的一篇 survey（层次包围盒的建立方式、top-down、bottom-up）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(2)">
+<meta property="og:url" content="http://example.com/2022/04/08/CG/Papers/2021/bvh-survey-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="关于层次包围盒的一篇 survey（层次包围盒的建立方式、top-down、bottom-up）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/bvh-survey-1/image-20220410134940328.png">
+<meta property="og:image" content="http://example.com/bvh-survey-1/image-20220410135710171.png">
+<meta property="og:image" content="http://example.com/bvh-survey-1/image-20220410155941425.png">
+<meta property="og:image" content="http://example.com/bvh-survey-1/image-20220410162650568.png">
+<meta property="og:image" content="http://example.com/bvh-survey-1/image-20220410161837153.png">
+<meta property="og:image" content="http://example.com/bvh-survey-1/image-20220410163941431.png">
+<meta property="og:image" content="http://example.com/bvh-survey-1/image-20220410174645839.png">
+<meta property="article:published_time" content="2022-04-08T04:33:20.000Z">
+<meta property="article:modified_time" content="2022-04-21T03:04:44.406Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="occlusion">
+<meta property="article:tag" content="BVH">
+<meta property="article:tag" content="EG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/bvh-survey-1/image-20220410134940328.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-CG/Papers/2021/bvh-survey-1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/04/08/CG/Papers/2021/bvh-survey-1/" class="article-date">
+  <time class="dt-published" datetime="2022-04-08T04:33:20.000Z" itemprop="datePublished">2022-04-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      (论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(2)
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="BVH-Survey"><a href="#BVH-Survey" class="headerlink" title="BVH Survey"></a>BVH Survey</h1><ul>
+<li><a href="/2022/04/06/CG/Papers/2021/bvh-survey-home/">目录</a></li>
+</ul>
+<h1 id="4-construct-bvh"><a href="#4-construct-bvh" class="headerlink" title="4. construct bvh"></a>4. construct bvh</h1><h2 id="4-1-Top-Down-Construction"><a href="#4-1-Top-Down-Construction" class="headerlink" title="4.1 Top-Down Construction"></a>4.1 Top-Down Construction</h2><ul>
+<li><p>借鉴 KD-tree 的建立过程</p>
+<ul>
+<li>On Fast Construction of SAH-based Bounding Volume Hierarchies.</li>
+</ul>
+</li>
+<li><p>算法</p>
+<ul>
+<li>根节点包含场景中所有的原体</li>
+<li>从根节点开始，将包含的原体划分为两个不相交的子集（对应两个子节点）</li>
+<li>对子节点做递归的操作，直到遇到终止条件</li>
+</ul>
+</li>
+<li><p>终止条件</p>
+<ul>
+<li>节点中包含的最大原体数目（叶子节点）</li>
+<li>最大树深度</li>
+<li>最大使用内存</li>
+</ul>
+</li>
+<li><p>问题：划分为两个子集的方式很多，是<strong>指数级别</strong>的（NPC）</p>
+<ul>
+<li>Object partitioning considered harmful: space subdivision for BVHs<ul>
+<li>AABB 包围盒 $O(n^6)$ 的方法</li>
+<li>进一步可以利用 grid approximation 控制时间复杂度，同时受限于 grid 的分辨率，可能只是个局部最优</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>BVH 中，每一个原体只会被引用一次</p>
+<ul>
+<li>引入空间划分放宽这个限制（section 5.1）</li>
+</ul>
+</li>
+<li><p>实际操作中，每一次的划分我们都使用一个轴对齐的平面（axis-aligned plane）</p>
+<ul>
+<li>对于场景的原体，我们使用一个点来代替<ul>
+<li>可以是包围盒的中心</li>
+</ul>
+</li>
+<li>这个点只会在选择平面的一侧</li>
+</ul>
+</li>
+<li><p><strong>划分轴</strong></p>
+<ul>
+<li>首先我们选择一个轴（xyz）<ul>
+<li>测试 3 个轴，选出最好的</li>
+<li>启发式算法：round-robin，最长的轴<ul>
+<li>rr：根据轴的长度依概率选择划分轴</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>划分平面</strong></p>
+<ul>
+<li>选择划分平面的 3 种基本方式<ul>
+<li>恰好把包围盒空间划分为两半：spatial median split</li>
+<li>恰好把原体数目换分为两半：object median split<ul>
+<li><strong>实用</strong></li>
+</ul>
+</li>
+<li>损失函数：split based on a cost model<ul>
+<li>试图求得代价函数的局部最优解</li>
+<li>因为我们在划分之前无法准确的知道子结点的代价（cost）</li>
+<li>我们将子节点都当作叶子节点进行估计</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/bvh-survey-1/image-20220410134940328.png"></p>
+<ul>
+<li>推导</li>
+</ul>
+<p>$$<br>\begin{aligned}<br>c(N)<br>&amp;&#x3D;c(N)^{SAH}\<br>&amp;&#x3D;c_T+\sum_{N_c}\dfrac{SA(N_c)}{SA(N)}c(N_c)\<br>&amp;\approx\hat{c}(N)^{SAH}\<br>&amp;&#x3D;c_T+c_I\sum_{N_c}\dfrac{SA(N_c)}{SA(N)}\vert N_c\vert\<br>\end{aligned}<br>$$</p>
+<ul>
+<li>我们也可以把这个当作终止条件的判断标准，如果 $c_I\vert N\vert\le \hat{c}(N)$ 则停止划分<ul>
+<li>也就是说，如果把当前节点当作叶子节点的代价比继续划分更小，则停止划分</li>
+</ul>
+</li>
+<li>损失函数加上一项，希望子节点的 BVH 重合更少<ul>
+<li>$V(N)$：节点 $N$ 的包围盒的体积</li>
+<li>$c_O$：常数</li>
+<li>很直观，就是重合的比例越小越好</li>
+</ul>
+</li>
+</ul>
+<p><img src="/bvh-survey-1/image-20220410135710171.png"></p>
+<ul>
+<li>这样的损失函数比 EPO 更容易实现，与渲染相关性小，在 BVH 构建的时候便很容易计算</li>
+<li><strong>以下介绍一些寻找划分平面的算法</strong></li>
+</ul>
+<h3 id="sweeping"><a href="#sweeping" class="headerlink" title="sweeping"></a>sweeping</h3><ul>
+<li>选择划分平面的时候，依次测试所有的可能平面<ul>
+<li>$N-1$ 个在原体之间的平面</li>
+</ul>
+</li>
+<li><strong>计算代价很大</strong>，尤其是在算法开始的时候，节点包含的原体数目很多</li>
+</ul>
+<h3 id="binning"><a href="#binning" class="headerlink" title="binning"></a>binning</h3><ul>
+<li>将待划分的轴空间平均的划分为 $b$ 个区间</li>
+<li>将所有原体映射到 $b$ 个区间内部</li>
+<li>现在我们只需要在这 $b-1$ 个平面上测试损失函数即可</li>
+<li>实验表明，一个较小的 $b(16&#x2F;32)$ 效果也不错<ul>
+<li>加速了 bvh 的构建</li>
+<li>求交的加速效果和 sweeping 方式差不多</li>
+</ul>
+</li>
+<li>随着深度变深，可以使用更少数量的 bin</li>
+</ul>
+<h3 id="binning-并行"><a href="#binning-并行" class="headerlink" title="binning 并行"></a>binning 并行</h3><ul>
+<li><p>两种并行方式：horizontal parallelization $\to$ vertical parallelization</p>
+</li>
+<li><p>深度较小：horizontal parallelization（<strong>感觉本质上就是并行的桶排序</strong>）</p>
+<ul>
+<li><p>少量的内部节点，但是都包含大量的原体</p>
+</li>
+<li><p>场景的原体被均等分配给不同的线程（$0\sim T-1$）</p>
+</li>
+<li><p>对于每一个线程，将自己的原体映射到 bin 中（$0\sim B-1$）</p>
+<ul>
+<li>可能存在不同的线程中的原体映射到相同的 bin，因此我们让每个线程新包含一个私有的 bin set，最后做完之后在进行合并<ul>
+<li>合并过程如下</li>
+</ul>
+</li>
+<li>同时每一个线程 $t$ 计算 $N_{L,i,t},N_{R,i,t}$<ul>
+<li>$N_{L,i,t}$ 表示对于线程 $t$ 分到的原体，位于第 $i$ 个 bin 左边（包含 $i$ ）的原体数目</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>做完之后，计算得到 $t$ 个前缀和 $N_{L,i}^{t}$（对所有线程 $1\sim t$ 求和）</p>
+</li>
+<li><p>此时每一个线程再扫描一遍它的所有原体，将原体对应的 ID 写到原始的三角形列表中</p>
+<ul>
+<li>offset 可以从前缀中得到，例如线程 $t$ 中有 $a$ 个落在第 $m$ 个 bin 中，那么这 $a$ 个原体对应的在三角形列表中的偏移就是如下</li>
+</ul>
+<p>$$<br>\begin{aligned}<br>&amp;\Big[N_{L,m-1,T-1}+N_{L,m,t-1}, N_{L,m-1,T-1}+N_{L,m,t-1}+a\Big)\<br>&#x3D;&amp;\Big[N_{L,m-1,T-1}+N_{L,m,t-1},N_{L,m-1,T-1}+N_{L,m,t}\Big)<br>\end{aligned}<br>$$</p>
+</li>
+<li><p>遍历所有的平面，计算最佳划分平面</p>
+</li>
+</ul>
+</li>
+<li><p>深度较大：vertical parallelization</p>
+<ul>
+<li>子树数量和线程数目相当</li>
+<li>每一棵子树分配给一个线程</li>
+</ul>
+</li>
+</ul>
+<h3 id="Bonsai-算法"><a href="#Bonsai-算法" class="headerlink" title="Bonsai 算法"></a>Bonsai 算法</h3><ul>
+<li>Bonsai: Rapid Bounding Volume Hierarchy Generation using Mini Trees</li>
+<li>算法<ul>
+<li>首先利用 spatial median split 的方式，将所有的三角形划分为若干个相邻的区域（cluster）</li>
+<li>对于每一个区域建立一个 mini-tree，mini-tree 使用 sweeping 的方式建立</li>
+<li>之后，将这些区域都看成叶子节点，建立上层的 BVH<ul>
+<li>论文还提出了剪枝优化</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/bvh-survey-1/image-20220410155941425.png"></p>
+<h3 id="PHR-算法"><a href="#PHR-算法" class="headerlink" title="PHR 算法"></a>PHR 算法</h3><ul>
+<li>progressive hierarchical refinement (PHR)<ul>
+<li>Parallel BVH Construction Using Progressive Hierarchical Refinement</li>
+</ul>
+</li>
+</ul>
+<p><img src="/bvh-survey-1/image-20220410162650568.png"></p>
+<ul>
+<li>算法<ul>
+<li>首先按照某种方式建立起 BVH（论文是 LBVH）</li>
+<li>找到一个 cut（一组节点，这组节点能够将根节点和所有叶子节点分开）</li>
+<li>要求这个 cut 满足如下性质<ul>
+<li>包含的树上的节点数量最少</li>
+<li>表面积之和小于一个设定的阈值</li>
+</ul>
+</li>
+<li>对这个 cut，将其划分为两个集合<ul>
+<li>遍历 3 个轴，使用 sweeping 算法得到最好的划分平面</li>
+<li>算的很快，因为节点数目和场景中的原体数目相比很小</li>
+</ul>
+</li>
+<li>此时我们得到两个新的 cut（此时我们建立起了一个两层的 bvh）</li>
+<li>对这两个 cut 构建子树（把 cut 内部节点的所有子节点都挂到这个节点上形成一棵树），重复上面的算法（找 cut）<ul>
+<li>阈值会根据细分的次数进行更新</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/bvh-survey-1/image-20220410161837153.png"></p>
+<h3 id="其他算法"><a href="#其他算法" class="headerlink" title="其他算法"></a>其他算法</h3><ul>
+<li>更好的近似 EPO 代价函数</li>
+<li>a parallel on-demand construction on the GPU<ul>
+<li>只构建在遍历过程中可能经过的部分</li>
+</ul>
+</li>
+<li>随机采样划分平面<ul>
+<li>Automatic Bounding Volume Hierarchy Generation Using Stochastic Search Methods</li>
+</ul>
+</li>
+<li>GPU-based<ul>
+<li><strong>binning</strong></li>
+<li><strong>uniform grids of various resolutions</strong> to accelerate binning on GPUs</li>
+</ul>
+</li>
+<li>其他的 binning 算法<ul>
+<li>根据节点的大小进行分类（而不是位置）</li>
+</ul>
+</li>
+<li>利用 k-means 的方式构造 BVH，形成 k-分叉的 BVH，然后再聚合</li>
+</ul>
+<p><img src="/bvh-survey-1/image-20220410163941431.png"></p>
+<h2 id="4-2-Bottom-Up-Construction"><a href="#4-2-Bottom-Up-Construction" class="headerlink" title="4.2. Bottom-Up Construction"></a>4.2. Bottom-Up Construction</h2><ul>
+<li>聚合算法<ul>
+<li>最早提出：Fast Agglomerative Clustering for Rendering</li>
+</ul>
+</li>
+<li>基本思路<ul>
+<li>初始的时候，所有的原体都被当做是 clusters</li>
+<li>每轮迭代的时候，最近的两个 cluster 会被合并<ul>
+<li>距离函数：将两个 cluster 都包含的包围盒的表面积</li>
+</ul>
+</li>
+<li>反复迭代，直至只剩下一个 cluster</li>
+</ul>
+</li>
+<li>一般而言效果好，但是时间开销极大</li>
+<li>从算法来看，很容易看出这里的优化主要集中在 bottom 的部分<ul>
+<li>可能导致 top 部分的优化很差</li>
+</ul>
+</li>
+<li>优化的难点：每次迭代都需要对每一个点找最近邻<ul>
+<li>the <strong>nearest neighbor search</strong> has to be performed for <strong>each cluster</strong> to determine the closest cluster pair in <strong>each iteration</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="堆与-kd-tree"><a href="#堆与-kd-tree" class="headerlink" title="堆与 kd-tree"></a>堆与 kd-tree</h3><ul>
+<li>论文：Fast Agglomerative Clustering for Rendering</li>
+<li>数据结构<ul>
+<li>堆：以距离为优先级函数保存最近邻</li>
+<li>辅助的 kd-tree：加速最近邻的查找</li>
+</ul>
+</li>
+<li>伪代码如下</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">KDTree kd = <span class="keyword">new</span> <span class="built_in">KDTree</span>(InputPoints);</span><br><span class="line">MinHeap heap = <span class="keyword">new</span> <span class="built_in">MinHeap</span>();</span><br><span class="line">foreach A in InputPoints <span class="keyword">do</span> &#123;</span><br><span class="line">    Cluster B = kd.<span class="built_in">findBestMatch</span>(A);</span><br><span class="line">    heap.<span class="built_in">add</span>(<span class="built_in">d</span>(A,B), <span class="keyword">new</span> <span class="built_in">Pair</span>(A,B));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span>( kd.<span class="built_in">size</span>() &gt; <span class="number">1</span> ) &#123;</span><br><span class="line">    Pair &lt;A,B&gt; = heap.<span class="built_in">removeMinPair</span>();</span><br><span class="line">    <span class="keyword">if</span> (! kd.<span class="built_in">contains</span>(A) ) &#123;</span><br><span class="line">        <span class="comment">// A was already clustered with somebody</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (! kd.<span class="built_in">contains</span>(B) ) &#123;</span><br><span class="line">        <span class="comment">// B is invalid, find new best match for A</span></span><br><span class="line">        B = kd.<span class="built_in">findBestMatch</span>(A);</span><br><span class="line">        heap.<span class="built_in">add</span>(<span class="built_in">d</span>(A,B), <span class="keyword">new</span> <span class="built_in">Pair</span>(A,B));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        kd.<span class="built_in">remove</span>(A);</span><br><span class="line">        kd.<span class="built_in">remove</span>(B);</span><br><span class="line">        Cluster C = <span class="keyword">new</span> <span class="built_in">Cluster</span>(A,B);</span><br><span class="line">        kd.<span class="built_in">add</span>(C);</span><br><span class="line">        Cluster D = kd.<span class="built_in">findBestMatch</span>(C);</span><br><span class="line">        heap.<span class="built_in">add</span>(<span class="built_in">d</span>(C,D), <span class="keyword">new</span> <span class="built_in">Pair</span>(C,D));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>不太容易并行</strong>，kd-tree 在合并的过程中会被更新</li>
+</ul>
+<h3 id="AAC"><a href="#AAC" class="headerlink" title="AAC"></a>AAC</h3><ul>
+<li>approximate agglomerative clustering (AAC)<ul>
+<li>Efficient BVH Construction via Approximate Agglomerative Clustering</li>
+</ul>
+</li>
+<li>idea：利用 Morton curve 来限制最近邻搜索的区域<ul>
+<li>Morton curve，section 4.4</li>
+</ul>
+</li>
+<li>首先，场景中的原体按照 <em>spatial median splits</em> based on <em>Morton codes</em> 的分割方式进行分割，直到每一棵子树包含的 cluster 数目都小于预先设定的一个值</li>
+<li>在每一棵子树中对 cluster 进行合并<ul>
+<li>利用聚合算法进行合并，直到数量比较小（可以不是 1）</li>
+</ul>
+</li>
+<li>此时对还没有合并的 cluster 进行合并<ul>
+<li>不是所有的 cluster 都放到一起合并，cluster 数目都小于预先设定的一个值，会先分成多个</li>
+</ul>
+</li>
+<li>反复合并，直到树构建完成</li>
+</ul>
+<p><img src="/bvh-survey-1/image-20220410174645839.png"></p>
+<ul>
+<li>每一次合并，为了加速最近邻的查找，使用一个距离矩阵（$n^2$）进行 cache<ul>
+<li>因为每次合并只有少量的距离会被影响</li>
+</ul>
+</li>
+</ul>
+<h3 id="PLOC"><a href="#PLOC" class="headerlink" title="PLOC"></a>PLOC</h3><ul>
+<li>AAC 一开始划分的时候，栈深度较大（导致距离矩阵大）， GPU 不友好</li>
+<li>parallel locally-ordered clustering(PLOC)<ul>
+<li>GPU-based</li>
+</ul>
+</li>
+<li>idea：距离函数是非减的<ul>
+<li>如果两个 cluster 的最近邻是相互对应的，那么就可以马上合并</li>
+<li>这带来了并行的可能，一次合并所有互相对应的 cluster pair</li>
+</ul>
+</li>
+<li>cluster 保持在 Morton curve 上的有序性，每次查找最近邻，只查找旁边指定数量的邻居（不需要其他的数据结构，例如距离矩阵）</li>
+<li>算法<ul>
+<li>使用 Morton curve 找到每一个 cluster 的最近邻</li>
+<li>合并所有的互相是最近邻的节点<ul>
+<li>移除这些节点，并且将合并后的新节点放到第一个节点原来的位置</li>
+</ul>
+</li>
+<li>使用 parallel prefix scan 的方式移除缺失的部分</li>
+</ul>
+</li>
+<li>一般而言，少量几次迭代便能构建出 BVH</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/04/08/CG/Papers/2021/bvh-survey-1/" data-id="cl9lj74bv00mc64tz6a3scvzv" data-title="(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(2)" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/04/10/CG/WX-GAMES104/03/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          GAMES104.王希.03.如何构建游戏世界
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/04/06/CG/Papers/2021/bvh-survey/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(1)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

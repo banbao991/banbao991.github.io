@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>xv6-labs-2020.lab8.file system | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="文件系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6-labs-2020.lab8.file system">
+<meta property="og:url" content="http://example.com/2021/06/09/OS/xv6-labs/lab8-file-system/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="文件系统">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/06/09/OS/xv6-labs/lab8-file-system/lab8-file-system/001.png">
+<meta property="article:published_time" content="2021-06-09T04:00:00.000Z">
+<meta property="article:modified_time" content="2021-07-22T11:13:23.337Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="xv6">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/06/09/OS/xv6-labs/lab8-file-system/lab8-file-system/001.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-OS/xv6-labs/lab8-file-system" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/09/OS/xv6-labs/lab8-file-system/" class="article-date">
+  <time class="dt-published" datetime="2021-06-09T04:00:00.000Z" itemprop="datePublished">2021-06-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      xv6-labs-2020.lab8.file system
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="lab8-file-system"><a href="#lab8-file-system" class="headerlink" title="lab8 file system"></a>lab8 file system</h1><h2 id="1-作业链接"><a href="#1-作业链接" class="headerlink" title="1. 作业链接"></a>1. 作业链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2020/labs/fs.html">https://pdos.csail.mit.edu/6.828/2020/labs/fs.html</a></li>
+</ul>
+<h2 id="2-实习内容"><a href="#2-实习内容" class="headerlink" title="2. 实习内容"></a>2. 实习内容</h2><h3 id="2-1-Large-files"><a href="#2-1-Large-files" class="headerlink" title="2.1 Large files"></a>2.1 Large files</h3><h4 id="1-目标与描述"><a href="#1-目标与描述" class="headerlink" title="(1) 目标与描述"></a>(1) 目标与描述</h4><ul>
+<li>xv6 的一个文件有 13 个数据项，前 12 个数据项直接索引到数据块，第 13 个数据项通过一级索引索引到数据块（先找到索引表，通过索引表找到数据块地址）<ul>
+<li>一个数据项大小为 $4$ 字节，一个块的大小为 $1024$ 字节，因此一个块中最多可以放 $\dfrac{1024}{4}&#x3D;256$ 个数据项</li>
+<li>因此支持的的文件最大为 $12+256&#x3D;268$ 块</li>
+</ul>
+</li>
+<li>我们的目标是让 xv6 支持更大的文件，我们增加一个二级索引<ul>
+<li>前 11 个数据项直接索引，第 12 个数据项一级索引，第 13 个数据项二级索引</li>
+<li>这样支持的最大文件为 $11+256+256\times256&#x3D;65803$</li>
+</ul>
+</li>
+</ul>
+<img src="lab8-file-system/001.png" style="zoom:67%;" />
+
+<ul>
+<li>注意文件系统的每次修改代码都需要 <code>make clean</code>，否则 <code>fs.img</code> 中文件系统会出问题<ul>
+<li>或者删除文件 <code>fs.img</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="2-提示"><a href="#2-提示" class="headerlink" title="(2) 提示"></a>(2) 提示</h4><ul>
+<li><code>fs.c</code> 中的<code>bmap()</code> 函数建立起对数据块的索引<ul>
+<li>读操作如果没找到数据块，则报错返回</li>
+<li>写操作如果没找到，则需要分配一块</li>
+</ul>
+</li>
+<li>bmap() 中的参数 <code>bn</code> 是逻辑序号（文件内从 0 开始标的序号）</li>
+</ul>
+<h4 id="3-实现"><a href="#3-实现" class="headerlink" title="(3) 实现"></a>(3) 实现</h4><h5 id="1-修改宏"><a href="#1-修改宏" class="headerlink" title="[1] 修改宏"></a>[1] 修改宏</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/fs.h</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NDIRECT 11</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INDEX_NUM_1 (BSIZE/sizeof(uint))      <span class="comment">// 一级索引表数据个数</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INDEX_NUM_2 (INDEX_NUM_1*INDEX_NUM_1) <span class="comment">// 二级索引表数据个数</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INDEX_ENTRY_1 NDIRECT                 <span class="comment">// 一级索引表位置</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INDEX_ENTRY_2 (NDIRECT+1)             <span class="comment">// 二级索引表位置</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NINDIRECT (INDEX_NUM_1 + INDEX_NUM_2) <span class="comment">// 不能删除!!!!有其他地方引用</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAXFILE (NDIRECT + NINDIRECT) <span class="comment">// 最大文件个数</span></span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>注意所有的原来相关引用必须正确<ul>
+<li>NINDIRECT<ul>
+<li>mkfs&#x2F;mkfs.c：iappend() 正确</li>
+</ul>
+</li>
+<li>NDIRECT</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/file.h</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">inode</span> &#123;</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    uint addrs[NDIRECT+<span class="number">2</span>];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// kernel/fs.h</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">dinode</span> &#123;</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    uint addrs[NDIRECT+<span class="number">2</span>];   <span class="comment">// Data block addresses</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="2-二级索引表"><a href="#2-二级索引表" class="headerlink" title="[2] 二级索引表"></a>[2] 二级索引表</h5><ul>
+<li>以下的代码修改都是 <code>kernel/fs.c</code></li>
+<li>可以  <code>ctrl-f</code> 找找需要修改的地方（<code>addr</code>）</li>
+<li>修改 bmap()，建立起新的映射关系<ul>
+<li>判断如果是二级索引的话，需要先读入二级索引表，再读入一级索引表，最后读入数据块地址</li>
+<li>最后需要释放二级索引表</li>
+</ul>
+</li>
+<li>注意修改了内容就需要调用 log_write() 写到磁盘（write through）</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> uint <span class="title function_">bmap</span><span class="params">(<span class="keyword">struct</span> inode *ip, uint bn)</span> &#123;</span><br><span class="line">    uint addr, *a;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">buf</span> *<span class="title">bp</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 前 11 块直接索引</span></span><br><span class="line">    <span class="keyword">if</span>(bn &lt; NDIRECT)&#123;</span><br><span class="line">        <span class="keyword">if</span>((addr = ip-&gt;addrs[bn]) == <span class="number">0</span>)</span><br><span class="line">            ip-&gt;addrs[bn] = addr = balloc(ip-&gt;dev);</span><br><span class="line">        <span class="keyword">return</span> addr;</span><br><span class="line">    &#125;</span><br><span class="line">    bn -= NDIRECT;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 一级索引</span></span><br><span class="line">    <span class="keyword">if</span>(bn &lt; INDEX_NUM_1)&#123;</span><br><span class="line">        <span class="comment">// Load indirect block, allocating if necessary.</span></span><br><span class="line">        <span class="keyword">if</span>((addr = ip-&gt;addrs[INDEX_ENTRY_1]) == <span class="number">0</span>)</span><br><span class="line">            ip-&gt;addrs[INDEX_ENTRY_1] = addr = balloc(ip-&gt;dev);</span><br><span class="line">        bp = bread(ip-&gt;dev, addr);</span><br><span class="line">        a = (uint*)bp-&gt;data;</span><br><span class="line">        <span class="keyword">if</span>((addr = a[bn]) == <span class="number">0</span>)&#123;</span><br><span class="line">            a[bn] = addr = balloc(ip-&gt;dev);</span><br><span class="line">            log_write(bp);</span><br><span class="line">        &#125;</span><br><span class="line">        brelse(bp);</span><br><span class="line">        <span class="keyword">return</span> addr;</span><br><span class="line">    &#125;</span><br><span class="line">    bn -= INDEX_NUM_1;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 二级索引</span></span><br><span class="line">    <span class="keyword">if</span>(bn &lt; INDEX_NUM_2) &#123;</span><br><span class="line">        uint addr2, *a2, index;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">buf</span>* <span class="title">bp2</span>;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 加载二级索引, 如果必要的话则为其分配空间</span></span><br><span class="line">        <span class="keyword">if</span>((addr2 = ip-&gt;addrs[INDEX_ENTRY_2]) == <span class="number">0</span>)</span><br><span class="line">            ip-&gt;addrs[INDEX_ENTRY_2] = addr2 = balloc(ip-&gt;dev);</span><br><span class="line"></span><br><span class="line">        bp2 = bread(ip-&gt;dev, addr2);</span><br><span class="line">        a2 = (uint*)bp2-&gt;data;</span><br><span class="line">        <span class="comment">// 计算出第几个索引项</span></span><br><span class="line">        index = bn / INDEX_NUM_1;</span><br><span class="line">        bn %= INDEX_NUM_1;</span><br><span class="line">        <span class="comment">// 加载一级索引</span></span><br><span class="line">        <span class="keyword">if</span>((addr = a2[index]) == <span class="number">0</span>) &#123;</span><br><span class="line">            a2[index] = addr = balloc(ip-&gt;dev);</span><br><span class="line">            log_write(bp2);</span><br><span class="line">        &#125;</span><br><span class="line">        brelse(bp2);</span><br><span class="line"></span><br><span class="line">        bp = bread(ip-&gt;dev, addr);</span><br><span class="line">        a = (uint*)bp-&gt;data;</span><br><span class="line">        <span class="keyword">if</span>((addr = a[bn]) == <span class="number">0</span>)&#123;</span><br><span class="line">            a[bn] = addr = balloc(ip-&gt;dev);</span><br><span class="line">            log_write(bp);</span><br><span class="line">        &#125;</span><br><span class="line">        brelse(bp);</span><br><span class="line">        <span class="keyword">return</span> addr;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    panic(<span class="string">&quot;bmap: out of range&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>itrunc() 丢弃 inode 的时候需要回收所有的数据块</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">itrunc</span><span class="params">(<span class="keyword">struct</span> inode *ip)</span> &#123;</span><br><span class="line">    <span class="type">int</span> i, j;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">buf</span> *<span class="title">bp</span>;</span></span><br><span class="line">    uint *a;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 直接映射的数据块</span></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; NDIRECT; i++)&#123;</span><br><span class="line">        <span class="keyword">if</span>(ip-&gt;addrs[i])&#123;</span><br><span class="line">            bfree(ip-&gt;dev, ip-&gt;addrs[i]);</span><br><span class="line">            ip-&gt;addrs[i] = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 一级索引</span></span><br><span class="line">    <span class="keyword">if</span>(ip-&gt;addrs[INDEX_ENTRY_1])&#123;</span><br><span class="line">        bp = bread(ip-&gt;dev, ip-&gt;addrs[INDEX_ENTRY_1]);</span><br><span class="line">        a = (uint*)bp-&gt;data;</span><br><span class="line">        <span class="keyword">for</span>(j = <span class="number">0</span>; j &lt; INDEX_NUM_1; j++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(a[j])</span><br><span class="line">                bfree(ip-&gt;dev, a[j]);</span><br><span class="line">        &#125;</span><br><span class="line">        brelse(bp);</span><br><span class="line">        bfree(ip-&gt;dev, ip-&gt;addrs[INDEX_ENTRY_1]);</span><br><span class="line">        ip-&gt;addrs[INDEX_ENTRY_1] = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 二级索引</span></span><br><span class="line">    <span class="keyword">if</span>(ip-&gt;addrs[INDEX_ENTRY_2]) &#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">buf</span>* <span class="title">bp2</span>;</span></span><br><span class="line">        uint* a2;</span><br><span class="line">        bp2 = bread(ip-&gt;dev, ip-&gt;addrs[INDEX_ENTRY_2]);</span><br><span class="line">        a2 = (uint*)bp2-&gt;data;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 逐个查看一级索引</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; INDEX_NUM_1; k++) &#123;</span><br><span class="line">            <span class="keyword">if</span>(a2[k]) &#123;</span><br><span class="line">                bp = bread(ip-&gt;dev, a2[k]);</span><br><span class="line">                a = (uint*)bp-&gt;data;</span><br><span class="line">                <span class="keyword">for</span>(j = <span class="number">0</span>; j &lt; INDEX_NUM_1; j++) &#123;</span><br><span class="line">                    <span class="keyword">if</span>(a[j])</span><br><span class="line">                        bfree(ip-&gt;dev, a[j]);</span><br><span class="line">                &#125;</span><br><span class="line">                brelse(bp);</span><br><span class="line">                bfree(ip-&gt;dev, a2[k]);</span><br><span class="line">                <span class="comment">// a2[k] = 0; 有 bfree()</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 回收二级索引表</span></span><br><span class="line">        brelse(bp2);</span><br><span class="line">        bfree(ip-&gt;dev, ip-&gt;addrs[INDEX_ENTRY_2]);</span><br><span class="line">        ip-&gt;addrs[INDEX_ENTRY_2] = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ip-&gt;size = <span class="number">0</span>;</span><br><span class="line">    iupdate(ip);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="2-2-Symbolic-links"><a href="#2-2-Symbolic-links" class="headerlink" title="2.2 Symbolic links"></a>2.2 Symbolic links</h3><h4 id="1-目标与描述-1"><a href="#1-目标与描述-1" class="headerlink" title="(1) 目标与描述"></a>(1) 目标与描述</h4><ul>
+<li>实现软链接</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">symlink</span><span class="params">(<span class="type">char</span> *target, <span class="type">char</span> *path)</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>软链接可以跨盘，硬链接不能跨盘</li>
+</ul>
+<h4 id="2-提示-1"><a href="#2-提示-1" class="headerlink" title="(2) 提示"></a>(2) 提示</h4><ul>
+<li>一部分提示（准备工作）放在实现中</li>
+<li><code>symlink(target, path)</code> 的 target 不存在也能成功<ul>
+<li>你需要有一个地方保存 target 位置，可以保存在 inode 的数据块中</li>
+<li>需要有返回值，0 成功，-1 失败（和 link&#x2F;unlink 一致）</li>
+</ul>
+</li>
+<li>修改系统调用 open() 实现对软链接文件的处理<ul>
+<li>如果文件不存在，则 open 失败</li>
+<li>如果文件打开的 flag 中有 <code>O_NOFOLLOW</code>，则<strong>不需要</strong>打开软链接对应的文件</li>
+</ul>
+</li>
+<li>如果软链接文件对应的文件还是软链接文件，需要递归打开，直至找到一个不是软链接的文件<ul>
+<li>如果成环，则需要报错（简单使用一个递归深度阈值判断即可，10）</li>
+</ul>
+</li>
+<li>其他系统调用（例如链接和取消链接）不需要打开到软链接最终链接的文件，只需要打开软链接文件本身即可</li>
+<li>不需要处理软链接指向文件夹的情况<ul>
+<li>不允许指向文件夹</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-实现-1"><a href="#3-实现-1" class="headerlink" title="(3) 实现"></a>(3) 实现</h4><h5 id="1-添加一个新的系统调用-symlink"><a href="#1-添加一个新的系统调用-symlink" class="headerlink" title="[1] 添加一个新的系统调用 symlink"></a>[1] 添加一个新的系统调用 symlink</h5><ul>
+<li><code>Makefile</code></li>
+</ul>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ifeq</span> (<span class="variable">$(LAB)</span>,fs)</span><br><span class="line">UPROGS += \</span><br><span class="line">    $U/_bigfile\</span><br><span class="line">    $U/_symlinktest</span><br><span class="line"><span class="keyword">endif</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>user/usys.pl</code></li>
+</ul>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">entry(<span class="string">&quot;symlink&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>user/user.h</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">symlink</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *, <span class="type">const</span> <span class="type">char</span>*)</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>kernel/sysfile.c</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">uint64 <span class="title function_">sys_symlink</span> <span class="params">(<span class="type">void</span>)</span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>kernel/syscall.c</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> uint64 <span class="title function_">sys_symlink</span><span class="params">(<span class="type">void</span>)</span>;</span><br><span class="line"><span class="type">static</span> <span class="title function_">uint64</span> <span class="params">(*syscalls[])</span><span class="params">(<span class="type">void</span>)</span> = &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    [SYS_symlink] sys_symlink,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>kernel/syscall.h</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SYS_symlink 22</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>kernel/stat.h</code> 中添加文件类型，表示软链接（symbolic link）</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> T_SYMLINK 4</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code> kernel/fcntl.h</code> 添加新的 flag，用于 open 系统调用，注意文件打开的 flag 是是使用 or 进行组合的，因此不能和已有的 flag 重合</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> O_NOFOLLOW 0x004</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="2-sys-symlink-具体实现"><a href="#2-sys-symlink-具体实现" class="headerlink" title="[2] sys_symlink() 具体实现"></a>[2] sys_symlink() 具体实现</h5><ul>
+<li>注意一些小问题即可<ul>
+<li>symlink 的 path 是可以存在的，测试数据中那个有这样的内容<ul>
+<li>这个人感觉很不合理</li>
+<li>没有做一些其他的处理，例如释放原来的文件数据块（感觉应该是要做，但是在这个lab中没有实现）</li>
+</ul>
+</li>
+<li>namei() 返回 ip 不为 0 的情况下，ip 是不带锁，但是引用计数+1<ul>
+<li>因此需要注意 iput() 的调用</li>
+</ul>
+</li>
+<li>将 target 保存在 data 段的开始</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 仿照 sys_link 实现即可</span></span><br><span class="line"><span class="comment">// 效果是将 old 指向 new</span></span><br><span class="line">uint64 <span class="title function_">sys_symlink</span> <span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    <span class="type">char</span> name[DIRSIZ], target[MAXPATH], path[MAXPATH];</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">inode</span> *<span class="title">dp</span>, *<span class="title">ip</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取参数</span></span><br><span class="line">    <span class="keyword">if</span>(argstr(<span class="number">0</span>, target, MAXPATH) &lt; <span class="number">0</span> || argstr(<span class="number">1</span>, path, MAXPATH) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    begin_op();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// target 可以不存在</span></span><br><span class="line">    <span class="comment">// if((ip = namei(path)) == 0)&#123;</span></span><br><span class="line">    <span class="comment">//   end_op();</span></span><br><span class="line">    <span class="comment">//   return -1;</span></span><br><span class="line">    <span class="comment">// &#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// target 的引用计数增加</span></span><br><span class="line">    <span class="keyword">if</span>((ip = namei(target)) != <span class="number">0</span>) &#123;</span><br><span class="line">        ilock(ip);</span><br><span class="line">        <span class="comment">// 不能是文件夹</span></span><br><span class="line">        <span class="comment">// 测试数据中没有文件夹的数据</span></span><br><span class="line">        <span class="keyword">if</span>(ip-&gt;type == T_DIR) &#123;</span><br><span class="line">            iunlockput(ip);</span><br><span class="line">            end_op();</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        ip-&gt;nlink++;</span><br><span class="line">        iupdate(ip);</span><br><span class="line">        iunlockput(ip);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// link 的实现是 new 文件不存在, 因此直接使用 dirlink 即可</span></span><br><span class="line">    <span class="comment">// 在测试数据中, symlink 的 path 文件可以存在, 因此方法不太一样</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 先检查 path 节点是否存在, 不存在则新建一个</span></span><br><span class="line">    <span class="keyword">if</span>((dp = namei(path)) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// path 的父节点得存在</span></span><br><span class="line">        <span class="keyword">if</span>((dp = nameiparent(path, name)) == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">goto</span> bad;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            iput(dp);</span><br><span class="line">            <span class="comment">// 新建一个 path 节点</span></span><br><span class="line">            <span class="comment">// 返回的 dp 带锁且引用计数 +1</span></span><br><span class="line">            <span class="keyword">if</span>((dp = create(path, T_SYMLINK, <span class="number">0</span>, <span class="number">0</span>)) == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">goto</span> bad;</span><br><span class="line">            &#125;</span><br><span class="line">            iunlock(dp);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ilock(dp);</span><br><span class="line">    <span class="comment">// 把 target 写入 dp 的 data 字段中</span></span><br><span class="line">    writei(dp, <span class="number">0</span>, (uint64)target, <span class="number">0</span>, MAXPATH);</span><br><span class="line">    <span class="comment">// 设置 dp 类型</span></span><br><span class="line">    <span class="comment">// dp-&gt;type = T_SYMLINK;(已经设置了)</span></span><br><span class="line">    iunlockput(dp);</span><br><span class="line">    <span class="comment">// iput(ip); 之前调用 iunlockput() 了</span></span><br><span class="line">    end_op();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    bad:</span><br><span class="line">    ilock(ip);</span><br><span class="line">    ip-&gt;nlink--;</span><br><span class="line">    iupdate(ip);</span><br><span class="line">    iunlockput(ip);</span><br><span class="line">    end_op();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="3-sys-open-的实现"><a href="#3-sys-open-的实现" class="headerlink" title="[3] sys_open() 的实现"></a>[3] sys_open() 的实现</h5><ul>
+<li>在打开文件的时候进行一个判断，如果是软链接同时没有 <code>O_NOFOLLOW</code> flag 的话，就打开软链接对应的文件即可</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">uint64 <span class="title function_">sys_open</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// if((ip = namei(path)) == 0)&#123;</span></span><br><span class="line">    <span class="comment">//   end_op();</span></span><br><span class="line">    <span class="comment">//   return -1;</span></span><br><span class="line">    <span class="comment">// &#125;</span></span><br><span class="line">    <span class="keyword">if</span>((ip = namei_check_symlink(path , <span class="number">0</span>, omode)) == <span class="number">0</span>) &#123;</span><br><span class="line">        end_op();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>namei_check_symlink() 如下<ul>
+<li>显式的递归深度检测</li>
+<li>注意细节 iput()，因为切换到下一个文件，因此将引用计数-1</li>
+<li>读取 target 的时候，注意是在 data 段的开头</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 返回如果不为 0, 计数 +1</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">struct</span> inode* <span class="title function_">namei_check_symlink</span><span class="params">(<span class="type">char</span> *path, uint depth, <span class="type">int</span> omode)</span> &#123;</span><br><span class="line">    <span class="comment">// 利用一个显式的递归深度检测环</span></span><br><span class="line">    <span class="keyword">if</span>(depth &gt; <span class="number">10</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">inode</span> *<span class="title">ip</span>;</span></span><br><span class="line">    <span class="comment">// 文件不存在(symlink 允许 target 不存在)</span></span><br><span class="line">    <span class="keyword">if</span>((ip = namei(path)) == <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ilock(ip);</span><br><span class="line">    <span class="comment">// 如果带有 O_NOFOLLOW flag, 则只需要打开软链接文件本身</span></span><br><span class="line">    <span class="keyword">if</span>(!(omode &amp; O_NOFOLLOW) &amp;&amp; ip-&gt;type == T_SYMLINK) &#123;</span><br><span class="line">        <span class="type">char</span> next[MAXPATH];</span><br><span class="line">        <span class="comment">// 保存在 data 的开始</span></span><br><span class="line">        <span class="keyword">if</span>(readi(ip, <span class="number">0</span>, (uint64)next, <span class="number">0</span>, MAXPATH) == <span class="number">0</span>) &#123;</span><br><span class="line">            iunlock(ip);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        iunlock(ip);</span><br><span class="line">        iput(ip); <span class="comment">// 接着下一个文件了, 因此当前文件的引用计数-1</span></span><br><span class="line">        <span class="keyword">return</span> namei_check_symlink(next, depth + <span class="number">1</span> ,omode);</span><br><span class="line">    &#125;</span><br><span class="line">    iunlock(ip);</span><br><span class="line">    <span class="keyword">return</span> ip;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="3-实验结果"><a href="#3-实验结果" class="headerlink" title="3. 实验结果"></a>3. 实验结果</h2><ul>
+<li>bigfile 和 usertests 不能在规定时间内完成任务（电脑性能问题）</li>
+<li>修改了 timeout</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@test(<span class="params"><span class="number">40</span>, <span class="string">&quot;running bigfile&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test_bigfile</span>():</span><br><span class="line">    r.run_qemu(shell_script([</span><br><span class="line">        <span class="string">&#x27;bigfile&#x27;</span></span><br><span class="line">    ]), timeout=<span class="number">500</span>) <span class="comment"># 原来是 360, 最终耗时 381</span></span><br><span class="line">    r.<span class="keyword">match</span>(<span class="string">&#x27;^wrote 65803 blocks$&#x27;</span>)</span><br><span class="line">    r.<span class="keyword">match</span>(<span class="string">&#x27;^bigfile done; ok$&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@test(<span class="params"><span class="number">19</span>, <span class="string">&quot;usertests&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test_usertests</span>():</span><br><span class="line">    r.run_qemu(shell_script([</span><br><span class="line">        <span class="string">&#x27;usertests&#x27;</span></span><br><span class="line">    ]), timeout=<span class="number">1000</span>) <span class="comment"># 原来是 360, 最终耗时 566.5</span></span><br><span class="line">    r.<span class="keyword">match</span>(<span class="string">&#x27;^ALL TESTS PASSED$&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ make qemu-gdb</span><br><span class="line">running bigfile: OK (381.0s)</span><br><span class="line">    (Old xv6.out.bigfile failure <span class="built_in">log</span> removed)</span><br><span class="line">== Test running symlinktest ==</span><br><span class="line">$ make qemu-gdb</span><br><span class="line">(3.0s)</span><br><span class="line">== Test   symlinktest: symlinks ==</span><br><span class="line">  symlinktest: symlinks: OK</span><br><span class="line">== Test   symlinktest: concurrent symlinks ==</span><br><span class="line">  symlinktest: concurrent symlinks: OK</span><br><span class="line">== Test usertests ==</span><br><span class="line">$ make qemu-gdb</span><br><span class="line">  usertests: OK (566.5s)</span><br><span class="line">    (Old xv6.out.usertests failure <span class="built_in">log</span> removed)</span><br><span class="line">== Test time ==</span><br><span class="line">time: OK</span><br><span class="line">Score: 100/100</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-遇到的困难以及收获"><a href="#4-遇到的困难以及收获" class="headerlink" title="4. 遇到的困难以及收获"></a>4. 遇到的困难以及收获</h2><ul>
+<li>第一部分修改宏的时候，没有把所有引用宏的地方都对应上，因此报了奇怪的错误</li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">panic : virtio_disk_intr status</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>以后得注意，在修改已有代码段的时候，需要注意所有引用在修改后还是正确的</li>
+<li>文件系统的设计确实很巧妙，函数之间的相互调用需要符合一定的规范<ul>
+<li>例如引用计数以及锁的设计，感觉都得好好思考才能做出答案</li>
+</ul>
+</li>
+<li>感觉 symlink 的 path 可以存在这个设定确实不太合理</li>
+</ul>
+<h2 id="5-对课程或-lab-的意见和建议"><a href="#5-对课程或-lab-的意见和建议" class="headerlink" title="5. 对课程或 lab 的意见和建议"></a>5. 对课程或 lab 的意见和建议</h2><ul>
+<li>建议提供一些关于 lab 的 debug 功能的指导</li>
+</ul>
+<h2 id="6-参考文献"><a href="#6-参考文献" class="headerlink" title="6. 参考文献"></a>6. 参考文献</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2019/xv6/book-riscv-rev1.pdf">https://pdos.csail.mit.edu/6.828/2019/xv6/book-riscv-rev1.pdf</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/09/OS/xv6-labs/lab8-file-system/" data-id="cl9lj74bf00j864tz4aem3ca8" data-title="xv6-labs-2020.lab8.file system" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/06/10/OS/xv6-labs/lab9-mmap/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          xv6-labs-2020.lab9.mmap
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/06/07/OS/xv6-source-code/05-FileSystem/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">xv6-riscv-源代码阅读.文件系统</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
+          </li>
+        
+          <li>
+            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
+          </li>
+        
+          <li>
+            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2022 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
