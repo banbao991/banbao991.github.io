@@ -190,4 +190,61 @@ var moduleName = (function(window) {
     this.y = this.y - 1 * speed;
 
     // 爱心飘落到底部重新生成
-    if (this.y 
+    if (this.y <= -this.wx) {
+      this.reset();
+    }
+    this.draw(this.ctx, this.img);
+    return this;
+  };
+
+
+
+  Heart.prototype.draw = function(t) {
+    t.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    // t.globalAlpha = 0.5;
+    var x = this.x;
+    var y = this.y;
+    var width = this.wx;
+    var height = this.wx;
+    var num1 = 50;
+    var num2 = 56;
+    var num3 = 25;
+    var num4 = 38;
+
+
+    t.save();
+    t.beginPath();
+    t.moveTo(x + getPercentage(width, num1), y + getPercentage(height, num3));
+    t.bezierCurveTo(
+        x + getPercentage(width, num1), y, x, y, x,
+        y + getPercentage(height, num4));
+    t.bezierCurveTo(
+        x, y + getPercentage(height, num2), x + getPercentage(width, num4),
+        y + height, x + getPercentage(width, num1), y + height);
+    t.bezierCurveTo(
+        x + getPercentage(width, num2), y + height, x + width,
+        y + getPercentage(height, num2), x + width,
+        y + getPercentage(height, num4));
+    t.bezierCurveTo(
+        x + width, y, x + getPercentage(width, num1), y,
+        x + getPercentage(width, num1), y + getPercentage(height, num3));
+    t.fill();
+    t.restore();
+    function getPercentage(x, y) {
+      return (x * y) / 100;
+    }
+    return this;
+  }
+})(window);
+if (typeof module !== 'undefined' && typeof exports === 'object') {
+  module.exports = moduleName;
+} else if (typeof define === 'function' && (define.amd || define.cmd)) {
+  define(function() {
+    return moduleName;
+  });
+} else {
+  this.moduleName = moduleName;
+}
+}).call(function() {
+return this || (typeof window !== 'undefined' ? window : global);
+});
