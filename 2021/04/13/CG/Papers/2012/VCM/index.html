@@ -1,837 +1,1195 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  
-  <title>(论文)[2012] Light Transport Simulation with Vertex Connection and Merging | Hexo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="VCM, PM, BPT, 采样方法重新定义 PM">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="VCM, PM, BPT, 采样方法重新定义 PM">
 <meta property="og:type" content="article">
 <meta property="og:title" content="(论文)[2012] Light Transport Simulation with Vertex Connection and Merging">
 <meta property="og:url" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="Banbao">
 <meta property="og:description" content="VCM, PM, BPT, 采样方法重新定义 PM">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210414155032668.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210414212315780.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210414215352121.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415000815521.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415000815521.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415115429711.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415141636262.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415170523674.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415173036033.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415174147620.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415175052691.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415175403612.png">
-<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210415180739524.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210414155032668.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210414212315780.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210414215352121.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415000815521.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415000815521.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415115429711.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415141636262.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415170523674.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415173036033.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415174147620.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415175052691.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415175403612.png">
+<meta property="og:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210415180739524.png">
 <meta property="article:published_time" content="2021-04-13T09:41:06.000Z">
 <meta property="article:modified_time" content="2021-06-26T04:16:10.693Z">
-<meta property="article:author" content="John Doe">
+<meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="CG">
 <meta property="article:tag" content="Paper">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/VCM/image-20210414155032668.png">
-  
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/favicon.png">
-  
-  
-    
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+<meta name="twitter:image" content="http://example.com/2021/04/13/CG/Papers/2012/VCM/image-20210414155032668.png">
 
-  
-  
-<link rel="stylesheet" href="/css/style.css">
 
-  
-    
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+<link rel="canonical" href="http://example.com/2021/04/13/CG/Papers/2012/VCM/">
 
-  
-<meta name="generator" content="Hexo 6.3.0"></head>
 
-<body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
-      </h1>
-      
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2021/04/13/CG/Papers/2012/VCM/","path":"2021/04/13/CG/Papers/2012/VCM/","title":"(论文)[2012] Light Transport Simulation with Vertex Connection and Merging"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2012] Light Transport Simulation with Vertex Connection and Merging | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
     </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
         
-          <a class="main-nav-link" href="/">Home</a>
-        
-          <a class="main-nav-link" href="/archives">Archives</a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
-        
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#light-transport-simulation-with-vertex-connection-and-merging"><span class="nav-text">Light
+Transport Simulation with Vertex Connection and Merging</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C%E5%B1%95%E7%A4%BA"><span class="nav-text">效果展示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#introduction"><span class="nav-text">1. Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bpt"><span class="nav-text">BPT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pm"><span class="nav-text">PM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bpt-pm"><span class="nav-text">BPT + PM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E7%9A%84%E8%B4%A1%E7%8C%AE"><span class="nav-text">论文的贡献</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#previous-work"><span class="nav-text">2. Previous Work</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#path-tracing"><span class="nav-text">Path tracing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#photon-mapping"><span class="nav-text">Photon mapping</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#markov-chain-monte-carlo"><span class="nav-text">Markov chain Monte Carlo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#many-light-methods"><span class="nav-text">Many-light methods</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#background"><span class="nav-text">3. Background</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#mis"><span class="nav-text">MIS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#path-integral-framework"><span class="nav-text">Path Integral Framework</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#path-sampling-techniques"><span class="nav-text">Path sampling techniques</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#photon-mapping-radiance-estimate"><span class="nav-text">Photon mapping radiance
+estimate</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vertex-merging"><span class="nav-text">4. Vertex Merging</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pm-as-a-sampling-technique-for-extended-paths"><span class="nav-text">PM as a sampling
+technique for extended paths</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#discussion"><span class="nav-text">Discussion</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pm-as-a-sampling-technique-for-regular-paths"><span class="nav-text">PM as a sampling
+technique for regular paths</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#path-pdf"><span class="nav-text">Path pdf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#efficiency-of-different-path-sampling-techniques"><span class="nav-text">4.1 Efficiency
+of Different Path Sampling Techniques</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#sampling-densities"><span class="nav-text">Sampling densities</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#path-reuse-efficiency"><span class="nav-text">Path reuse efficiency</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a-combined-light-transport-algorithm"><span class="nav-text">5. A Combined Light
+Transport Algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#mathematical-formulation"><span class="nav-text">5.1 Mathematical Formulation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#implementation"><span class="nav-text">5.2 Implementation</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#achieving-consistency"><span class="nav-text">6. Achieving Consistency</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#asymptotic-error-analysis"><span class="nav-text">6.1 Asymptotic Error Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#variance"><span class="nav-text">Variance</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#bias"><span class="nav-text">Bias</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mse"><span class="nav-text">MSE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#discussion-1"><span class="nav-text">Discussion</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#result"><span class="nav-text">7.Result</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#discussion-2"><span class="nav-text">8.DIscussion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a-additional-vertex-merging-derivations"><span class="nav-text">A Additional Vertex
+Merging Derivations</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#a.1-contribution-function-for-extended-paths"><span class="nav-text">A.1 Contribution
+Function for Extended Paths</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pm-pixel-measurement-estimator."><span class="nav-text">PM pixel measurement
+estimator.</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#path-integral-and-contribution-function"><span class="nav-text">Path integral and
+contribution function</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#a.2-reducing-the-path-integral-dimension"><span class="nav-text">A.2 Reducing the Path
+Integral Dimension</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">252</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">76</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
       </div>
     </div>
-  </div>
-</header>
+  </aside>
+  <div class="sidebar-dimmer"></div>
 
-      <div class="outer">
-        <section id="main"><article id="post-CG/Papers/2012/VCM" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/04/13/CG/Papers/2012/VCM/" class="article-date">
-  <time class="dt-published" datetime="2021-04-13T09:41:06.000Z" itemprop="datePublished">2021-04-13</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/CG-Paper/">CG.Paper</a>
-  </div>
 
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
   </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
   
-    <h1 class="p-name article-title" itemprop="headline name">
-      (论文)[2012] Light Transport Simulation with Vertex Connection and Merging
-    </h1>
+
+
+<div class="post-block">
+  
   
 
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/13/CG/Papers/2012/VCM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2012] Light Transport Simulation with Vertex Connection and Merging | Banbao">
+      <meta itemprop="description" content="VCM, PM, BPT, 采样方法重新定义 PM">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2012] Light Transport Simulation with Vertex Connection and Merging
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-13 17:41:06" itemprop="dateCreated datePublished" datetime="2021-04-13T17:41:06+08:00">2021-04-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2021-06-26 12:16:10" itemprop="dateModified" datetime="2021-06-26T12:16:10+08:00">2021-06-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">VCM, PM, BPT, 采样方法重新定义 PM</div>
+        </div>
       </header>
+
     
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="Light-Transport-Simulation-with-Vertex-Connection-and-Merging"><a href="#Light-Transport-Simulation-with-Vertex-Connection-and-Merging" class="headerlink" title="Light Transport Simulation with Vertex Connection and Merging"></a>Light Transport Simulation with Vertex Connection and Merging</h1><blockquote>
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="light-transport-simulation-with-vertex-connection-and-merging">Light
+Transport Simulation with Vertex Connection and Merging</h1>
+<blockquote>
 <p>SIGGRAPH Asia 2012</p>
 </blockquote>
-<h2 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h2><img src="VCM/image-20210414155032668.png" style="zoom:50%;" />
-
+<h2 id="效果展示">效果展示</h2>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210414155032668.png" style="zoom:50%;"></p>
 <ul>
-<li>BPT(Bidirectional Path Tracing)<ul>
+<li>BPT(Bidirectional Path Tracing)
+<ul>
 <li>不能很好的模拟 caustics 现象</li>
 <li>例如 SDS 路径</li>
-</ul>
-</li>
-<li>PPM(Stochastic Progressive Photon Mapping)<ul>
-<li>PPM has difficulties in handling the illumination coming from the room seen in the mirror</li>
+</ul></li>
+<li>PPM(Stochastic Progressive Photon Mapping)
+<ul>
+<li>PPM has difficulties in handling the illumination coming from the
+room seen in the mirror</li>
 <li>TODO</li>
-</ul>
-</li>
-<li>VCM &#x3D; BPT + PPM<ul>
+</ul></li>
+<li>VCM = BPT + PPM
+<ul>
 <li>通过多重重要性采样的方法将这两种方法结合起来</li>
 <li>MIS(Multiple Importance Sampling)</li>
-</ul>
-</li>
+</ul></li>
 <li><a target="_blank" rel="noopener" href="http://github.com/SmallVCM/SmallVCM">文章代码</a></li>
 </ul>
-<h2 id="1-Introduction"><a href="#1-Introduction" class="headerlink" title="1. Introduction"></a>1. Introduction</h2><ul>
-<li>之前的方法基本存在的问题，不能在所有场景中都发挥得很好<ul>
+<h2 id="introduction">1. Introduction</h2>
+<ul>
+<li>之前的方法基本存在的问题，不能在所有场景中都发挥得很好
+<ul>
 <li>在某些场景中不能表现得很好</li>
 <li>忽略某些类型的光路</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="BPT"><a href="#BPT" class="headerlink" title="BPT"></a>BPT</h3><ul>
+<h3 id="bpt">BPT</h3>
+<ul>
 <li>能够处理大部分场景</li>
 <li>MIS 的采样方法能够很好的将很多种光路组合起来</li>
-<li>The true key to its robustness is the provably good combination of various path sampling techniques using MIS.</li>
-<li>不好处理 SDS 的光路<ul>
+<li>The true key to its robustness is the provably good combination of
+various path sampling techniques using MIS.</li>
+<li>不好处理 SDS 的光路
+<ul>
 <li>‘specular’ also includes sharp glossy interactions</li>
-<li>原因是这样的光路被采样的概率很小，尤其是 point light sources  + pinhole cameras 场景的时候</li>
+<li>原因是这样的光路被采样的概率很小，尤其是 point light sources +
+pinhole cameras 场景的时候</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="PM"><a href="#PM" class="headerlink" title="PM"></a>PM</h3><ul>
+<h3 id="pm">PM</h3>
+<ul>
 <li>能够很好地处理 SDS 光路</li>
-<li>Its inefficiency under diffuse lighting and its relatively low order of convergence</li>
-<li>存在的问题<ul>
+<li>Its inefficiency under diffuse lighting and its relatively low order
+of convergence</li>
+<li>存在的问题
+<ul>
 <li>收敛很慢</li>
 <li>在 diffuse lighting 条件下，效果不太好</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="BPT-PM"><a href="#BPT-PM" class="headerlink" title="BPT + PM"></a>BPT + PM</h3><ul>
-<li>之前有人将 BPT 和 PM 结合过，但是效果不太好<ul>
-<li>Combining BPT with PM via heuristic classification of paths into caustic and non-caustic can be far from optimal</li>
+<h3 id="bpt-pm">BPT + PM</h3>
+<ul>
+<li>之前有人将 BPT 和 PM 结合过，但是效果不太好
+<ul>
+<li>Combining BPT with PM via heuristic classification of paths into
+caustic and non-caustic can be far from optimal</li>
 <li>启发式的将路径分为焦散路径和其他路径</li>
-</ul>
-</li>
+</ul></li>
 <li>我们使用 MIS 的技术将 BPT 和 PM 结合</li>
-<li>之前大家把 BPT 和 PM 放置在两套数学框架下，下载我们提出新的思路，从而将这两个方法结合起来</li>
-<li>通过 MIS 结合起来的方法能够很好的保留二者的优点<ul>
-<li>保有 BPT 的 MSE 收敛率 $O(\dfrac{1}{N})$</li>
+<li>之前大家把 BPT 和 PM
+放置在两套数学框架下，下载我们提出新的思路，从而将这两个方法结合起来</li>
+<li>通过 MIS 结合起来的方法能够很好的保留二者的优点
+<ul>
+<li>保有 BPT 的 MSE 收敛率 <span class="math inline">\(O(\dfrac{1}{N})\)</span></li>
 <li>保有 PM 对于 SDS 路径的高效查找</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="论文的贡献"><a href="#论文的贡献" class="headerlink" title="论文的贡献"></a>论文的贡献</h3><ul>
-<li>A novel reformulation of photon mapping compatible with the path integral formulation of light transport (Section 4)<ul>
+<h3 id="论文的贡献">论文的贡献</h3>
+<ul>
+<li>A novel reformulation of photon mapping compatible with the path
+integral formulation of light transport (Section 4)
+<ul>
 <li>重新定义了 PM 算法的数学框架，使其和路径积分兼容</li>
-</ul>
-</li>
-<li>A robust light transport simulation algorithm that combines BPT and PM via multiple importance sampling (Section 5)<ul>
-<li>一个结合了 BRT&#x2F;PM 长处的算法</li>
-</ul>
-</li>
-<li>A progressive variant of the combined algorithm along with an asymptotic analysis of its error convergence (Section 6)<ul>
+</ul></li>
+<li>A robust light transport simulation algorithm that combines BPT and
+PM via multiple importance sampling (Section 5)
+<ul>
+<li>一个结合了 BRT/PM 长处的算法</li>
+</ul></li>
+<li>A progressive variant of the combined algorithm along with an
+asymptotic analysis of its error convergence (Section 6)
+<ul>
 <li>方差的渐进分析</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h2 id="2-Previous-Work"><a href="#2-Previous-Work" class="headerlink" title="2. Previous Work"></a>2. Previous Work</h2><h3 id="Path-tracing"><a href="#Path-tracing" class="headerlink" title="Path tracing"></a>Path tracing</h3><ul>
-<li>从相机出发<ul>
+<h2 id="previous-work">2. Previous Work</h2>
+<h3 id="path-tracing">Path tracing</h3>
+<ul>
+<li>从相机出发
+<ul>
 <li>[Kajiya 1986]</li>
-</ul>
-</li>
-<li>从光源出发<ul>
+</ul></li>
+<li>从光源出发
+<ul>
 <li>Dutr´e et al. [1993]</li>
-</ul>
-</li>
-<li>双向：BPT<ul>
+</ul></li>
+<li>双向：BPT
+<ul>
 <li>[Lafortune and Willems 1993; Veach and Guibas 1994]</li>
-</ul>
-</li>
-<li>path integral framework<ul>
+</ul></li>
+<li>path integral framework
+<ul>
 <li>PT 的积分框架</li>
 <li>Veach [1997]</li>
-</ul>
-</li>
-<li>MIS，多条采样路径<ul>
+</ul></li>
+<li>MIS，多条采样路径
+<ul>
 <li>[Veach and Guibas 1995]</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="Photon-mapping"><a href="#Photon-mapping" class="headerlink" title="Photon mapping"></a>Photon mapping</h3><ul>
+<h3 id="photon-mapping">Photon mapping</h3>
+<ul>
 <li><strong>有偏的</strong></li>
-<li>density estimation：光子密度估计<ul>
+<li>density estimation：光子密度估计
+<ul>
 <li>[Jensen 2001]</li>
-</ul>
-</li>
-<li>photon mapping has <strong>difficulties</strong> in scenes with <strong>many glossy objects</strong><ul>
+</ul></li>
+<li>photon mapping has <strong>difficulties</strong> in scenes with
+<strong>many glossy objects</strong>
+<ul>
 <li>Haˇsan et al. [2009] and Vorba [2011]</li>
-</ul>
-</li>
-<li>利用 MIS，组合多条 eye sub-path<ul>
+</ul></li>
+<li>利用 MIS，组合多条 eye sub-path
+<ul>
 <li>Vorba [2011]</li>
 <li>对于 PM 的定义不能很好的利用 MIS 将 PM 和 BPT 结合</li>
-</ul>
-</li>
-<li>MIS，让 PM 在 glossy 材质上的焦散表现得更好<ul>
+</ul></li>
+<li>MIS，让 PM 在 glossy 材质上的焦散表现得更好
+<ul>
 <li>Tokuyushi [2009]</li>
-</ul>
-</li>
-<li>PPM<ul>
+</ul></li>
+<li>PPM
+<ul>
 <li>[Hachisuka et al. 2008]</li>
 <li>因为 PM 是有偏的，PPM 通过减小半径的方式，试图减小 bias</li>
-<li>相较于 BPT，更好的模拟 SDS 光路，但是渐进误差收敛速率更慢<ul>
+<li>相较于 BPT，更好的模拟 SDS 光路，但是渐进误差收敛速率更慢
+<ul>
 <li>asymptotic error convergence rate</li>
 <li>Hachisuka et al. [2010] 给出估计</li>
+</ul></li>
+</ul></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="Markov-chain-Monte-Carlo"><a href="#Markov-chain-Monte-Carlo" class="headerlink" title="Markov chain Monte Carlo"></a>Markov chain Monte Carlo</h3><ul>
+<h3 id="markov-chain-monte-carlo">Markov chain Monte Carlo</h3>
+<ul>
 <li>MCMC</li>
-<li>MCMC 能够更多的采样具有贡献的 path（让我们接受的 path）<ul>
+<li>MCMC 能够更多的采样具有贡献的 path（让我们接受的 path）
+<ul>
 <li>BPT [Veach and Guibas 1997]</li>
-<li>PM&#x2F;PPM [Fan et al. 2005;Hachisuka and Jensen 2011]</li>
+<li>PM/PPM [Fan et al. 2005;Hachisuka and Jensen 2011]</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="Many-light-methods"><a href="#Many-light-methods" class="headerlink" title="Many-light methods"></a>Many-light methods</h3><ul>
-<li>[Keller 1997; Walter et al. 2006; Haˇsan et al. 2007; Ou and Pellacini 2011]</li>
-<li>[Kˇriv´anek et al. 2010]<ul>
+<h3 id="many-light-methods">Many-light methods</h3>
+<ul>
+<li>[Keller 1997; Walter et al. 2006; Haˇsan et al. 2007; Ou and
+Pellacini 2011]</li>
+<li>[Kˇriv´anek et al. 2010]
+<ul>
 <li>能量损失、失真问题</li>
-</ul>
-</li>
-<li>[Kollig and Keller 2004; Haˇsan et al. 2009; Davidoviˇc et al. 2010; Walter et al. 2012] <ul>
+</ul></li>
+<li>[Kollig and Keller 2004; Haˇsan et al. 2009; Davidoviˇc et al. 2010;
+Walter et al. 2012]
+<ul>
 <li>减轻上面的问题</li>
-</ul>
-</li>
+</ul></li>
 <li>都不能很好的处理 SDS 光路</li>
 </ul>
-<h2 id="3-Background"><a href="#3-Background" class="headerlink" title="3. Background"></a>3. Background</h2><h3 id="MIS"><a href="#MIS" class="headerlink" title="MIS"></a>MIS</h3><ul>
+<h2 id="background">3. Background</h2>
+<h3 id="mis">MIS</h3>
+<ul>
 <li>Multiple importance sampling</li>
 <li>[Veach and Guibas 1995]</li>
-<li>我们要求积分 $I$，其中$f(x)$ 为实值函数，$\mu(x)$ 是积分域 $\Omega$ 上的测度</li>
+<li>我们要求积分 <span class="math inline">\(I\)</span>，其中<span class="math inline">\(f(x)\)</span> 为实值函数，<span class="math inline">\(\mu(x)\)</span> 是积分域 <span class="math inline">\(\Omega\)</span> 上的测度</li>
 </ul>
-<p>$$<br>I&#x3D;\int_{\Omega}f(x)d\mu(x)<br>$$</p>
+<p><span class="math display">\[
+I=\int_{\Omega}f(x)d\mu(x)
+\]</span></p>
 <ul>
-<li>MIS 构造了一个对 $I$ 的无偏估计，这个无偏估计是通过组合 $m$ 个不同的分布（采样方法）得到的组合估计，每一种分布以 $p_i$ 给出它的 $\mathrm{pdf}$<ul>
-<li>$X_{i,j}$ 为满足分布 $p_i$ 的随机变量</li>
+<li>MIS 构造了一个对 <span class="math inline">\(I\)</span>
+的无偏估计，这个无偏估计是通过组合 <span class="math inline">\(m\)</span>
+个不同的分布（采样方法）得到的组合估计，每一种分布以 <span class="math inline">\(p_i\)</span> 给出它的 <span class="math inline">\(\mathrm{pdf}\)</span>
+<ul>
+<li><span class="math inline">\(X_{i,j}\)</span> 为满足分布 <span class="math inline">\(p_i\)</span> 的随机变量</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>$$<br>\langle I\rangle_{MIS}&#x3D;\sum_{i&#x3D;1}^m\dfrac{1}{n_i}\sum_{j&#x3D;1}^{n_i}w_i(X_{i,j})\dfrac{f(X_{i,j})}{p_i(X_{i,j})}<br>$$</p>
+<p><span class="math display">\[
+\langle
+I\rangle_{MIS}=\sum_{i=1}^m\dfrac{1}{n_i}\sum_{j=1}^{n_i}w_i(X_{i,j})\dfrac{f(X_{i,j})}{p_i(X_{i,j})}
+\]</span></p>
 <ul>
 <li>最小化估计的方差，权重设置</li>
 </ul>
-<p>$$<br>w_i(x)&#x3D;\dfrac{\left[n_ip_i(x)\right]^\beta}{\sum_{k&#x3D;1}^n\left[n_kp_k(x)\right]^\beta}<br>$$</p>
+<p><span class="math display">\[
+w_i(x)=\dfrac{\left[n_ip_i(x)\right]^\beta}{\sum_{k=1}^n\left[n_kp_k(x)\right]^\beta}
+\]</span></p>
 <ul>
-<li>$\beta&#x3D;1$</li>
+<li><span class="math inline">\(\beta=1\)</span></li>
 <li>具体分析看论文：<span style="color:red;font-weight:bold">TODO</span></li>
 </ul>
-<h3 id="Path-Integral-Framework"><a href="#Path-Integral-Framework" class="headerlink" title="Path Integral Framework"></a>Path Integral Framework</h3><ul>
+<h3 id="path-integral-framework">Path Integral Framework</h3>
+<ul>
 <li>[Veach 1997]</li>
 <li>积分框架</li>
 </ul>
-<p>$$<br>I&#x3D;\int_{\Omega}f(\bar{\mathrm{x}})d\mu(\bar{\mathrm{x}})<br>$$</p>
+<p><span class="math display">\[
+I=\int_{\Omega}f(\bar{\mathrm{x}})d\mu(\bar{\mathrm{x}})
+\]</span></p>
 <ul>
-<li>$\bar{\mathrm{x}}$ 表示一条可行的光路，$\bar{\mathrm{x}}&#x3D;\mathrm{x}_0\cdots \mathrm{x}_k$，其中有 $k(k&gt;0)$ 条边，$k-1$ 个中间结点</li>
-<li>$\mathrm{x}_0$ 在光源处，$\mathrm{x}_k$ 在摄像机上</li>
-<li>$\Omega$ 表示任意长度的光路</li>
-<li>面积测度：$d\mu(\bar{\mathrm{x}})&#x3D;dA(\mathrm{x}<em>0)\cdots dA(\mathrm{x}</em>{k})$</li>
-<li>贡献测度：$f(\mathrm{\bar{x}})$</li>
+<li><span class="math inline">\(\bar{\mathrm{x}}\)</span>
+表示一条可行的光路，<span class="math inline">\(\bar{\mathrm{x}}=\mathrm{x}_0\cdots
+\mathrm{x}_k\)</span>，其中有 <span class="math inline">\(k(k&gt;0)\)</span> 条边，<span class="math inline">\(k-1\)</span> 个中间结点</li>
+<li><span class="math inline">\(\mathrm{x}_0\)</span> 在光源处，<span class="math inline">\(\mathrm{x}_k\)</span> 在摄像机上</li>
+<li><span class="math inline">\(\Omega\)</span> 表示任意长度的光路</li>
+<li>面积测度：<span class="math inline">\(d\mu(\bar{\mathrm{x}})=dA(\mathrm{x}_0)\cdots
+dA(\mathrm{x}_{k})\)</span></li>
+<li>贡献测度：<span class="math inline">\(f(\mathrm{\bar{x}})\)</span></li>
 </ul>
-<p>$$<br>f(\bar{\mathrm{x}})&#x3D;L_e(\mathrm{x}_0){\color{red}G(\mathrm{x}<em>0\leftrightarrow\mathrm{x}<em>1)\left[\prod</em>{i&#x3D;1}^{k-1}\rho</em>{s}(\mathrm{x}_i)G(\mathrm{x}<em>i\leftrightarrow\mathrm{x}</em>{i+1})\right]}W_e(\mathrm{x}_k)<br>$$</p>
+<p><span class="math display">\[
+f(\bar{\mathrm{x}})=L_e(\mathrm{x}_0){\color{red}G(\mathrm{x}_0\leftrightarrow\mathrm{x}_1)\left[\prod_{i=1}^{k-1}\rho_{s}(\mathrm{x}_i)G(\mathrm{x}_i\leftrightarrow\mathrm{x}_{i+1})\right]}W_e(\mathrm{x}_k)
+\]</span></p>
 <ul>
-<li>红色部分记作 $T(\mathrm{\bar{x}});{\buildrel\rm def\over&#x3D;};\mathrm{path\ throughput}$</li>
-<li>$L_e(\mathrm{x}_0) &#x3D; L_e(\mathrm{x}_0\to\mathrm{x}_1)$  表示光源从 $\mathrm{x}_0$ 向 $\mathrm{x}_1$ 发射的 radiance</li>
-<li>$W_e(\mathrm{x}<em>k) &#x3D; W_e(\mathrm{x}</em>{k-1}\to\mathrm{x}<em>k)$  表示摄像机在 $\mathrm{x}</em>{k}$ 点，对从 $\mathrm{x}<em>{k-1}$ 点入射到  $\mathrm{x}</em>{k}$ 的光的灵敏性</li>
-<li>$\rho_{s}(\mathrm{x}<em>i)&#x3D;\rho</em>{s}(\mathrm{x}_{i-1}\to\mathrm{x}<em>i\to\mathrm{x}</em>{i+1})$：在 $\mathrm{x}_i$ 点的 BSDF</li>
-<li>$G(\mathrm{x}_i\to\mathrm{x}_j)&#x3D;V(\mathrm{x}<em>i\to\mathrm{x}<em>j)\dfrac{|\cos\theta</em>{i,j}||\cos\theta</em>{j,i}|}{\Vert\mathrm{x}_i-\mathrm{x}_j\Vert^2}$：表示几何项<ul>
-<li>$V$ 表示几何项</li>
-</ul>
-</li>
-</ul>
-<img src="VCM/image-20210414212315780.png" style="zoom:70%;" />
-
+<li>红色部分记作 <span class="math inline">\(T(\mathrm{\bar{x}})\;{\buildrel\rm
+def\over=}\;\mathrm{path\ throughput}\)</span></li>
+<li><span class="math inline">\(L_e(\mathrm{x}_0) =
+L_e(\mathrm{x}_0\to\mathrm{x}_1)\)</span> 表示光源从 <span class="math inline">\(\mathrm{x}_0\)</span> 向 <span class="math inline">\(\mathrm{x}_1\)</span> 发射的 radiance</li>
+<li><span class="math inline">\(W_e(\mathrm{x}_k) =
+W_e(\mathrm{x}_{k-1}\to\mathrm{x}_k)\)</span> 表示摄像机在 <span class="math inline">\(\mathrm{x}_{k}\)</span> 点，对从 <span class="math inline">\(\mathrm{x}_{k-1}\)</span> 点入射到 <span class="math inline">\(\mathrm{x}_{k}\)</span> 的光的灵敏性</li>
+<li><span class="math inline">\(\rho_{s}(\mathrm{x}_i)=\rho_{s}(\mathrm{x}_{i-1}\to\mathrm{x}_i\to\mathrm{x}_{i+1})\)</span>：在
+<span class="math inline">\(\mathrm{x}_i\)</span> 点的 BSDF</li>
+<li><span class="math inline">\(G(\mathrm{x}_i\to\mathrm{x}_j)=V(\mathrm{x}_i\to\mathrm{x}_j)\dfrac{|\cos\theta_{i,j}||\cos\theta_{j,i}|}{\Vert\mathrm{x}_i-\mathrm{x}_j\Vert^2}\)</span>：表示几何项
 <ul>
-<li>简单的可以把 $f(\bar{\mathrm{x}})$ 记作</li>
+<li><span class="math inline">\(V\)</span> 表示几何项</li>
+</ul></li>
 </ul>
-<p>$$<br>f(\bar{\mathrm{x}})&#x3D;L_e(\mathrm{x}_0)T(\bar{\mathrm{x}})W_e(\mathrm{x}_k)<br>$$</p>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210414212315780.png" style="zoom:70%;"></p>
+<ul>
+<li>简单的可以把 <span class="math inline">\(f(\bar{\mathrm{x}})\)</span> 记作</li>
+</ul>
+<p><span class="math display">\[
+f(\bar{\mathrm{x}})=L_e(\mathrm{x}_0)T(\bar{\mathrm{x}})W_e(\mathrm{x}_k)
+\]</span></p>
 <ul>
 <li>上面的表达式能够让 MIS 方法生效</li>
 </ul>
-<p>$$<br>\dfrac{f(\bar{\mathrm{x}})}{p(\bar{\mathrm{x}})}<br>$$</p>
-<h3 id="Path-sampling-techniques"><a href="#Path-sampling-techniques" class="headerlink" title="Path sampling techniques"></a>Path sampling techniques</h3><ul>
-<li>$p(\bar{\mathrm{x}})$ 是联合分布</li>
+<p><span class="math display">\[
+\dfrac{f(\bar{\mathrm{x}})}{p(\bar{\mathrm{x}})}
+\]</span></p>
+<h3 id="path-sampling-techniques">Path sampling techniques</h3>
+<ul>
+<li><span class="math inline">\(p(\bar{\mathrm{x}})\)</span>
+是联合分布</li>
 <li>每一步的采样都是独立的</li>
 </ul>
-<p>$$<br>p(\bar{\mathrm{x}})&#x3D;p(\mathrm{x}_0,\cdots,\mathrm{x}_k)&#x3D;p(\mathrm{x}_0)\cdots p(\mathrm{x}_k)<br>$$</p>
-<img src="VCM/image-20210414215352121.png" style="zoom:67%;" />
-
+<p><span class="math display">\[
+p(\bar{\mathrm{x}})=p(\mathrm{x}_0,\cdots,\mathrm{x}_k)=p(\mathrm{x}_0)\cdots
+p(\mathrm{x}_k)
+\]</span></p>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210414215352121.png" style="zoom:67%;"></p>
 <ul>
-<li>$p(\mathrm{x}_j)$ ：方向采样的概率</li>
+<li><span class="math inline">\(p(\mathrm{x}_j)\)</span>
+：方向采样的概率</li>
 </ul>
-<p>$$<br>p(\mathrm{x}<em>j)&#x3D;<br>\left{<br>\begin{array}{<strong>lr</strong>}<br>p(\mathrm{x}</em>{j-1}\to\mathrm{x}<em>{j}), &amp; \mathrm{if\ x</em>{j}\ is\ on\ a\ light\ subpath} \<br>p(\mathrm{x}<em>{j}\to\mathrm{x}</em>{j-1}), &amp; \mathrm{if\ x_{j}\ is\ on\ a\ eye\ subpath} \<br>\end{array}<br>\right.<br>$$</p>
+<p><span class="math display">\[
+p(\mathrm{x}_j)=
+\left\{  
+\begin{array}{**lr**}  
+p(\mathrm{x}_{j-1}\to\mathrm{x}_{j}), &amp; \mathrm{if\ x_{j}\ is\ on\
+a\ light\ subpath} \\
+p(\mathrm{x}_{j}\to\mathrm{x}_{j-1}), &amp; \mathrm{if\ x_{j}\ is\ on\
+a\ eye\ subpath} \\
+\end{array}  
+\right.
+\]</span></p>
 <ul>
-<li>BPT 中一条长度为 $k$ 段的光路的产生可以有 $k+2$ 种方式</li>
-<li>BPT 最早的实现 <ul>
+<li>BPT 中一条长度为 <span class="math inline">\(k\)</span>
+段的光路的产生可以有 <span class="math inline">\(k+2\)</span>
+种方式</li>
+<li>BPT 最早的实现
+<ul>
 <li>[Lafortune and Willems 1993; Veach and Guibas 1994]</li>
-</ul>
-</li>
-<li>MIS，组合不同的采样路径，同时使用指数的形式<ul>
-<li>因为如果不加指数，会把出现概率很小的 SDS 路径直接剪掉<ul>
-<li>按照上面的采样方法，对于 SDS 路径只有两种方式（单项路径），而这样的光路采样概率很小，导致方差很大</li>
-</ul>
-</li>
-<li>MIS automatically diminishes the weight of a sampling technique that is inappropriate (i.e. has a low pdf value) for a given path</li>
+</ul></li>
+<li>MIS，组合不同的采样路径，同时使用指数的形式
+<ul>
+<li>因为如果不加指数，会把出现概率很小的 SDS 路径直接剪掉
+<ul>
+<li>按照上面的采样方法，对于 SDS
+路径只有两种方式（单项路径），而这样的光路采样概率很小，导致方差很大</li>
+</ul></li>
+<li>MIS automatically diminishes the weight of a sampling technique that
+is inappropriate (i.e. has a low pdf value) for a given path</li>
 <li>[Veach and Guibas 1995]</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="Photon-mapping-radiance-estimate"><a href="#Photon-mapping-radiance-estimate" class="headerlink" title="Photon mapping radiance estimate"></a>Photon mapping radiance estimate</h3><ul>
+<h3 id="photon-mapping-radiance-estimate">Photon mapping radiance
+estimate</h3>
+<ul>
 <li>[Jensen 2001]</li>
 </ul>
-<p>$$<br>L_s(\mathrm{x},\omega)\approx\sum_jK_r(\Vert\mathrm{x}-\mathrm{x}<em>j\Vert)\rho</em>{s}(\omega_j,\mathrm{x},\omega)\Phi_j<br>$$</p>
+<p><span class="math display">\[
+L_s(\mathrm{x},\omega)\approx\sum_jK_r(\Vert\mathrm{x}-\mathrm{x}_j\Vert)\rho_{s}(\omega_j,\mathrm{x},\omega)\Phi_j
+\]</span></p>
 <ul>
-<li>$K_r$：2D 滤波核，半径 $r$</li>
-<li>$j$：到 $\mathrm{x}$ 的距离小于 $r$ 的所有光子<ul>
-<li>$\omega_j$：光子的入射方向</li>
-<li>$\mathrm{x}_j$：光子的位置</li>
-<li>$\Phi_j$：光子的光通量 flux</li>
+<li><span class="math inline">\(K_r\)</span>：2D 滤波核，半径 <span class="math inline">\(r\)</span></li>
+<li><span class="math inline">\(j\)</span>：到 <span class="math inline">\(\mathrm{x}\)</span> 的距离小于 <span class="math inline">\(r\)</span> 的所有光子
+<ul>
+<li><span class="math inline">\(\omega_j\)</span>：光子的入射方向</li>
+<li><span class="math inline">\(\mathrm{x}_j\)</span>：光子的位置</li>
+<li><span class="math inline">\(\Phi_j\)</span>：光子的光通量 flux</li>
+</ul></li>
+<li><span class="math inline">\(\omega\)</span>：eye ray 的入射方向</li>
+<li><span class="math inline">\(\rho_s\)</span>：BSDF</li>
+<li>这样看来，PM 和 BPT 并不是定义在一套数学框架下的，PM
+甚至与采样的路径无关，因此很难用 MIS 将他们结合起来</li>
 </ul>
-</li>
-<li>$\omega$：eye ray 的入射方向</li>
-<li>$\rho_s$：BSDF</li>
-<li>这样看来，PM 和 BPT 并不是定义在一套数学框架下的，PM 甚至与采样的路径无关，因此很难用 MIS 将他们结合起来</li>
-</ul>
-<h2 id="4-Vertex-Merging"><a href="#4-Vertex-Merging" class="headerlink" title="4. Vertex Merging"></a>4. Vertex Merging</h2><ul>
+<h2 id="vertex-merging">4. Vertex Merging</h2>
+<ul>
 <li>首先我们需要将 PM 和 BPT 用一个数学框架描述</li>
 <li>将 PM 用积分框架进行描述</li>
-<li>我们接下来的讨论把 light path 长度规定为 $k$</li>
-<li>PM radiance 的估计可以发生在第 $s$ 个结点上<ul>
+<li>我们接下来的讨论把 light path 长度规定为 <span class="math inline">\(k\)</span></li>
+<li>PM radiance 的估计可以发生在第 <span class="math inline">\(s\)</span> 个结点上
+<ul>
 <li>这样就产生了单路径采样的方法</li>
-<li>整套方法需要通过估计光路上的不同 $s$ 的值，$s\in[1,\cdots,k-1]$</li>
+<li>整套方法需要通过估计光路上的不同 <span class="math inline">\(s\)</span> 的值，<span class="math inline">\(s\in[1,\cdots,k-1]\)</span></li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="PM-as-a-sampling-technique-for-extended-paths"><a href="#PM-as-a-sampling-technique-for-extended-paths" class="headerlink" title="PM as a sampling technique for extended paths"></a>PM as a sampling technique for extended paths</h3><img src="VCM/image-20210415000815521.png" style="zoom:70%;" />
-
+<h3 id="pm-as-a-sampling-technique-for-extended-paths">PM as a sampling
+technique for extended paths</h3>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415000815521.png" style="zoom:70%;"></p>
 <ul>
 <li>把 PM 的光路当作单路径采样得到的结果</li>
-<li>自然的想法，我们对一个光子产生的光路，只考虑光子在最终的位置 $\mathrm{x}_s^\ast$<ul>
-<li>整条路径为 $\mathrm{x}_0,\cdots,\mathrm{x}_s^\ast$</li>
-</ul>
-</li>
-<li>我们用于做密度估计的点 $\mathrm{x}_s$ 需要是一条从摄像机出发的 sub-path $\mathrm{s}_0,\cdots,\mathrm{x}_k$</li>
-<li>这样最终组成一条路径 $\mathrm{x}_0,\cdots,\mathrm{x}_s^\ast,\mathrm{x}_s,\cdots,\mathrm{x}_k$<ul>
-<li>记作 <code>extended path</code>，$\bar{\mathrm{x}}^\ast&#x3D;(\mathrm{x}_0,\cdots,\mathrm{x}_s^\ast,\mathrm{x}_s,\cdots,\mathrm{x}_k)$</li>
+<li>自然的想法，我们对一个光子产生的光路，只考虑光子在最终的位置 <span class="math inline">\(\mathrm{x}_s^\ast\)</span>
+<ul>
+<li>整条路径为 <span class="math inline">\(\mathrm{x}_0,\cdots,\mathrm{x}_s^\ast\)</span></li>
+</ul></li>
+<li>我们用于做密度估计的点 <span class="math inline">\(\mathrm{x}_s\)</span> 需要是一条从摄像机出发的
+sub-path <span class="math inline">\(\mathrm{s}_0,\cdots,\mathrm{x}_k\)</span></li>
+<li>这样最终组成一条路径 <span class="math inline">\(\mathrm{x}_0,\cdots,\mathrm{x}_s^\ast,\mathrm{x}_s,\cdots,\mathrm{x}_k\)</span>
+<ul>
+<li>记作 <code>extended path</code>，<span class="math inline">\(\bar{\mathrm{x}}^\ast=(\mathrm{x}_0,\cdots,\mathrm{x}_s^\ast,\mathrm{x}_s,\cdots,\mathrm{x}_k)\)</span></li>
 <li>上面的左图</li>
-</ul>
-</li>
+</ul></li>
 <li>整条路径的概率</li>
 </ul>
-<p>$$<br>p(\bar{\mathrm{x}}^\ast)&#x3D;p(\mathrm{x}_0,\cdots,\mathrm{x}_s^\ast)p(\mathrm{x}_s,\cdots,\mathrm{x}_k)&#x3D;p(\mathrm{x}_0)\cdots p(\mathrm{x}_s^\ast)p(\mathrm{x}_s)\cdots p(\mathrm{x}_k)<br>$$</p>
-<h3 id="Discussion"><a href="#Discussion" class="headerlink" title="Discussion"></a>Discussion</h3><ul>
-<li>我们现在已经把 PM 当作是一种采样策略，生成一条extended path，同时它有自己的 pdf<ul>
-<li>extended path 比正常的 path（BPT）多出一个点 $\mathrm{x}_s^\ast$ （光子的位置）</li>
-<li>pdf 更高维，于是在权重估计上会出问题</li>
-</ul>
-</li>
-<li>为了能够使用 MIS 将 BPT 和 PM 结合起来，需要将二者的长度修改为一致<ul>
-<li>两种都可以，这里采用 BPT 的长度（可以保证原来的积分形式不变）</li>
-</ul>
-</li>
-</ul>
-<h3 id="PM-as-a-sampling-technique-for-regular-paths"><a href="#PM-as-a-sampling-technique-for-regular-paths" class="headerlink" title="PM as a sampling technique for regular paths"></a>PM as a sampling technique for regular paths</h3><ul>
-<li>我们将 extended path 去掉点 $\mathrm{x}_s^\ast$，形成一条长度为 $k$ 的 path<ul>
-<li>下面右图</li>
-</ul>
-</li>
-</ul>
-<img src="VCM/image-20210415000815521.png" style="zoom:70%;" />
-
+<p><span class="math display">\[
+p(\bar{\mathrm{x}}^\ast)=p(\mathrm{x}_0,\cdots,\mathrm{x}_s^\ast)p(\mathrm{x}_s,\cdots,\mathrm{x}_k)=p(\mathrm{x}_0)\cdots
+p(\mathrm{x}_s^\ast)p(\mathrm{x}_s)\cdots p(\mathrm{x}_k)
+\]</span></p>
+<h3 id="discussion">Discussion</h3>
 <ul>
-<li>我们对每一个 $kernel$ 范围内的光子都构造一条这样的路径 $\bar{\mathrm{x}}&#x3D;(\mathrm{x}_0,\cdots,\mathrm{x}_k)$</li>
-<li>结果<ul>
-<li>The radiance contribution of such a path now contains an extra area integration that corresponds to <strong>blurring</strong> by the $K_r$ kernel to which the path integral is oblivious, as we detail in Appendix A.</li>
+<li>我们现在已经把 PM 当作是一种采样策略，生成一条extended
+path，同时它有自己的 pdf
+<ul>
+<li>extended path 比正常的 path（BPT）多出一个点 <span class="math inline">\(\mathrm{x}_s^\ast\)</span> （光子的位置）</li>
+<li>pdf 更高维，于是在权重估计上会出问题</li>
+</ul></li>
+<li>为了能够使用 MIS 将 BPT 和 PM 结合起来，需要将二者的长度修改为一致
+<ul>
+<li>两种都可以，这里采用 BPT 的长度（可以保证原来的积分形式不变）</li>
+</ul></li>
 </ul>
-</li>
-<li>光子前进的过程中，我们使用蒙特卡洛采样方法，同时使用 RR（俄罗斯轮盘赌）的方式，判断是否应该在这个点将光子停下来</li>
+<h3 id="pm-as-a-sampling-technique-for-regular-paths">PM as a sampling
+technique for regular paths</h3>
+<ul>
+<li>我们将 extended path 去掉点 <span class="math inline">\(\mathrm{x}_s^\ast\)</span>，形成一条长度为 <span class="math inline">\(k\)</span> 的 path
+<ul>
+<li>下面右图</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415000815521.png" style="zoom:70%;"></p>
+<ul>
+<li>我们对每一个 <span class="math inline">\(kernel\)</span>
+范围内的光子都构造一条这样的路径 <span class="math inline">\(\bar{\mathrm{x}}=(\mathrm{x}_0,\cdots,\mathrm{x}_k)\)</span></li>
+<li>结果
+<ul>
+<li>The radiance contribution of such a path now contains an extra area
+integration that corresponds to <strong>blurring</strong> by the <span class="math inline">\(K_r\)</span> kernel to which the path integral is
+oblivious, as we detail in Appendix A.</li>
+</ul></li>
+<li>光子前进的过程中，我们使用蒙特卡洛采样方法，同时使用
+RR（俄罗斯轮盘赌）的方式，判断是否应该在这个点将光子停下来</li>
 <li>我们形成这种 path，只考虑在 kernel 范围内的光子</li>
 </ul>
-<h3 id="Path-pdf"><a href="#Path-pdf" class="headerlink" title="Path pdf"></a>Path pdf</h3><ul>
-<li>由 VM 产生的路径 $p_{VM}(\bar{\mathrm{x}})$ 的 pdf 如下</li>
-</ul>
-<p>$$<br>p_{VM}(\bar{\mathrm{x}})&#x3D;P_{acc}(\bar{\mathrm{x}})p_{VC}(\bar{\mathrm{x}})<br>$$</p>
+<h3 id="path-pdf">Path pdf</h3>
 <ul>
-<li>$p_{VC}(\bar{\mathrm{x}})$ 表示直接将两条 subpath 连接在一起的 pdf，连接端点 ${\mathrm{x}}<em>{s-1},{\mathrm{x}}</em>{s}$<ul>
+<li>由 VM 产生的路径 <span class="math inline">\(p_{VM}(\bar{\mathrm{x}})\)</span> 的 pdf 如下</li>
+</ul>
+<p><span class="math display">\[
+p_{VM}(\bar{\mathrm{x}})=P_{acc}(\bar{\mathrm{x}})p_{VC}(\bar{\mathrm{x}})
+\]</span></p>
+<ul>
+<li><span class="math inline">\(p_{VC}(\bar{\mathrm{x}})\)</span>
+表示直接将两条 subpath 连接在一起的 pdf，连接端点 <span class="math inline">\({\mathrm{x}}_{s-1},{\mathrm{x}}_{s}\)</span>
+<ul>
 <li>表达形式见第 3 部分</li>
-</ul>
-</li>
-<li>$P_{acc}(\bar{\mathrm{x}})$ 表示这样一条路径可接受的概率<ul>
-<li>$P_{acc}(\bar{\mathrm{x}})\le1$</li>
-</ul>
-</li>
-</ul>
-<p>$$<br>\begin{aligned}<br>P_{acc}(\bar{\mathrm{x}})\ &amp;&#x3D;\ \mathrm{Pr}(\Vert\mathrm{x}<em>s-\mathrm{x}^\ast</em>{s}\Vert^2&lt;r)\<br>&amp;&#x3D;\ \int_{\mathcal{A}<em>\mathcal{M}}p(\mathrm{x}</em>{s-1}\to\mathrm{x})d\mathrm{x}\<br>&amp;\approx|{\mathcal{A}}<em>{\mathcal{M}}|p(\mathrm{x}</em>{s-1}\to\mathrm{x}^\ast_s)\<br>\end{aligned}<br>$$</p>
+</ul></li>
+<li><span class="math inline">\(P_{acc}(\bar{\mathrm{x}})\)</span>
+表示这样一条路径可接受的概率
 <ul>
-<li>${\mathcal{A}}_{\mathcal{M}}&#x3D;\left{\mathrm{x}\in \mathcal{M}|\Vert\mathrm{x}_s-\mathrm{x}\Vert^2&lt;r\right}$：核半径之内</li>
-<li>我们假设 ${\mathcal{A}}_{\mathcal{M}}$ 内部的 pdf 是一个常数<ul>
-<li>PPM 也是这么假设的<ul>
+<li><span class="math inline">\(P_{acc}(\bar{\mathrm{x}})\le1\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+P_{acc}(\bar{\mathrm{x}})\ &amp;=\
+\mathrm{Pr}(\Vert\mathrm{x}_s-\mathrm{x}^\ast_{s}\Vert^2&lt;r)\\
+&amp;=\
+\int_{\mathcal{A}_\mathcal{M}}p(\mathrm{x}_{s-1}\to\mathrm{x})d\mathrm{x}\\
+&amp;\approx|{\mathcal{A}}_{\mathcal{M}}|p(\mathrm{x}_{s-1}\to\mathrm{x}^\ast_s)\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li><span class="math inline">\({\mathcal{A}}_{\mathcal{M}}=\left\{\mathrm{x}\in
+\mathcal{M}|\Vert\mathrm{x}_s-\mathrm{x}\Vert^2&lt;r\right\}\)</span>：核半径之内</li>
+<li>我们假设 <span class="math inline">\({\mathcal{A}}_{\mathcal{M}}\)</span> 内部的 pdf
+是一个常数
+<ul>
+<li>PPM 也是这么假设的
+<ul>
 <li>[Hachisuka et al. 2008]</li>
-</ul>
-</li>
-<li>渐进分析<ul>
+</ul></li>
+<li>渐进分析
+<ul>
 <li>[Knaus and Zwicker 2011].</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>我们假设 ${\mathcal{A}}_{\mathcal{M}}$ 是一个半径为 $r$ 的圆</li>
-<li>如果现实和我们假设不符，这样可能会导致估计不准确<ul>
+</ul></li>
+</ul></li>
+<li>我们假设 <span class="math inline">\({\mathcal{A}}_{\mathcal{M}}\)</span> 是一个半径为
+<span class="math inline">\(r\)</span> 的圆</li>
+<li>如果现实和我们假设不符，这样可能会导致估计不准确
+<ul>
 <li>areas of geometric variation and when p is far from constant</li>
-<li>${\mathcal{A}}_{\mathcal{M}}$ 内部的 pdf 不是常数，<ul>
-<li>$\mathrm{x}_{s-1}$ 的 BSDF 是 glossy 的</li>
-</ul>
-</li>
+<li><span class="math inline">\({\mathcal{A}}_{\mathcal{M}}\)</span>
+内部的 pdf 不是常数，
+<ul>
+<li><span class="math inline">\(\mathrm{x}_{s-1}\)</span> 的 BSDF 是
+glossy 的</li>
+</ul></li>
 <li>几何变异大</li>
-</ul>
-</li>
-<li>$r$ 趋向于 0 的时候就是准确的</li>
-<li>$\mathrm{x}_{s-1}$ 如果是镜面，而且恰好 $\mathrm{x}<em>s^{\ast}$ 落在区域内部，则 $P</em>{acc}&#x3D;1$</li>
+</ul></li>
+<li><span class="math inline">\(r\)</span> 趋向于 0
+的时候就是准确的</li>
+<li><span class="math inline">\(\mathrm{x}_{s-1}\)</span>
+如果是镜面，而且恰好 <span class="math inline">\(\mathrm{x}_s^{\ast}\)</span> 落在区域内部，则
+<span class="math inline">\(P_{acc}=1\)</span></li>
 <li>最终估计如下</li>
 </ul>
-<p>$$<br>p_{VM}(\bar{\mathrm{x}})&#x3D;\left<a href="%5Cbar%7B%5Cmathrm%7Bx%7D%7D">\pi r^2\ p(\mathrm{x}_{s-1}\to\mathrm{x}^\ast_s)\right</a>p_{VC}(\bar{\mathrm{x}})<br>$$</p>
-<h3 id="4-1-Efficiency-of-Different-Path-Sampling-Techniques"><a href="#4-1-Efficiency-of-Different-Path-Sampling-Techniques" class="headerlink" title="4.1 Efficiency of Different Path Sampling Techniques"></a>4.1 Efficiency of Different Path Sampling Techniques</h3><ul>
-<li>启发式的指数因子的加入源于这样的一种观察，pdf 较大的区域，方差估计较小<ul>
+<p><span class="math display">\[
+p_{VM}(\bar{\mathrm{x}})=\left[\pi r^2\
+p(\mathrm{x}_{s-1}\to\mathrm{x}^\ast_s)\right](\bar{\mathrm{x}})p_{VC}(\bar{\mathrm{x}})
+\]</span></p>
+<h3 id="efficiency-of-different-path-sampling-techniques">4.1 Efficiency
+of Different Path Sampling Techniques</h3>
+<ul>
+<li>启发式的指数因子的加入源于这样的一种观察，pdf
+较大的区域，方差估计较小
+<ul>
 <li>a higher pdf most often results in a lower variance estimate</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h4 id="Sampling-densities"><a href="#Sampling-densities" class="headerlink" title="Sampling densities"></a>Sampling densities</h4><ul>
-<li>$P_{acc}(\bar{\mathrm{x}})\le1$，说明 VM 的路径 pdf 最大不会超过 VC 的的 pdf</li>
-<li>VM 的操作相当于在 $\mathrm{x}_{s-1}$ 的一个立体角中采样<ul>
-<li>如果 $\mathrm{x}_{s-1}$ 是 diffuse 材质的，那么结果应该和立体角中采样是一样的</li>
-</ul>
-</li>
-<li>The resulting VM path pdf $p_{VM}$ can then be <strong>six or more orders</strong> of magnitude lower than the corresponding VC pdf</li>
-<li>当 ${\mathcal{A}}_{\mathcal{M}}$ 区域和光源相近时，VM 的 pdf 和单项采样的 pdf 几乎相等<ul>
+<h4 id="sampling-densities">Sampling densities</h4>
+<ul>
+<li><span class="math inline">\(P_{acc}(\bar{\mathrm{x}})\le1\)</span>，说明 VM
+的路径 pdf 最大不会超过 VC 的的 pdf</li>
+<li>VM 的操作相当于在 <span class="math inline">\(\mathrm{x}_{s-1}\)</span> 的一个立体角中采样
+<ul>
+<li>如果 <span class="math inline">\(\mathrm{x}_{s-1}\)</span> 是
+diffuse 材质的，那么结果应该和立体角中采样是一样的</li>
+</ul></li>
+<li>The resulting VM path pdf <span class="math inline">\(p_{VM}\)</span> can then be <strong>six or more
+orders</strong> of magnitude lower than the corresponding VC pdf</li>
+<li>当 <span class="math inline">\({\mathcal{A}}_{\mathcal{M}}\)</span>
+区域和光源相近时，VM 的 pdf 和单项采样的 pdf 几乎相等
+<ul>
 <li>unidirectional sampling (US) and VM can have almost equal pdfs.</li>
-<li>直观上的理解，击中光源的概率和击中 ${\mathcal{A}}_{\mathcal{M}}$ 的概率一致</li>
+<li>直观上的理解，击中光源的概率和击中 <span class="math inline">\({\mathcal{A}}_{\mathcal{M}}\)</span>
+的概率一致</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h4 id="Path-reuse-efficiency"><a href="#Path-reuse-efficiency" class="headerlink" title="Path reuse efficiency"></a>Path reuse efficiency</h4><ul>
-<li><p>PM 在采样上效率可能并不是比 BPT 更高，但是计算上效率更高</p>
+<h4 id="path-reuse-efficiency">Path reuse efficiency</h4>
+<ul>
+<li>PM 在采样上效率可能并不是比 BPT 更高，但是计算上效率更高
 <ul>
 <li>the power of VM is its <code>computational efficiency</code></li>
-</ul>
-</li>
-<li><p>PM 效率高的原因在于它能够用上很多之前不能使用的 light subpath</p>
+</ul></li>
+<li>PM 效率高的原因在于它能够用上很多之前不能使用的 light subpath
 <ul>
-<li>It performs conditional path concatenation, which is as cheap as neighborhood checking. This enables the reuse of a large number of light sub-paths at the cost of a single range search.</li>
+<li>It performs conditional path concatenation, which is as cheap as
+neighborhood checking. This enables the reuse of a large number of light
+sub-paths at the cost of a single range search.</li>
 <li>不搜索的话（只用一条路径），就找不到更多的路径</li>
+</ul></li>
+<li>没有 reuse 的话，PM 效果并不好</li>
 </ul>
-</li>
-<li><p>没有 reuse 的话，PM 效果并不好</p>
-</li>
-</ul>
-<img src="VCM/image-20210415115429711.png" style="zoom:60%;" />
-
-
-
-<h2 id="5-A-Combined-Light-Transport-Algorithm"><a href="#5-A-Combined-Light-Transport-Algorithm" class="headerlink" title="5. A Combined Light Transport Algorithm"></a>5. A Combined Light Transport Algorithm</h2><ul>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415115429711.png" style="zoom:60%;"></p>
+<h2 id="a-combined-light-transport-algorithm">5. A Combined Light
+Transport Algorithm</h2>
+<ul>
 <li>算法</li>
-<li>我们已经将 PM 描述成一个一个采样过程，可以直接利用 MIS 将 PM 和 BPT 结合在一起</li>
-<li>长度为 k 的路径，BPT 提供了 k+1 种采样途径，PM <strong>额外</strong>提供了 k-1 种采样途径<ul>
+<li>我们已经将 PM 描述成一个一个采样过程，可以直接利用 MIS 将 PM 和 BPT
+结合在一起</li>
+<li>长度为 k 的路径，BPT 提供了 k+1 种采样途径，PM
+<strong>额外</strong>提供了 k-1 种采样途径
+<ul>
 <li>实际操作中我们对端点不做连接处理</li>
 <li>所以只会在中间的 k-1 个顶点处进行 PM</li>
+</ul></li>
+<li>这一部分我们使用一个固定大小的 <span class="math inline">\(r\)</span>，这样子的结果是有偏的</li>
 </ul>
-</li>
-<li>这一部分我们使用一个固定大小的 $r$，这样子的结果是有偏的</li>
-</ul>
-<h3 id="5-1-Mathematical-Formulation"><a href="#5-1-Mathematical-Formulation" class="headerlink" title="5.1 Mathematical Formulation"></a>5.1 Mathematical Formulation</h3><p>$$<br>I&#x3D;\int_{\Omega}f(x)d\mu(x)<br>$$</p>
+<h3 id="mathematical-formulation">5.1 Mathematical Formulation</h3>
+<p><span class="math display">\[
+I=\int_{\Omega}f(x)d\mu(x)
+\]</span></p>
 <ul>
 <li>使用 MIS 结合 BPT（VC） 和 PM（VM）估计上述值</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>\langle I\rangle_{MIS}&amp;&#x3D;C_{VC}+C_{VM}\<br>&amp;&#x3D;\dfrac{1}{n_{VC}}\sum_{l&#x3D;1}^{n_{VC}}\sum_{s\ge0,t\ge0}w_{VC,s,t}(\bar{\mathrm{x}}<em>l)\langle I\rangle</em>{VC}(\bar{\mathrm{x}}<em>l)\<br>&amp;+\dfrac{1}{n</em>{VM}}\sum_{l&#x3D;1}^{n_{VC}}\sum_{s\ge2,t\ge2}w_{VM,s,t}(\bar{\mathrm{x}}<em>l)\langle I\rangle</em>{VM}(\bar{\mathrm{x}}_l)<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+\langle I\rangle_{MIS}&amp;=C_{VC}+C_{VM}\\
+&amp;=\dfrac{1}{n_{VC}}\sum_{l=1}^{n_{VC}}\sum_{s\ge0,t\ge0}w_{VC,s,t}(\bar{\mathrm{x}}_l)\langle
+I\rangle_{VC}(\bar{\mathrm{x}}_l)\\
+&amp;+\dfrac{1}{n_{VM}}\sum_{l=1}^{n_{VC}}\sum_{s\ge2,t\ge2}w_{VM,s,t}(\bar{\mathrm{x}}_l)\langle
+I\rangle_{VM}(\bar{\mathrm{x}}_l)
+\end{aligned}
+\]</span></p>
 <ul>
 <li>s：light subpath 的结点数</li>
 <li>t：eye subpath 的结点数</li>
 <li>权重设置如下（v can be VC or VM）</li>
 </ul>
-<p>$$<br>w_{v,s,t}(\bar{\mathrm{x}})&#x3D;\dfrac{n_v^\beta p_{v,s,t}^\beta(\bar{\mathrm{x}})}{n_{VC}^\beta\sum_{s’\ge0,t’\ge0} p_{VC,s’,t’}^\beta(\bar{\mathrm{x}})+n_{VM}^\beta\sum_{s’\ge2,t’\ge2} p_{VM,s’,t’}^\beta(\bar{\mathrm{x}})}<br>$$</p>
-<h3 id="5-2-Implementation"><a href="#5-2-Implementation" class="headerlink" title="5.2 Implementation"></a>5.2 Implementation</h3><ul>
-<li><p>采样的代价很大</p>
+<p><span class="math display">\[
+w_{v,s,t}(\bar{\mathrm{x}})=\dfrac{n_v^\beta
+p_{v,s,t}^\beta(\bar{\mathrm{x}})}{n_{VC}^\beta\sum_{s&#39;\ge0,t&#39;\ge0}
+p_{VC,s&#39;,t&#39;}^\beta(\bar{\mathrm{x}})+n_{VM}^\beta\sum_{s&#39;\ge2,t&#39;\ge2}
+p_{VM,s&#39;,t&#39;}^\beta(\bar{\mathrm{x}})}
+\]</span></p>
+<h3 id="implementation">5.2 Implementation</h3>
 <ul>
-<li>The BPT implementation according to Veach [1997] reuses sub-paths by connecting every eye sub-path vertex to every vertex on one light sub-path.</li>
-</ul>
-</li>
-<li><p>thanks to the low cost of range query, an eye sub-path vertex can be potentially merged with vertices of <strong>a large number of</strong> pre-generated light sub-paths.</p>
-</li>
-<li><p>为了提高复用率，我们把算法分为两个阶段</p>
+<li>采样的代价很大
+<ul>
+<li>The BPT implementation according to Veach [1997] reuses sub-paths by
+connecting every eye sub-path vertex to every vertex on one light
+sub-path.</li>
+</ul></li>
+<li>thanks to the low cost of range query, an eye sub-path vertex can be
+potentially merged with vertices of <strong>a large number of</strong>
+pre-generated light sub-paths.</li>
+<li>为了提高复用率，我们把算法分为两个阶段
 <ul>
 <li>sampling of the light and eye sub-paths</li>
-</ul>
-</li>
-<li><p>L：11-13</p>
+</ul></li>
+<li>L：11-13
 <ul>
 <li>看当前结点是否自发光，如果自发光，则收集 radiance</li>
-</ul>
-</li>
-<li><p>为了减少相关性，我们不保存 light subpath 的第一个顶点位置，修改为重新对它随机采样</p>
+</ul></li>
+<li>为了减少相关性，我们不保存 light subpath
+的第一个顶点位置，修改为重新对它随机采样
 <ul>
-<li>To reduce correlation, we follow Veach [1997] and do not store the first vertex of a light sub-path, instead connecting every eye vertex to a new, randomly sampled point on a light source.</li>
-</ul>
-</li>
-<li><p>评估权重的时候，把信息存储在节点上以提高效率</p>
+<li>To reduce correlation, we follow Veach [1997] and do not store the
+first vertex of a light sub-path, instead connecting every eye vertex to
+a new, randomly sampled point on a light source.</li>
+</ul></li>
+<li>评估权重的时候，把信息存储在节点上以提高效率
 <ul>
-<li>Most of the terms required to evaluate path contributions and pdfs are stored with the sub-path vertices for improved efficiency.</li>
+<li>Most of the terms required to evaluate path contributions and pdfs
+are stored with the sub-path vertices for improved efficiency.</li>
+</ul></li>
+<li>伪代码如下</li>
 </ul>
-</li>
-<li><p>伪代码如下</p>
-</li>
-</ul>
-<img src="VCM/image-20210415141636262.png" style="zoom:67%;" />
-
-
-
-<h2 id="6-Achieving-Consistency"><a href="#6-Achieving-Consistency" class="headerlink" title="6. Achieving Consistency"></a>6. Achieving Consistency</h2><ul>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415141636262.png" style="zoom:67%;"></p>
+<h2 id="achieving-consistency">6. Achieving Consistency</h2>
+<ul>
 <li>我们的方法是有偏的（blur），但是是一致的</li>
 <li>通过渐进的减小半径 r 、累计所有的结果实现</li>
-<li>最终的结果通过前 N 次独立的采样渲染结果平均得到<ul>
-<li>每一轮的计算和上面提到的单次估计相同（5.1）</li>
-</ul>
-</li>
-</ul>
-<p>$$<br>\langle I\rangle_{VCM}&#x3D;\dfrac{1}{N}\sum_{i&#x3D;1}^N(C_{VC,i}+C_{VM,i})<br>$$</p>
+<li>最终的结果通过前 N 次独立的采样渲染结果平均得到
 <ul>
-<li>每一轮新的迭代使用新的 eye subpath 以及 light subpath，减小半径<ul>
-<li>$r_i&#x3D;r_1\sqrt{i^{\alpha-1}}$, where $\alpha\in(0,1)$</li>
+<li>每一轮的计算和上面提到的单次估计相同（5.1）</li>
+</ul></li>
 </ul>
-</li>
+<p><span class="math display">\[
+\langle I\rangle_{VCM}=\dfrac{1}{N}\sum_{i=1}^N(C_{VC,i}+C_{VM,i})
+\]</span></p>
+<ul>
+<li>每一轮新的迭代使用新的 eye subpath 以及 light subpath，减小半径
+<ul>
+<li><span class="math inline">\(r_i=r_1\sqrt{i^{\alpha-1}}\)</span>,
+where <span class="math inline">\(\alpha\in(0,1)\)</span></li>
+</ul></li>
 </ul>
-<h3 id="6-1-Asymptotic-Error-Analysis"><a href="#6-1-Asymptotic-Error-Analysis" class="headerlink" title="6.1 Asymptotic Error Analysis"></a>6.1 Asymptotic Error Analysis</h3><ul>
+<h3 id="asymptotic-error-analysis">6.1 Asymptotic Error Analysis</h3>
+<ul>
 <li>方差渐进分析</li>
-<li>MSE<ul>
-<li>BPT：$O(\dfrac{1}{N})$</li>
-<li>PPM：$O(\dfrac{1}{N^\frac{2}{3}}),\alpha&#x3D;\dfrac23$</li>
-</ul>
-</li>
+<li>MSE
+<ul>
+<li>BPT：<span class="math inline">\(O(\dfrac{1}{N})\)</span></li>
+<li>PPM：<span class="math inline">\(O(\dfrac{1}{N^\frac{2}{3}}),\alpha=\dfrac23\)</span></li>
+</ul></li>
 <li>理论上我们的 MSE 应该介于上面两者之间</li>
 <li>VC：无偏的</li>
 </ul>
-<p>$$<br>\mathrm{Var}[\langle I\rangle_{VC}]&#x3D;O(1),\ \mathrm{Bias}[\langle I\rangle_{VC}]&#x3D;0<br>$$</p>
+<p><span class="math display">\[
+\mathrm{Var}[\langle I\rangle_{VC}]=O(1),\ \mathrm{Bias}[\langle
+I\rangle_{VC}]=0
+\]</span></p>
 <ul>
-<li>VM：借用 Knaus and Zwicker [2011] 的结论<ul>
+<li>VM：借用 Knaus and Zwicker [2011] 的结论
+<ul>
 <li>半径缩减采用上面的方案</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>$$<br>\mathrm{Var}[\langle I\rangle_{VM}]&#x3D;O(\dfrac{1}{r^2_i}),\ \mathrm{Bias}[\langle I\rangle_{VM}]&#x3D;O(r_i^2)<br>$$</p>
-<p>$$<br>\mathrm{Var}[\langle I\rangle_{VM}]&#x3D;O(i^{1-\alpha}),\ \mathrm{Bias}[\langle I\rangle_{VM}]&#x3D;O(i^{\alpha-1})<br>$$</p>
+<p><span class="math display">\[
+\mathrm{Var}[\langle I\rangle_{VM}]=O(\dfrac{1}{r^2_i}),\
+\mathrm{Bias}[\langle I\rangle_{VM}]=O(r_i^2)
+\]</span></p>
+<p><span class="math display">\[
+\mathrm{Var}[\langle I\rangle_{VM}]=O(i^{1-\alpha}),\
+\mathrm{Bias}[\langle I\rangle_{VM}]=O(i^{\alpha-1})
+\]</span></p>
 <ul>
 <li>计算各种参数的量级</li>
-<li>$p_{VC,s,t}(\mathrm{x})&#x3D;O(1)$</li>
-<li>$p_{VM,s,t}(\mathrm{x})&#x3D;O(r_i^2)&#x3D;O(i^{\alpha-1})$</li>
-<li>$w_{VC,s,t}(\bar{\mathrm{x}})&#x3D;\dfrac{O(1)}{O(1)+O(i^{\beta(\alpha-1)})}&#x3D;O(1)$<ul>
-<li>$\alpha\in(0,1)$</li>
+<li><span class="math inline">\(p_{VC,s,t}(\mathrm{x})=O(1)\)</span></li>
+<li><span class="math inline">\(p_{VM,s,t}(\mathrm{x})=O(r_i^2)=O(i^{\alpha-1})\)</span></li>
+<li><span class="math inline">\(w_{VC,s,t}(\bar{\mathrm{x}})=\dfrac{O(1)}{O(1)+O(i^{\beta(\alpha-1)})}=O(1)\)</span>
+<ul>
+<li><span class="math inline">\(\alpha\in(0,1)\)</span></li>
+</ul></li>
+<li><span class="math inline">\(w_{VM,s,t}(\bar{\mathrm{x}})=\dfrac{O(i^{\beta(\alpha-1)})}{O(i^{\beta(\alpha-1)})+O(1)}=O(i^{\beta(\alpha-1)})\)</span>
+<ul>
+<li><span class="math inline">\(\alpha\in(0,1)\)</span></li>
+</ul></li>
 </ul>
-</li>
-<li>$w_{VM,s,t}(\bar{\mathrm{x}})&#x3D;\dfrac{O(i^{\beta(\alpha-1)})}{O(i^{\beta(\alpha-1)})+O(1)}&#x3D;O(i^{\beta(\alpha-1)})$<ul>
-<li>$\alpha\in(0,1)$</li>
-</ul>
-</li>
-</ul>
-<h4 id="Variance"><a href="#Variance" class="headerlink" title="Variance"></a>Variance</h4><ul>
+<h4 id="variance">Variance</h4>
+<ul>
 <li>方差估计，由于每一步的采样都是独立的</li>
 </ul>
-<p>$$<br>\mathrm{Var}[\langle I\rangle_{VCM}]&#x3D;\dfrac{1}{N^2}\sum_{i&#x3D;1}^N(\mathrm{Var}[C_{VC,i}]+\mathrm{Var}[C_{VM,i}])<br>$$</p>
+<p><span class="math display">\[
+\mathrm{Var}[\langle
+I\rangle_{VCM}]=\dfrac{1}{N^2}\sum_{i=1}^N(\mathrm{Var}[C_{VC,i}]+\mathrm{Var}[C_{VM,i}])
+\]</span></p>
 <ul>
 <li>VC，VM 认为是独立采样，所以能拆开</li>
-<li>我们假定 $2\beta(\alpha-1)-\alpha&lt;-1$<ul>
-<li>实际操作我们会让 $\beta\ge1$，所以能保证</li>
+<li>我们假定 <span class="math inline">\(2\beta(\alpha-1)-\alpha&lt;-1\)</span>
+<ul>
+<li>实际操作我们会让 <span class="math inline">\(\beta\ge1\)</span>，所以能保证</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>$$<br>\begin{aligned}<br>&amp;\mathrm{Var}[\langle I\rangle_{VCM}]\<br>&#x3D;&amp;\dfrac{1}{N^2}\sum_{i&#x3D;1}^N\left(O(1)O(1)+O(i^{2\beta(\alpha-1)})O(i^{1-\alpha})\right)\<br>&#x3D;&amp;O(N^{-1})+O(i^{2\beta(\alpha-1)-\alpha})\<br>&#x3D;&amp;O(N^{-1})\<br>\end{aligned}<br>$$</p>
-<h4 id="Bias"><a href="#Bias" class="headerlink" title="Bias"></a>Bias</h4><ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\mathrm{Var}[\langle I\rangle_{VCM}]\\
+=&amp;\dfrac{1}{N^2}\sum_{i=1}^N\left(O(1)O(1)+O(i^{2\beta(\alpha-1)})O(i^{1-\alpha})\right)\\
+=&amp;O(N^{-1})+O(i^{2\beta(\alpha-1)-\alpha})\\
+=&amp;O(N^{-1})\\
+\end{aligned}
+\]</span></p>
+<h4 id="bias">Bias</h4>
+<ul>
 <li>类似的估计</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>&amp;\mathrm{Bias}[\langle I\rangle_{VCM}]\<br>&#x3D;&amp;\dfrac{1}{N}\sum_{i&#x3D;1}^N(\mathrm{Bias}[C_{VC,i}]+\mathrm{Bias}[C_{VC,i}])\<br>&#x3D;&amp;O(i^{(\beta+1)(\alpha-1)})\<br>\end{aligned}<br>$$</p>
-<h4 id="MSE"><a href="#MSE" class="headerlink" title="MSE"></a>MSE</h4><ul>
-<li>假定 $\alpha\le\dfrac{2\beta+1}{2\beta+2}$</li>
-</ul>
-<p>$$<br>\begin{aligned}<br>&amp;\mathrm{MSE}[\langle I\rangle_{VCM}]\<br>&#x3D;&amp;\mathrm{Var}[\langle I\rangle_{VCM}]+\mathrm{Bias}^2[\langle I\rangle_{VCM}]\<br>&#x3D;&amp;O(N^{-1})+O(N^{2(\beta+1)(\alpha-1)})\<br>&#x3D;&amp;O(N^{-1})\<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\mathrm{Bias}[\langle I\rangle_{VCM}]\\
+=&amp;\dfrac{1}{N}\sum_{i=1}^N(\mathrm{Bias}[C_{VC,i}]+\mathrm{Bias}[C_{VC,i}])\\
+=&amp;O(i^{(\beta+1)(\alpha-1)})\\
+\end{aligned}
+\]</span></p>
+<h4 id="mse">MSE</h4>
 <ul>
-<li>令 $\beta&#x3D;1$，此时对于任意的 $\alpha\in(0,0.75)$ 都满足上面的条件</li>
+<li>假定 <span class="math inline">\(\alpha\le\dfrac{2\beta+1}{2\beta+2}\)</span></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\mathrm{MSE}[\langle I\rangle_{VCM}]\\
+=&amp;\mathrm{Var}[\langle I\rangle_{VCM}]+\mathrm{Bias}^2[\langle
+I\rangle_{VCM}]\\
+=&amp;O(N^{-1})+O(N^{2(\beta+1)(\alpha-1)})\\
+=&amp;O(N^{-1})\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>令 <span class="math inline">\(\beta=1\)</span>，此时对于任意的
+<span class="math inline">\(\alpha\in(0,0.75)\)</span>
+都满足上面的条件</li>
 <li>比 PPM 更快</li>
 <li>PPM 的估计如下</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>&amp;\mathrm{MSE}[\langle I\rangle_{VCM}]\<br>&#x3D;&amp;\mathrm{Var}[\langle I\rangle_{VCM}]+\mathrm{Bias}^2[\langle I\rangle_{VCM}]\<br>&#x3D;&amp;O(N^{-\alpha})+O(N^{2(\alpha-1)})\<br>\le&amp;O(N^{-\frac{2}{3}})\<br>\end{aligned}<br>$$</p>
-<h4 id="Discussion-1"><a href="#Discussion-1" class="headerlink" title="Discussion"></a>Discussion</h4><img src="VCM/image-20210415170523674.png" style="zoom:50%;" />
-
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\mathrm{MSE}[\langle I\rangle_{VCM}]\\
+=&amp;\mathrm{Var}[\langle I\rangle_{VCM}]+\mathrm{Bias}^2[\langle
+I\rangle_{VCM}]\\
+=&amp;O(N^{-\alpha})+O(N^{2(\alpha-1)})\\
+\le&amp;O(N^{-\frac{2}{3}})\\
+\end{aligned}
+\]</span></p>
+<h4 id="discussion-1">Discussion</h4>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415170523674.png" style="zoom:50%;"></p>
 <ul>
-<li>收敛更快，直观上我们可以理解为 VM 随着跌打的增加贡献逐渐减小，几乎等同于 BPT</li>
-<li>VM 初始方差更小，于是能够在有限的样本内很快得到一张可以接受的图片</li>
+<li>收敛更快，直观上我们可以理解为 VM
+随着跌打的增加贡献逐渐减小，几乎等同于 BPT</li>
+<li>VM
+初始方差更小，于是能够在有限的样本内很快得到一张可以接受的图片</li>
 </ul>
-<h2 id="7-Result"><a href="#7-Result" class="headerlink" title="7.Result"></a>7.Result</h2><ul>
+<h2 id="result">7.Result</h2>
+<ul>
 <li>很多效果图</li>
 </ul>
-<h2 id="8-DIscussion"><a href="#8-DIscussion" class="headerlink" title="8.DIscussion"></a>8.DIscussion</h2><ul>
-<li>参数选择：$r1$：0:01%-0:07% of the scene’s bounding box，$\alpha&#x3D;\dfrac{2}{3}$<ul>
-<li>为了做对比实验</li>
-</ul>
-</li>
-<li>实际使用的时候，建议参数<ul>
-<li>VCM we recommend setting $r1$ smaller than for PPM and $\alpha&#x3D;0.75$</li>
-</ul>
-</li>
-<li>限制<ul>
-<li>不好处理点光源，不能采样</li>
-<li>对于 PM 和 BPT 都不能很好处理的场景，VCM 也不能很好的处理<ul>
-<li>caustics falling on a highly glossy surface</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="A-Additional-Vertex-Merging-Derivations"><a href="#A-Additional-Vertex-Merging-Derivations" class="headerlink" title="A Additional Vertex Merging Derivations"></a>A Additional Vertex Merging Derivations</h2><h3 id="A-1-Contribution-Function-for-Extended-Paths"><a href="#A-1-Contribution-Function-for-Extended-Paths" class="headerlink" title="A.1 Contribution Function for Extended Paths"></a>A.1 Contribution Function for Extended Paths</h3><h4 id="PM-pixel-measurement-estimator"><a href="#PM-pixel-measurement-estimator" class="headerlink" title="PM pixel measurement estimator."></a>PM pixel measurement estimator.</h4><img src="VCM/image-20210415173036033.png" style="zoom: 80%;" />
-
-<h4 id="Path-integral-and-contribution-function"><a href="#Path-integral-and-contribution-function" class="headerlink" title="Path integral and contribution function"></a>Path integral and contribution function</h4><ul>
-<li>$Q$ 项中的 $K$ （kernel）会引发模糊现象</li>
-</ul>
-<img src="VCM/image-20210415174147620.png" style="zoom:80%;" />
-
-<h3 id="A-2-Reducing-the-Path-Integral-Dimension"><a href="#A-2-Reducing-the-Path-Integral-Dimension" class="headerlink" title="A.2 Reducing the Path Integral Dimension"></a>A.2 Reducing the Path Integral Dimension</h3><ul>
-<li>拆解为两部分，正常采样 + 贡献项<ul>
-<li>equation (20)</li>
-</ul>
-</li>
-</ul>
-<img src="VCM/image-20210415175052691.png" style="zoom:80%;" />
-
+<h2 id="discussion-2">8.DIscussion</h2>
 <ul>
-<li>贡献项的计算<ul>
+<li>参数选择：<span class="math inline">\(r1\)</span>：0:01%-0:07% of
+the scene’s bounding box，<span class="math inline">\(\alpha=\dfrac{2}{3}\)</span>
+<ul>
+<li>为了做对比实验</li>
+</ul></li>
+<li>实际使用的时候，建议参数
+<ul>
+<li>VCM we recommend setting <span class="math inline">\(r1\)</span>
+smaller than for PPM and <span class="math inline">\(\alpha=0.75\)</span></li>
+</ul></li>
+<li>限制
+<ul>
+<li>不好处理点光源，不能采样</li>
+<li>对于 PM 和 BPT 都不能很好处理的场景，VCM 也不能很好的处理
+<ul>
+<li>caustics falling on a highly glossy surface</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="a-additional-vertex-merging-derivations">A Additional Vertex
+Merging Derivations</h2>
+<h3 id="a.1-contribution-function-for-extended-paths">A.1 Contribution
+Function for Extended Paths</h3>
+<h4 id="pm-pixel-measurement-estimator.">PM pixel measurement
+estimator.</h4>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415173036033.png" style="zoom: 80%;"></p>
+<h4 id="path-integral-and-contribution-function">Path integral and
+contribution function</h4>
+<ul>
+<li><span class="math inline">\(Q\)</span> 项中的 <span class="math inline">\(K\)</span> （kernel）会引发模糊现象</li>
+</ul>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415174147620.png" style="zoom:80%;"></p>
+<h3 id="a.2-reducing-the-path-integral-dimension">A.2 Reducing the Path
+Integral Dimension</h3>
+<ul>
+<li>拆解为两部分，正常采样 + 贡献项
+<ul>
+<li>equation (20)</li>
+</ul></li>
+</ul>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415175052691.png" style="zoom:80%;"></p>
+<ul>
+<li>贡献项的计算
+<ul>
 <li>MC 估计即可</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<img src="VCM/image-20210415175403612.png" style="zoom:80%;" />
-
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415175403612.png" style="zoom:80%;"></p>
 <ul>
 <li>VM 的估计</li>
 </ul>
-<img src="VCM/image-20210415180739524.png" style="zoom:80%;" />
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/13/CG/Papers/2012/VCM/" data-id="cl9lj74bs00lq64tz7g6xb9p9" data-title="(论文)[2012] Light Transport Simulation with Vertex Connection and Merging" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li></ul>
+<p><img src="/2021/04/13/CG/Papers/2012/VCM/image-20210415180739524.png" style="zoom:80%;"></p>
 
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/11/DB/CLJ/04/" rel="prev" title="数据库概论.陈立军.04.SQL 简介">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.04.SQL 简介
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/14/CG/YLQ-GAMES202/06/" rel="next" title="GAMES202.闫令琪.06.实时环境光照(2)">
+                  GAMES202.闫令琪.06.实时环境光照(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
     </footer>
-  </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2021/04/14/CG/YLQ-GAMES202/06/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          GAMES202.闫令琪.06.实时环境光照(2)
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2021/04/11/DB/CLJ/04/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">数据库概论.陈立军.04.SQL 简介</div>
-    </a>
-  
-</nav>
-
-  
-</article>
+  </article>
+</div>
 
 
-</section>
-        
-          <aside id="sidebar">
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Categories</h3>
-    <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
-    </div>
-  </div>
 
 
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tags</h3>
-    <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
-    </div>
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
 
 
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloud</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
-    </div>
-  </div>
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
-          </li>
-        
-          <li>
-            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2022 John Doe<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
 
     </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
-    
-
-
-<script src="/js/jquery-3.4.1.min.js"></script>
-
-
+  </footer>
 
   
-<script src="/fancybox/jquery.fancybox.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 
 
-<script src="/js/script.js"></script>
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
 
 
 
-
-
-  </div>
 </body>
 </html>

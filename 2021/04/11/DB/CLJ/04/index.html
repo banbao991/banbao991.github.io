@@ -1,844 +1,970 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  
-  <title>数据库概论.陈立军.04.SQL 简介 | Hexo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="SQL 简介、SQL 模式定义、SQL 数据类型">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="SQL 简介、SQL 模式定义、SQL 数据类型">
 <meta property="og:type" content="article">
 <meta property="og:title" content="数据库概论.陈立军.04.SQL 简介">
 <meta property="og:url" content="http://example.com/2021/04/11/DB/CLJ/04/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="Banbao">
 <meta property="og:description" content="SQL 简介、SQL 模式定义、SQL 数据类型">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/04/image-20210411232314758.png">
-<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/04/image-20210411232640103.png">
-<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/04/image-20210411233555901.png">
-<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/04/image-20210411233827361.png">
-<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/04/image-20210411234953125.png">
-<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/04/image-20210412000650284.png">
-<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/04/image-20210412000711578.png">
-<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/04/image-20210412001530774.png">
-<meta property="og:image" content="http://example.com/04/image-20210412094127009.png">
-<meta property="og:image" content="http://example.com/04/image-20210412094330299.png">
-<meta property="og:image" content="http://example.com/04/image-20210412094446501.png">
-<meta property="og:image" content="http://example.com/04/image-20210412094636820.png">
-<meta property="og:image" content="http://example.com/04/image-20210412140151720.png">
-<meta property="og:image" content="http://example.com/04/image-20210412141040214.png">
-<meta property="og:image" content="http://example.com/04/image-20210412141445776.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210411232314758.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210411232640103.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210411233555901.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210411233827361.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210411234953125.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412000650284.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412000711578.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412001530774.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412094127009.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412094330299.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412094446501.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412094636820.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412140151720.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412141040214.png">
+<meta property="og:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210412141445776.png">
 <meta property="article:published_time" content="2021-04-11T14:56:33.000Z">
 <meta property="article:modified_time" content="2021-06-24T11:54:20.031Z">
-<meta property="article:author" content="John Doe">
+<meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="DB">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/04/11/DB/CLJ/04/04/image-20210411232314758.png">
-  
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/favicon.png">
-  
-  
-    
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+<meta name="twitter:image" content="http://example.com/2021/04/11/DB/CLJ/04/image-20210411232314758.png">
 
-  
-  
-<link rel="stylesheet" href="/css/style.css">
 
-  
-    
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+<link rel="canonical" href="http://example.com/2021/04/11/DB/CLJ/04/">
 
-  
-<meta name="generator" content="Hexo 6.3.0"></head>
 
-<body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
-      </h1>
-      
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2021/04/11/DB/CLJ/04/","path":"2021/04/11/DB/CLJ/04/","title":"数据库概论.陈立军.04.SQL 简介"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>数据库概论.陈立军.04.SQL 简介 | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
     </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
         
-          <a class="main-nav-link" href="/">Home</a>
-        
-          <a class="main-nav-link" href="/archives">Archives</a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
-        
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#sql-%E7%AE%80%E4%BB%8B"><span class="nav-text">SQL 简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sql-%E8%AF%AD%E8%A8%80%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-text">SQL 语言的特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sql-%E7%9A%84%E6%A0%87%E5%87%86%E5%8C%96"><span class="nav-text">SQL 的标准化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sql-%E4%B8%BB%E8%A6%81%E6%93%8D%E4%BD%9C%E7%AC%A6"><span class="nav-text">SQL 主要操作符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sql%E6%95%B0%E6%8D%AE%E8%AE%BF%E9%97%AE%E7%9A%84%E4%BA%8B%E5%AE%9E%E6%A0%87%E5%87%86"><span class="nav-text">SQL：数据访问的事实标准</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sql-%E6%A8%A1%E5%BC%8F%E5%AE%9A%E4%B9%89"><span class="nav-text">SQL 模式定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E7%89%B9%E7%82%B9"><span class="nav-text">SQL 数据定义特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%87%E5%87%86-sql-%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E5%AF%B9%E8%B1%A1"><span class="nav-text">标准 SQL 中的数据定义对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E5%AE%9A%E4%B9%89%E5%AF%B9%E8%B1%A1"><span class="nav-text">SQL Server 定义对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AE%9A%E4%B9%89"><span class="nav-text">SQL Server 数据库定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E6%A8%A1%E5%BC%8F%E5%AE%9A%E4%B9%89"><span class="nav-text">SQL Server 模式定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AE%9A%E4%B9%89"><span class="nav-text">MySQL 数据库定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E8%A1%A8%E7%A9%BA%E9%97%B4"><span class="nav-text">MySQL 表空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%9F%BA%E6%9C%AC%E8%A1%A8"><span class="nav-text">创建基本表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E8%A1%A8%E5%AE%9A%E4%B9%89%E7%9B%B8%E5%85%B3%E7%9A%84%E5%AD%97%E5%85%B8%E8%A1%A8"><span class="nav-text">SQL Server
+表定义相关的字典表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E5%9F%BA%E6%9C%AC%E8%A1%A8"><span class="nav-text">修改基本表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E8%A1%A8"><span class="nav-text">删除表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%B4%E6%97%B6%E8%A1%A8%E4%B8%8E%E5%86%85%E5%AD%98%E8%A1%A8"><span class="nav-text">临时表与内存表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%86%E5%9B%BE"><span class="nav-text">视图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AC%E5%85%B1%E8%A1%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-text">公共表表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BE%80%E8%A1%A8%E4%B8%AD%E8%BD%BD%E5%85%A5%E6%95%B0%E6%8D%AE"><span class="nav-text">往表中载入数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sql-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-text">SQL 数据类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E5%BD%A2"><span class="nav-text">整形</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E7%82%B9%E6%95%B0%E4%B8%8E%E6%B5%AE%E7%82%B9%E6%95%B0"><span class="nav-text">定点数与浮点数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#money-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-text">money 数据类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E5%9E%8B"><span class="nav-text">字符型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%9A%E4%B8%BE%E5%9E%8B"><span class="nav-text">枚举型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E9%9B%86"><span class="nav-text">字符集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%B1%BB%E5%9E%8B"><span class="nav-text">二进制类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E6%9C%9F%E7%B1%BB%E5%9E%8B"><span class="nav-text">日期类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql-server-%E7%9A%84%E6%97%A5%E6%9C%9F%E7%B1%BB%E5%9E%8B"><span class="nav-text">SQL Server 的日期类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E6%AE%8A%E7%B1%BB%E5%9E%8B"><span class="nav-text">特殊类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rowversion"><span class="nav-text">rowversion</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#uniqueidentifier"><span class="nav-text">uniqueidentifier</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%BE%E5%BC%8F%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2"><span class="nav-text">显式数据类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%90%E5%BC%8F%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2"><span class="nav-text">隐式数据类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-text">用户定义数据类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-text">如何选择数据类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9A%E9%95%BF%E4%B8%8E%E5%8F%98%E9%95%BF"><span class="nav-text">定长与变长</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E7%A0%81%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-text">主码的选择</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">252</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">76</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
       </div>
     </div>
-  </div>
-</header>
+  </aside>
+  <div class="sidebar-dimmer"></div>
 
-      <div class="outer">
-        <section id="main"><article id="post-DB/CLJ/04" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/04/11/DB/CLJ/04/" class="article-date">
-  <time class="dt-published" datetime="2021-04-11T14:56:33.000Z" itemprop="datePublished">2021-04-11</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/DB-CLJ/">DB.CLJ</a>
-  </div>
 
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
   </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
   
-    <h1 class="p-name article-title" itemprop="headline name">
-      数据库概论.陈立军.04.SQL 简介
-    </h1>
+
+
+<div class="post-block">
+  
   
 
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/11/DB/CLJ/04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="数据库概论.陈立军.04.SQL 简介 | Banbao">
+      <meta itemprop="description" content="SQL 简介、SQL 模式定义、SQL 数据类型">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.04.SQL 简介
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-04-11 22:56:33" itemprop="dateCreated datePublished" datetime="2021-04-11T22:56:33+08:00">2021-04-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2021-06-24 19:54:20" itemprop="dateModified" datetime="2021-06-24T19:54:20+08:00">2021-06-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">SQL 简介、SQL 模式定义、SQL 数据类型</div>
+        </div>
       </header>
+
     
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="SQL-简介"><a href="#SQL-简介" class="headerlink" title="SQL 简介"></a>SQL 简介</h1><ul>
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="sql-简介">SQL 简介</h1>
+<ul>
 <li>SQL：StruceuredQuery Languang</li>
 <li>1974年，由 Boyce 和 Chamber 提出</li>
-<li>1975-1979年，在 System R 上实现， 由 IBM 的 San Jose 研究室研制，称为 Sequel</li>
+<li>1975-1979年，在 System R 上实现， 由 IBM 的 San Jose
+研究室研制，称为 Sequel</li>
 </ul>
-<h2 id="SQL-语言的特点"><a href="#SQL-语言的特点" class="headerlink" title="SQL 语言的特点"></a>SQL 语言的特点</h2><ul>
+<h2 id="sql-语言的特点">SQL 语言的特点</h2>
+<ul>
 <li>语言简洁，易学易用</li>
-<li><strong>一体化</strong>：<ul>
-<li>集 DDL，DML，DCL 于一体<ul>
+<li><strong>一体化</strong>：
+<ul>
+<li>集 DDL，DML，DCL 于一体
+<ul>
 <li>数据定义语言 DDL</li>
 <li>数据操纵语言 DML</li>
 <li>数据控制语言 DCL</li>
-</ul>
-</li>
+</ul></li>
 <li>单一的结构（关系），带来了数据操作符的统一</li>
-</ul>
-</li>
-<li><strong>面向集合的操作方式</strong><ul>
+</ul></li>
+<li><strong>面向集合的操作方式</strong>
+<ul>
 <li>一次一集合</li>
-</ul>
-</li>
-<li><strong>高度非过程化</strong><ul>
+</ul></li>
+<li><strong>高度非过程化</strong>
+<ul>
 <li>用户只需提出“做什么”，无须告诉“怎么做”，不必了解存取路径</li>
-</ul>
-</li>
-<li>两种使用方式，统一的语法结构<ul>
+</ul></li>
+<li>两种使用方式，统一的语法结构
+<ul>
 <li>既是自含式的（用户使用）</li>
 <li>又是嵌入式的（程序员使用）</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h2 id="SQL-的标准化"><a href="#SQL-的标准化" class="headerlink" title="SQL 的标准化"></a>SQL 的标准化</h2><ul>
+<h2 id="sql-的标准化">SQL 的标准化</h2>
+<ul>
 <li>SQL-86：“数据库语言SQL”</li>
 <li>SQL-89：“具有完整性增强的数据库语言SQL”，增加了对完整性约束的支持</li>
-<li>SQL-92：“数据库语言SQL”<ul>
-<li>是 SQL-89 的超集，增加了新的数据类型，更丰富的数据操作，更强的完整性、安全性支持等</li>
-</ul>
-</li>
+<li>SQL-92：“数据库语言SQL”
+<ul>
+<li>是 SQL-89
+的超集，增加了新的数据类型，更丰富的数据操作，更强的完整性、安全性支持等</li>
+</ul></li>
 <li>SQL:1999：增加对面向对象模型的支持</li>
 <li>SQL:2003：XML、Merge</li>
 <li>SQL:2008：truncate table、insteadof</li>
 <li>SQL:2011：分析函数</li>
 </ul>
-<h2 id="SQL-主要操作符"><a href="#SQL-主要操作符" class="headerlink" title="SQL 主要操作符"></a>SQL 主要操作符</h2><table>
+<h2 id="sql-主要操作符">SQL 主要操作符</h2>
+<table>
 <thead>
-<tr>
-<th align="center">SQL 功能</th>
-<th align="center">操作符</th>
+<tr class="header">
+<th style="text-align: center;">SQL 功能</th>
+<th style="text-align: center;">操作符</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">数据定义</td>
-<td align="center">create, alter, drop</td>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">数据定义</td>
+<td style="text-align: center;">create, alter, drop</td>
 </tr>
-<tr>
-<td align="center">数据查询</td>
-<td align="center">select</td>
+<tr class="even">
+<td style="text-align: center;">数据查询</td>
+<td style="text-align: center;">select</td>
 </tr>
-<tr>
-<td align="center">数据修改</td>
-<td align="center">insert, update, delete</td>
+<tr class="odd">
+<td style="text-align: center;">数据修改</td>
+<td style="text-align: center;">insert, update, delete</td>
 </tr>
-<tr>
-<td align="center">数据控制</td>
-<td align="center">grant, revoke</td>
+<tr class="even">
+<td style="text-align: center;">数据控制</td>
+<td style="text-align: center;">grant, revoke</td>
 </tr>
-</tbody></table>
-<h2 id="SQL：数据访问的事实标准"><a href="#SQL：数据访问的事实标准" class="headerlink" title="SQL：数据访问的事实标准"></a>SQL：数据访问的事实标准</h2><ul>
+</tbody>
+</table>
+<h2 id="sql数据访问的事实标准">SQL：数据访问的事实标准</h2>
+<ul>
 <li>SQL 成为很多数据库都会提供的一些接口</li>
 </ul>
-<img src="04/image-20210411232314758.png" style="zoom: 43%;" />
-
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210411232314758.png" style="zoom: 43%;"></p>
 <ul>
 <li>约定俗成的提供一个类 SQL 接口</li>
 </ul>
-<img src="04/image-20210411232640103.png" style="zoom:50%;" />
-
-
-
-
-
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210411232640103.png" style="zoom:50%;"></p>
 <ul>
 <li>自然语言转化为 SQL</li>
 </ul>
-<h2 id="SQL-模式定义"><a href="#SQL-模式定义" class="headerlink" title="SQL 模式定义"></a>SQL 模式定义</h2><ul>
-<li><strong>主要语法都是 MySQL 的语法，标识了的才是其他的，例如 SQL Server</strong></li>
+<h2 id="sql-模式定义">SQL 模式定义</h2>
+<ul>
+<li><strong>主要语法都是 MySQL 的语法，标识了的才是其他的，例如 SQL
+Server</strong></li>
 </ul>
-<h3 id="SQL-数据定义特点"><a href="#SQL-数据定义特点" class="headerlink" title="SQL 数据定义特点"></a>SQL 数据定义特点</h3><ul>
-<li>SQL 中，任何时候都可以执行一个数据定义语句，随时修改数据库结构<ul>
+<h3 id="sql-数据定义特点">SQL 数据定义特点</h3>
+<ul>
+<li>SQL 中，任何时候都可以执行一个数据定义语句，随时修改数据库结构
+<ul>
 <li>数据库定义不断增长（不必一开始就定义完整）</li>
 <li>数据库定义随时修改（不必一开始就完全合理）</li>
 <li>可进行增加索引、撤消索引的实验，检验其效率影响</li>
-</ul>
-</li>
+</ul></li>
 <li>在非关系型的数据库系统中，必须在数据库装入和使用前全部完成数据库的定义。若要修改已投入运行的数据库，则需停下一切数据库活动，把数据库卸出，修改数据库定义并重新编译，再按修改过的数据库结构重新装入数据</li>
 </ul>
-<h3 id="标准-SQL-中的数据定义对象"><a href="#标准-SQL-中的数据定义对象" class="headerlink" title="标准 SQL 中的数据定义对象"></a>标准 SQL 中的数据定义对象</h3><img src="04/image-20210411233555901.png" style="zoom:50%;" />
-
+<h3 id="标准-sql-中的数据定义对象">标准 SQL 中的数据定义对象</h3>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210411233555901.png" style="zoom:50%;"></p>
 <ul>
 <li>簇：物理概念，一个文件组</li>
 <li>目录：数据库</li>
 <li>模式：业务上挨得比较近的表放在一起</li>
 <li>对象：表</li>
 </ul>
-<h3 id="SQL-Server-定义对象"><a href="#SQL-Server-定义对象" class="headerlink" title="SQL Server 定义对象"></a>SQL Server 定义对象</h3><img src="04/image-20210411233827361.png" style="zoom:50%;" />
-
-
-
-<h3 id="SQL-Server-数据库定义"><a href="#SQL-Server-数据库定义" class="headerlink" title="SQL Server 数据库定义"></a>SQL Server 数据库定义</h3><ul>
+<h3 id="sql-server-定义对象">SQL Server 定义对象</h3>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210411233827361.png" style="zoom:50%;"></p>
+<h3 id="sql-server-数据库定义">SQL Server 数据库定义</h3>
+<ul>
 <li>创建数据库</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> database <span class="operator">&lt;</span>数据库名<span class="operator">&gt;</span></span><br><span class="line">[<span class="keyword">on</span> [<span class="keyword">primary</span>] <span class="operator">&lt;</span>文件描述<span class="operator">&gt;</span> <span class="operator">&lt;</span>文件组<span class="operator">&gt;</span>...]</span><br><span class="line">[log <span class="keyword">on</span><span class="operator">&lt;</span>文件描述<span class="operator">&gt;</span><span class="operator">&lt;</span>文件组<span class="operator">&gt;</span>...]</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>最简单的创建数据库的命令</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> database University</span><br></pre></td></tr></table></figure>
-
 <ul>
-<li>指定当前要使用的数据库<ul>
+<li>指定当前要使用的数据库
+<ul>
 <li>使用 use 命令，指定当前要使用的数据库</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">use University</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="SQL-Server-模式定义"><a href="#SQL-Server-模式定义" class="headerlink" title="SQL Server 模式定义"></a>SQL Server 模式定义</h3><ul>
+<h3 id="sql-server-模式定义">SQL Server 模式定义</h3>
+<ul>
 <li>模式把对象和用户分离开来</li>
 <li>对象是属于模式的，而不是属于用户的</li>
 <li>创建模式</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> schema <span class="operator">&lt;</span>模式名<span class="operator">&gt;</span></span><br><span class="line"><span class="comment">/* 一个例子 */</span></span><br><span class="line"><span class="keyword">create</span> schema University.Library</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>对象命名</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">&lt;</span>数据库<span class="operator">&gt;</span>.<span class="operator">&lt;</span>模式<span class="operator">&gt;</span>.<span class="operator">&lt;</span>表<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="MySQL-数据库定义"><a href="#MySQL-数据库定义" class="headerlink" title="MySQL 数据库定义"></a>MySQL 数据库定义</h3><ul>
+<h3 id="mysql-数据库定义">MySQL 数据库定义</h3>
+<ul>
 <li>MySQL 没有模式的概念</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> database<span class="operator">&lt;</span>数据库名<span class="operator">&gt;</span></span><br><span class="line">[<span class="keyword">default</span> <span class="type">character</span> <span class="keyword">set</span> utf8</span><br><span class="line"><span class="keyword">default</span> <span class="keyword">collate</span> utf8_Chinese_ci]</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>create database 等同于 create schema</li>
 </ul>
-<h3 id="MySQL-表空间"><a href="#MySQL-表空间" class="headerlink" title="MySQL 表空间"></a>MySQL 表空间</h3><ul>
+<h3 id="mysql-表空间">MySQL 表空间</h3>
+<ul>
 <li>逻辑概念，物理上由若干个磁盘文件构成</li>
 <li>把相关的文件定义在一个表空间里</li>
 </ul>
-<img src="04/image-20210411234953125.png" style="zoom:80%;" />
-
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210411234953125.png" style="zoom:80%;"></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 创建一个表空间, 存储引擎为 innodb(MySQL有两个存储引擎) */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span>space myTs <span class="string">&#x27;ts1.ibd&#x27;</span> engine<span class="operator">=</span> innodb</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 为表空间添加文件 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span>space myTs <span class="keyword">add</span> datafile <span class="string">&#x27;F:\\test_mysql_tablespace\\first.ibd&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 建表的时候可以指定表空间 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> myTb(...) tablespace myTs</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>SQL Server 数据库建在文件组上面，表建在数据库上面</li>
 <li>MySQL 表建在表空间上面</li>
 </ul>
-<h3 id="创建基本表"><a href="#创建基本表" class="headerlink" title="创建基本表"></a>创建基本表</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span>表名(</span><br><span class="line">    列名 数据类型 [<span class="keyword">default</span> 缺省值] [<span class="keyword">not</span> <span class="keyword">null</span>][<span class="keyword">unique</span>]</span><br><span class="line">    [,列名 数据类型[<span class="keyword">default</span> 缺省值][notnull]]</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">/* 主码 */</span></span><br><span class="line">    [,<span class="keyword">primary</span> key(列名[,列名]...)]</span><br><span class="line">    <span class="comment">/* 外码 */</span></span><br><span class="line">    [,<span class="keyword">foreign</span> key(列名[,列名]...) <span class="keyword">references</span> 表名(列名[,列名]..)]</span><br><span class="line">    <span class="comment">/* 约束条件 */</span></span><br><span class="line">    [,<span class="keyword">check</span>(条件)]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
+<h3 id="创建基本表">创建基本表</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span>表名(</span><br><span class="line">    列名 数据类型 [<span class="keyword">default</span> 缺省值] [<span class="keyword">not</span> <span class="keyword">null</span>][<span class="keyword">unique</span>]</span><br><span class="line">    [,列名 数据类型[<span class="keyword">default</span> 缺省值][notnull]]</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">/* 主码 */</span></span><br><span class="line">    [,<span class="keyword">primary</span> key(列名[,列名]...)]</span><br><span class="line">    <span class="comment">/* 外码 */</span></span><br><span class="line">    [,<span class="keyword">foreign</span> key(列名[,列名]...) <span class="keyword">references</span> 表名(列名[,列名]..)]</span><br><span class="line">    <span class="comment">/* 约束条件 */</span></span><br><span class="line">    [,<span class="keyword">check</span>(条件)]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 <ul>
 <li>创建表示例</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 学生表 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> S (</span><br><span class="line">    sno     <span class="type">char</span>(<span class="number">8</span>),</span><br><span class="line">    sname   <span class="type">char</span>(<span class="number">8</span>)     <span class="keyword">not</span> <span class="keyword">null</span> <span class="keyword">default</span> <span class="string">&#x27;佚名&#x27;</span>,</span><br><span class="line">    age     tinyint,</span><br><span class="line">    sex     <span class="type">char</span>(<span class="number">1</span>),</span><br><span class="line">    <span class="keyword">primary</span> key(sno),</span><br><span class="line">    <span class="keyword">check</span>(sex<span class="operator">=</span><span class="string">&#x27;M&#x27;</span> <span class="keyword">or</span> sex<span class="operator">=</span><span class="string">&#x27;F&#x27;</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 课程表 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> C (</span><br><span class="line">    cno     <span class="type">char</span>(<span class="number">8</span>)     <span class="keyword">primary</span> key,</span><br><span class="line">    cname   <span class="type">char</span>(<span class="number">8</span>)     <span class="keyword">not</span> <span class="keyword">null</span> <span class="keyword">unique</span>,</span><br><span class="line">    <span class="comment">/* 外码 */</span></span><br><span class="line">    pcno    <span class="type">char</span>(<span class="number">8</span>)     <span class="keyword">foreign</span> key <span class="keyword">references</span> C(cno),</span><br><span class="line">    credit  tinyint</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 选课结果 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> SC (</span><br><span class="line">    sno     <span class="type">char</span>(<span class="number">8</span>)     <span class="keyword">foreign</span> key <span class="keyword">references</span> S(sno),</span><br><span class="line">    cno     <span class="type">char</span>(<span class="number">8</span>)     <span class="keyword">foreign</span> key <span class="keyword">references</span> C(cno),</span><br><span class="line">    grade   tinyint,</span><br><span class="line">    <span class="comment">/* 对于复杂的运算, 把计算结果存起来 */</span></span><br><span class="line">    <span class="comment">/* persisted 持久化, 如果不加每次访问都需要重新计算 */</span></span><br><span class="line">    au_grade    <span class="built_in">sqrt</span>(grade)<span class="operator">*</span><span class="number">10</span>  persisted,</span><br><span class="line">    <span class="comment">/* 主码 */</span></span><br><span class="line">    primarykey(sno,cno),</span><br><span class="line">    <span class="keyword">check</span>((grade <span class="keyword">is</span> <span class="keyword">null</span>) <span class="keyword">or</span> grade <span class="keyword">between</span> <span class="number">0</span> <span class="keyword">and</span> <span class="number">100</span>))</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="SQL-Server-表定义相关的字典表"><a href="#SQL-Server-表定义相关的字典表" class="headerlink" title="SQL Server 表定义相关的字典表"></a>SQL Server 表定义相关的字典表</h3><img src="04/image-20210412000650284.png" style="zoom:50%;" />
-
-<img src="04/image-20210412000711578.png" style="zoom:47%;" />
-
+<h3 id="sql-server-表定义相关的字典表">SQL Server
+表定义相关的字典表</h3>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412000650284.png" style="zoom:50%;"></p>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412000711578.png" style="zoom:47%;"></p>
 <ul>
-<li>标准SQL中的信息视图<ul>
+<li>标准SQL中的信息视图
+<ul>
 <li>像查询普通的表那样查询数据字典</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 <figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">INFORMATION_SCHEMA.SCHEMATA</span><br><span class="line">INFORMATION_SCHEMA.TABLES</span><br><span class="line">INFORMATION_SCHEMA.COLUMNS</span><br><span class="line">INFORMATION_SCHEMA.CHECK_CONSTRAINTS</span><br><span class="line">INFORMATION_SCHEMA.VIEWS</span><br><span class="line">INFORMATION_SCHEMA.DOMAINS</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="修改基本表"><a href="#修改基本表" class="headerlink" title="修改基本表"></a>修改基本表</h3><ul>
+<h3 id="修改基本表">修改基本表</h3>
+<ul>
 <li>更改、添加、除去列和约束</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> 表名</span><br><span class="line"><span class="comment">/* 增加列 */</span></span><br><span class="line">[<span class="keyword">add</span> <span class="keyword">column</span> 子句]</span><br><span class="line"><span class="comment">/* 增加限制条件 */</span></span><br><span class="line">[<span class="keyword">add</span> <span class="keyword">constraint</span> 子句]</span><br><span class="line"><span class="comment">/* 删除某一列 */</span></span><br><span class="line">[<span class="keyword">drop</span> 子句]</span><br><span class="line"><span class="comment">/* 修改某一列的属性, 比如数据类型 */</span></span><br><span class="line">[<span class="keyword">alter</span> <span class="keyword">column</span> 子句]</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>一些问题</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 执行失败,添加的属性在原来的表里面不存在, not null 与之矛盾 */</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span>S <span class="keyword">add</span> resume <span class="type">char</span>[<span class="number">100</span>] <span class="keyword">not</span> <span class="keyword">null</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 把数据数组大小改小, 通常是不允许的, 可能会丢失数据 */</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span>S <span class="keyword">alter</span> <span class="keyword">column</span> resume <span class="type">char</span>[<span class="number">80</span>]</span><br></pre></td></tr></table></figure>
-
 <ul>
-<li>如何定义两个相互参照的表<ul>
+<li>如何定义两个相互参照的表
+<ul>
 <li>定义第一个表的时候声明外码的时候，数据库会判断外码的表是否存在</li>
 <li>定义第一个表的时候先不加入参照，当建完第二个表后再加入参照</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<img src="04/image-20210412001530774.png" style="zoom:50%;" />
-
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412001530774.png" style="zoom:50%;"></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> emp(eno <span class="keyword">primary</span> key...)</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> dept(dno <span class="keyword">primary</span> key, manager <span class="keyword">foreign</span> key...)</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> emp <span class="keyword">add</span> <span class="keyword">constraint</span> dno <span class="keyword">foreign</span> key...</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="删除表"><a href="#删除表" class="headerlink" title="删除表"></a>删除表</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> 表名</span><br></pre></td></tr></table></figure>
-
+<h3 id="删除表">删除表</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> 表名</span><br></pre></td></tr></table></figure>
 <ul>
 <li>删除表定义及该表的所有数据、索引、触发器、约束和权限规范</li>
-<li>任何引用已删除表的视图或存储过程必须通过 drop view 或 drop procedure 语句<strong>显式</strong>除去</li>
-<li>drop table 不能删除由 foreign key 约束引用的表，必须先除去引用的 foreign key 约束或引用的表<ul>
+<li>任何引用已删除表的视图或存储过程必须通过 drop view 或 drop procedure
+语句<strong>显式</strong>除去</li>
+<li>drop table 不能删除由 foreign key 约束引用的表，必须先除去引用的
+foreign key 约束或引用的表
+<ul>
 <li>例如上面的例子，如果删除第一个表，则会报错（第二个表在引用它）</li>
 <li>所以要先去除约束</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="临时表与内存表"><a href="#临时表与内存表" class="headerlink" title="临时表与内存表"></a>临时表与内存表</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 临时表 */</span></span><br><span class="line"><span class="keyword">create</span> temporary <span class="keyword">table</span> tmpT</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 内存表 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> tmpT() engine <span class="operator">=</span> memory</span><br></pre></td></tr></table></figure>
-
+<h3 id="临时表与内存表">临时表与内存表</h3>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 临时表 */</span></span><br><span class="line"><span class="keyword">create</span> temporary <span class="keyword">table</span> tmpT</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 内存表 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> tmpT() engine <span class="operator">=</span> memory</span><br></pre></td></tr></table></figure>
 <ul>
 <li>对比</li>
 </ul>
 <table>
+<colgroup>
+<col style="width: 10%">
+<col style="width: 34%">
+<col style="width: 54%">
+</colgroup>
 <thead>
-<tr>
-<th align="center"></th>
-<th align="center">临时表</th>
-<th align="center">内存表</th>
+<tr class="header">
+<th style="text-align: center;"></th>
+<th style="text-align: center;">临时表</th>
+<th style="text-align: center;">内存表</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">存储</td>
-<td align="center">表结构和数据都存储在内存中</td>
-<td align="center">表结构存储在磁盘中<br/>表数据存储在内存中</td>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">存储</td>
+<td style="text-align: center;">表结构和数据都存储在内存中</td>
+<td style="text-align: center;">表结构存储在磁盘中<br>表数据存储在内存中</td>
 </tr>
-<tr>
-<td align="center">会话</td>
-<td align="center">单个会话独享</td>
-<td align="center">多个会话共享</td>
+<tr class="even">
+<td style="text-align: center;">会话</td>
+<td style="text-align: center;">单个会话独享</td>
+<td style="text-align: center;">多个会话共享</td>
 </tr>
-<tr>
-<td align="center">断开连接</td>
-<td align="center">表结构和表数据都没了</td>
-<td align="center">表结构和表数据都存在</td>
+<tr class="odd">
+<td style="text-align: center;">断开连接</td>
+<td style="text-align: center;">表结构和表数据都没了</td>
+<td style="text-align: center;">表结构和表数据都存在</td>
 </tr>
-<tr>
-<td align="center">服务重启</td>
-<td align="center">表结构和表数据都没了</td>
-<td align="center">表结构存在<br/>表数据不存在</td>
+<tr class="even">
+<td style="text-align: center;">服务重启</td>
+<td style="text-align: center;">表结构和表数据都没了</td>
+<td style="text-align: center;">表结构存在<br>表数据不存在</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <ul>
 <li>临时表可以作为临时变量存储，对于一致性要求没有那么高（并发控制可能速度更快）</li>
 <li>临时表的有效范围是在一个连接之内</li>
 </ul>
-<h3 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h3><ul>
+<h3 id="视图">视图</h3>
+<ul>
 <li>创建视图</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">view</span> csStudent <span class="keyword">as</span> (</span><br><span class="line">    <span class="keyword">select</span> sname, dname</span><br><span class="line">    <span class="keyword">from</span> S, DEPT</span><br><span class="line">    <span class="keyword">where</span> S.dno<span class="operator">=</span>DEPT.dno <span class="keyword">and</span> dname<span class="operator">=</span><span class="string">&#x27;计算机系&#x27;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">view</span> niuGrade <span class="keyword">as</span> (</span><br><span class="line">    <span class="keyword">select</span> sno,cno,grade</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">where</span> grade<span class="operator">&gt;=</span><span class="number">95</span></span><br><span class="line">) <span class="keyword">with</span> <span class="keyword">check</span> option</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * with check option</span></span><br><span class="line"><span class="comment"> * 检查对视图的更新操作是不是符合视图定义的约束条件</span></span><br><span class="line"><span class="comment"> * 当插入一个数据不满足视图定义的约束条件时, 不允许插入</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="公共表表达式"><a href="#公共表表达式" class="headerlink" title="公共表表达式"></a>公共表表达式</h3><ul>
+<h3 id="公共表表达式">公共表表达式</h3>
+<ul>
 <li>只对这个查询有效</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> S<span class="operator">-</span>total(S#, <span class="keyword">value</span>) <span class="keyword">as</span> (</span><br><span class="line">    <span class="keyword">select</span> sno, <span class="built_in">sum</span> (grade)</span><br><span class="line">    <span class="keyword">from</span> SC</span><br><span class="line">    <span class="keyword">group</span> <span class="keyword">by</span> sno</span><br><span class="line">), S<span class="operator">-</span>total<span class="operator">-</span><span class="built_in">avg</span>(<span class="keyword">value</span>) <span class="keyword">as</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="built_in">avg</span> (<span class="keyword">value</span>)</span><br><span class="line">    <span class="keyword">from</span> S<span class="operator">-</span>total</span><br><span class="line">)</span><br><span class="line"><span class="keyword">select</span> sno</span><br><span class="line"><span class="keyword">from</span> S<span class="operator">-</span>total, S<span class="operator">-</span>total<span class="operator">-</span>avg</span><br><span class="line"><span class="keyword">where</span> S<span class="operator">-</span>total.value <span class="operator">&gt;=</span> S<span class="operator">-</span>total<span class="operator">-</span>avg.value</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="往表中载入数据"><a href="#往表中载入数据" class="headerlink" title="往表中载入数据"></a>往表中载入数据</h3><ul>
+<h3 id="往表中载入数据">往表中载入数据</h3>
+<ul>
 <li>文本中载入数据</li>
 <li>指定 replace，新行将代替相同码值的现有行</li>
 <li>指定 ignore，跳过和现有码值相同的新行输入</li>
 <li>不指定任何一个选项，出现重复码时，报错并终止</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">load data infile <span class="string">&#x27;file_name&#x27;</span></span><br><span class="line">[replace<span class="operator">|</span>ignore]</span><br><span class="line"><span class="keyword">into</span> <span class="keyword">table</span> tbl_name</span><br><span class="line">fields terminated <span class="keyword">by</span> <span class="string">&#x27;\t&#x27;</span></span><br><span class="line">lines terminated <span class="keyword">by</span> <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">ignore number lines</span><br><span class="line">[(col_name,)]</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="SQL-数据类型"><a href="#SQL-数据类型" class="headerlink" title="SQL 数据类型"></a>SQL 数据类型</h2><ul>
-<li>SQL数据类型<ul>
-<li>数值<ul>
+<h2 id="sql-数据类型">SQL 数据类型</h2>
+<ul>
+<li>SQL数据类型
+<ul>
+<li>数值
+<ul>
 <li>整数</li>
 <li>浮点数</li>
 <li>精确数</li>
-</ul>
-</li>
-<li>字符<ul>
+</ul></li>
+<li>字符
+<ul>
 <li>定长</li>
 <li>变长</li>
-</ul>
-</li>
+</ul></li>
 <li>日期</li>
 <li>二进制</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="整形"><a href="#整形" class="headerlink" title="整形"></a>整形</h3><ul>
+<h3 id="整形">整形</h3>
+<ul>
 <li>tinyint（1）、smallint（2）、mediumint（3）、int（4）、bigint（8）</li>
 <li>int，unsigned int</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_int(</span><br><span class="line">    <span class="comment">/* zero前面填充0, 输入的个数不够的话, 前面补充0 */</span></span><br><span class="line">    a(<span class="number">6</span>)    tinyint zerofill,</span><br><span class="line">    b(<span class="number">6</span>)    tinyint unsigned</span><br><span class="line">)</span><br><span class="line"><span class="comment">/* 输出表的描述 */</span></span><br><span class="line"><span class="keyword">desc</span> test_int</span><br></pre></td></tr></table></figure>
-
-<p><img src="/04/image-20210412094127009.png"></p>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412094127009.png"></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_int <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">111</span>)</span><br><span class="line"><span class="comment">/* 输出表示 zerofill 的效果 */</span></span><br><span class="line"><span class="keyword">select</span> a,b <span class="keyword">from</span> test_int</span><br></pre></td></tr></table></figure>
-
-<p><img src="/04/image-20210412094330299.png"></p>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412094330299.png"></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> a<span class="operator">-</span>b <span class="keyword">from</span> test_int</span><br></pre></td></tr></table></figure>
-
-<p><img src="/04/image-20210412094446501.png"></p>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412094446501.png"></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 模式 */</span></span><br><span class="line"><span class="comment">/* 严格模式上述报错 */</span></span><br><span class="line"><span class="keyword">set</span> sql_mode<span class="operator">=</span><span class="string">&#x27;traditional&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 宽松模式 */</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_int <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">1111</span>)</span><br></pre></td></tr></table></figure>
-
-<p><img src="/04/image-20210412094636820.png"></p>
-<h3 id="定点数与浮点数"><a href="#定点数与浮点数" class="headerlink" title="定点数与浮点数"></a>定点数与浮点数</h3><ul>
-<li>float(m, d)：4 字节<ul>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412094636820.png"></p>
+<h3 id="定点数与浮点数">定点数与浮点数</h3>
+<ul>
+<li>float(m, d)：4 字节
+<ul>
 <li>m 是总位数，d 是小数点后位数</li>
-</ul>
-</li>
+</ul></li>
 <li>double(m ,d)：8 字节</li>
-<li>decimal(m, d) &#x2F; numeric：精确小数<ul>
+<li>decimal(m, d) / numeric：精确小数
+<ul>
 <li>最大位数 m 为 65，最大支持小数 d 为 30</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_float(</span><br><span class="line">    <span class="comment">/* insert 浮点数小数部分溢出会被近似, 整数部分溢出会报错 */</span></span><br><span class="line">    a   <span class="type">float</span>(<span class="number">3</span>,<span class="number">2</span>),</span><br><span class="line">    b   <span class="keyword">double</span>(<span class="number">5</span>,<span class="number">3</span>)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">desc</span> test_float</span><br></pre></td></tr></table></figure>
-
-<p><img src="/04/image-20210412140151720.png"></p>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412140151720.png"></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_float <span class="keyword">values</span>(<span class="number">1.125</span>,<span class="number">2.123</span>)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_float <span class="keyword">values</span>(<span class="number">1.126</span>,<span class="number">2.1239</span>)</span><br><span class="line"><span class="comment">/* 位数溢出会被截断 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> test_float</span><br></pre></td></tr></table></figure>
-
-<p><img src="/04/image-20210412141040214.png"></p>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412141040214.png"></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_decimal(</span><br><span class="line">    <span class="comment">/* 默认 (10, 0) */</span></span><br><span class="line">    a   <span class="type">decimal</span>,</span><br><span class="line">    b   <span class="type">decimal</span>(<span class="number">6</span>,<span class="number">4</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<p><img src="/04/image-20210412141445776.png"></p>
-<h3 id="money-数据类型"><a href="#money-数据类型" class="headerlink" title="money 数据类型"></a>money 数据类型</h3><ul>
+<p><img src="/2021/04/11/DB/CLJ/04/image-20210412141445776.png"></p>
+<h3 id="money-数据类型">money 数据类型</h3>
+<ul>
 <li>money 使用 4 位小数存储数据，所以很容易发生小数的舍入错误</li>
 <li>基本上被废弃</li>
 <li>对精度敏感，则使用 decimal</li>
 </ul>
-<h3 id="字符型"><a href="#字符型" class="headerlink" title="字符型"></a>字符型</h3><ul>
+<h3 id="字符型">字符型</h3>
+<ul>
 <li>char(n)，0~255，定长字符串，n字节</li>
 <li>varchar(n)，0~65535，变长字符串，实际字符串长度</li>
-<li>tinytext：$2^8$</li>
-<li>text：$2^{16}$</li>
-<li>mediumtext：$2^{24}$</li>
-<li>longtext：$2^{32}$</li>
+<li>tinytext：<span class="math inline">\(2^8\)</span></li>
+<li>text：<span class="math inline">\(2^{16}\)</span></li>
+<li>mediumtext：<span class="math inline">\(2^{24}\)</span></li>
+<li>longtext：<span class="math inline">\(2^{32}\)</span></li>
 </ul>
-<h3 id="枚举型"><a href="#枚举型" class="headerlink" title="枚举型"></a>枚举型</h3><ul>
-<li>enum(‘v1’,’v2’,…)：只能取一个值</li>
-<li>set(‘v1’,’v2’,…)：可以取多个值</li>
+<h3 id="枚举型">枚举型</h3>
+<ul>
+<li>enum('v1','v2',...)：只能取一个值</li>
+<li>set('v1','v2',...)：可以取多个值</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_enum(</span><br><span class="line">    a   enum(<span class="string">&#x27;男&#x27;</span>,<span class="string">&#x27;女&#x27;</span>),</span><br><span class="line">    b   <span class="keyword">set</span>(<span class="string">&#x27;1&#x27;</span>,<span class="string">&#x27;2&#x27;</span>,<span class="string">&#x27;3&#x27;</span>,<span class="string">&#x27;4&#x27;</span>)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_enum <span class="keyword">values</span>(<span class="string">&#x27;男&#x27;</span>,<span class="string">&#x27;2,4&#x27;</span>)</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="字符集"><a href="#字符集" class="headerlink" title="字符集"></a>字符集</h3><ul>
+<h3 id="字符集">字符集</h3>
+<ul>
 <li>字符集（characterset）：字符 + 编码</li>
-<li>字符序（collation）：字符的比较规则<ul>
-<li>需要自己定义字符序，例如<ul>
+<li>字符序（collation）：字符的比较规则
+<ul>
+<li>需要自己定义字符序，例如
+<ul>
 <li>字符按其编码比较大小</li>
 <li>如果两个字符为大小写关系，则它们相等</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
+</ul></li>
 <li>设置字符集</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="type">character</span> <span class="keyword">set</span> <span class="keyword">like</span> <span class="string">&#x27;UTF*&#x27;</span></span><br></pre></td></tr></table></figure>
-
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use information_schema</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> collations</span><br><span class="line"><span class="keyword">where</span> character_set_name <span class="operator">=</span> <span class="string">&#x27;UTF8&#x27;</span></span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>查看当前数据库的字符集</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;character*&#x27;</span></span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>如果两个列的字符集不同，对他们作比较的时候可能会报错</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 为列和表指定字符集 */</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> tmpT(</span><br><span class="line">    c1 <span class="type">char</span>(<span class="number">6</span>) charset utf8 <span class="keyword">collate</span> utf8_romanian_ci,</span><br><span class="line">    c2 <span class="type">char</span>(<span class="number">6</span>) charset utf8 <span class="keyword">collate</span> utf8_spanish_ci</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 报错 */</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> tmpT <span class="keyword">values</span>(<span class="string">&#x27;A&#x27;</span>, <span class="string">&#x27;A&#x27;</span>);</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> tmpT <span class="keyword">where</span> c1<span class="operator">=</span>c2</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="二进制类型"><a href="#二进制类型" class="headerlink" title="二进制类型"></a>二进制类型</h3><ul>
+<h3 id="二进制类型">二进制类型</h3>
+<ul>
 <li>binary(n)：255</li>
 <li>varbinary(n)：16384</li>
-<li>tinyblob, blob, mediumblob, longblob<ul>
+<li>tinyblob, blob, mediumblob, longblob
+<ul>
 <li>256, 16K,16M, 4G</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_binary(abinary(<span class="number">30</span>))</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_binary <span class="keyword">values</span>(<span class="string">&#x27;Hello World!&#x27;</span>)</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="日期类型"><a href="#日期类型" class="headerlink" title="日期类型"></a>日期类型</h3><table>
+<h3 id="日期类型">日期类型</h3>
+<table>
+<colgroup>
+<col style="width: 10%">
+<col style="width: 21%">
+<col style="width: 59%">
+<col style="width: 9%">
+</colgroup>
 <thead>
-<tr>
-<th align="center">类型名称</th>
-<th align="center">日期格式</th>
-<th align="center">日期范围</th>
-<th align="center">存储需求</th>
+<tr class="header">
+<th style="text-align: center;">类型名称</th>
+<th style="text-align: center;">日期格式</th>
+<th style="text-align: center;">日期范围</th>
+<th style="text-align: center;">存储需求</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">year</td>
-<td align="center">YYYY</td>
-<td align="center">1901<br />2155</td>
-<td align="center">1 个字节</td>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">year</td>
+<td style="text-align: center;">YYYY</td>
+<td style="text-align: center;">1901<br>2155</td>
+<td style="text-align: center;">1 个字节</td>
 </tr>
-<tr>
-<td align="center">time</td>
-<td align="center">HH:MM:SS</td>
-<td align="center">-838:59:59<br />838:59:59</td>
-<td align="center">3 个字节</td>
+<tr class="even">
+<td style="text-align: center;">time</td>
+<td style="text-align: center;">HH:MM:SS</td>
+<td style="text-align: center;">-838:59:59<br>838:59:59</td>
+<td style="text-align: center;">3 个字节</td>
 </tr>
-<tr>
-<td align="center">date</td>
-<td align="center">YYYY-MM-DD</td>
-<td align="center">1000-01-01<br />9999-12-3</td>
-<td align="center">3 个字节</td>
+<tr class="odd">
+<td style="text-align: center;">date</td>
+<td style="text-align: center;">YYYY-MM-DD</td>
+<td style="text-align: center;">1000-01-01<br>9999-12-3</td>
+<td style="text-align: center;">3 个字节</td>
 </tr>
-<tr>
-<td align="center">datetime</td>
-<td align="center">YYYY-MM-DD HH:MM:SS</td>
-<td align="center">1000-01-01 00:00:00<br />9999-12-31 23:59:59</td>
-<td align="center">8 个字节</td>
+<tr class="even">
+<td style="text-align: center;">datetime</td>
+<td style="text-align: center;">YYYY-MM-DD HH:MM:SS</td>
+<td style="text-align: center;">1000-01-01 00:00:00<br>9999-12-31
+23:59:59</td>
+<td style="text-align: center;">8 个字节</td>
 </tr>
-<tr>
-<td align="center">timestamp</td>
-<td align="center">YYYY-MM-DD HH:MM:SS</td>
-<td align="center">1980-01-01 00:00:01 UTC<br />2040-01-19 03:14:07 UTC</td>
-<td align="center">4 个字节</td>
+<tr class="odd">
+<td style="text-align: center;">timestamp</td>
+<td style="text-align: center;">YYYY-MM-DD HH:MM:SS</td>
+<td style="text-align: center;">1980-01-01 00:00:01 UTC<br>2040-01-19
+03:14:07 UTC</td>
+<td style="text-align: center;">4 个字节</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_date(a <span class="type">date</span>)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_date <span class="keyword">values</span>(<span class="string">&#x27;2020401&#x27;</span>)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_date <span class="keyword">values</span>(<span class="string">&#x27;2020-4-1&#x27;</span>)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_date <span class="keyword">values</span>(<span class="string">&#x27;2020-04-01&#x27;</span>)</span><br><span class="line"><span class="comment">/* 都会统一转化为 2020-04-01 */</span></span><br></pre></td></tr></table></figure>
-
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_datetime(a datetime)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_datetime <span class="keyword">values</span>(<span class="number">2020401235959</span>)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_datetime <span class="keyword">values</span>(<span class="string">&#x27;2020-04-0123:59:59&#x27;</span>)</span><br><span class="line"><span class="comment">/* 会统一转化为 2020-04-01 23:59:59 */</span></span><br></pre></td></tr></table></figure>
-
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_time(atime)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_time <span class="keyword">values</span>(<span class="string">&#x27;22:30:34&#x27;</span>) <span class="comment">/* 22:30:34 */</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_time <span class="keyword">values</span>(<span class="string">&#x27;123456&#x27;</span>)   <span class="comment">/* 12:34:56 */</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="SQL-Server-的日期类型"><a href="#SQL-Server-的日期类型" class="headerlink" title="SQL Server 的日期类型"></a>SQL Server 的日期类型</h3><ul>
-<li>date<ul>
+<h3 id="sql-server-的日期类型">SQL Server 的日期类型</h3>
+<ul>
+<li>date
+<ul>
 <li>0001-1-1</li>
 <li>9999-12-31</li>
-</ul>
-</li>
-<li>smalldatetime<ul>
+</ul></li>
+<li>smalldatetime
+<ul>
 <li>1900-1-1</li>
 <li>2079-6-6</li>
-</ul>
-</li>
-<li>datetime<ul>
+</ul></li>
+<li>datetime
+<ul>
 <li>1753-1-1</li>
 <li>9999-12-31</li>
-</ul>
-</li>
-<li>datetime2：由于设计问题，datetime 从 1753 开始不够用<ul>
+</ul></li>
+<li>datetime2：由于设计问题，datetime 从 1753 开始不够用
+<ul>
 <li>0001-1-1</li>
 <li>9999-12-31</li>
-</ul>
-</li>
-<li>为什么 datetime 从 1753 开始<ul>
+</ul></li>
+<li>为什么 datetime 从 1753 开始
+<ul>
 <li>英国从 1753 年开始，用的日历才和欧洲大陆统一起来</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="特殊类型"><a href="#特殊类型" class="headerlink" title="特殊类型"></a>特殊类型</h3><ul>
+<h3 id="特殊类型">特殊类型</h3>
+<ul>
 <li>XML、Json、空间数据</li>
 <li>数据类型决定了数据库的适用范围，数据库支持的数据类型越多，能够支持的应用场景也越多</li>
 </ul>
-<h3 id="rowversion"><a href="#rowversion" class="headerlink" title="rowversion"></a>rowversion</h3><ul>
+<h3 id="rowversion">rowversion</h3>
+<ul>
 <li>rowversion 数据类型</li>
-<li>如果表中有一列被声明为 rowversion，那么只要一行被修改，该行的 rowversion 列就会发生改变<br>  它是<strong>跨表唯一</strong>的，也即任何表的修改都会使该值递增</li>
+<li>如果表中有一列被声明为 rowversion，那么只要一行被修改，该行的
+rowversion 列就会发生改变
+它是<strong>跨表唯一</strong>的，也即任何表的修改都会使该值递增</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> verTb(val <span class="type">char</span>(<span class="number">10</span>),ver rowversion)</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> verTb(val) <span class="keyword">values</span>(<span class="string">&#x27;zero&#x27;</span>) <span class="comment">/* 该操作会修改 ver 的值 */</span></span><br><span class="line"><span class="keyword">update</span> verTb <span class="keyword">set</span> val<span class="operator">=</span><span class="string">&#x27;one&#x27;</span> <span class="comment">/* 该操作会修改 ver 的值 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> verTB</span><br><span class="line"><span class="keyword">update</span> verTb setval<span class="operator">=</span><span class="string">&#x27;two&#x27;</span> <span class="comment">/* 该操作会修改 ver 的值 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> verTB</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>作用，判断某一行是否发生修改</li>
 </ul>
-<h3 id="uniqueidentifier"><a href="#uniqueidentifier" class="headerlink" title="uniqueidentifier"></a>uniqueidentifier</h3><ul>
-<li>uniqueidentifier 数据类型<ul>
+<h3 id="uniqueidentifier">uniqueidentifier</h3>
+<ul>
+<li>uniqueidentifier 数据类型
+<ul>
 <li>128位</li>
-</ul>
-</li>
-<li>uniqueidentifier 产生<strong>跨数据库和服务器</strong>的<strong>全局唯一标识符</strong>(GUID)</li>
+</ul></li>
+<li>uniqueidentifier
+产生<strong>跨数据库和服务器</strong>的<strong>全局唯一标识符</strong>(GUID)</li>
 <li>newid() 函数产生 uniqueidentifier 类型的值</li>
 <li>newsequentialid() 产生的 GUID 总是大于先前通过该函数生成的 GUID</li>
 <li>select newid() 的输出结果：DD64B592-D477-4114-8131-32E9FCB540FA</li>
 </ul>
-<h3 id="显式数据类型转换"><a href="#显式数据类型转换" class="headerlink" title="显式数据类型转换"></a>显式数据类型转换</h3><ul>
+<h3 id="显式数据类型转换">显式数据类型转换</h3>
+<ul>
 <li>将一种数据类型转换为另一种</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cast</span>(表达式 <span class="keyword">as</span> 数据类型[(数据长度)] )</span><br><span class="line"><span class="keyword">convert</span>(数据类型[(数据长度)], 表达式[, 输出样式])</span><br></pre></td></tr></table></figure>
-
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="built_in">cast</span>(<span class="number">123.45</span> <span class="keyword">as</span> <span class="type">decimal</span>(<span class="number">10</span>,<span class="number">4</span>))</span><br><span class="line"><span class="comment">/* 123.4500 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">cast</span>(<span class="number">123.45</span> <span class="keyword">as</span> <span class="type">decimal</span>(<span class="number">10</span>,<span class="number">1</span>))</span><br><span class="line"><span class="comment">/* 123.5 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">cast</span>(<span class="number">12.34567</span> <span class="keyword">as</span> money)</span><br><span class="line"><span class="comment">/* 12.3457 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="string">&#x27;Myageis:&#x27;</span> <span class="operator">+</span><span class="built_in">cast</span>(<span class="number">28</span> <span class="keyword">as</span> <span class="type">char</span>(<span class="number">4</span>))</span><br><span class="line"><span class="comment">/* Myageis:28 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">cast</span>(<span class="built_in">cast</span>(<span class="number">123.45</span> <span class="keyword">as</span> <span class="type">int</span>) <span class="keyword">as</span> <span class="type">char</span>(<span class="number">10</span>))</span><br><span class="line"><span class="comment">/* 123 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">convert</span>(<span class="type">varchar</span>(<span class="number">30</span>), getdate(), <span class="number">106</span>)</span><br><span class="line"><span class="comment">/* 17082012 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">convert</span>(<span class="type">varchar</span>(<span class="number">30</span>), getdate(), <span class="number">110</span>)</span><br><span class="line"><span class="comment">/* 08-17-2012 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="built_in">cast</span>(<span class="string">&#x27;SQL&#x27;</span> <span class="keyword">as</span> <span class="type">binary</span>(<span class="number">3</span>))</span><br><span class="line"><span class="comment">/* 0x53514C */</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="隐式数据类型转换"><a href="#隐式数据类型转换" class="headerlink" title="隐式数据类型转换"></a>隐式数据类型转换</h3><ul>
+<h3 id="隐式数据类型转换">隐式数据类型转换</h3>
+<ul>
 <li>如果不指定显式的类型转换，那么在对两个不同数据类型的列值进行运算时，系统会进行隐式的类型转换，也即先将它们转换为同一个数据类型，然后再进行运算</li>
 <li><strong>注意数据类型之间的优先级</strong></li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="number">1</span><span class="operator">+</span><span class="string">&#x27;1&#x27;</span> <span class="comment">/* 2 */</span></span><br><span class="line"><span class="keyword">select</span> <span class="number">1</span><span class="operator">+</span><span class="string">&#x27;a&#x27;</span> <span class="comment">/* 显示类型转换错误 */</span></span><br></pre></td></tr></table></figure>
-
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> iff(<span class="number">1</span><span class="operator">=</span><span class="number">1</span>, <span class="string">&#x27;A&#x27;</span>, <span class="number">88.8</span>)</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">MySQL: 输出 &#x27;A&#x27;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">SQL Server: 报错</span></span><br><span class="line"><span class="comment">    首先确定表达式数据类型, 是 decimal</span></span><br><span class="line"><span class="comment">    发现 &#x27;A&#x27; 不能隐式转换为 decimal</span></span><br><span class="line"><span class="comment">    报错</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="comment">/* 随意与严谨 */</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="用户定义数据类型"><a href="#用户定义数据类型" class="headerlink" title="用户定义数据类型"></a>用户定义数据类型</h3><ul>
+<h3 id="用户定义数据类型">用户定义数据类型</h3>
+<ul>
 <li>标准数据库语法</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> domain 域名 数据类型</span><br><span class="line"><span class="comment">/* 例子 */</span></span><br><span class="line"><span class="keyword">create</span> domain person<span class="operator">-</span>name <span class="type">char</span>(<span class="number">20</span>)</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>SQL</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">typedef ADDRESS_LIST &#123;</span><br><span class="line">    <span class="type">char</span> name[<span class="number">10</span>];</span><br><span class="line">    <span class="type">char</span> telephone[<span class="number">20</span>];</span><br><span class="line">    <span class="type">char</span> location[<span class="number">20</span>]</span><br><span class="line">&#125;;</span><br><span class="line">ADDRESS_LIST tom;</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>SQL Server</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> type user_DT <span class="keyword">from</span> Sys_DT</span><br><span class="line"><span class="comment">/* 例子 */</span></span><br><span class="line"><span class="keyword">create</span> type phone_numberfrom <span class="type">varchar</span>(<span class="number">20</span>)<span class="keyword">not</span> <span class="keyword">null</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> customer(</span><br><span class="line">    cust_id <span class="type">smallint</span> <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    cust_phone phone_number,</span><br><span class="line">    cust_fax <span class="type">varchar</span>(<span class="number">20</span>) <span class="keyword">not</span> <span class="keyword">null</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="如何选择数据类型"><a href="#如何选择数据类型" class="headerlink" title="如何选择数据类型"></a>如何选择数据类型</h3><h4 id="定长与变长"><a href="#定长与变长" class="headerlink" title="定长与变长"></a>定长与变长</h4><ul>
-<li>变长之利：减少存储开销＋元组数&#x2F;页高</li>
-<li>变长之弊：查询计算偏移＋更新挪移数据<ul>
+<h3 id="如何选择数据类型">如何选择数据类型</h3>
+<h4 id="定长与变长">定长与变长</h4>
+<ul>
+<li>变长之利：减少存储开销＋元组数/页高</li>
+<li>变长之弊：查询计算偏移＋更新挪移数据
+<ul>
 <li>空间不够需要挪移数据</li>
 <li>如果当前页面没有空间空闲，留下一个指针，指针指向其他的具体页面</li>
 <li>导致的后果是，在实际读取数据的时候，需要读取更多的物理页面</li>
-</ul>
-</li>
+</ul></li>
 <li>变长之用：长短显著不一＋很少发生变化</li>
 </ul>
-<h3 id="主码的选择"><a href="#主码的选择" class="headerlink" title="主码的选择"></a>主码的选择</h3><ul>
-<li>主码不能太长<ul>
+<h3 id="主码的选择">主码的选择</h3>
+<ul>
+<li>主码不能太长
+<ul>
 <li>保证其惟一性必须进行<strong>字符匹配</strong></li>
 <li>一个表的主码经常是另外一个表的<strong>外码</strong>，而外码是对主码的复制，如果主码太长的话，加上外码则会占据很大的表空间</li>
-<li>表连接一般是基于主外码的，为加快查询会在主外码上建立索引，太长的主码会使得<strong>一个页面里容纳很少的索引项</strong>，从而增加查找数据时的磁盘I&#x2F;O数</li>
-</ul>
-</li>
+<li>表连接一般是基于主外码的，为加快查询会在主外码上建立索引，太长的主码会使得<strong>一个页面里容纳很少的索引项</strong>，从而增加查找数据时的磁盘I/O数</li>
+</ul></li>
 <li>如果没有一个很好的自然码作为主码，可以增设一个人工码</li>
-<li>MySQL<ul>
+<li>MySQL
+<ul>
 <li>auto_increment：自增的数据类型</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_incr(</span><br><span class="line">    id <span class="type">bigint</span> auto_increment,</span><br><span class="line">    name <span class="type">char</span>(<span class="number">10</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
 <ul>
-<li>SQL Server 中的序列号：identity<ul>
+<li>SQL Server 中的序列号：identity
+<ul>
 <li>identity[( seed, increment) ]</li>
 <li>为一些没有有效主码的表提供计数器</li>
 <li>有一个起始数(种子)，增量值(步长)</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> customer1 (</span><br><span class="line">    cust_id <span class="type">smallint</span> <span class="keyword">identity</span> <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    cust_name <span class="type">varchar</span>(<span class="number">50</span>) <span class="keyword">not</span> <span class="keyword">null</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> customer2 (</span><br><span class="line">    cust_id <span class="type">smallint</span> <span class="keyword">identity</span>(<span class="number">100</span>,<span class="number">20</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    cust_name <span class="type">varchar</span>(<span class="number">50</span>) <span class="keyword">not</span> <span class="keyword">null</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>SQL Server中的序列号：sequence</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> sequence sequence_name <span class="keyword">as</span> 整型 [ <span class="keyword">start</span> <span class="keyword">with</span>] [ increment <span class="keyword">by</span> ] [ <span class="keyword">cycle</span> ]</span><br></pre></td></tr></table></figure>
-
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> sequence mySeq <span class="keyword">as</span> <span class="type">int</span> <span class="keyword">start</span> <span class="keyword">with</span> <span class="number">1</span> increment <span class="keyword">by</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> myTb(id,Name) <span class="keyword">values</span>(next <span class="keyword">value</span> <span class="keyword">for</span> mySeq, <span class="string">&#x27;Tom&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> myTb(id,Name) <span class="keyword">values</span>(next <span class="keyword">value</span> <span class="keyword">for</span> mySeq, <span class="string">&#x27;jerry&#x27;</span>)</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/11/DB/CLJ/04/" data-id="cl9lj74au00f864tzhw86evzu" data-title="数据库概论.陈立军.04.SQL 简介" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li></ul>
 
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/04/11/DB/CLJ/03-2/" rel="prev" title="数据库概论.陈立军.03.关系模型(3)">
+                  <i class="fa fa-chevron-left"></i> 数据库概论.陈立军.03.关系模型(3)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/13/CG/Papers/2012/VCM/" rel="next" title="(论文)[2012] Light Transport Simulation with Vertex Connection and Merging">
+                  (论文)[2012] Light Transport Simulation with Vertex Connection and Merging <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
     </footer>
-  </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2021/04/13/CG/Papers/2012/VCM/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          (论文)[2012] Light Transport Simulation with Vertex Connection and Merging
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2021/04/11/DB/CLJ/03-2/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">数据库概论.陈立军.03.关系模型(3)</div>
-    </a>
-  
-</nav>
-
-  
-</article>
+  </article>
+</div>
 
 
-</section>
-        
-          <aside id="sidebar">
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Categories</h3>
-    <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
-    </div>
-  </div>
 
 
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tags</h3>
-    <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
-    </div>
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
 
 
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloud</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
-    </div>
-  </div>
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
-          </li>
-        
-          <li>
-            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2022 John Doe<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
 
     </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
-    
-
-
-<script src="/js/jquery-3.4.1.min.js"></script>
-
-
+  </footer>
 
   
-<script src="/fancybox/jquery.fancybox.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 
 
-<script src="/js/script.js"></script>
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
 
 
 
-
-
-  </div>
 </body>
 </html>

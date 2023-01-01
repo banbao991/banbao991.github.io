@@ -1,575 +1,904 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  
-  <title>计算方法B.裴玉茹.09.常微分方程 | Hexo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="常微分方程初值问题介绍（IVP）、欧拉方法、显式梯形方法、局部截断误差、全局截断误差、泰勒方法（k阶方法）">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="常微分方程初值问题介绍（IVP）、欧拉方法、显式梯形方法、局部截断误差、全局截断误差、泰勒方法（k阶方法）">
 <meta property="og:type" content="article">
 <meta property="og:title" content="计算方法B.裴玉茹.09.常微分方程">
 <meta property="og:url" content="http://example.com/2021/12/07/computation/pyr/09/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="Banbao">
 <meta property="og:description" content="常微分方程初值问题介绍（IVP）、欧拉方法、显式梯形方法、局部截断误差、全局截断误差、泰勒方法（k阶方法）">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/09/image-20211207155731927.png">
-<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/09/image-20211207162739657.png">
-<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/09/image-20211207170159674.png">
-<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/09/image-20211207170738095.png">
-<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/09/image-20211227125945085.png">
-<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/09/image-20211227140521564.png">
-<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/09/image-20211227144216828.png">
-<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/09/image-20211227144549105.png">
+<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/image-20211207155731927.png">
+<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/image-20211207162739657.png">
+<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/image-20211207170159674.png">
+<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/image-20211207170738095.png">
+<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/image-20211227125945085.png">
+<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/image-20211227140521564.png">
+<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/image-20211227144216828.png">
+<meta property="og:image" content="http://example.com/2021/12/07/computation/pyr/09/image-20211227144549105.png">
 <meta property="article:published_time" content="2021-12-07T07:37:27.000Z">
 <meta property="article:modified_time" content="2021-12-29T07:12:42.837Z">
-<meta property="article:author" content="John Doe">
+<meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="computation">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/12/07/computation/pyr/09/09/image-20211207155731927.png">
-  
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/favicon.png">
-  
-  
-    
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+<meta name="twitter:image" content="http://example.com/2021/12/07/computation/pyr/09/image-20211207155731927.png">
 
-  
-  
-<link rel="stylesheet" href="/css/style.css">
 
-  
-    
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+<link rel="canonical" href="http://example.com/2021/12/07/computation/pyr/09/">
 
-  
-<meta name="generator" content="Hexo 6.3.0"></head>
 
-<body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
-      </h1>
-      
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2021/12/07/computation/pyr/09/","path":"2021/12/07/computation/pyr/09/","title":"计算方法B.裴玉茹.09.常微分方程"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>计算方法B.裴玉茹.09.常微分方程 | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
     </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
         
-          <a class="main-nav-link" href="/">Home</a>
-        
-          <a class="main-nav-link" href="/archives">Archives</a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
-        
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B"><span class="nav-text">常微分方程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%80%BC%E9%97%AE%E9%A2%98"><span class="nav-text">1. 初值问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#logistic-%E6%96%B9%E7%A8%8B"><span class="nav-text">1.0 logistic 方程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AC%A7%E6%8B%89%E6%96%B9%E6%B3%95"><span class="nav-text">1.1 欧拉方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%A0%E4%BD%95%E6%B1%82%E8%A7%A3%E6%96%B9%E5%BC%8F"><span class="nav-text">几何求解方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AC%A7%E6%8B%89%E6%96%B9%E6%B3%95-1"><span class="nav-text">欧拉方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AC%A7%E6%8B%89%E6%96%B9%E6%B3%95%E6%94%B6%E6%95%9B%E6%80%A7"><span class="nav-text">欧拉方法收敛性</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E7%9A%84%E5%AD%98%E5%9C%A8%E6%80%A7%E5%94%AF%E4%B8%80%E6%80%A7%E8%BF%9E%E7%BB%AD%E6%80%A7"><span class="nav-text">1.2 解的存在性、唯一性、连续性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A9%E6%99%AE%E5%B8%8C%E8%8C%A8%E8%BF%9E%E7%BB%AD"><span class="nav-text">利普希茨连续</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%98%E5%9C%A8%E6%80%A7%E5%92%8C%E5%94%AF%E4%B8%80%E6%80%A7"><span class="nav-text">存在性和唯一性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%AF%E5%B7%AE%E6%94%BE%E5%A4%A7"><span class="nav-text">误差放大</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AF%81%E6%98%8E-1"><span class="nav-text">证明 (1)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AF%81%E6%98%8E-2"><span class="nav-text">证明 (2)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E9%98%B6%E7%BA%BF%E6%80%A7%E6%96%B9%E7%A8%8B"><span class="nav-text">1.3 一阶线性方程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%98%BE%E5%BC%8F%E6%B1%82%E8%A7%A3"><span class="nav-text">显式求解</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ivp-%E6%B1%82%E8%A7%A3%E5%99%A8%E7%9A%84%E5%88%86%E6%9E%90"><span class="nav-text">2. IVP 求解器的分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%80%E9%83%A8%E4%B8%8E%E5%85%A8%E5%B1%80%E8%AF%AF%E5%B7%AE"><span class="nav-text">2.1 局部与全局误差</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AC%A7%E6%8B%89%E6%96%B9%E6%B3%95%E7%9A%84%E5%B1%80%E9%83%A8%E6%88%AA%E6%96%AD%E8%AF%AF%E5%B7%AE"><span class="nav-text">欧拉方法的局部截断误差</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E6%88%AA%E6%96%AD%E8%AF%AF%E5%B7%AE"><span class="nav-text">全局截断误差</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9A%E7%90%86%E6%8F%8F%E8%BF%B0"><span class="nav-text">定理描述</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%AC%A7%E6%8B%89%E6%96%B9%E6%B3%95%E7%9A%84%E6%94%B6%E6%95%9B%E6%80%A7"><span class="nav-text">欧拉方法的收敛性</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%BE%E5%BC%8F%E6%A2%AF%E5%BD%A2%E6%96%B9%E6%B3%95"><span class="nav-text">2.2 显式梯形方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B1%80%E9%83%A8%E6%88%AA%E6%96%AD%E8%AF%AF%E5%B7%AE"><span class="nav-text">局部截断误差</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%B0%E5%8B%92%E6%96%B9%E6%B3%95"><span class="nav-text">2.3 泰勒方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%8C%E9%98%B6%E6%B3%B0%E5%8B%92%E6%96%B9%E6%B3%95"><span class="nav-text">二阶泰勒方法</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">252</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">76</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
       </div>
     </div>
-  </div>
-</header>
+  </aside>
+  <div class="sidebar-dimmer"></div>
 
-      <div class="outer">
-        <section id="main"><article id="post-computation/pyr/09" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/12/07/computation/pyr/09/" class="article-date">
-  <time class="dt-published" datetime="2021-12-07T07:37:27.000Z" itemprop="datePublished">2021-12-07</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/computation-pyr/">computation.pyr</a>
-  </div>
 
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
   </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
   
-    <h1 class="p-name article-title" itemprop="headline name">
-      计算方法B.裴玉茹.09.常微分方程
-    </h1>
+
+
+<div class="post-block">
+  
   
 
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/12/07/computation/pyr/09/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="计算方法B.裴玉茹.09.常微分方程 | Banbao">
+      <meta itemprop="description" content="常微分方程初值问题介绍（IVP）、欧拉方法、显式梯形方法、局部截断误差、全局截断误差、泰勒方法（k阶方法）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算方法B.裴玉茹.09.常微分方程
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-12-07 15:37:27" itemprop="dateCreated datePublished" datetime="2021-12-07T15:37:27+08:00">2021-12-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2021-12-29 15:12:42" itemprop="dateModified" datetime="2021-12-29T15:12:42+08:00">2021-12-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/computation-pyr/" itemprop="url" rel="index"><span itemprop="name">computation.pyr</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">常微分方程初值问题介绍（IVP）、欧拉方法、显式梯形方法、局部截断误差、全局截断误差、泰勒方法（k阶方法）</div>
+        </div>
       </header>
+
     
-    <div class="e-content article-entry" itemprop="articleBody">
-      
+    
+    
+    <div class="post-body" itemprop="articleBody">
         <ul>
 <li>数值分析课本第 6 章（常微分方程） + PPT（常微分方程）</li>
 </ul>
-<h1 id="常微分方程"><a href="#常微分方程" class="headerlink" title="常微分方程"></a>常微分方程</h1><ul>
+<h1 id="常微分方程">常微分方程</h1>
+<ul>
 <li>微分方程是包含导数的方程</li>
 </ul>
-<p>$$<br>y’(t)&#x3D;f(t,y(t))<br>$$</p>
-<h2 id="1-初值问题"><a href="#1-初值问题" class="headerlink" title="1. 初值问题"></a>1. 初值问题</h2><h3 id="1-0-logistic-方程"><a href="#1-0-logistic-方程" class="headerlink" title="1.0 logistic 方程"></a>1.0 logistic 方程</h3><ul>
+<p><span class="math display">\[
+y&#39;(t)=f(t,y(t))
+\]</span></p>
+<h2 id="初值问题">1. 初值问题</h2>
+<h3 id="logistic-方程">1.0 logistic 方程</h3>
+<ul>
 <li>逻辑斯蒂方程（logistic）</li>
 </ul>
-<p>$$<br>y’&#x3D;cy(1-y)<br>$$</p>
+<p><span class="math display">\[
+y&#39;=cy(1-y)
+\]</span></p>
 <ul>
 <li>常微分方程一般具有无穷多的解</li>
 <li>通过定义<strong>初始条件</strong>，我们可以找出无穷多解中我们感兴趣的那个</li>
-<li>一阶常微分方程的初值问题由<strong>两部分</strong>组成<ul>
-<li>方程</li>
-<li>在指定区间 $[a,b]$ 上的<strong>初值条件</strong></li>
-</ul>
-</li>
-</ul>
-<p>$$<br>\begin{array}{c}<br>y’&#x3D;f(t,y)\<br>y(a)&#x3D;y_a\<br>t\in[a,b]<br>\end{array}<br>$$</p>
+<li>一阶常微分方程的初值问题由<strong>两部分</strong>组成
 <ul>
-<li><strong>自主的方程</strong><ul>
-<li>$f(t,y)$ 与 $t$ 无关</li>
+<li>方程</li>
+<li>在指定区间 <span class="math inline">\([a,b]\)</span>
+上的<strong>初值条件</strong></li>
+</ul></li>
 </ul>
-</li>
+<p><span class="math display">\[
+\begin{array}{c}
+y&#39;=f(t,y)\\
+y(a)=y_a\\
+t\in[a,b]
+\end{array}
+\]</span></p>
+<ul>
+<li><strong>自主的方程</strong>
+<ul>
+<li><span class="math inline">\(f(t,y)\)</span> 与 <span class="math inline">\(t\)</span> 无关</li>
+</ul></li>
 <li>将微分方程当作<strong>斜率场</strong>（<strong>方向场</strong>）</li>
 </ul>
-<img src="09/image-20211207155731927.png" style="zoom:80%;" />
-
+<p><img src="/2021/12/07/computation/pyr/09/image-20211207155731927.png" style="zoom:80%;"></p>
 <ul>
-<li>当 $y_0\ne1$ 时，上述初值问题的解为</li>
+<li>当 <span class="math inline">\(y_0\ne1\)</span>
+时，上述初值问题的解为</li>
 </ul>
-<p>$$<br>y&#x3D;1-\dfrac{1}{1+\dfrac{y_0}{1-y_0}e^{ct}}<br>$$</p>
+<p><span class="math display">\[
+y=1-\dfrac{1}{1+\dfrac{y_0}{1-y_0}e^{ct}}
+\]</span></p>
 <ul>
-<li>$y_0&#x3D;1\Longrightarrow y&#x3D;1$</li>
+<li><span class="math inline">\(y_0=1\Longrightarrow y=1\)</span></li>
 </ul>
-<h3 id="1-1-欧拉方法"><a href="#1-1-欧拉方法" class="headerlink" title="1.1 欧拉方法"></a>1.1 欧拉方法</h3><ul>
+<h3 id="欧拉方法">1.1 欧拉方法</h3>
+<ul>
 <li>在一般的情况中，微分方程<strong>没有显式的解公式</strong></li>
 </ul>
-<h4 id="几何求解方式"><a href="#几何求解方式" class="headerlink" title="几何求解方式"></a>几何求解方式</h4><ul>
-<li>流程<ul>
+<h4 id="几何求解方式">几何求解方式</h4>
+<ul>
+<li>流程
+<ul>
 <li>画出斜率图</li>
 <li><strong>通过跟随箭头计算 “求解” 微分方程</strong></li>
-</ul>
-</li>
-<li><strong>有误差</strong><ul>
+</ul></li>
+<li><strong>有误差</strong>
+<ul>
 <li>如果正确的解斜率变化缓慢，则这样的解法是一个比较好的近似</li>
-</ul>
-</li>
+</ul></li>
 <li>这便是<strong>欧拉方法</strong></li>
 </ul>
-<h4 id="欧拉方法"><a href="#欧拉方法" class="headerlink" title="欧拉方法"></a>欧拉方法</h4><p>$$<br>\begin{aligned}<br>w_0&amp;&#x3D;y_0\<br>w_{i+1}&amp;&#x3D;w_i+hf(t_i,w_i)<br>\end{aligned}<br>$$</p>
+<h4 id="欧拉方法-1">欧拉方法</h4>
+<p><span class="math display">\[
+\begin{aligned}
+w_0&amp;=y_0\\
+w_{i+1}&amp;=w_i+hf(t_i,w_i)
+\end{aligned}
+\]</span></p>
 <ul>
-<li>其中 $h$ 表示步长</li>
+<li>其中 <span class="math inline">\(h\)</span> 表示步长</li>
 <li>随着步长的减小，<strong>截断误差</strong>在变小</li>
 </ul>
-<h4 id="欧拉方法收敛性"><a href="#欧拉方法收敛性" class="headerlink" title="欧拉方法收敛性"></a>欧拉方法收敛性</h4><p>$$<br>\begin{array}{c}<br>y’&#x3D;cy\<br>y(0)&#x3D;y_0\<br>t\in[0,1]<br>\end{array}<br>$$</p>
+<h4 id="欧拉方法收敛性">欧拉方法收敛性</h4>
+<p><span class="math display">\[
+\begin{array}{c}
+y&#39;=cy\\
+y(0)=y_0\\
+t\in[0,1]
+\end{array}
+\]</span></p>
 <ul>
-<li>欧拉方法，对于固定的 $t\in(0,1]$ 设步长 $h$ 为 $\dfrac{t}{n}$</li>
+<li>欧拉方法，对于固定的 <span class="math inline">\(t\in(0,1]\)</span>
+设步长 <span class="math inline">\(h\)</span> 为 <span class="math inline">\(\dfrac{t}{n}\)</span></li>
 </ul>
-<p>$$<br>w_n&#x3D;(1+hc)^{n}y_0<br>$$</p>
+<p><span class="math display">\[
+w_n=(1+hc)^{n}y_0
+\]</span></p>
 <ul>
-<li>$n\to\infty$</li>
+<li><span class="math inline">\(n\to\infty\)</span></li>
 </ul>
-<p>$$<br>\begin{aligned}<br>\lim_{n\to\infty}w_n<br>&amp;&#x3D;\lim_{n\to\infty}(1+\dfrac{tc}{n})^{n}y_0\<br>&amp;&#x3D;\lim_{n’\to\infty}(1+\dfrac{1}{n’})^{ctn’}y_0\<br>&amp;&#x3D;e^{ct}y_0<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+\lim_{n\to\infty}w_n
+&amp;=\lim_{n\to\infty}(1+\dfrac{tc}{n})^{n}y_0\\
+&amp;=\lim_{n&#39;\to\infty}(1+\dfrac{1}{n&#39;})^{ctn&#39;}y_0\\
+&amp;=e^{ct}y_0
+\end{aligned}
+\]</span></p>
 <ul>
 <li>精确解可以通过<strong>分离变量</strong>求解，和上面相同</li>
-<li>$n\to\infty$ 时，<strong>上述初值问题使用欧拉方法能够得到精确解</strong></li>
+<li><span class="math inline">\(n\to\infty\)</span>
+时，<strong>上述初值问题使用欧拉方法能够得到精确解</strong></li>
 </ul>
-<h3 id="1-2-解的存在性、唯一性、连续性"><a href="#1-2-解的存在性、唯一性、连续性" class="headerlink" title="1.2 解的存在性、唯一性、连续性"></a>1.2 解的存在性、唯一性、连续性</h3><h4 id="利普希茨连续"><a href="#利普希茨连续" class="headerlink" title="利普希茨连续"></a>利普希茨连续</h4><img src="09/image-20211207162739657.png" style="zoom:80%;" />
-
+<h3 id="解的存在性唯一性连续性">1.2 解的存在性、唯一性、连续性</h3>
+<h4 id="利普希茨连续">利普希茨连续</h4>
+<p><img src="/2021/12/07/computation/pyr/09/image-20211207162739657.png" style="zoom:80%;"></p>
 <ul>
 <li>利普希茨连续<strong>一定连续</strong>（<strong>定义可证</strong>），但是<strong>不一定可微</strong></li>
 <li>更一般的，条件中的矩形可以是<strong>凸集</strong></li>
 </ul>
-<img src="09/image-20211207170159674.png" style="zoom:80%;" />
-
+<p><img src="/2021/12/07/computation/pyr/09/image-20211207170159674.png" style="zoom:80%;"></p>
 <ul>
-<li>如果函数 $f$ 对 $y$ <strong>连续可微</strong>，则利普希茨常数可以取在这个矩形（<strong>凸集</strong>）中如下式子的最大值</li>
+<li>如果函数 <span class="math inline">\(f\)</span> 对 <span class="math inline">\(y\)</span>
+<strong>连续可微</strong>，则利普希茨常数可以取在这个矩形（<strong>凸集</strong>）中如下式子的最大值</li>
 </ul>
-<p>$$<br>\left\vert\dfrac{\partial{f}}{\partial{y}}(t,c)\right\vert<br>$$</p>
+<p><span class="math display">\[
+\left\vert\dfrac{\partial{f}}{\partial{y}}(t,c)\right\vert
+\]</span></p>
 <ul>
 <li>由均值定理保证</li>
 </ul>
-<p>$$<br>\dfrac{f(t,y_1)-f(t,y_2)}{y_1-y_2}&#x3D;\dfrac{\partial{f}}{\partial{y}}(t,c)<br>$$</p>
-<h4 id="存在性和唯一性"><a href="#存在性和唯一性" class="headerlink" title="存在性和唯一性"></a>存在性和唯一性</h4><ul>
+<p><span class="math display">\[
+\dfrac{f(t,y_1)-f(t,y_2)}{y_1-y_2}=\dfrac{\partial{f}}{\partial{y}}(t,c)
+\]</span></p>
+<h4 id="存在性和唯一性">存在性和唯一性</h4>
+<ul>
 <li><strong>利普希茨连续假设</strong>保证初值问题的解的<strong>存在性</strong>和<strong>唯一性</strong></li>
 </ul>
-<img src="09/image-20211207170738095.png" style="zoom:80%;" />
-
+<p><img src="/2021/12/07/computation/pyr/09/image-20211207170738095.png" style="zoom:80%;"></p>
 <ul>
-<li>注意**<span style="color:red">不能保证</span>**在整个区间上都是有解的<ul>
-<li>一个简单的原因是解可能超出了 $y$ 的满足利普希茨常数有效的范围 $[\alpha,\beta]$<ul>
-<li>在 $y$ 方向上超出了凸集的范围</li>
+<li>注意<strong><span style="color:red">不能保证</span></strong>在整个区间上都是有解的
+<ul>
+<li>一个简单的原因是解可能超出了 <span class="math inline">\(y\)</span>
+的满足利普希茨常数有效的范围 <span class="math inline">\([\alpha,\beta]\)</span>
+<ul>
+<li>在 <span class="math inline">\(y\)</span>
+方向上超出了凸集的范围</li>
+</ul></li>
+</ul></li>
+<li>定理证明
+<ul>
+<li>G Birkhoff and G Rota [1989] Ordinary Differential Equations, 4th
+ed. John Wiley &amp; Sons, New York.</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-</li>
-<li>定理证明<ul>
-<li>G Birkhoff and G Rota [1989] Ordinary Differential Equations, 4th ed. John Wiley &amp; Sons, New York.</li>
-</ul>
-</li>
-</ul>
-<h4 id="误差放大"><a href="#误差放大" class="headerlink" title="误差放大"></a>误差放大</h4><ul>
+<h4 id="误差放大">误差放大</h4>
+<ul>
 <li><span id="s1">误差界</span></li>
 </ul>
-<img src="09/image-20211227125945085.png" style="zoom:80%;" />
-
-
-
-<h5 id="证明-1"><a href="#证明-1" class="headerlink" title="证明 (1)"></a>证明 (1)</h5><ul>
-<li>$Y(a)&#x3D;Z(a)$ 时，由唯一解定理，$Y(t)&#x3D;Z(t)$ 成立</li>
+<p><img src="/2021/12/07/computation/pyr/09/image-20211227125945085.png" style="zoom:80%;"></p>
+<h5 id="证明-1">证明 (1)</h5>
+<ul>
+<li><span class="math inline">\(Y(a)=Z(a)\)</span>
+时，由唯一解定理，<span class="math inline">\(Y(t)=Z(t)\)</span>
+成立</li>
 </ul>
-<h5 id="证明-2"><a href="#证明-2" class="headerlink" title="证明 (2)"></a>证明 (2)</h5><ul>
-<li>$Y(a)\ne Z(a)$ 时，此时不妨假设 $Y(t)\ne Z(t),\forall t\in[a,b]$，否则在相等的点转化为上面的形式</li>
-<li>令 $u(t)&#x3D;Y(t)-Z(t)$，此时 $u(t)$ 恒正或者恒负，定理只使用绝对值，不妨假设 $u(t)&gt;0$</li>
+<h5 id="证明-2">证明 (2)</h5>
+<ul>
+<li><span class="math inline">\(Y(a)\ne Z(a)\)</span> 时，此时不妨假设
+<span class="math inline">\(Y(t)\ne Z(t),\forall
+t\in[a,b]\)</span>，否则在相等的点转化为上面的形式</li>
+<li>令 <span class="math inline">\(u(t)=Y(t)-Z(t)\)</span>，此时 <span class="math inline">\(u(t)\)</span>
+恒正或者恒负，定理只使用绝对值，不妨假设 <span class="math inline">\(u(t)&gt;0\)</span></li>
 <li><strong>利普希茨条件</strong></li>
 </ul>
-<p>$$<br>u’(t)&#x3D;f(t,Y(t))-f(t,Z(t))\le L\vert{Y(t)-Z(t)}\vert&#x3D;Lu(t)<br>$$</p>
+<p><span class="math display">\[
+u&#39;(t)=f(t,Y(t))-f(t,Z(t))\le L\vert{Y(t)-Z(t)}\vert=Lu(t)
+\]</span></p>
 <ul>
 <li>于是</li>
 </ul>
-<p>$$<br>(\ln{u})’&#x3D;\dfrac{u’}{u}\le L<br>$$</p>
+<p><span class="math display">\[
+(\ln{u})&#39;=\dfrac{u&#39;}{u}\le L
+\]</span></p>
 <ul>
 <li>均值定理</li>
 </ul>
-<p>$$<br>\dfrac{\ln{u(t)}-\ln{u(a)}}{t-a}&#x3D;(\ln{u(\xi)})’\le L<br>$$</p>
+<p><span class="math display">\[
+\dfrac{\ln{u(t)}-\ln{u(a)}}{t-a}=(\ln{u(\xi)})&#39;\le L
+\]</span></p>
 <ul>
 <li>转化即得</li>
 </ul>
-<p>$$<br>u(t)\le u(a)e^{L(t-a)}<br>$$</p>
+<p><span class="math display">\[
+u(t)\le u(a)e^{L(t-a)}
+\]</span></p>
 <ul>
 <li>证毕</li>
 </ul>
-<h3 id="1-3-一阶线性方程"><a href="#1-3-一阶线性方程" class="headerlink" title="1.3 一阶线性方程"></a>1.3 一阶线性方程</h3><ul>
-<li>右侧是关于 $y$ 的线性函数</li>
+<h3 id="一阶线性方程">1.3 一阶线性方程</h3>
+<ul>
+<li>右侧是关于 <span class="math inline">\(y\)</span> 的线性函数</li>
 <li>考虑初值问题</li>
 </ul>
-<p>$$<br>\begin{array}{c}<br>y’&#x3D;g(t)y+h(t)\<br>y(a)&#x3D;y_a\<br>t\in[a,b]<br>\end{array}<br>$$</p>
+<p><span class="math display">\[
+\begin{array}{c}
+y&#39;=g(t)y+h(t)\\
+y(a)=y_a\\
+t\in[a,b]
+\end{array}
+\]</span></p>
 <ul>
-<li>如果 $g(t)$ 在区间 $[a,b]$ 上连续，则唯一解存在（都取最大值即可）<ul>
+<li>如果 <span class="math inline">\(g(t)\)</span> 在区间 <span class="math inline">\([a,b]\)</span>
+上连续，则唯一解存在（都取最大值即可）
+<ul>
 <li>利普希茨常数</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>$$<br>L&#x3D;\max_{[a,b]}g(t)<br>$$</p>
-<h4 id="显式求解"><a href="#显式求解" class="headerlink" title="显式求解"></a>显式求解</h4><p>要求积分因子 $e^{-\int{g(t);\mathrm{d}t}}$ 能够显示表示<br>$$<br>\begin{aligned}<br>(y’-g(t)y)e^{-\int{g(t);\mathrm{d}t}}&amp;&#x3D;h(t)e^{-\int{g(t);\mathrm{d}t}}\<br>(ye^{-\int{g(t);\mathrm{d}t}})’&amp;&#x3D;h(t)e^{-\int{g(t);\mathrm{d}t}}\<br>ye^{-\int{g(t);\mathrm{d}t}}&amp;&#x3D;\int{h(t)e^{-\int{g(t);\mathrm{d}t}}}\<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+L=\max_{[a,b]}g(t)
+\]</span></p>
+<h4 id="显式求解">显式求解</h4>
+<p>要求积分因子 <span class="math inline">\(e^{-\int{g(t)\;\mathrm{d}t}}\)</span> 能够显示表示
+<span class="math display">\[
+\begin{aligned}
+(y&#39;-g(t)y)e^{-\int{g(t)\;\mathrm{d}t}}&amp;=h(t)e^{-\int{g(t)\;\mathrm{d}t}}\\
+(ye^{-\int{g(t)\;\mathrm{d}t}})&#39;&amp;=h(t)e^{-\int{g(t)\;\mathrm{d}t}}\\
+ye^{-\int{g(t)\;\mathrm{d}t}}&amp;=\int{h(t)e^{-\int{g(t)\;\mathrm{d}t}}}\\
+\end{aligned}
+\]</span></p>
 <ul>
 <li>于是</li>
 </ul>
-<p>$$<br>y&#x3D;e^{\int{g(t);\mathrm{d}t}}\int{h(t)e^{-\int{g(t);\mathrm{d}t}}}<br>$$</p>
-<h2 id="2-IVP-求解器的分析"><a href="#2-IVP-求解器的分析" class="headerlink" title="2. IVP 求解器的分析"></a>2. IVP 求解器的分析</h2><ul>
+<p><span class="math display">\[
+y=e^{\int{g(t)\;\mathrm{d}t}}\int{h(t)e^{-\int{g(t)\;\mathrm{d}t}}}
+\]</span></p>
+<h2 id="ivp-求解器的分析">2. IVP 求解器的分析</h2>
+<ul>
 <li>IVP（initial value problem）：初值问题</li>
 </ul>
-<h3 id="2-1-局部与全局误差"><a href="#2-1-局部与全局误差" class="headerlink" title="2.1 局部与全局误差"></a>2.1 局部与全局误差</h3><ul>
+<h3 id="局部与全局误差">2.1 局部与全局误差</h3>
+<ul>
 <li>初值问题</li>
 </ul>
-<p>$$<br>\begin{array}{c}<br>y’&#x3D;f(t,y)\<br>y(a)&#x3D;y_a\<br>t\in[a,b]<br>\end{array}<br>$$</p>
+<p><span class="math display">\[
+\begin{array}{c}
+y&#39;=f(t,y)\\
+y(a)=y_a\\
+t\in[a,b]
+\end{array}
+\]</span></p>
 <ul>
 <li>一步求解器（如<strong>欧拉方法</strong>）</li>
 </ul>
-<img src="09/image-20211227140521564.png" style="zoom:80%;" />
-
+<p><img src="/2021/12/07/computation/pyr/09/image-20211227140521564.png" style="zoom:80%;"></p>
 <ul>
 <li><strong>单步初值问题</strong></li>
 </ul>
-<p>$$<br>\begin{array}{c}<br>y’&#x3D;f(t,y)\<br>y(t_i)&#x3D;w_i\<br>t\in[t_i,t_{i+1}]<br>\end{array}<br>$$</p>
+<p><span class="math display">\[
+\begin{array}{c}
+y&#39;=f(t,y)\\
+y(t_i)=w_i\\
+t\in[t_i,t_{i+1}]
+\end{array}
+\]</span></p>
 <ul>
-<li>使用 $z$ 表示单步初值问题的精确解</li>
-<li><strong>全局截断误差</strong>：$g_i&#x3D;\vert{w_i-y_i}\vert$<ul>
+<li>使用 <span class="math inline">\(z\)</span>
+表示单步初值问题的精确解</li>
+<li><strong>全局截断误差</strong>：<span class="math inline">\(g_i=\vert{w_i-y_i}\vert\)</span>
+<ul>
 <li>累计误差</li>
-</ul>
-</li>
-<li><strong>局部截断误差</strong>：$e_i&#x3D;\vert{w_i-z(t_i)}\vert$<ul>
+</ul></li>
+<li><strong>局部截断误差</strong>：<span class="math inline">\(e_i=\vert{w_i-z(t_i)}\vert\)</span>
+<ul>
 <li>单步误差</li>
-</ul>
-</li>
+</ul></li>
 <li>注意：<strong>全局截断误差不是简单的局部截断误差求和</strong></li>
 </ul>
-<h4 id="欧拉方法的局部截断误差"><a href="#欧拉方法的局部截断误差" class="headerlink" title="欧拉方法的局部截断误差"></a>欧拉方法的局部截断误差</h4><ul>
-<li>$t_{i+1}&#x3D;t_i+h$</li>
+<h4 id="欧拉方法的局部截断误差">欧拉方法的局部截断误差</h4>
+<ul>
+<li><span class="math inline">\(t_{i+1}=t_i+h\)</span></li>
 <li>泰勒展开</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>y(t_i+h)&amp;&#x3D;y(t_i)+hy’(t_i)+\dfrac{h^2}{2}y’’(c)\<br>&amp;&#x3D;w_i+hf(t_i,w_i)+\dfrac{h^2}{2}y’’(c)\<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+y(t_i+h)&amp;=y(t_i)+hy&#39;(t_i)+\dfrac{h^2}{2}y&#39;&#39;(c)\\
+&amp;=w_i+hf(t_i,w_i)+\dfrac{h^2}{2}y&#39;&#39;(c)\\
+\end{aligned}
+\]</span></p>
 <ul>
 <li>欧拉方法</li>
 </ul>
-<p>$$<br>w_{i+1}&#x3D;w_i+hf(t_i,w_i)<br>$$</p>
+<p><span class="math display">\[
+w_{i+1}=w_i+hf(t_i,w_i)
+\]</span></p>
 <ul>
 <li>局部截断误差</li>
 </ul>
-<p>$$<br>e_{i+1}&#x3D;\dfrac{h^2}{2}\vert{y’’(c)}\vert<br>$$</p>
+<p><span class="math display">\[
+e_{i+1}=\dfrac{h^2}{2}\vert{y&#39;&#39;(c)}\vert
+\]</span></p>
 <ul>
-<li>假设 $y’’$ 在区间 $[a,b]$ 的上界为 $M$，于是欧拉方法的局部截断误差的上界如下</li>
+<li>假设 <span class="math inline">\(y&#39;&#39;\)</span> 在区间 <span class="math inline">\([a,b]\)</span> 的上界为 <span class="math inline">\(M\)</span>，于是欧拉方法的局部截断误差的上界如下</li>
 </ul>
-<p>$$<br>e_i\le\dfrac{Mh^2}{2}<br>$$</p>
-<h4 id="全局截断误差"><a href="#全局截断误差" class="headerlink" title="全局截断误差"></a>全局截断误差</h4><ul>
-<li>假设步长不变，都为 $h$</li>
-<li>初始条件，$y(a)&#x3D;y_a$</li>
-<li>初始全局截断误差：$g_0&#x3D;0$</li>
-<li>第一步<ul>
+<p><span class="math display">\[
+e_i\le\dfrac{Mh^2}{2}
+\]</span></p>
+<h4 id="全局截断误差">全局截断误差</h4>
+<ul>
+<li>假设步长不变，都为 <span class="math inline">\(h\)</span></li>
+<li>初始条件，<span class="math inline">\(y(a)=y_a\)</span></li>
+<li>初始全局截断误差：<span class="math inline">\(g_0=0\)</span></li>
+<li>第一步
+<ul>
 <li>没有之前的累计误差</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>$$<br>g_1&#x3D;e_1&#x3D;\vert{w_1-y_1}\vert<br>$$</p>
+<p><span class="math display">\[
+g_1=e_1=\vert{w_1-y_1}\vert
+\]</span></p>
 <ul>
-<li>第二步<ul>
+<li>第二步
+<ul>
 <li>需要考虑累计误差</li>
 <li>第二部分的误差由上面的<a href="#s1">定理</a>给出</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>$$<br>\begin{aligned}<br>g_2&amp;&#x3D;\vert{w_2-y_2}\vert&#x3D;\vert{w_2-z(t_2)+z(t_2)-y_2}\vert\<br>&amp;\le\vert{w_2-z(t_2)}\vert+\vert{z(t_2)-y_2}\vert\<br>&amp;&#x3D;e_2+e^{Lh}g_1\<br>&amp;&#x3D;e_2+e^{Lh}e_1\<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+g_2&amp;=\vert{w_2-y_2}\vert=\vert{w_2-z(t_2)+z(t_2)-y_2}\vert\\
+&amp;\le\vert{w_2-z(t_2)}\vert+\vert{z(t_2)-y_2}\vert\\
+&amp;=e_2+e^{Lh}g_1\\
+&amp;=e_2+e^{Lh}e_1\\
+\end{aligned}
+\]</span></p>
 <ul>
-<li>第 $i$ 步</li>
+<li>第 <span class="math inline">\(i\)</span> 步</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>g_i&amp;\le e_i+e^{Lh}g_{i-1}\<br>&amp;\le\cdots\<br>&amp;\le e_i+e^{Lh}e_{i-1}+e^{2Lh}e_{i-2}+\cdots+e^{(i-1)Lh}e_1<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+g_i&amp;\le e_i+e^{Lh}g_{i-1}\\
+&amp;\le\cdots\\
+&amp;\le e_i+e^{Lh}e_{i-1}+e^{2Lh}e_{i-2}+\cdots+e^{(i-1)Lh}e_1
+\end{aligned}
+\]</span></p>
 <ul>
 <li>于是我们得到了一个全局截断误差的上界估计</li>
-<li>一般的我们如果假设 $e_i\le Ch^{k+1}$，于是全局截断误差如下</li>
+<li>一般的我们如果假设 <span class="math inline">\(e_i\le
+Ch^{k+1}\)</span>，于是全局截断误差如下</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>g_i&amp;\le\dfrac{Ch^{k+1}(e^{iLh}-1)}{e^{Lh}-1}\<br>&amp;\le\dfrac{Ch^{k+1}(e^{iLh}-1)}{Lh}\<br>&amp;&#x3D;\dfrac{Ch^{k}(e^{iLh}-1)}{L}\<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+g_i&amp;\le\dfrac{Ch^{k+1}(e^{iLh}-1)}{e^{Lh}-1}\\
+&amp;\le\dfrac{Ch^{k+1}(e^{iLh}-1)}{Lh}\\
+&amp;=\dfrac{Ch^{k}(e^{iLh}-1)}{L}\\
+\end{aligned}
+\]</span></p>
 <ul>
-<li>例如，欧拉方法的全局截断误差<ul>
-<li>$C&#x3D;\dfrac{M}{2},k&#x3D;1$</li>
-</ul>
-</li>
-</ul>
-<p>$$<br>g_i\le\dfrac{Ch^{k}(e^{iLh}-1)}{L}&#x3D;\dfrac{Mh(e^{iLh}-1)}{2L}<br>$$</p>
-<h5 id="定理描述"><a href="#定理描述" class="headerlink" title="定理描述"></a>定理描述</h5><img src="09/image-20211227144216828.png" style="zoom:80%;" />
-
+<li>例如，欧拉方法的全局截断误差
 <ul>
-<li>如果当 $h\to0$ 的时候，$g_i\to0$，则称上述求解器为 $k$ 阶方法</li>
+<li><span class="math inline">\(C=\dfrac{M}{2},k=1\)</span></li>
+</ul></li>
 </ul>
-<h5 id="欧拉方法的收敛性"><a href="#欧拉方法的收敛性" class="headerlink" title="欧拉方法的收敛性"></a>欧拉方法的收敛性</h5><img src="09/image-20211227144549105.png" style="zoom:80%;" />
-
+<p><span class="math display">\[
+g_i\le\dfrac{Ch^{k}(e^{iLh}-1)}{L}=\dfrac{Mh(e^{iLh}-1)}{2L}
+\]</span></p>
+<h5 id="定理描述">定理描述</h5>
+<p><img src="/2021/12/07/computation/pyr/09/image-20211227144216828.png" style="zoom:80%;"></p>
 <ul>
-<li>欧拉方法是 <strong>1 阶方法</strong><ul>
+<li>如果当 <span class="math inline">\(h\to0\)</span> 的时候，<span class="math inline">\(g_i\to0\)</span>，则称上述求解器为 <span class="math inline">\(k\)</span> 阶方法</li>
+</ul>
+<h5 id="欧拉方法的收敛性">欧拉方法的收敛性</h5>
+<p><img src="/2021/12/07/computation/pyr/09/image-20211227144549105.png" style="zoom:80%;"></p>
+<ul>
+<li>欧拉方法是 <strong>1 阶方法</strong>
+<ul>
 <li>欧拉方法构造简单，但是阶数低，近似程度不够</li>
 <li>优化：<strong>提高阶数</strong></li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="2-2-显式梯形方法"><a href="#2-2-显式梯形方法" class="headerlink" title="2.2 显式梯形方法"></a>2.2 显式梯形方法</h3><p>$$<br>\begin{aligned}<br>w_0&amp;&#x3D;y_0\<br>w_{i+1}&amp;&#x3D;w_i+h\dfrac{f(t_i,w_i)+f(t_i+h,w_i+hf(t_i,w_i))}{2}<br>\end{aligned}<br>$$</p>
+<h3 id="显式梯形方法">2.2 显式梯形方法</h3>
+<p><span class="math display">\[
+\begin{aligned}
+w_0&amp;=y_0\\
+w_{i+1}&amp;=w_i+h\dfrac{f(t_i,w_i)+f(t_i+h,w_i+hf(t_i,w_i))}{2}
+\end{aligned}
+\]</span></p>
 <ul>
-<li>直观上讲<ul>
-<li>欧拉方法离散步的斜率从区间 $[t_i,t_{i+1}]$ 的<strong>左端点</strong></li>
-<li>显式梯形方法离散步的斜率是区间 $[t_i.t_{i+1}]$ 的<strong>左右端点均值</strong></li>
-</ul>
-</li>
+<li>直观上讲
+<ul>
+<li>欧拉方法离散步的斜率从区间 <span class="math inline">\([t_i,t_{i+1}]\)</span>
+的<strong>左端点</strong></li>
+<li>显式梯形方法离散步的斜率是区间 <span class="math inline">\([t_i.t_{i+1}]\)</span>
+的<strong>左右端点均值</strong></li>
+</ul></li>
 <li><strong>显式方法</strong>：右端点的属性可以通过现有的值计算</li>
-<li><strong>梯形方法</strong>：如果 $f(t,y)$ 和 $y$ 无关，那么便是梯形公式</li>
-<li>也被称为<ul>
+<li><strong>梯形方法</strong>：如果 <span class="math inline">\(f(t,y)\)</span> 和 <span class="math inline">\(y\)</span> 无关，那么便是梯形公式</li>
+<li>也被称为
+<ul>
 <li><strong>改进的欧拉方法</strong></li>
 <li><strong>Heun 方法</strong></li>
+</ul></li>
 </ul>
-</li>
+<h4 id="局部截断误差">局部截断误差</h4>
+<ul>
+<li>对微分方程 <span class="math inline">\(y&#39;=f(t,y)\)</span> 两边对
+<span class="math inline">\(t\)</span> 求偏导</li>
 </ul>
-<h4 id="局部截断误差"><a href="#局部截断误差" class="headerlink" title="局部截断误差"></a>局部截断误差</h4><ul>
-<li>对微分方程 $y’&#x3D;f(t,y)$ 两边对 $t$ 求偏导</li>
-</ul>
-<p>$$<br>\begin{aligned}<br>y’’(t)<br>&amp;&#x3D;\dfrac{\partial{f}}{\partial{t}}(t,y)+\dfrac{\partial{f}}{\partial{y}}(t,y)y’(t)\<br>&amp;&#x3D;\dfrac{\partial{f}}{\partial{t}}(t,y)+\dfrac{\partial{f}}{\partial{y}}(t,y)f(t,y)\<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+y&#39;&#39;(t)
+&amp;=\dfrac{\partial{f}}{\partial{t}}(t,y)+\dfrac{\partial{f}}{\partial{y}}(t,y)y&#39;(t)\\
+&amp;=\dfrac{\partial{f}}{\partial{t}}(t,y)+\dfrac{\partial{f}}{\partial{y}}(t,y)f(t,y)\\
+\end{aligned}
+\]</span></p>
 <ul>
 <li>泰勒展开</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>y_{i+1}<br>&amp;&#x3D;y(t_i+h)\<br>&amp;&#x3D;y(t_i)+hy’(t_i)+\dfrac{h^2}{2}y’’(t_i)+\dfrac{h^3}{6}y’’(c)\<br>&amp;&#x3D;y(t_i)+hy’(t_i)+\dfrac{h^2}{2}\left(\dfrac{\partial{f}}{\partial{t}}(t_i,y_i)+\dfrac{\partial{f}}{\partial{y}}(t_i,y_i)f(t_i,y_i)\right)+\dfrac{h^3}{6}y’’’(c)\<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+y_{i+1}
+&amp;=y(t_i+h)\\
+&amp;=y(t_i)+hy&#39;(t_i)+\dfrac{h^2}{2}y&#39;&#39;(t_i)+\dfrac{h^3}{6}y&#39;&#39;(c)\\
+&amp;=y(t_i)+hy&#39;(t_i)+\dfrac{h^2}{2}\left(\dfrac{\partial{f}}{\partial{t}}(t_i,y_i)+\dfrac{\partial{f}}{\partial{y}}(t_i,y_i)f(t_i,y_i)\right)+\dfrac{h^3}{6}y&#39;&#39;&#39;(c)\\
+\end{aligned}
+\]</span></p>
 <ul>
 <li>显式梯形方法（二维泰勒展开）</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>&amp;f(t_i+h,y_i+hf(t_i,y_i))\<br>&#x3D;&amp;f(t_i,y_i)+h\dfrac{\partial{f}}{\partial{t}}(t_i,y_i)+hf(t_i,y_i)\dfrac{\partial{f}}{\partial{y}}(t_i,y_i)+O(h^2)\<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;f(t_i+h,y_i+hf(t_i,y_i))\\
+=&amp;f(t_i,y_i)+h\dfrac{\partial{f}}{\partial{t}}(t_i,y_i)+hf(t_i,y_i)\dfrac{\partial{f}}{\partial{y}}(t_i,y_i)+O(h^2)\\
+\end{aligned}
+\]</span></p>
 <ul>
 <li>于是改写</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>w_{i+1}<br>&amp;&#x3D;y_i+h\dfrac{f(t_i,y_i)+f(t_i+h,y_i+hf(t_i,y_i))}{2}\<br>&amp;&#x3D;y_i+hf(t_i,y_i)+\dfrac{h^2}{2}\left(\dfrac{\partial{f}}{\partial{t}}(t_i,y_i)+f(t_i,y_i)\dfrac{\partial{f}}{\partial{y}}(t_i,y_i)\right)+O(h^3)\<br>\end{aligned}<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+w_{i+1}
+&amp;=y_i+h\dfrac{f(t_i,y_i)+f(t_i+h,y_i+hf(t_i,y_i))}{2}\\
+&amp;=y_i+hf(t_i,y_i)+\dfrac{h^2}{2}\left(\dfrac{\partial{f}}{\partial{t}}(t_i,y_i)+f(t_i,y_i)\dfrac{\partial{f}}{\partial{y}}(t_i,y_i)\right)+O(h^3)\\
+\end{aligned}
+\]</span></p>
 <ul>
 <li>于是得到局部截断误差</li>
 </ul>
-<p>$$<br>e_{i+1}&#x3D;y_{i+1}-w_{i+1}&#x3D;O(h^3)<br>$$</p>
+<p><span class="math display">\[
+e_{i+1}=y_{i+1}-w_{i+1}=O(h^3)
+\]</span></p>
 <ul>
-<li>显式梯形方法是 $2$ 阶方法</li>
-<li><strong>复杂度讨论</strong><ul>
+<li>显式梯形方法是 <span class="math inline">\(2\)</span> 阶方法</li>
+<li><strong>复杂度讨论</strong>
+<ul>
 <li>显示梯形方法：更高阶，计算函数的次数变成了 2 倍</li>
 <li>如何比较：<strong>相同计算代价下比较</strong></li>
-<li>欧拉方法步长缩短一半，此时计算代价相同，但是此时全局误差只是变成了 $\dfrac{1}{2}$，阶数没有改变，因此显式梯形方法更好</li>
+<li>欧拉方法步长缩短一半，此时计算代价相同，但是此时全局误差只是变成了
+<span class="math inline">\(\dfrac{1}{2}\)</span>，阶数没有改变，因此显式梯形方法更好</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="2-3-泰勒方法"><a href="#2-3-泰勒方法" class="headerlink" title="2.3 泰勒方法"></a>2.3 泰勒方法</h3><ul>
+<h3 id="泰勒方法">2.3 泰勒方法</h3>
+<ul>
 <li><strong>所有阶数的方法都存在</strong></li>
-<li>$k$ 阶泰勒方法</li>
+<li><span class="math inline">\(k\)</span> 阶泰勒方法</li>
 </ul>
-<p>$$<br>\begin{aligned}<br>w_0&amp;&#x3D;y_0\<br>w_{i+1}&amp;&#x3D;w_i+h{f(t_i,w_i)}+\dfrac{h^2}{2}f’(t_i,w_i)+\dfrac{h^3}{6}f’’(t_i,w_i)+\cdots+\dfrac{h^k}{k!}f^{(k-1)}(t_i,w_i)<br>\end{aligned}<br>$$</p>
-<p>$$<br>f’(t,y)&#x3D;f_t(t,y)+f_y(t,y)y’(t)&#x3D;f_t(t,y)+f_y(t,y)f(t,y)<br>$$</p>
+<p><span class="math display">\[
+\begin{aligned}
+w_0&amp;=y_0\\
+w_{i+1}&amp;=w_i+h{f(t_i,w_i)}+\dfrac{h^2}{2}f&#39;(t_i,w_i)+\dfrac{h^3}{6}f&#39;&#39;(t_i,w_i)+\cdots+\dfrac{h^k}{k!}f^{(k-1)}(t_i,w_i)
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+f&#39;(t,y)=f_t(t,y)+f_y(t,y)y&#39;(t)=f_t(t,y)+f_y(t,y)f(t,y)
+\]</span></p>
 <ul>
-<li><p>很容易得到，局部截断误差为 $O(h^{k+1})$，因此是 $k$ 阶方法</p>
-</li>
-<li><p><strong>一阶泰勒方法就是欧拉方法</strong></p>
-</li>
+<li><p>很容易得到，局部截断误差为 <span class="math inline">\(O(h^{k+1})\)</span>，因此是 <span class="math inline">\(k\)</span> 阶方法</p></li>
+<li><p><strong>一阶泰勒方法就是欧拉方法</strong></p></li>
 </ul>
-<h4 id="二阶泰勒方法"><a href="#二阶泰勒方法" class="headerlink" title="二阶泰勒方法"></a>二阶泰勒方法</h4><p>$$<br>\begin{aligned}<br>w_{i+1}&amp;&#x3D;w_i+h{f(t_i,w_i)}+\dfrac{h^2}{2}f’(t_i,w_i)\<br>&amp;&#x3D;w_i+h{f(t_i,w_i)}+\dfrac{h^2}{2}(f_{t}(t_i,y_i)+f_y(t_i,y_i)f(t_i,y_i))\<br>\end{aligned}<br>$$</p>
+<h4 id="二阶泰勒方法">二阶泰勒方法</h4>
+<p><span class="math display">\[
+\begin{aligned}
+w_{i+1}&amp;=w_i+h{f(t_i,w_i)}+\dfrac{h^2}{2}f&#39;(t_i,w_i)\\
+&amp;=w_i+h{f(t_i,w_i)}+\dfrac{h^2}{2}(f_{t}(t_i,y_i)+f_y(t_i,y_i)f(t_i,y_i))\\
+\end{aligned}
+\]</span></p>
 <ul>
-<li>概念上，泰勒方法告诉我们任何阶的ODE方法都存在<ul>
-<li>但是，该方法由于计算公式中出现的函数 $f$ 的偏导数，本身的性能也有损失</li>
+<li>概念上，泰勒方法告诉我们任何阶的ODE方法都存在
+<ul>
+<li>但是，该方法由于计算公式中出现的函数 <span class="math inline">\(f\)</span> 的偏导数，本身的性能也有损失</li>
 <li>由于可以推出相同阶但是不需要计算偏导数的方法，泰勒方法仅仅用于特定的用途</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 
-      
     </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/12/07/computation/pyr/09/" data-id="cl9lj74al00dq64tzcsp8fibl" data-title="计算方法B.裴玉茹.09.常微分方程" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/computation/" rel="tag">computation</a></li></ul>
 
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/computation/" rel="tag"># computation</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/12/06/csharp/tds/12/" rel="prev" title="C#程序设计.唐大仕.12.访问数据库">
+                  <i class="fa fa-chevron-left"></i> C#程序设计.唐大仕.12.访问数据库
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/12/26/csharp/tds/13/" rel="next" title="C#程序设计.唐大仕.13.深入理解C#语言">
+                  C#程序设计.唐大仕.13.深入理解C#语言 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
     </footer>
-  </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2021/12/26/csharp/tds/13/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          C#程序设计.唐大仕.13.深入理解C#语言
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2021/12/06/csharp/tds/12/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">C#程序设计.唐大仕.12.访问数据库</div>
-    </a>
-  
-</nav>
-
-  
-</article>
+  </article>
+</div>
 
 
-</section>
-        
-          <aside id="sidebar">
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Categories</h3>
-    <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
-    </div>
-  </div>
 
 
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tags</h3>
-    <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
-    </div>
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
 
 
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloud</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
-    </div>
-  </div>
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
-          </li>
-        
-          <li>
-            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2022 John Doe<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
 
     </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
-    
-
-
-<script src="/js/jquery-3.4.1.min.js"></script>
-
-
+  </footer>
 
   
-<script src="/fancybox/jquery.fancybox.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 
 
-<script src="/js/script.js"></script>
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
 
 
 
-
-
-  </div>
 </body>
 </html>

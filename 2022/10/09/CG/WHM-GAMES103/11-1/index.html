@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Navier-Stokes 方程与求解、烟雾与水的效果模拟">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids(2)">
+<meta property="og:url" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Navier-Stokes 方程与求解、烟雾与水的效果模拟">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/NS-equation-momentum.png">
+<meta property="og:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/Method-of%20-Characteristics.png">
+<meta property="og:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/advection.png">
+<meta property="og:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/Semi-Lagrangion-Method.png">
+<meta property="og:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/Semi-Lagrangion-Method-subdivision.png">
+<meta property="og:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/laplacion.png">
+<meta property="og:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/laplacion-small-steps.png">
+<meta property="og:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/pressure-projection.png">
+<meta property="og:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/pressure-deduction.png">
+<meta property="article:published_time" content="2022-10-09T08:07:59.000Z">
+<meta property="article:modified_time" content="2022-10-09T12:35:33.222Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="WHM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/NS-equation-momentum.png">
+
+
+<link rel="canonical" href="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/","path":"2022/10/09/CG/WHM-GAMES103/11-1/","title":"GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids(2)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids(2) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#navier-stokes-%E6%96%B9%E7%A8%8B"><span class="nav-text">Navier-Stokes 方程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ns-%E6%96%B9%E7%A8%8B"><span class="nav-text">NS 方程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B1%82%E8%A7%A3-ns-%E6%96%B9%E7%A8%8B"><span class="nav-text">求解 NS 方程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#s1-external-acceleration"><span class="nav-text">S1-External Acceleration</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#s2-advection"><span class="nav-text">S2-Advection</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#advection"><span class="nav-text">advection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#semi-lagrangion-method"><span class="nav-text">Semi-Lagrangion Method</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#s3-diffusion"><span class="nav-text">S3-Diffusion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#s4-pressure-projection"><span class="nav-text">S4-Pressure Projection</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%8B%E5%BC%BA"><span class="nav-text">压强</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E5%AE%9E%E7%8E%B0"><span class="nav-text">参考实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#air-and-smoke"><span class="nav-text">Air and Smoke</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%83%9F%E9%9B%BE%E6%A8%A1%E6%8B%9F"><span class="nav-text">烟雾模拟</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B0%B4%E7%9A%84%E6%A8%A1%E6%8B%9F"><span class="nav-text">水的模拟</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A8%E8%BE%BE%E6%96%B9%E5%BC%8F"><span class="nav-text">表达方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0%E6%96%B9%E5%BC%8F"><span class="nav-text">更新方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BC%E5%87%BA%E6%95%B0%E6%8D%AE"><span class="nav-text">导出数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E4%BD%93%E4%BB%BF%E7%9C%9F%E4%B9%A6%E7%B1%8D"><span class="nav-text">流体仿真书籍</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">252</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">76</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/10/09/CG/WHM-GAMES103/11-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids(2) | Banbao">
+      <meta itemprop="description" content="Navier-Stokes 方程与求解、烟雾与水的效果模拟">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2022-10-09 16:07:59 / Modified: 20:35:33" itemprop="dateCreated datePublished" datetime="2022-10-09T16:07:59+08:00">2022-10-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-GAMES103/" itemprop="url" rel="index"><span itemprop="name">CG.GAMES103</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Navier-Stokes 方程与求解、烟雾与水的效果模拟</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV12Q4y1S73g">Bilibili
+课程链接</a></li>
+</ul>
+<h1 id="navier-stokes-方程">Navier-Stokes 方程</h1>
+<ul>
+<li>Low-speed, Incompressible, Viscous Navier Stokes’ equations
+<ul>
+<li>低速、不可压缩、带有粘滞性的流体</li>
+</ul></li>
+</ul>
+<h2 id="ns-方程">NS 方程</h2>
+<ul>
+<li>流体速度场的更新：NS 方程</li>
+<li>不可压缩条件（Incompressibility）</li>
+</ul>
+<p><span class="math display">\[
+\nabla\cdot\mathbf{u}=0
+\]</span></p>
+<ul>
+<li>动量（Momentum）</li>
+</ul>
+<p><img src="/2022/10/09/CG/WHM-GAMES103/11-1/NS-equation-momentum.png"></p>
+<ul>
+<li>如何求解上述偏微分方程？
+<ul>
+<li><strong>Method of Characteristics</strong>：拆分 PDE
+的不同部分，分步求解</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/09/CG/WHM-GAMES103/11-1/Method-of%20-Characteristics.png"></p>
+<h1 id="求解-ns-方程">求解 NS 方程</h1>
+<h2 id="s1-external-acceleration">S1-External Acceleration</h2>
+<ul>
+<li>在这里我们先假设外部加速度只有重力加速度</li>
+</ul>
+<p><span class="math display">\[
+\dfrac{\partial{\mathbf{u}}}{\partial{t}}=\mathbf{g}
+\]</span></p>
+<ul>
+<li>对所有的墙更新 <span class="math inline">\(u,v\)</span></li>
+</ul>
+<p><span class="math display">\[
+v_{i,j}^{new}\leftarrow v_{i,j}+\Delta tg
+\]</span></p>
+<h2 id="s2-advection">S2-Advection</h2>
+<p><span class="math display">\[
+\dfrac{\partial{\mathbf{u}}}{\partial{t}}=-(\mathbf{u}\cdot\nabla)\mathbf{u}
+\]</span></p>
+<ul>
+<li>展开如下</li>
+</ul>
+<p><span class="math display">\[
+(\mathbf{u}\cdot\nabla)\mathbf{u}=
+\begin{pmatrix}
+u\cdot\dfrac{\partial{u}}{\partial{x}}
++
+v\cdot\dfrac{\partial{u}}{\partial{y}}\\
+u\cdot\dfrac{\partial{v}}{\partial{x}}
++
+v\cdot\dfrac{\partial{v}}{\partial{y}}\\
+\end{pmatrix}
+\]</span></p>
+<ul>
+<li>求解方式1：计算得到右边的值，然后类似于 S1 的方式求解
+<ul>
+<li><strong>不稳定</strong></li>
+<li>原因：当时间步长 <span class="math inline">\(\Delta t\)</span>
+比较大的时候，估算得到的一阶导数不准确</li>
+</ul></li>
+</ul>
+<h3 id="advection">advection</h3>
+<p><img src="/2022/10/09/CG/WHM-GAMES103/11-1/advection.png"></p>
+<ul>
+<li>由于水分子的流动，<span class="math inline">\(t\)</span>
+时刻网格内的水分子不再是 <span class="math inline">\(t-\Delta t\)</span>
+时刻的水分子，因此需要用新的水分子的速度替换掉原来的速度</li>
+<li>如上图所示，<span class="math inline">\(\mathbf{x}_1\)</span>
+位置的水分子是上一时刻在 <span class="math inline">\(\mathbf{x}_0\)</span> 位置的水分子，因此需要使用
+<span class="math inline">\(\mathbf{x}_0\)</span> 位置水分子的速度 <span class="math inline">\(\mathbf{u}(\mathbf{x}_1)\)</span> 替换掉 <span class="math inline">\(\mathbf{u}(\mathbf{x}_1)\)</span></li>
+<li>拉格朗日方法没有这个问题，因为本身就是定义在粒子上的，这一时刻的粒子和上一时刻的粒子是同一个</li>
+</ul>
+<h3 id="semi-lagrangion-method">Semi-Lagrangion Method</h3>
+<ul>
+<li>半拉格朗日方法</li>
+<li>思路：对于一个点 <span class="math inline">\(\mathbf{x}_0\)</span>，推断上一个时刻这个点的位置
+<span class="math inline">\(\mathbf{x}_1\)</span>，然后用 <span class="math inline">\(\mathbf{x}_1\)</span> 的速度替换掉即可
+<ul>
+<li>下面的 <em>comupte</em> 就是利用双线性插值计算</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/09/CG/WHM-GAMES103/11-1/Semi-Lagrangion-Method.png"></p>
+<ul>
+<li>对于交错网格，<span class="math inline">\(u,v\)</span> 分开计算</li>
+<li>细分：小步长精度更高
+<ul>
+<li>数值方法</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/09/CG/WHM-GAMES103/11-1/Semi-Lagrangion-Method-subdivision.png"></p>
+<ul>
+<li>边界问题：倒推之后发现在边界怎么办？
+<ul>
+<li><em>clamp</em>，不让它越界</li>
+</ul></li>
+<li>是个稳定的方法，但是大的步长会有误差
+<ul>
+<li>误差表现为模糊（源自插值）</li>
+</ul></li>
+</ul>
+<h2 id="s3-diffusion">S3-Diffusion</h2>
+<p><span class="math display">\[
+\dfrac{\partial{\mathbf{u}}}{\partial{t}}=\mu\Delta\mathbf{u}
+\]</span></p>
+<ul>
+<li>分别对 <span class="math inline">\(u,v\)</span> 做拉普拉斯平滑</li>
+</ul>
+<p><img src="/2022/10/09/CG/WHM-GAMES103/11-1/laplacion.png"></p>
+<ul>
+<li>大步长可能会不稳定（<span class="math inline">\(v\Delta t\)</span>
+太大）</li>
+<li>使用小步长计算</li>
+</ul>
+<p><img src="/2022/10/09/CG/WHM-GAMES103/11-1/laplacion-small-steps.png"></p>
+<ul>
+<li>可以使用隐式积分来做
+<ul>
+<li>比较复杂，利用小步长也能做出类似效果</li>
+</ul></li>
+</ul>
+<h2 id="s4-pressure-projection">S4-Pressure Projection</h2>
+<ul>
+<li>利用压强进行更新</li>
+</ul>
+<p><span class="math display">\[
+\dfrac{\partial{\mathbf{u}}}{\partial{t}}=-\nabla\mathbf{p}
+\]</span></p>
+<ul>
+<li>压强定义在网格中心，因此表达起来很方便</li>
+</ul>
+<p><img src="/2022/10/09/CG/WHM-GAMES103/11-1/pressure-projection.png"></p>
+<h3 id="压强">压强</h3>
+<ul>
+<li>如何计算/更新 <span class="math inline">\(\mathbf{p}\)</span></li>
+<li>压强产生的原因：<strong>流体是不可压缩的</strong></li>
+<li>因此从散度为 0 开始推导（<span class="math inline">\(\Delta\mathbf{u}^{new}=0\)</span>）</li>
+</ul>
+<p><img src="/2022/10/09/CG/WHM-GAMES103/11-1/pressure-deduction.png"></p>
+<ul>
+<li>因此得到方程组，把所有的方程组联立求解线性系统</li>
+<li>边界条件
+<ul>
+<li>Dirichlet boundary (open) <span class="math inline">\(p_{i-1,j}=P\)</span></li>
+<li>Neumann boundary (close) <span class="math inline">\(p_{i-1,j}=p_{i,j}\)</span>
+<ul>
+<li>真实的墙</li>
+</ul></li>
+</ul></li>
+<li>求解得到 <span class="math inline">\(p\)</span>
+之后便能够计算得到速度 <span class="math inline">\(u,v\)</span></li>
+<li>pressure projection
+<ul>
+<li>利用压强对速度进行投影，使得更新之后的速度满足不可压缩的条件</li>
+</ul></li>
+</ul>
+<h2 id="参考实现">参考实现</h2>
+<ul>
+<li>Jos Stam. 1999. <em>Stable Fluids. TOG (SIGGRAPH)</em>.</li>
+</ul>
+<h1 id="air-and-smoke">Air and Smoke</h1>
+<h2 id="烟雾模拟">烟雾模拟</h2>
+<ul>
+<li>烟雾模拟的两个步骤
+<ul>
+<li>Step 1：更新速度</li>
+<li>Step 2：更新其他物理量
+<ul>
+<li>烟雾：颜色、密度</li>
+<li>可以利用 Semi-Lagrangian 的方法更新，理解和 advection
+类似，这些物理量都是会被例子带着走的，因此可以通过找到之前的位置，使这个位置的物理量进行更新</li>
+</ul></li>
+</ul></li>
+<li>边界
+<ul>
+<li>开放空间：Dirichlet boundaries</li>
+<li>密闭空间（container）：Neumann boundaries</li>
+</ul></li>
+</ul>
+<h2 id="水的模拟">水的模拟</h2>
+<ul>
+<li>水的模拟比较复杂</li>
+<li>水是有形状的，我们实际上模拟的是水和空气的表面，但是我们实际上只会模拟水而不是一起模拟水和空气</li>
+<li>水在整个过程中并不会占满整个空间，只会占据一部分空间，如何表达部分空间的占用？</li>
+<li>水有自己一套表达的方式</li>
+</ul>
+<h3 id="表达方式">表达方式</h3>
+<ul>
+<li>Volume-of-fluid（VoF）：体积的表达方式
+<ul>
+<li>划分为小格子，然后告诉你这个格子中被液体占据的百分比</li>
+<li>不精准</li>
+</ul></li>
+<li>SDF：有向距离场
+<ul>
+<li>保存到水面的距离</li>
+</ul></li>
+</ul>
+<h3 id="更新方式">更新方式</h3>
+<ul>
+<li>Semi-Lagrangian</li>
+<li>Level set：对距离函数进行更新的一种方法</li>
+<li>问题：volume loss issue
+<ul>
+<li>上面两种方法在模拟过程中水的体积会发生改变，因此需要修正</li>
+</ul></li>
+</ul>
+<h3 id="导出数据">导出数据</h3>
+<ul>
+<li>如何将得到的体数据导出为 mesh 用于渲染
+<ul>
+<li>marching cube</li>
+</ul></li>
+</ul>
+<h2 id="实现">实现</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/27850677/answer/2034502427">知乎
+matlab 实现</a></li>
+</ul>
+<h3 id="流体仿真书籍">流体仿真书籍</h3>
+<ul>
+<li>Level Set Methods and Dynamic Implicit Surfaces.
+<ul>
+<li>Osher and Fedkiw.</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/WHM/" rel="tag"># WHM</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/04/28/CG/Kits/MIS-NEE/" rel="prev" title="NEE、MIS(多重重要性采样)">
+                  <i class="fa fa-chevron-left"></i> NEE、MIS(多重重要性采样)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/10/24/CG/WHM-GAMES103/11/" rel="next" title="GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids">
+                  GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

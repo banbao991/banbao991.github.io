@@ -1,1025 +1,1258 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  
-  <title>数据库概论.陈立军.05.关系规范化 | Hexo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="关系规范化、函数依赖、范式(1NF、2NF、3NF、BCNF、4NF、PJNF)、多值依赖">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="关系规范化、函数依赖、范式(1NF、2NF、3NF、BCNF、4NF、PJNF)、多值依赖">
 <meta property="og:type" content="article">
 <meta property="og:title" content="数据库概论.陈立军.05.关系规范化">
 <meta property="og:url" content="http://example.com/2021/05/05/DB/CLJ/05/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="Banbao">
 <meta property="og:description" content="关系规范化、函数依赖、范式(1NF、2NF、3NF、BCNF、4NF、PJNF)、多值依赖">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210505233157308.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507105954851.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507110327834.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507110548289.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507110723397.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507111147090.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507105954851.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507112037025.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507135841410.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507145742043.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507150123890.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507150236800.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507150434164.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507150434164.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210624235429721.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507154339812.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507160447953.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507160447953.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507161727543.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507161852990.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507162027483.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507162525769.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507162539860.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507162558208.png">
-<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210507162613036.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210505233157308.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507105954851.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507110327834.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507110548289.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507110723397.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507111147090.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507105954851.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507112037025.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507135841410.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507145742043.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507150123890.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507150236800.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507150434164.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507150434164.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210624235429721.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507154339812.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507160447953.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507160447953.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507161727543.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507161852990.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507162027483.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507162525769.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507162539860.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507162558208.png">
+<meta property="og:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210507162613036.png">
 <meta property="article:published_time" content="2021-05-05T15:28:20.000Z">
 <meta property="article:modified_time" content="2021-06-24T15:58:39.498Z">
-<meta property="article:author" content="John Doe">
+<meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="DB">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/05/05/DB/CLJ/05/05/image-20210505233157308.png">
-  
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/favicon.png">
-  
-  
-    
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+<meta name="twitter:image" content="http://example.com/2021/05/05/DB/CLJ/05/image-20210505233157308.png">
 
-  
-  
-<link rel="stylesheet" href="/css/style.css">
 
-  
-    
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+<link rel="canonical" href="http://example.com/2021/05/05/DB/CLJ/05/">
 
-  
-<meta name="generator" content="Hexo 6.3.0"></head>
 
-<body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
-      </h1>
-      
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2021/05/05/DB/CLJ/05/","path":"2021/05/05/DB/CLJ/05/","title":"数据库概论.陈立军.05.关系规范化"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>数据库概论.陈立军.05.关系规范化 | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
     </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
         
-          <a class="main-nav-link" href="/">Home</a>
-        
-          <a class="main-nav-link" href="/archives">Archives</a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
-        
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E8%A7%84%E8%8C%83%E5%8C%96"><span class="nav-text">关系规范化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F%E7%9A%84%E8%AE%BE%E8%AE%A1%E9%97%AE%E9%A2%98"><span class="nav-text">关系模式的设计问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1"><span class="nav-text">例子 1</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8"><span class="nav-text">异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8D%E8%89%AF%E7%9A%84%E6%95%B0%E6%8D%AE%E4%BE%9D%E8%B5%96"><span class="nav-text">不良的数据依赖</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-2"><span class="nav-text">例子 2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96"><span class="nav-text">函数依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">函数依赖的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1-1"><span class="nav-text">例子 1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E7%A7%8D%E4%BE%9D%E8%B5%96%E7%9A%84%E7%AD%89%E7%BA%A7"><span class="nav-text">两种依赖的等级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%902"><span class="nav-text">例子2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B3%E5%87%A1%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96"><span class="nav-text">平凡函数依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E5%88%86%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96"><span class="nav-text">部分函数依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%A0%E9%80%92%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96"><span class="nav-text">传递函数依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E7%9A%84%E6%96%B9%E5%BC%8F%E5%AE%9A%E4%B9%89%E4%B9%8B%E5%89%8D%E7%9A%84%E7%A0%81"><span class="nav-text">函数依赖的方式定义之前的码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8C%83%E5%BC%8F"><span class="nav-text">范式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nf"><span class="nav-text">1NF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#nf-%E4%B8%8E%E6%9F%A5%E8%AF%A2%E6%95%88%E7%8E%87%E7%9A%84%E6%8A%98%E4%B8%AD"><span class="nav-text">1NF 与查询效率的折中</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nf-%E4%B8%8E%E5%BA%94%E7%94%A8%E5%AF%B9%E5%B1%9E%E6%80%A7%E7%B2%92%E5%BA%A6%E7%9A%84%E5%A4%84%E7%90%86%E9%9C%80%E6%B1%82"><span class="nav-text">1NF
+与应用对属性粒度的处理需求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nf-%E4%B8%8E%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F%E7%9A%84%E6%8E%A7%E5%88%B6%E5%87%86%E5%88%99"><span class="nav-text">1NF 与数据质量的控制准则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nf-%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F%E7%9A%84%E4%B8%8D%E8%89%AF%E7%89%B9%E6%80%A7"><span class="nav-text">1NF 关系模式的不良特性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nf-1"><span class="nav-text">2NF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%B0%86%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F%E6%94%B9%E8%BF%9B%E5%88%B0-2nf"><span class="nav-text">如何将关系模式改进到 2NF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nf%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F%E7%9A%84%E4%B8%8D%E8%89%AF%E7%89%B9%E6%80%A7"><span class="nav-text">2NF关系模式的不良特性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nf-2"><span class="nav-text">3NF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%B0%86%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F%E6%94%B9%E8%BF%9B%E5%88%B03nf"><span class="nav-text">如何将关系模式改进到3NF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nf-%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">3NF 的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E5%B1%9E%E6%80%A7%E9%83%A8%E5%88%86%E4%BE%9D%E8%B5%96%E7%9A%84%E4%BE%8B%E5%AD%90stc"><span class="nav-text">主属性部分依赖的例子：STC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nf-%E7%9A%84%E4%B8%8D%E8%89%AF%E7%89%B9%E6%80%A7"><span class="nav-text">3NF 的不良特性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%BB%99%E4%B8%BB%E5%B1%9E%E6%80%A7%E7%95%99%E5%90%8E%E9%97%A8"><span class="nav-text">为什么给主属性留后门</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bcnf"><span class="nav-text">BCNF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%B0%86%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F%E6%94%B9%E9%80%A0%E6%88%90bcnf%E7%9A%84"><span class="nav-text">如何将关系模式改造成BCNF的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-3"><span class="nav-text">例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nf-%E5%92%8C-bcnf-%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-text">3NF 和 BCNF 的比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nf-%E7%9A%84%E5%8F%A6%E5%A4%96%E4%B8%80%E7%A7%8D%E5%AE%9A%E4%B9%89"><span class="nav-text">3NF 的另外一种定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bcnf-%E4%B8%8D%E8%89%AF%E4%BE%9D%E8%B5%96%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-text">BCNF 不良依赖的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bcnf-%E7%9A%84%E4%B8%8D%E8%89%AF%E4%BE%9D%E8%B5%96"><span class="nav-text">BCNF 的不良依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bcnf-%E5%86%97%E4%BD%99%E7%9A%84%E6%A0%B9%E6%BA%90"><span class="nav-text">BCNF 冗余的根源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%80%BC%E4%BE%9D%E8%B5%96"><span class="nav-text">多值依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%80%BC%E4%BE%9D%E8%B5%96%E7%9A%84%E6%8F%8F%E8%BF%B0%E5%9E%8B%E5%AE%9A%E4%B9%89"><span class="nav-text">多值依赖的描述型定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%80%BC%E4%BE%9D%E8%B5%96%E7%9A%84%E5%BD%A2%E5%BC%8F%E5%8C%96%E5%AE%9A%E4%B9%89"><span class="nav-text">多值依赖的形式化定义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%90%86%E8%A7%A3"><span class="nav-text">理解</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-4"><span class="nav-text">例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%80%BC%E4%BE%9D%E8%B5%96%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%80%A7%E8%B4%A8"><span class="nav-text">多值依赖的基本性质</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nf-3"><span class="nav-text">4NF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%B0%86%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F%E6%94%B9%E9%80%A0%E4%B8%BA4nf%E7%9A%84"><span class="nav-text">如何将关系模式改造为4NF的</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%80%BC%E4%BE%9D%E8%B5%96%E4%B8%8E%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96"><span class="nav-text">多值依赖与函数依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%80%BC%E4%BE%9D%E8%B5%96%E4%B8%8E%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8C%BA%E5%88%AB"><span class="nav-text">多值依赖与函数依赖的基本区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%80%BC%E4%BE%9D%E8%B5%96%E4%B8%8E%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E6%9C%89%E6%95%88%E6%80%A7%E8%8C%83%E5%9B%B4%E7%9A%84%E4%B8%8D%E5%90%8C"><span class="nav-text">多值依赖与函数依赖有效性范围的不同</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E5%87%BD%E6%95%B0%E4%BE%9D%E8%B5%96%E5%92%8C%E5%A4%9A%E5%80%BC%E4%BE%9D%E8%B5%96"><span class="nav-text">验证函数依赖和多值依赖</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E4%BE%9D%E8%B5%96"><span class="nav-text">连接依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pjnf"><span class="nav-text">PJNF</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E5%85%B6%E4%BB%96%E9%97%AE%E9%A2%98"><span class="nav-text">一些其他问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%84%E7%A7%8D%E8%8C%83%E5%BC%8F%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">各种范式的关系</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">252</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">76</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
       </div>
     </div>
-  </div>
-</header>
+  </aside>
+  <div class="sidebar-dimmer"></div>
 
-      <div class="outer">
-        <section id="main"><article id="post-DB/CLJ/05" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/05/05/DB/CLJ/05/" class="article-date">
-  <time class="dt-published" datetime="2021-05-05T15:28:20.000Z" itemprop="datePublished">2021-05-05</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/DB-CLJ/">DB.CLJ</a>
-  </div>
 
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
   </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
   
-    <h1 class="p-name article-title" itemprop="headline name">
-      数据库概论.陈立军.05.关系规范化
-    </h1>
+
+
+<div class="post-block">
+  
   
 
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/05/DB/CLJ/05/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="数据库概论.陈立军.05.关系规范化 | Banbao">
+      <meta itemprop="description" content="关系规范化、函数依赖、范式(1NF、2NF、3NF、BCNF、4NF、PJNF)、多值依赖">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库概论.陈立军.05.关系规范化
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-05-05 23:28:20" itemprop="dateCreated datePublished" datetime="2021-05-05T23:28:20+08:00">2021-05-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2021-06-24 23:58:39" itemprop="dateModified" datetime="2021-06-24T23:58:39+08:00">2021-06-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/DB-CLJ/" itemprop="url" rel="index"><span itemprop="name">DB.CLJ</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">关系规范化、函数依赖、范式(1NF、2NF、3NF、BCNF、4NF、PJNF)、多值依赖</div>
+        </div>
       </header>
+
     
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="关系规范化"><a href="#关系规范化" class="headerlink" title="关系规范化"></a>关系规范化</h1><ul>
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="关系规范化">关系规范化</h1>
+<ul>
 <li>为什么需要关系规范化</li>
 </ul>
-<img src="05/image-20210505233157308.png" style="zoom: 50%;" />
-
-
-
-<h2 id="关系模式的设计问题"><a href="#关系模式的设计问题" class="headerlink" title="关系模式的设计问题"></a>关系模式的设计问题</h2><h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子 1"></a>例子 1</h3><ul>
-<li>为管理职工信息而设计如下一个关系模式<ul>
-<li>问题：当删除职工 A 后，没有等级 4 的员工了，此时如果想再招聘一个等级 4 的员工，不知道如何安排工资</li>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210505233157308.png" style="zoom: 50%;"></p>
+<h2 id="关系模式的设计问题">关系模式的设计问题</h2>
+<h3 id="例子-1">例子 1</h3>
+<ul>
+<li>为管理职工信息而设计如下一个关系模式
+<ul>
+<li>问题：当删除职工 A 后，没有等级 4 的员工了，此时如果想再招聘一个等级
+4 的员工，不知道如何安排工资</li>
 <li>不完整了</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 <table>
 <thead>
-<tr>
-<th align="center">职工</th>
-<th align="center">级别</th>
-<th align="center">工资</th>
+<tr class="header">
+<th style="text-align: center;">职工</th>
+<th style="text-align: center;">级别</th>
+<th style="text-align: center;">工资</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">A</td>
-<td align="center">4</td>
-<td align="center">500</td>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">A</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">500</td>
 </tr>
-<tr>
-<td align="center">B</td>
-<td align="center">5</td>
-<td align="center">600</td>
+<tr class="even">
+<td style="text-align: center;">B</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">600</td>
 </tr>
-<tr>
-<td align="center">C</td>
-<td align="center">6</td>
-<td align="center">700</td>
+<tr class="odd">
+<td style="text-align: center;">C</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">700</td>
 </tr>
-<tr>
-<td align="center">D</td>
-<td align="center">5</td>
-<td align="center">600</td>
+<tr class="even">
+<td style="text-align: center;">D</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">600</td>
 </tr>
-<tr>
-<td align="center">E</td>
-<td align="center">6</td>
-<td align="center">700</td>
+<tr class="odd">
+<td style="text-align: center;">E</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">700</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <ul>
-<li>问题根源：在属性如何取值的问题上，表结构与现实出现偏离<ul>
-<li>现实中<ul>
+<li>问题根源：在属性如何取值的问题上，表结构与现实出现偏离
+<ul>
+<li>现实中
+<ul>
 <li>职工只和岗位有关系</li>
 <li>每个级别的工资和职工没关系，只和级别有关系</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>应该这样设计<ul>
+</ul></li>
+</ul></li>
+<li>应该这样设计
+<ul>
 <li>职工 - 级别一张表</li>
 <li>级别 - 工资一张表</li>
-</ul>
-</li>
+</ul></li>
 <li>问题根源：<strong>人为造成了现实当中本来无关属性之间的依赖</strong></li>
 </ul>
-<h4 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h4><ul>
-<li><strong>信息的不可表示问题</strong><ul>
-<li><strong>插入异常</strong>：如果没有职工具有 8 级工资，则 8 级工资的工资数额就难以插入</li>
-<li><strong>删除异常</strong>：如果仅有职工 A 具有 4 级工资，删除 A 则会将有关 4 级工资的工资数额信息也一并删除</li>
-</ul>
-</li>
-<li><strong>信息的冗余问题</strong><ul>
+<h4 id="异常">异常</h4>
+<ul>
+<li><strong>信息的不可表示问题</strong>
+<ul>
+<li><strong>插入异常</strong>：如果没有职工具有 8 级工资，则 8
+级工资的工资数额就难以插入</li>
+<li><strong>删除异常</strong>：如果仅有职工 A 具有 4 级工资，删除 A
+则会将有关 4 级工资的工资数额信息也一并删除</li>
+</ul></li>
+<li><strong>信息的冗余问题</strong>
+<ul>
 <li><strong>数据冗余</strong>：职工很多，工资级别有限，每一级别的工资数额反复存储多次</li>
-<li><strong>更新异常</strong>：如果将 5 级工资的工资数额调为 620，则需要找到每个具有 5 级工资的职工，逐一修改</li>
+<li><strong>更新异常</strong>：如果将 5 级工资的工资数额调为
+620，则需要找到每个具有 5 级工资的职工，逐一修改</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h4 id="不良的数据依赖"><a href="#不良的数据依赖" class="headerlink" title="不良的数据依赖"></a>不良的数据依赖</h4><ul>
+<h4 id="不良的数据依赖">不良的数据依赖</h4>
+<ul>
 <li>解决方案</li>
-<li>应该这样设计<ul>
+<li>应该这样设计
+<ul>
 <li>职工 - 级别一张表</li>
 <li>级别 - 工资一张表</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="例子-2"><a href="#例子-2" class="headerlink" title="例子 2"></a>例子 2</h3><ul>
+<h3 id="例子-2">例子 2</h3>
+<ul>
 <li>有些人可能有很多爱好，主码设置为 <strong>姓名+爱好</strong></li>
 </ul>
 <table>
 <thead>
-<tr>
-<th align="center">姓名</th>
-<th align="center">年龄</th>
-<th align="center">性别</th>
-<th align="center">爱好</th>
+<tr class="header">
+<th style="text-align: center;">姓名</th>
+<th style="text-align: center;">年龄</th>
+<th style="text-align: center;">性别</th>
+<th style="text-align: center;">爱好</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">A</td>
-<td align="center">20</td>
-<td align="center">男</td>
-<td align="center">电影</td>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">A</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">男</td>
+<td style="text-align: center;">电影</td>
 </tr>
-<tr>
-<td align="center">A</td>
-<td align="center">20</td>
-<td align="center">男</td>
-<td align="center">音乐</td>
+<tr class="even">
+<td style="text-align: center;">A</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">男</td>
+<td style="text-align: center;">音乐</td>
 </tr>
-<tr>
-<td align="center">B</td>
-<td align="center">18</td>
-<td align="center">女</td>
-<td align="center">购物</td>
+<tr class="odd">
+<td style="text-align: center;">B</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">女</td>
+<td style="text-align: center;">购物</td>
 </tr>
-<tr>
-<td align="center">B</td>
-<td align="center">18</td>
-<td align="center">女</td>
-<td align="center">美食</td>
+<tr class="even">
+<td style="text-align: center;">B</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">女</td>
+<td style="text-align: center;">美食</td>
 </tr>
-<tr>
-<td align="center">C</td>
-<td align="center">23</td>
-<td align="center">null</td>
-<td align="center">null</td>
+<tr class="odd">
+<td style="text-align: center;">C</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">null</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <ul>
-<li>有些人可能没有爱好，此时它不能插入<ul>
+<li>有些人可能没有爱好，此时它不能插入
+<ul>
 <li>C 的记录是无法插入的（主码非 null ）</li>
+</ul></li>
 </ul>
-</li>
+<h2 id="函数依赖">函数依赖</h2>
+<h3 id="函数依赖的定义">函数依赖的定义</h3>
+<ul>
+<li>设 <span class="math inline">\(R(U)\)</span> 是属性集 <span class="math inline">\(U\)</span> 上的关系模式，<span class="math inline">\(X,Y\subseteq U\)</span>，<span class="math inline">\(r\)</span> 是 <span class="math inline">\(R(U)\)</span> 上的任意一个关系
+<ul>
+<li>如果成立 对 <span class="math inline">\(\forall t,s\in R\)</span> 若
+<span class="math inline">\(t[X]=s[X]\)</span>，则 <span class="math inline">\(t[Y]=s[Y]\)</span></li>
+<li>则称 “<span class="math inline">\(X\)</span> 函数决定 <span class="math inline">\(Y\)</span> ” 或 “ <span class="math inline">\(Y\)</span> 函数依赖于 <span class="math inline">\(X\)</span> “，记作 <span class="math inline">\(X\to Y\)</span></li>
+<li><strong>称 <span class="math inline">\(X\)</span>
+为决定因素</strong></li>
+</ul></li>
+<li>函数依赖的双重否定定义
+<ul>
+<li>不存在 <span class="math inline">\(t, s \in r\)</span>，<span class="math inline">\(t[X] = s[X]\)</span>，但 <span class="math inline">\(t[Y]\ne s[Y]\)</span></li>
+</ul></li>
+<li>函数依赖的例子
+<ul>
+<li>姓名 <span class="math inline">\(\to\)</span> 学号</li>
+</ul></li>
 </ul>
-<h2 id="函数依赖"><a href="#函数依赖" class="headerlink" title="函数依赖"></a>函数依赖</h2><h3 id="函数依赖的定义"><a href="#函数依赖的定义" class="headerlink" title="函数依赖的定义"></a>函数依赖的定义</h3><ul>
-<li>设 $R(U)$ 是属性集 $U$ 上的关系模式，$X,Y\subseteq U$，$r$ 是 $R(U)$ 上的任意一个关系<ul>
-<li>如果成立 对 $\forall t,s\in R$ 若 $t[X]&#x3D;s[X]$，则 $t[Y]&#x3D;s[Y]$</li>
-<li>则称 “$X$ 函数决定 $Y$ ” 或 “ $Y$ 函数依赖于 $X$ “，记作 $X\to Y$</li>
-<li><strong>称 $X$ 为决定因素</strong></li>
-</ul>
-</li>
-<li>函数依赖的双重否定定义<ul>
-<li>不存在 $t, s \in r$，$t[X] &#x3D; s[X]$，但 $t[Y]\ne s[Y]$</li>
-</ul>
-</li>
-<li>函数依赖的例子<ul>
-<li>姓名 $\to$ 学号</li>
-</ul>
-</li>
-</ul>
-<h3 id="例子-1-1"><a href="#例子-1-1" class="headerlink" title="例子 1"></a>例子 1</h3><ul>
+<h3 id="例子-1-1">例子 1</h3>
+<ul>
 <li>给定如下关系示例，判断如下函数依赖是否成立</li>
 </ul>
 <table>
 <thead>
-<tr>
-<th align="center">A</th>
-<th align="center">B</th>
-<th align="center">C</th>
-<th align="center">D</th>
+<tr class="header">
+<th style="text-align: center;">A</th>
+<th style="text-align: center;">B</th>
+<th style="text-align: center;">C</th>
+<th style="text-align: center;">D</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">a1</td>
-<td align="center">b1</td>
-<td align="center">c1</td>
-<td align="center">d1</td>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">a1</td>
+<td style="text-align: center;">b1</td>
+<td style="text-align: center;">c1</td>
+<td style="text-align: center;">d1</td>
 </tr>
-<tr>
-<td align="center">a1</td>
-<td align="center">b2</td>
-<td align="center">c1</td>
-<td align="center">d2</td>
+<tr class="even">
+<td style="text-align: center;">a1</td>
+<td style="text-align: center;">b2</td>
+<td style="text-align: center;">c1</td>
+<td style="text-align: center;">d2</td>
 </tr>
-<tr>
-<td align="center">a2</td>
-<td align="center">b2</td>
-<td align="center">c2</td>
-<td align="center">d2</td>
+<tr class="odd">
+<td style="text-align: center;">a2</td>
+<td style="text-align: center;">b2</td>
+<td style="text-align: center;">c2</td>
+<td style="text-align: center;">d2</td>
 </tr>
-<tr>
-<td align="center">a2</td>
-<td align="center">b3</td>
-<td align="center">c2</td>
-<td align="center">d3</td>
+<tr class="even">
+<td style="text-align: center;">a2</td>
+<td style="text-align: center;">b3</td>
+<td style="text-align: center;">c2</td>
+<td style="text-align: center;">d3</td>
 </tr>
-<tr>
-<td align="center">a3</td>
-<td align="center">b3</td>
-<td align="center">c2</td>
-<td align="center">d4</td>
+<tr class="odd">
+<td style="text-align: center;">a3</td>
+<td style="text-align: center;">b3</td>
+<td style="text-align: center;">c2</td>
+<td style="text-align: center;">d4</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <ul>
-<li>$A\to C$：成立<ul>
+<li><span class="math inline">\(A\to C\)</span>：成立
+<ul>
 <li>判断在 A 上相等的两行，在 C 上是否相等</li>
+</ul></li>
+<li><span class="math inline">\(C\to A\)</span>：不成立</li>
+<li><span class="math inline">\(AB\to D\)</span>：成立
+<ul>
+<li><span class="math inline">\(AB\)</span> 上取值是唯一的</li>
+</ul></li>
 </ul>
-</li>
-<li>$C\to A$：不成立</li>
-<li>$AB\to D$：成立<ul>
-<li>$AB$ 上取值是唯一的</li>
-</ul>
-</li>
-</ul>
-<h3 id="两种依赖的等级"><a href="#两种依赖的等级" class="headerlink" title="两种依赖的等级"></a>两种依赖的等级</h3><ul>
-<li>满足依赖的关系：<strong>依赖在模式的某个关系实例上成立</strong><ul>
+<h3 id="两种依赖的等级">两种依赖的等级</h3>
+<ul>
+<li>满足依赖的关系：<strong>依赖在模式的某个关系实例上成立</strong>
+<ul>
 <li>可能在插入几行之后，函数依赖就不成立了</li>
-</ul>
-</li>
+</ul></li>
 <li>模式上成立的依赖：<strong>依赖在模式的所有关系实例上都成立</strong></li>
 </ul>
-<h3 id="例子2"><a href="#例子2" class="headerlink" title="例子2"></a>例子2</h3><table>
+<h3 id="例子2">例子2</h3>
+<table>
 <thead>
-<tr>
-<th align="center">A</th>
-<th align="center">B</th>
-<th align="center">C</th>
+<tr class="header">
+<th style="text-align: center;">A</th>
+<th style="text-align: center;">B</th>
+<th style="text-align: center;">C</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">1</td>
-<td align="center">2</td>
-<td align="center">3</td>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">3</td>
 </tr>
-<tr>
-<td align="center">4</td>
-<td align="center">2</td>
-<td align="center">3</td>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">3</td>
 </tr>
-<tr>
-<td align="center">5</td>
-<td align="center">3</td>
-<td align="center">3</td>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">3</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <ul>
 <li>找出所有可能的函数依赖</li>
-<li>$A\to B,A\to C,B\to C$</li>
-<li>$A\to A,B\to B,C\to C$</li>
-<li>$AB\to A,ABC\to A,\cdots$</li>
-<li>$\cdots$</li>
+<li><span class="math inline">\(A\to B,A\to C,B\to C\)</span></li>
+<li><span class="math inline">\(A\to A,B\to B,C\to C\)</span></li>
+<li><span class="math inline">\(AB\to A,ABC\to A,\cdots\)</span></li>
+<li><span class="math inline">\(\cdots\)</span></li>
 </ul>
-<h3 id="平凡函数依赖"><a href="#平凡函数依赖" class="headerlink" title="平凡函数依赖"></a>平凡函数依赖</h3><ul>
-<li>如果 $X\to Y$，$Y\subseteq X$，则称其为<strong>平凡的函数依赖</strong>，否则称为<strong>非平凡的函数依赖</strong></li>
-<li>一个关系模式有 n 个属性，在它上面成立的所有可能的函数依赖有多少个？非平凡的函数依赖有多少个？<ul>
-<li>函数依赖：$4^n$</li>
-<li>平凡的函数依赖：$3^n$<ul>
-<li>$\sum{n \choose i}2^i&#x3D;\sum{n \choose i}2^i1^{n-i}&#x3D;(2+1)^n&#x3D;3^n$</li>
-</ul>
-</li>
-<li>非平凡的函数依赖：$4^n-3^n$</li>
-</ul>
-</li>
-<li>如果 R(U) 的候选码是整个属性集 U，这称为全码<ul>
+<h3 id="平凡函数依赖">平凡函数依赖</h3>
+<ul>
+<li>如果 <span class="math inline">\(X\to Y\)</span>，<span class="math inline">\(Y\subseteq
+X\)</span>，则称其为<strong>平凡的函数依赖</strong>，否则称为<strong>非平凡的函数依赖</strong></li>
+<li>一个关系模式有 n
+个属性，在它上面成立的所有可能的函数依赖有多少个？非平凡的函数依赖有多少个？
+<ul>
+<li>函数依赖：<span class="math inline">\(4^n\)</span></li>
+<li>平凡的函数依赖：<span class="math inline">\(3^n\)</span>
+<ul>
+<li><span class="math inline">\(\sum{n \choose i}2^i=\sum{n \choose
+i}2^i1^{n-i}=(2+1)^n=3^n\)</span></li>
+</ul></li>
+<li>非平凡的函数依赖：<span class="math inline">\(4^n-3^n\)</span></li>
+</ul></li>
+<li>如果 R(U) 的候选码是整个属性集 U，这称为全码
+<ul>
 <li>例如选课表，只有两个属性（学号、课程号）</li>
-</ul>
-</li>
-<li>一个全码的关系模式存在非平凡的函数依赖吗？<ul>
+</ul></li>
+<li>一个全码的关系模式存在非平凡的函数依赖吗？
+<ul>
 <li><strong>不存在</strong></li>
-<li>如果存在 $A\to B$，则存在一个候选码 $A$，而且 $A$ 不是整个属性集</li>
+<li>如果存在 <span class="math inline">\(A\to
+B\)</span>，则存在一个候选码 <span class="math inline">\(A\)</span>，而且 <span class="math inline">\(A\)</span> 不是整个属性集</li>
+</ul></li>
+<li>如果存在非平凡关系依赖 <span class="math inline">\(A\to
+B\)</span>，则 <span class="math inline">\(B\)</span>
+可以不作为码的一部分</li>
 </ul>
-</li>
-<li>如果存在非平凡关系依赖 $A\to B$，则 $B$ 可以不作为码的一部分</li>
-</ul>
-<h3 id="部分函数依赖"><a href="#部分函数依赖" class="headerlink" title="部分函数依赖"></a>部分函数依赖</h3><ul>
-<li>如果 $X\to Y$，且对于任意 $X$ 的真子集 $X’$，都有 $X′\not\to Y$，则称 $Y$ 对 $X$ <strong>完全函数依赖</strong>，记作 $X\overset{f}{\to} Y$</li>
-<li>否则称 $Y$ 对 $X$ <strong>部分函数依赖</strong>，记作 $X\overset{p}{\to} Y$</li>
+<h3 id="部分函数依赖">部分函数依赖</h3>
+<ul>
+<li>如果 <span class="math inline">\(X\to Y\)</span>，且对于任意 <span class="math inline">\(X\)</span> 的真子集 <span class="math inline">\(X&#39;\)</span>，都有 <span class="math inline">\(X′\not\to Y\)</span>，则称 <span class="math inline">\(Y\)</span> 对 <span class="math inline">\(X\)</span> <strong>完全函数依赖</strong>，记作
+<span class="math inline">\(X\overset{f}{\to} Y\)</span></li>
+<li>否则称 <span class="math inline">\(Y\)</span> 对 <span class="math inline">\(X\)</span> <strong>部分函数依赖</strong>，记作
+<span class="math inline">\(X\overset{p}{\to} Y\)</span></li>
 <li><strong>如果在一个关系模式里面存在部分函数依赖的话，则是一个不好的设计</strong></li>
 </ul>
-<h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><ul>
-<li>(sno, cno) $\overset{f}{\to}$ grade</li>
-<li>(sno, cno) $\overset{p}{\to}$ sname</li>
+<h4 id="例子">例子</h4>
+<ul>
+<li>(sno, cno) <span class="math inline">\(\overset{f}{\to}\)</span>
+grade</li>
+<li>(sno, cno) <span class="math inline">\(\overset{p}{\to}\)</span>
+sname</li>
 </ul>
-<h3 id="传递函数依赖"><a href="#传递函数依赖" class="headerlink" title="传递函数依赖"></a>传递函数依赖</h3><ul>
+<h3 id="传递函数依赖">传递函数依赖</h3>
+<ul>
 <li>如果关系模式中存在传递函数依赖，则也是一种差的设计</li>
-<li>在 $R(U)$ 中，如果 $X\to Y,Y\to Z,Y\not\to X,Z\nsubseteq Y$，则称 $Z$ 对 $X$ <strong>传递函数依赖</strong></li>
-<li>排除 $Z\nsubseteq Y$ 原因<ul>
+<li>在 <span class="math inline">\(R(U)\)</span> 中，如果 <span class="math inline">\(X\to Y,Y\to Z,Y\not\to X,Z\nsubseteq
+Y\)</span>，则称 <span class="math inline">\(Z\)</span> 对 <span class="math inline">\(X\)</span> <strong>传递函数依赖</strong></li>
+<li>排除 <span class="math inline">\(Z\nsubseteq Y\)</span> 原因
+<ul>
 <li>平凡函数依赖是一定成立的，关系模式中存在这样的函数依赖是正常的</li>
-</ul>
-</li>
-<li>排除 $Y\not\to X$ 原因<ul>
-<li>说明 $X,Y$ 都是候选码</li>
+</ul></li>
+<li>排除 <span class="math inline">\(Y\not\to X\)</span> 原因
+<ul>
+<li>说明 <span class="math inline">\(X,Y\)</span> 都是候选码</li>
 <li>多个候选码，在在关系模式的设计中是允许的</li>
-</ul>
-</li>
-<li>如何把函数的部分依赖整理成传递函数依赖的形式？<ul>
-<li>$X’\subset X,X\to Y,X’\to Y$</li>
-<li>$X\to X’,X’\to Y$</li>
-</ul>
-</li>
+</ul></li>
+<li>如何把函数的部分依赖整理成传递函数依赖的形式？
+<ul>
+<li><span class="math inline">\(X&#39;\subset X,X\to Y,X&#39;\to
+Y\)</span></li>
+<li><span class="math inline">\(X\to X&#39;,X&#39;\to Y\)</span></li>
+</ul></li>
 <li>部分函数依赖一定能够转化为传递函数依赖</li>
 </ul>
-<h3 id="函数依赖的方式定义之前的码"><a href="#函数依赖的方式定义之前的码" class="headerlink" title="函数依赖的方式定义之前的码"></a>函数依赖的方式定义之前的码</h3><ul>
-<li><strong>超码</strong><ul>
-<li>设 $K$ 为 $R(U,F)$ 的属性或属性组，若 $K\to U$，则称 $K$ 为 $R$ 的超码</li>
-</ul>
-</li>
-<li><strong>候选码</strong><ul>
-<li>设 $K$ 为 $R(U,F)$ 的超码，若 $K\overset{f}{\to} U$，则称 $K$ 为 $R$ 的候选码</li>
-</ul>
-</li>
-<li><strong>主属性</strong><ul>
-<li>包含在每一个候选码中的属性，称作主属性<ul>
+<h3 id="函数依赖的方式定义之前的码">函数依赖的方式定义之前的码</h3>
+<ul>
+<li><strong>超码</strong>
+<ul>
+<li>设 <span class="math inline">\(K\)</span> 为 <span class="math inline">\(R(U,F)\)</span> 的属性或属性组，若 <span class="math inline">\(K\to U\)</span>，则称 <span class="math inline">\(K\)</span> 为 <span class="math inline">\(R\)</span> 的超码</li>
+</ul></li>
+<li><strong>候选码</strong>
+<ul>
+<li>设 <span class="math inline">\(K\)</span> 为 <span class="math inline">\(R(U,F)\)</span> 的超码，若 <span class="math inline">\(K\overset{f}{\to} U\)</span>，则称 <span class="math inline">\(K\)</span> 为 <span class="math inline">\(R\)</span> 的候选码</li>
+</ul></li>
+<li><strong>主属性</strong>
+<ul>
+<li>包含在每一个候选码中的属性，称作主属性
+<ul>
 <li>候选码属性集的并，而不是交</li>
 <li>例如属性集 (A,B,C)，候选码 A, (B,C)，则主属性是 A,B,C</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>非主属性</strong><ul>
+</ul></li>
+</ul></li>
+<li><strong>非主属性</strong>
+<ul>
 <li>不包含在任何候选码中的属性称为非主属性</li>
-</ul>
-</li>
-<li><strong>全码</strong><ul>
+</ul></li>
+<li><strong>全码</strong>
+<ul>
 <li>关系模式的码由整个属性组构成，如 SPJ</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h2 id="范式"><a href="#范式" class="headerlink" title="范式"></a>范式</h2><ul>
+<h2 id="范式">范式</h2>
+<ul>
 <li>一个不好的设计的例子</li>
 <li>学号，姓名、系号、系主任、选修课程、成绩</li>
 </ul>
-<img src="05/image-20210507105954851.png" style="zoom: 43%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507105954851.png" style="zoom: 43%;"></p>
 <ul>
 <li>范式是对关系的<strong>不同数据依赖程度</strong>的要求</li>
 <li>通过<strong>模式分解</strong>将一个低级范式转换为若干个高级范式的过程称作<strong>规范化</strong>（<strong>概念的纯粹化</strong>）</li>
 <li>排除法：在某一的范式中，不存在某些类型的函数依赖</li>
 </ul>
-<img src="05/image-20210507110327834.png" style="zoom:50%;" />
-
-
-
-<h2 id="1NF"><a href="#1NF" class="headerlink" title="1NF"></a>1NF</h2><ul>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507110327834.png" style="zoom:50%;"></p>
+<h2 id="nf">1NF</h2>
+<ul>
 <li>关系中每一分量不可再分，也即不能以集合、序列等作为属性值</li>
 </ul>
-<h3 id="1NF-与查询效率的折中"><a href="#1NF-与查询效率的折中" class="headerlink" title="1NF 与查询效率的折中"></a>1NF 与查询效率的折中</h3><img src="05/image-20210507110548289.png" style="zoom:50%;" />
-
-<h3 id="1NF-与应用对属性粒度的处理需求"><a href="#1NF-与应用对属性粒度的处理需求" class="headerlink" title="1NF 与应用对属性粒度的处理需求"></a>1NF 与应用对属性粒度的处理需求</h3><ul>
+<h3 id="nf-与查询效率的折中">1NF 与查询效率的折中</h3>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507110548289.png" style="zoom:50%;"></p>
+<h3 id="nf-与应用对属性粒度的处理需求">1NF
+与应用对属性粒度的处理需求</h3>
+<ul>
 <li><strong>分量是否需要再分，与具体应用有关</strong></li>
 <li>如果用到值的一部分，则需要进一步分割，否则需要应用编码解析</li>
 </ul>
-<img src="05/image-20210507110723397.png" style="zoom:50%;" />
-
-
-
-<h3 id="1NF-与数据质量的控制准则"><a href="#1NF-与数据质量的控制准则" class="headerlink" title="1NF 与数据质量的控制准则"></a>1NF 与数据质量的控制准则</h3><ul>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507110723397.png" style="zoom:50%;"></p>
+<h3 id="nf-与数据质量的控制准则">1NF 与数据质量的控制准则</h3>
+<ul>
 <li>较细的原子粒度有助于标准化，施加约束，避免输入错误，从而提高数据质量</li>
 <li>例如通讯地址，如果保存为一个属性，则输入格式可能不统一，导致解析困难</li>
 </ul>
-<img src="05/image-20210507111147090.png" style="zoom:50%;" />
-
-
-
-<h3 id="1NF-关系模式的不良特性"><a href="#1NF-关系模式的不良特性" class="headerlink" title="1NF 关系模式的不良特性"></a>1NF 关系模式的不良特性</h3><img src="05/image-20210507105954851.png" style="zoom: 43%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507111147090.png" style="zoom:50%;"></p>
+<h3 id="nf-关系模式的不良特性">1NF 关系模式的不良特性</h3>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507105954851.png" style="zoom: 43%;"></p>
 <ul>
 <li>基于上面的例子</li>
 <li><strong>插入异常</strong>：如果学生没有选课，关于他的个人信息及所在系的信息就无法插入</li>
 <li><strong>删除异常</strong>：如果删除学生的选课信息，则他的个人信息及所在系的信息也随之删除</li>
-<li><strong>更新异常</strong>：如果学生转系，若他选修了 k 门课，则需要修改 k 次</li>
-<li><strong>数据冗余</strong>：如果一个学生选修了 k 门课，则有关他的所在系的信息重复</li>
+<li><strong>更新异常</strong>：如果学生转系，若他选修了 k
+门课，则需要修改 k 次</li>
+<li><strong>数据冗余</strong>：如果一个学生选修了 k
+门课，则有关他的所在系的信息重复</li>
 </ul>
-<h2 id="2NF"><a href="#2NF" class="headerlink" title="2NF"></a>2NF</h2><ul>
-<li>若 R $\in$ 1NP ，且每个<strong>非</strong>主属性<strong>完全依赖</strong>于码，则称 R $\in$ 2NF</li>
-<li><strong>2NF 消除了非主属性对码的部分依赖</strong><ul>
+<h2 id="nf-1">2NF</h2>
+<ul>
+<li>若 R <span class="math inline">\(\in\)</span> 1NP
+，且每个<strong>非</strong>主属性<strong>完全依赖</strong>于码，则称 R
+<span class="math inline">\(\in\)</span> 2NF</li>
+<li><strong>2NF 消除了非主属性对码的部分依赖</strong>
+<ul>
 <li>不要求主属性对码没有部分依赖</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="如何将关系模式改进到-2NF"><a href="#如何将关系模式改进到-2NF" class="headerlink" title="如何将关系模式改进到 2NF"></a>如何将关系模式改进到 2NF</h3><ul>
+<h3 id="如何将关系模式改进到-2nf">如何将关系模式改进到 2NF</h3>
+<ul>
 <li>非主属性有两种，一种完全依赖于码，一种部分依赖于码，据此将属性集划分为两部分</li>
 </ul>
-<img src="05/image-20210507112037025.png" style="zoom:50%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507112037025.png" style="zoom:50%;"></p>
 <ul>
-<li>关系模式R(A,B,C,D)，给出它的一个函数依赖集，使得码为 AB，并且 R 属于 1NF 而不属于 2NF<ul>
+<li>关系模式R(A,B,C,D)，给出它的一个函数依赖集，使得码为 AB，并且 R 属于
+1NF 而不属于 2NF
+<ul>
 <li>设置一个部分函数依赖即可</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>$$<br>AB\to C,B\to D<br>$$</p>
+<p><span class="math display">\[
+AB\to C,B\to D
+\]</span></p>
 <ul>
-<li>但是这样子的设计还是存在<strong>传递函数依赖</strong><ul>
+<li>但是这样子的设计还是存在<strong>传递函数依赖</strong>
+<ul>
 <li>sno 决定 dno，dno 决定 dean</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="2NF关系模式的不良特性"><a href="#2NF关系模式的不良特性" class="headerlink" title="2NF关系模式的不良特性"></a>2NF关系模式的不良特性</h3><ul>
+<h3 id="nf关系模式的不良特性">2NF关系模式的不良特性</h3>
+<ul>
 <li><strong>插入异常</strong>：如果系中没有学生，则有关系的信息就无法插入</li>
 <li><strong>删除异常</strong>：如果删除某系中全部学生，则该系的系主任信息也随之删除</li>
-<li><strong>更新异常</strong>：如果学生转系，不但要修改 dno，还要修改 dean</li>
+<li><strong>更新异常</strong>：如果学生转系，不但要修改 dno，还要修改
+dean</li>
 <li><strong>数据冗余</strong>：每个学生都存储了其系主任的信息</li>
 </ul>
-<h2 id="3NF"><a href="#3NF" class="headerlink" title="3NF"></a>3NF</h2><ul>
-<li><p>关系模式 $R(U)$ 中,若不存在这样的码 $X$，属性组 $Y$ 及非主属性 $Z(Z\not\subseteq Y)$，使得 $X\to Y,Y\to Z,Y\not\to X$ 成立，则称 R $\in$ 3NF</p>
-</li>
-<li><p>3NF 的目标是消除<strong>非主属性对码的传递依赖</strong></p>
-</li>
+<h2 id="nf-2">3NF</h2>
+<ul>
+<li><p>关系模式 <span class="math inline">\(R(U)\)</span>
+中,若不存在这样的码 <span class="math inline">\(X\)</span>，属性组 <span class="math inline">\(Y\)</span> 及非主属性 <span class="math inline">\(Z(Z\not\subseteq Y)\)</span>，使得 <span class="math inline">\(X\to Y,Y\to Z,Y\not\to X\)</span> 成立，则称 R
+<span class="math inline">\(\in\)</span> 3NF</p></li>
+<li><p>3NF 的目标是消除<strong>非主属性对码的传递依赖</strong></p></li>
 </ul>
-<h3 id="如何将关系模式改进到3NF"><a href="#如何将关系模式改进到3NF" class="headerlink" title="如何将关系模式改进到3NF"></a>如何将关系模式改进到3NF</h3><ul>
+<h3 id="如何将关系模式改进到3nf">如何将关系模式改进到3NF</h3>
+<ul>
 <li>砸断函数依赖的传递链</li>
 </ul>
-<img src="05/image-20210507135841410.png" style="zoom:50%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507135841410.png" style="zoom:50%;"></p>
 <ul>
-<li>关系模式R(A,B,C,D)，给出它的一个函数依赖集，使得码为 AB，并且 R 属于 2NF 而不属于 3NF<ul>
+<li>关系模式R(A,B,C,D)，给出它的一个函数依赖集，使得码为 AB，并且 R 属于
+2NF 而不属于 3NF
+<ul>
 <li>设置一个传递函数依赖即可（当然不能存在部分函数依赖）</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>$$<br>AB\to C, C\to D<br>$$</p>
+<p><span class="math display">\[
+AB\to C, C\to D
+\]</span></p>
 <ul>
 <li>正常情况下数据库的设计要求达到 3NF 就可以了</li>
 </ul>
-<h3 id="3NF-的问题"><a href="#3NF-的问题" class="headerlink" title="3NF 的问题"></a>3NF 的问题</h3><ul>
+<h3 id="nf-的问题">3NF 的问题</h3>
+<ul>
 <li>没有限定<strong>主属性</strong>的<strong>函数依赖</strong></li>
 </ul>
-<h3 id="主属性部分依赖的例子：STC"><a href="#主属性部分依赖的例子：STC" class="headerlink" title="主属性部分依赖的例子：STC"></a>主属性部分依赖的例子：<span id="STC">STC</span></h3><ul>
+<h3 id="主属性部分依赖的例子stc">主属性部分依赖的例子：<span id="STC">STC</span></h3>
+<ul>
 <li>关系模式：STC(sno,tno,cno)</li>
-<li>每位老师只教授一门课：tno $\to$ cno</li>
-<li>某学生选定一门课，就对应一位老师：(sno,cno) $\to$ tno</li>
+<li>每位老师只教授一门课：tno <span class="math inline">\(\to\)</span>
+cno</li>
+<li>某学生选定一门课，就对应一位老师：(sno,cno) <span class="math inline">\(\to\)</span> tno</li>
 <li>候选码：(sno, cno)、(sno, tno)</li>
-<li>STC $\in$ 3NF<ul>
+<li>STC <span class="math inline">\(\in\)</span> 3NF
+<ul>
 <li>没有非主属性，因此是满足 3NF 的</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="3NF-的不良特性"><a href="#3NF-的不良特性" class="headerlink" title="3NF 的不良特性"></a>3NF 的不良特性</h3><ul>
+<h3 id="nf-的不良特性">3NF 的不良特性</h3>
+<ul>
 <li><strong>插入异常</strong>：如果没有学生选修某位老师的任课，则该老师担任课程的信息就无法插入</li>
 <li><strong>删除异常</strong>：删除学生选课信息，会删除掉老师的任课信息</li>
 <li><strong>更新异常</strong>：如果老师的授课信息有所改动，则所有选修其课程的学生元组都要做改动</li>
 <li><strong>数据冗余</strong>：每位学生都存储了老师的授课信息</li>
 </ul>
-<h3 id="为什么给主属性留后门"><a href="#为什么给主属性留后门" class="headerlink" title="为什么给主属性留后门"></a>为什么给主属性留后门</h3><ul>
+<h3 id="为什么给主属性留后门">为什么给主属性留后门</h3>
+<ul>
 <li>一种折衷的考虑</li>
 </ul>
-<h2 id="BCNF"><a href="#BCNF" class="headerlink" title="BCNF"></a>BCNF</h2><ul>
-<li>关系模式 $R(U)$ 中,对于属性组 $X,Y$，若 $X\to Y,Y\not\subseteq X$ ，那么 $X$ 必是码，则 R $\in$ BCNF</li>
+<h2 id="bcnf">BCNF</h2>
+<ul>
+<li>关系模式 <span class="math inline">\(R(U)\)</span> 中,对于属性组
+<span class="math inline">\(X,Y\)</span>，若 <span class="math inline">\(X\to Y,Y\not\subseteq X\)</span> ，那么 <span class="math inline">\(X\)</span> 必是码，则 R <span class="math inline">\(\in\)</span> BCNF</li>
 <li>BCNF：所有属性都由码直接决定</li>
 <li>所有非平凡的函数依赖的左边都需要是候选码</li>
 </ul>
-<h3 id="如何将关系模式改造成BCNF的"><a href="#如何将关系模式改造成BCNF的" class="headerlink" title="如何将关系模式改造成BCNF的"></a>如何将关系模式改造成BCNF的</h3><ul>
+<h3 id="如何将关系模式改造成bcnf的">如何将关系模式改造成BCNF的</h3>
+<ul>
 <li>将属性划归到以决定它的属性作为码的关系模式中</li>
-<li>3NF 中的例子 <a href="#STC">STC</a> 是不属于 BCNF 的<ul>
+<li>3NF 中的例子 <a href="#STC">STC</a> 是不属于 BCNF 的
+<ul>
 <li>STC (sno,tno,cno)</li>
 <li>修改为 (sno,tno)，(tno,cno)</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="例子-1"><a href="#例子-1" class="headerlink" title="例子"></a>例子</h3><ul>
+<h3 id="例子-3">例子</h3>
+<ul>
 <li>(sno, cno, order) 表示学生选修课程的名次（名次各不相同）</li>
-<li>函数依赖<ul>
-<li>(sno, cno) $\to$ order</li>
-<li>(cno, order) $\to$ sno</li>
-</ul>
-</li>
+<li>函数依赖
+<ul>
+<li>(sno, cno) <span class="math inline">\(\to\)</span> order</li>
+<li>(cno, order) <span class="math inline">\(\to\)</span> sno</li>
+</ul></li>
 <li>候选码：(sno, cno) 、(cno, order)</li>
 <li>是属于 BCNF 的，函数依赖的左边都是属于候选码</li>
 </ul>
-<h3 id="3NF-和-BCNF-的比较"><a href="#3NF-和-BCNF-的比较" class="headerlink" title="3NF 和 BCNF 的比较"></a>3NF 和 BCNF 的比较</h3><ul>
-<li>比较下面两个模式各自的优缺点<ul>
+<h3 id="nf-和-bcnf-的比较">3NF 和 BCNF 的比较</h3>
+<ul>
+<li>比较下面两个模式各自的优缺点
+<ul>
 <li>模式一：STC(sno,tno,cno)</li>
 <li>模式二：ST(sno,tno), TC(tno,cno)</li>
-</ul>
-</li>
-<li>为什么有时会需要 3NF 而非 BCNF 的模式设计？<ul>
-<li>BCNF 可能会导致表分的过碎，表的数目过多，可能对一些复杂的查询造成<strong>性能</strong>上的影响</li>
-<li>例如原始的 STC 表中是有函数依赖 (sno,cno) $\to$ tno 的，但是分开成 ST、C 两张表之后，这个函数不能体现了。这样我们可以在 ST 表（全码）中随意插入数据，而这样插入的数据可能不不满足<strong>函数依赖</strong>  (sno,cno) $\to$ tno</li>
-</ul>
-</li>
+</ul></li>
+<li>为什么有时会需要 3NF 而非 BCNF 的模式设计？
+<ul>
+<li>BCNF
+可能会导致表分的过碎，表的数目过多，可能对一些复杂的查询造成<strong>性能</strong>上的影响</li>
+<li>例如原始的 STC 表中是有函数依赖 (sno,cno) <span class="math inline">\(\to\)</span> tno 的，但是分开成 ST、C
+两张表之后，这个函数不能体现了。这样我们可以在 ST
+表（全码）中随意插入数据，而这样插入的数据可能不不满足<strong>函数依赖</strong>
+(sno,cno) <span class="math inline">\(\to\)</span> tno</li>
+</ul></li>
 <li><strong>全码是 BCNF 的</strong></li>
 </ul>
-<h3 id="3NF-的另外一种定义"><a href="#3NF-的另外一种定义" class="headerlink" title="3NF 的另外一种定义"></a>3NF 的另外一种定义</h3><ul>
-<li>关系模式 R 中的函数依赖 $X\to Y$，必须满足下述条件之一：<ul>
-<li>$X\to Y$ 是平凡的函数依赖</li>
+<h3 id="nf-的另外一种定义">3NF 的另外一种定义</h3>
+<ul>
+<li>关系模式 R 中的函数依赖 <span class="math inline">\(X\to
+Y\)</span>，必须满足下述条件之一：
+<ul>
+<li><span class="math inline">\(X\to Y\)</span> 是平凡的函数依赖</li>
 <li>X 是 R 的码</li>
 <li><strong>Y 是主属性</strong></li>
-</ul>
-</li>
-<li>上面表示，如果 Y 是主属性的话，则不要求 X 是候选码，这样允许函数传递依赖<ul>
-<li>Z $\to$ X $\to$ Y</li>
-</ul>
-</li>
+</ul></li>
+<li>上面表示，如果 Y 是主属性的话，则不要求 X
+是候选码，这样允许函数传递依赖
+<ul>
+<li>Z <span class="math inline">\(\to\)</span> X <span class="math inline">\(\to\)</span> Y</li>
+</ul></li>
 <li>3NF 允许存在主属性对码的不良依赖</li>
 </ul>
-<h3 id="BCNF-不良依赖的例子"><a href="#BCNF-不良依赖的例子" class="headerlink" title="BCNF 不良依赖的例子"></a>BCNF 不良依赖的例子</h3><ul>
+<h3 id="bcnf-不良依赖的例子">BCNF 不良依赖的例子</h3>
+<ul>
 <li>关系模式 TEACH(cno, tno, bno)</li>
 <li>一门课程由多个教员担任</li>
 <li>一门课程使用相同的一套参考书</li>
 </ul>
-<img src="05/image-20210507145742043.png" style="zoom:50%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507145742043.png" style="zoom:50%;"></p>
 <ul>
 <li>码是 (cno, tno, bno)，全码，属于 BCNF</li>
 <li><strong>数据冗余很严重</strong></li>
 <li>如果有一门课程没有参考书的话，就无法插入数据</li>
 </ul>
-<h3 id="BCNF-的不良依赖"><a href="#BCNF-的不良依赖" class="headerlink" title="BCNF 的不良依赖"></a>BCNF 的不良依赖</h3><ul>
+<h3 id="bcnf-的不良依赖">BCNF 的不良依赖</h3>
+<ul>
 <li><strong>插入异常</strong>：当某门课程增加一名教员时，其有多少本参考书就必须插入多少个元组</li>
 <li><strong>删除异常</strong>：当删除一门课程的某个教员或者某本参考书时，需要删除多个元组</li>
 <li><strong>更新异常</strong>：当一门课程的教员或参考书作出改变时，需要修改多个元组</li>
 <li><strong>数据冗余</strong>：同一门课的教员与参考书的信息被反复存储多次</li>
 </ul>
-<h3 id="BCNF-冗余的根源"><a href="#BCNF-冗余的根源" class="headerlink" title="BCNF 冗余的根源"></a>BCNF 冗余的根源</h3><img src="05/image-20210507150123890.png" style="zoom:50%;" />
-
+<h3 id="bcnf-冗余的根源">BCNF 冗余的根源</h3>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507150123890.png" style="zoom:50%;"></p>
 <ul>
 <li>能否使用如下精简的表示</li>
 </ul>
-<img src="05/image-20210507150236800.png" style="zoom:50%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507150236800.png" style="zoom:50%;"></p>
 <ul>
 <li>信息都还在，是完整的</li>
-<li>问题<ul>
+<li>问题
+<ul>
 <li>语义上是有问题的</li>
 <li>删除的时候有问题，删除 B1 会把 T1 也删除掉</li>
+</ul></li>
+<li><strong>对等原则</strong>：标红的额外两行并不能提供更多信息，他们的存在纯粹是为了保证
+tno 和 bno 彼此取值无关</li>
 </ul>
-</li>
-<li><strong>对等原则</strong>：标红的额外两行并不能提供更多信息，他们的存在纯粹是为了保证 tno 和 bno 彼此取值无关</li>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507150434164.png" style="zoom:50%;"></p>
+<h2 id="多值依赖">多值依赖</h2>
+<h3 id="多值依赖的描述型定义">多值依赖的描述型定义</h3>
+<ul>
+<li>关系模式 <span class="math inline">\(R(U)\)</span>，<span class="math inline">\(X,Y,Z\subseteq U,Z=U-X-Y\)</span>，多值依赖 <span class="math inline">\(X\to\to Y\)</span> 成立当且仅当
+<ul>
+<li>对 <span class="math inline">\(R(U)\)</span> 的任一关系 <span class="math inline">\(r\)</span>，给定的一对 <span class="math inline">\((x,z)\)</span> 值对应有一组 <span class="math inline">\(Y\)</span> 的值，这组值仅仅决定于 <span class="math inline">\(x\)</span> 值而与 <span class="math inline">\(z\)</span> 值无关</li>
+</ul></li>
+<li>一个例子：<span id="CTB">CTB</span>
+<ul>
+<li>cno <span class="math inline">\(\to\to\)</span> tno</li>
+</ul></li>
 </ul>
-<img src="05/image-20210507150434164.png" style="zoom:50%;" />
-
-
-
-<h2 id="多值依赖"><a href="#多值依赖" class="headerlink" title="多值依赖"></a>多值依赖</h2><h3 id="多值依赖的描述型定义"><a href="#多值依赖的描述型定义" class="headerlink" title="多值依赖的描述型定义"></a>多值依赖的描述型定义</h3><ul>
-<li>关系模式 $R(U)$，$X,Y,Z\subseteq U,Z&#x3D;U-X-Y$，多值依赖 $X\to\to Y$ 成立当且仅当<ul>
-<li>对 $R(U)$ 的任一关系 $r$，给定的一对 $(x,z)$ 值对应有一组 $Y$ 的值，这组值仅仅决定于 $x$ 值而与 $z$ 值无关</li>
-</ul>
-</li>
-<li>一个例子：<span id="CTB">CTB</span><ul>
-<li>cno $\to\to$ tno</li>
-</ul>
-</li>
-</ul>
-<img src="05/image-20210507150434164.png" style="zoom:50%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507150434164.png" style="zoom:50%;"></p>
 <ul>
 <li>关系模式中的除法</li>
 </ul>
-<p>$$<br>\forall xz,Y_{xz}&#x3D;Y_x<br>$$</p>
-<h3 id="多值依赖的形式化定义"><a href="#多值依赖的形式化定义" class="headerlink" title="多值依赖的形式化定义"></a>多值依赖的形式化定义</h3><ul>
-<li>关系模式 $R(U)$，$X,Y,Z\subseteq U,Z&#x3D;U-X-Y$</li>
-<li>对 $R(U)$ 的任一关系 $r$，若存在行  $t_1,t_2$ 使得 $t_1[X]&#x3D;t_2[X]$</li>
-<li>那么就必然存在行  $t_3,t_4$，使得 $t_3&#x3D;(t_1[X],t_1[Y],t_2[Z]),t_4&#x3D;(t_2[X],t_2[Y],t_1[Z])$</li>
-<li>则称 $Y$ 多值依赖 $X$，记作 $X\to\to Y$</li>
+<p><span class="math display">\[
+\forall xz,Y_{xz}=Y_x
+\]</span></p>
+<h3 id="多值依赖的形式化定义">多值依赖的形式化定义</h3>
+<ul>
+<li>关系模式 <span class="math inline">\(R(U)\)</span>，<span class="math inline">\(X,Y,Z\subseteq U,Z=U-X-Y\)</span></li>
+<li>对 <span class="math inline">\(R(U)\)</span> 的任一关系 <span class="math inline">\(r\)</span>，若存在行 <span class="math inline">\(t_1,t_2\)</span> 使得 <span class="math inline">\(t_1[X]=t_2[X]\)</span></li>
+<li>那么就必然存在行 <span class="math inline">\(t_3,t_4\)</span>，使得
+<span class="math inline">\(t_3=(t_1[X],t_1[Y],t_2[Z]),t_4=(t_2[X],t_2[Y],t_1[Z])\)</span></li>
+<li>则称 <span class="math inline">\(Y\)</span> 多值依赖 <span class="math inline">\(X\)</span>，记作 <span class="math inline">\(X\to\to Y\)</span></li>
 </ul>
-<h4 id="理解"><a href="#理解" class="headerlink" title="理解"></a>理解</h4><ul>
+<h4 id="理解">理解</h4>
+<ul>
 <li>结合上面的例子，交换 t[Z] 之后还是存在在表中，说明 Z 和 Y 无关</li>
 <li><strong>对等原则</strong></li>
 </ul>
-<h3 id="例子-2"><a href="#例子-2" class="headerlink" title="例子"></a>例子</h3><table>
+<h3 id="例子-4">例子</h3>
+<table>
 <thead>
-<tr>
-<th align="center">A</th>
-<th align="center">B</th>
-<th align="center">C</th>
+<tr class="header">
+<th style="text-align: center;">A</th>
+<th style="text-align: center;">B</th>
+<th style="text-align: center;">C</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">a1</td>
-<td align="center">b1</td>
-<td align="center">c1</td>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">a1</td>
+<td style="text-align: center;">b1</td>
+<td style="text-align: center;">c1</td>
 </tr>
-<tr>
-<td align="center">a1</td>
-<td align="center">b1</td>
-<td align="center">c2</td>
+<tr class="even">
+<td style="text-align: center;">a1</td>
+<td style="text-align: center;">b1</td>
+<td style="text-align: center;">c2</td>
 </tr>
-<tr>
-<td align="center">a2</td>
-<td align="center">b1</td>
-<td align="center">c1</td>
+<tr class="odd">
+<td style="text-align: center;">a2</td>
+<td style="text-align: center;">b1</td>
+<td style="text-align: center;">c1</td>
 </tr>
-<tr>
-<td align="center">a2</td>
-<td align="center">b1</td>
-<td align="center">c3</td>
+<tr class="even">
+<td style="text-align: center;">a2</td>
+<td style="text-align: center;">b1</td>
+<td style="text-align: center;">c3</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <ul>
-<li>是否满足 $C\to\to B$<ul>
+<li>是否满足 <span class="math inline">\(C\to\to B\)</span>
+<ul>
 <li>满足</li>
 <li>交换 A 还在表中</li>
-</ul>
-</li>
-<li>改成满足 $B\to\to C$，需要加入那些行</li>
+</ul></li>
+<li>改成满足 <span class="math inline">\(B\to\to
+C\)</span>，需要加入那些行</li>
 </ul>
 <table>
 <thead>
-<tr>
-<th align="center">A</th>
-<th align="center">B</th>
-<th align="center">C</th>
+<tr class="header">
+<th style="text-align: center;">A</th>
+<th style="text-align: center;">B</th>
+<th style="text-align: center;">C</th>
 </tr>
 </thead>
-<tbody><tr>
-<td align="center">a1</td>
-<td align="center">b1</td>
-<td align="center">c3</td>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">a1</td>
+<td style="text-align: center;">b1</td>
+<td style="text-align: center;">c3</td>
 </tr>
-<tr>
-<td align="center">a2</td>
-<td align="center">b1</td>
-<td align="center">c2</td>
+<tr class="even">
+<td style="text-align: center;">a2</td>
+<td style="text-align: center;">b1</td>
+<td style="text-align: center;">c2</td>
 </tr>
-</tbody></table>
-<h3 id="多值依赖的基本性质"><a href="#多值依赖的基本性质" class="headerlink" title="多值依赖的基本性质"></a>多值依赖的基本性质</h3><ul>
-<li>多值依赖具有<strong>对称性</strong><ul>
-<li>若 $X\to\to Y$，则 $X\to\to Z$，其中 $Z&#x3D;U-X-Y$</li>
+</tbody>
+</table>
+<h3 id="多值依赖的基本性质">多值依赖的基本性质</h3>
+<ul>
+<li>多值依赖具有<strong>对称性</strong>
+<ul>
+<li>若 <span class="math inline">\(X\to\to Y\)</span>，则 <span class="math inline">\(X\to\to Z\)</span>，其中 <span class="math inline">\(Z=U-X-Y\)</span></li>
+</ul></li>
+<li><strong>函数依赖是多值依赖的特例</strong>
+<ul>
+<li>若 <span class="math inline">\(X\to Y\)</span>，则 <span class="math inline">\(X\to\to Y\)</span></li>
+</ul></li>
+<li>若 <span class="math inline">\(X\to\to Y\)</span>，<span class="math inline">\(U-X-Y=\emptyset\)</span>，称 <span class="math inline">\(X\to\to Y\)</span>
+为<strong>平凡的多值依赖</strong></li>
 </ul>
-</li>
-<li><strong>函数依赖是多值依赖的特例</strong><ul>
-<li>若 $X\to Y$，则 $X\to\to Y$</li>
-</ul>
-</li>
-<li>若 $X\to\to Y$，$U-X-Y&#x3D;\emptyset$，称 $X\to\to Y$ 为<strong>平凡的多值依赖</strong></li>
-</ul>
-<h2 id="4NF"><a href="#4NF" class="headerlink" title="4NF"></a>4NF</h2><ul>
-<li>关系模式 $R(U)\in 1NF$ ，对于非平凡的多值依赖 $X\to\to Y(Y\not\subseteq X)$，X 含有码，则称 $R\in 4NF$</li>
+<h2 id="nf-3">4NF</h2>
+<ul>
+<li>关系模式 <span class="math inline">\(R(U)\in 1NF\)</span>
+，对于非平凡的多值依赖 <span class="math inline">\(X\to\to
+Y(Y\not\subseteq X)\)</span>，X 含有码，则称 <span class="math inline">\(R\in 4NF\)</span></li>
 <li>非 4NF 的主要弊端：<strong>数据冗余非常大</strong></li>
-<li>如下，不满足 4NF<ul>
-<li>cno $\to\to$ tno 不满足</li>
-<li>cno $\to\to$ bno 不满足</li>
+<li>如下，不满足 4NF
+<ul>
+<li>cno <span class="math inline">\(\to\to\)</span> tno 不满足</li>
+<li>cno <span class="math inline">\(\to\to\)</span> bno 不满足</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<img src="05/image-20210624235429721.png" style="zoom:50%;" />
-
-
-
-<h3 id="如何将关系模式改造为4NF的"><a href="#如何将关系模式改造为4NF的" class="headerlink" title="如何将关系模式改造为4NF的"></a>如何将关系模式改造为4NF的</h3><ul>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210624235429721.png" style="zoom:50%;"></p>
+<h3 id="如何将关系模式改造为4nf的">如何将关系模式改造为4NF的</h3>
+<ul>
 <li>多值属性单独放在独立的关系模式中</li>
 </ul>
-<img src="05/image-20210507154339812.png" style="zoom:50%;" />
-
-
-
-<h2 id="多值依赖与函数依赖"><a href="#多值依赖与函数依赖" class="headerlink" title="多值依赖与函数依赖"></a>多值依赖与函数依赖</h2><h3 id="多值依赖与函数依赖的基本区别"><a href="#多值依赖与函数依赖的基本区别" class="headerlink" title="多值依赖与函数依赖的基本区别"></a>多值依赖与函数依赖的基本区别</h3><ul>
-<li><strong>相等产生依赖</strong><ul>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507154339812.png" style="zoom:50%;"></p>
+<h2 id="多值依赖与函数依赖">多值依赖与函数依赖</h2>
+<h3 id="多值依赖与函数依赖的基本区别">多值依赖与函数依赖的基本区别</h3>
+<ul>
+<li><strong>相等产生依赖</strong>
+<ul>
 <li><strong>函数依赖</strong>规定某些元组不能出现在关系中</li>
 <li>现有的行可能会排斥新来的行</li>
-</ul>
-</li>
-<li><strong>元组产生依赖</strong><ul>
+</ul></li>
+<li><strong>元组产生依赖</strong>
+<ul>
 <li><strong>多值依赖</strong>要求某种形式的其它元组必须在关系中</li>
 <li>现有的行要求新来的行同时插入一些其他行</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h3 id="多值依赖与函数依赖有效性范围的不同"><a href="#多值依赖与函数依赖有效性范围的不同" class="headerlink" title="多值依赖与函数依赖有效性范围的不同"></a>多值依赖与函数依赖有效性范围的不同</h3><ul>
-<li>$X\to Y$ 的有效性仅决定于 $X,Y$ 属性集上的值,，它在任何属性集 $W(XY\subseteq W\subseteq U)$ 上都成立</li>
-<li>$X\to\to Y$ 在属性集 $W(XY\subseteq W\subseteq U)$  上成立，但在 $U$ 上不一定成立<ul>
-<li>只能说明 Y 和 W-X-Y 无关</li>
-<li>例如 $A\to\to B$ 在 ABC上成立，在 ABCD 上不一定成立</li>
-<li>例子如下</li>
-</ul>
-</li>
-</ul>
-<img src="05/image-20210507160447953.png" style="zoom:50%;" />
-
-
-
+<h3 id="多值依赖与函数依赖有效性范围的不同">多值依赖与函数依赖有效性范围的不同</h3>
 <ul>
-<li>有效性<ul>
+<li><span class="math inline">\(X\to Y\)</span> 的有效性仅决定于 <span class="math inline">\(X,Y\)</span> 属性集上的值,，它在任何属性集 <span class="math inline">\(W(XY\subseteq W\subseteq U)\)</span> 上都成立</li>
+<li><span class="math inline">\(X\to\to Y\)</span> 在属性集 <span class="math inline">\(W(XY\subseteq W\subseteq U)\)</span> 上成立，但在
+<span class="math inline">\(U\)</span> 上不一定成立
+<ul>
+<li>只能说明 Y 和 W-X-Y 无关</li>
+<li>例如 <span class="math inline">\(A\to\to B\)</span> 在 ABC上成立，在
+ABCD 上不一定成立</li>
+<li>例子如下</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507160447953.png" style="zoom:50%;"></p>
+<ul>
+<li>有效性
+<ul>
 <li>监视函数依赖：更新、插入</li>
 <li>监视多值依赖：更新、插入、删除</li>
-</ul>
-</li>
-<li>若 $X\to\to Y$ 在属性集 $W(XY\subseteq W\subseteq U)$  上成立，则称 $X\to\to Y$ 为 $R(U)$ 的<strong>嵌入式多值依赖</strong></li>
-<li>若 $X\to\to Y$ 在属性集 U上成立，则 $X\to\to Y$ 在属性集 $W(XY\subseteq W\subseteq U)$ 上成立</li>
-<li>若 $X\to Y$ 在 $R(U)$ 上成立，则对于 $\forall Y’\subseteq Y$ ，均有 $X\to Y’$ 成立</li>
-<li>若 $X\to\to Y$ 在 $R(U)$ 上成立，则对于 $\forall Y’\subseteq Y$ ，<span style="color:red;font-weight:bold">不能保证</span>有 $X\to\to Y’$ 成立<ul>
-<li>不能保证 Y’ 和 U-X-Y’ 是否相关</li>
-<li>例子如下</li>
-</ul>
-</li>
-</ul>
-<img src="05/image-20210507160447953.png" style="zoom:50%;" />
-
-
-
-<h3 id="验证函数依赖和多值依赖"><a href="#验证函数依赖和多值依赖" class="headerlink" title="验证函数依赖和多值依赖"></a>验证函数依赖和多值依赖</h3><ul>
-<li>函数依赖 $A\to B$ ：下式为空</li>
-</ul>
-<p>$$<br>\sigma_{R.A&#x3D;S.A\land R.B\ne S.B}(R\times \rho_S(R))<br>$$</p>
+</ul></li>
+<li>若 <span class="math inline">\(X\to\to Y\)</span> 在属性集 <span class="math inline">\(W(XY\subseteq W\subseteq U)\)</span> 上成立，则称
+<span class="math inline">\(X\to\to Y\)</span> 为 <span class="math inline">\(R(U)\)</span>
+的<strong>嵌入式多值依赖</strong></li>
+<li>若 <span class="math inline">\(X\to\to Y\)</span> 在属性集
+U上成立，则 <span class="math inline">\(X\to\to Y\)</span> 在属性集
+<span class="math inline">\(W(XY\subseteq W\subseteq U)\)</span>
+上成立</li>
+<li>若 <span class="math inline">\(X\to Y\)</span> 在 <span class="math inline">\(R(U)\)</span> 上成立，则对于 <span class="math inline">\(\forall Y&#39;\subseteq Y\)</span> ，均有 <span class="math inline">\(X\to Y&#39;\)</span> 成立</li>
+<li>若 <span class="math inline">\(X\to\to Y\)</span> 在 <span class="math inline">\(R(U)\)</span> 上成立，则对于 <span class="math inline">\(\forall Y&#39;\subseteq Y\)</span> ，<span style="color:red;font-weight:bold">不能保证</span>有 <span class="math inline">\(X\to\to Y&#39;\)</span> 成立
 <ul>
-<li>多值依赖 $A\to\to B$<ul>
+<li>不能保证 Y' 和 U-X-Y' 是否相关</li>
+<li>例子如下</li>
+</ul></li>
+</ul>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507160447953.png" style="zoom:50%;"></p>
+<h3 id="验证函数依赖和多值依赖">验证函数依赖和多值依赖</h3>
+<ul>
+<li>函数依赖 <span class="math inline">\(A\to B\)</span> ：下式为空</li>
+</ul>
+<p><span class="math display">\[
+\sigma_{R.A=S.A\land R.B\ne S.B}(R\times \rho_S(R))
+\]</span></p>
+<ul>
+<li>多值依赖 <span class="math inline">\(A\to\to B\)</span>
+<ul>
 <li>C 的取值和 B 无关</li>
+</ul></li>
 </ul>
-</li>
+<p><span class="math display">\[
+R=\prod_{AB}(R)\bowtie\prod_{AC}(R)
+\]</span></p>
+<h2 id="连接依赖">连接依赖</h2>
+<ul>
+<li><span class="math inline">\(R_1(U_1),R_2(U_2),\cdots,R_n(U_n)\)</span> 是
+<span class="math inline">\(R(U)\)</span> 的一个分解，<span class="math inline">\(r\)</span> 是 <span class="math inline">\(R(U)\)</span> 上的一个关系，若 <span class="math inline">\(r=\bowtie_{i=1}^{n}\prod R_i(r)\)</span></li>
+<li>则称 <span class="math inline">\(r\)</span>
+满足<strong>连接依赖</strong> <span class="math inline">\({}^\ast(R_1,R_2,\cdots,R_n)\)</span></li>
 </ul>
-<p>$$<br>R&#x3D;\prod_{AB}(R)\bowtie\prod_{AC}(R)<br>$$</p>
-<h2 id="连接依赖"><a href="#连接依赖" class="headerlink" title="连接依赖"></a>连接依赖</h2><ul>
-<li>$R_1(U_1),R_2(U_2),\cdots,R_n(U_n)$ 是 $R(U)$ 的一个分解，$r$ 是 $R(U)$ 上的一个关系，若 $r&#x3D;\bowtie_{i&#x3D;1}^{n}\prod R_i(r)$</li>
-<li>则称 $r$ 满足<strong>连接依赖</strong> ${}^\ast(R_1,R_2,\cdots,R_n)$</li>
-</ul>
-<img src="05/image-20210507161727543.png" style="zoom:50%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507161727543.png" style="zoom:50%;"></p>
 <ul>
 <li><strong>说明存在冗余</strong></li>
 <li>现实中很少考虑连接依赖，检测代价太高</li>
 <li>平凡连接依赖</li>
 <li>连接依赖与多值依赖</li>
 </ul>
-<img src="05/image-20210507161852990.png" style="zoom:50%;" />
-
-<img src="05/image-20210507162027483.png" style="zoom:50%;" />
-
-
-
-<h2 id="PJNF"><a href="#PJNF" class="headerlink" title="PJNF"></a>PJNF</h2><ul>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507161852990.png" style="zoom:50%;"></p>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507162027483.png" style="zoom:50%;"></p>
+<h2 id="pjnf">PJNF</h2>
+<ul>
 <li>投影-连接范式（PJNF）</li>
-<li>若$R\in PJNF$，则对于 $R$ 的任一连接依赖 ${}^\ast(R_1,R_2,\cdots,R_n)$ 必是下述情况之一：<ul>
-<li>${}^\ast(R_1,R_2,\cdots,R_n)$ 是平凡的连接依赖</li>
-<li>每个 $R_i$ 是 $R$ 的超码</li>
+<li>若<span class="math inline">\(R\in PJNF\)</span>，则对于 <span class="math inline">\(R\)</span> 的任一连接依赖 <span class="math inline">\({}^\ast(R_1,R_2,\cdots,R_n)\)</span>
+必是下述情况之一：
+<ul>
+<li><span class="math inline">\({}^\ast(R_1,R_2,\cdots,R_n)\)</span>
+是平凡的连接依赖</li>
+<li>每个 <span class="math inline">\(R_i\)</span> 是 <span class="math inline">\(R\)</span> 的超码</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h2 id="一些其他问题"><a href="#一些其他问题" class="headerlink" title="一些其他问题"></a>一些其他问题</h2><ul>
-<li>任何一个二目关系模式 $R(A,B)$ ，一定属于 BCNF 吗？一定属于4NF 吗？</li>
+<h2 id="一些其他问题">一些其他问题</h2>
+<ul>
+<li>任何一个二目关系模式 <span class="math inline">\(R(A,B)\)</span>
+，一定属于 BCNF 吗？一定属于4NF 吗？</li>
 <li>一个候选码全是<strong>单属性</strong>的关系模式最高一定可以达到第几范式？</li>
 <li>一个全是<strong>主属性</strong>的关系模式最高一定可以达到第几范式？</li>
 <li>一个只有一个候选码的 3NF 关系模式是 BCNF 的吗？</li>
 <li>一个<strong>全码</strong>的关系模式最高一定可以达到第几范式？</li>
 </ul>
-<h2 id="各种范式的关系"><a href="#各种范式的关系" class="headerlink" title="各种范式的关系"></a>各种范式的关系</h2><ul>
-<li>3NF $\in$ 2NF</li>
-</ul>
-<img src="05/image-20210507162525769.png" style="zoom:50%;" />
-
+<h2 id="各种范式的关系">各种范式的关系</h2>
 <ul>
-<li>BCNF $\in$ 3NF</li>
+<li>3NF <span class="math inline">\(\in\)</span> 2NF</li>
 </ul>
-<img src="05/image-20210507162539860.png" style="zoom:50%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507162525769.png" style="zoom:50%;"></p>
 <ul>
-<li>PJNF $\in$ 4NF</li>
+<li>BCNF <span class="math inline">\(\in\)</span> 3NF</li>
 </ul>
-<img src="05/image-20210507162558208.png" style="zoom:50%;" />
-
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507162539860.png" style="zoom:50%;"></p>
+<ul>
+<li>PJNF <span class="math inline">\(\in\)</span> 4NF</li>
+</ul>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507162558208.png" style="zoom:50%;"></p>
 <ul>
 <li>总结</li>
 </ul>
-<img src="05/image-20210507162613036.png" style="zoom:50%;" />
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/05/05/DB/CLJ/05/" data-id="cl9lj74av00fh64tzbcz04913" data-title="数据库概论.陈立军.05.关系规范化" class="article-share-link">Share</a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DB/" rel="tag">DB</a></li></ul>
+<p><img src="/2021/05/05/DB/CLJ/05/image-20210507162613036.png" style="zoom:50%;"></p>
 
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DB/" rel="tag"># DB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/05/CG/YLQ-GAMES202/09/" rel="prev" title="GAMES202.闫令琪.09.实时全局光照(屏幕空间)(SSR)">
+                  <i class="fa fa-chevron-left"></i> GAMES202.闫令琪.09.实时全局光照(屏幕空间)(SSR)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/05/06/OS/xv6-labs/lab3-traps/" rel="next" title="xv6-labs-2020.lab3.traps">
+                  xv6-labs-2020.lab3.traps <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
     </footer>
-  </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2021/05/06/OS/xv6-labs/lab3-traps/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          xv6-labs-2020.lab3.traps
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2021/05/05/CG/YLQ-GAMES202/09/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">GAMES202.闫令琪.09.实时全局光照(屏幕空间)(SSR)</div>
-    </a>
-  
-</nav>
-
-  
-</article>
+  </article>
+</div>
 
 
-</section>
-        
-          <aside id="sidebar">
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Categories</h3>
-    <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/0/">0</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Algebra/">Algebra</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/C-Kits/">C++.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG/">CG</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Algorithm/">CG.Algorithm</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES101/">CG.GAMES101</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES102/">CG.GAMES102</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES103/">CG.GAMES103</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES104/">CG.GAMES104</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES202/">CG.GAMES202</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-GAMES203/">CG.GAMES203</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Kits/">CG.Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-LS/">CG.LS</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-PBRT/">CG.PBRT</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CG-Paper/">CG.Paper</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CV/">CV</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Code/">Code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-CLJ/">DB.CLJ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-MySQL/">DB.MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DB-SQLServer/">DB.SQLServer</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/DSA/">DSA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kits/">Kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Math/">Math</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-CXQ/">OS.CXQ</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-OSTEP/">OS.OSTEP</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-labs/">OS.xv6-labs</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/OS-xv6-source-code/">OS.xv6-source-code</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/TODO/">TODO</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/book-directory/">book.directory</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/computation-pyr/">computation.pyr</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-kits/">csharp.kits</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/csharp-tds/">csharp.tds</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/images/">images</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/installation/">installation</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/mitsuba/">mitsuba</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/nothing/">nothing</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-Maya/">software.Maya</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-ps/">software.ps</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/software-vscode/">software.vscode</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/win/">win</a></li></ul>
-    </div>
-  </div>
 
 
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tags</h3>
-    <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Algebra/" rel="tag">Algebra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BFS/" rel="tag">BFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BST/" rel="tag">BST</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BVH/" rel="tag">BVH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG/" rel="tag">CG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CG-Algorithm/" rel="tag">CG-Algorithm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CV/" rel="tag">CV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Code/" rel="tag">Code</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DB/" rel="tag">DB</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DFS/" rel="tag">DFS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DP/" rel="tag">DP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DSA/" rel="tag">DSA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dijkstra/" rel="tag">Dijkstra</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/EG/" rel="tag">EG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Floyd/" rel="tag">Floyd</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GI/" rel="tag">GI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Glints/" rel="tag">Glints</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HDR/" rel="tag">HDR</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HQX/" rel="tag">HQX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Heap/" rel="tag">Heap</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kits/" rel="tag">Kits</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LCA/" rel="tag">LCA</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LLG/" rel="tag">LLG</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCMC/" rel="tag">MCMC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MIS/" rel="tag">MIS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MLT/" rel="tag">MLT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NEE/" rel="tag">NEE</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OS/" rel="tag">OS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PBRT/" rel="tag">PBRT</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Paper/" rel="tag">Paper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Radiometry/" rel="tag">Radiometry</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RayTracing/" rel="tag">RayTracing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SAH/" rel="tag">SAH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDF/" rel="tag">SDF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SGJ/" rel="tag">SGJ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQLServer/" rel="tag">SQLServer</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/STL/" rel="tag">STL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Shadow/" rel="tag">Shadow</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WHM/" rel="tag">WHM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/WX/" rel="tag">WX</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YLQ/" rel="tag">YLQ</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/book/" rel="tag">book</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/computation/" rel="tag">computation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/" rel="tag">csharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/images/" rel="tag">images</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/installation/" rel="tag">installation</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js/" rel="tag">js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/math/" rel="tag">math</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mitsuba/" rel="tag">mitsuba</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mobaxterm/" rel="tag">mobaxterm</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nothing/" rel="tag">nothing</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/obs/" rel="tag">obs</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/occlusion/" rel="tag">occlusion</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ps/" rel="tag">ps</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/software/" rel="tag">software</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tree/" rel="tag">tree</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vscode/" rel="tag">vscode</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/win/" rel="tag">win</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xv6/" rel="tag">xv6</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8C%E5%88%86/" rel="tag">二分</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" rel="tag">元宇宙</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%87%A0%E4%BD%95/" rel="tag">几何</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="tag">并查集</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="tag">拓扑排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F/" rel="tag">排序</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" rel="tag">普吕克坐标</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" rel="tag">最小生成树</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" rel="tag">最短路</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" rel="tag">线段树</a></li></ul>
-    </div>
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
 
 
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloud</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/Algebra/" style="font-size: 10px;">Algebra</a> <a href="/tags/BFS/" style="font-size: 10px;">BFS</a> <a href="/tags/BST/" style="font-size: 10px;">BST</a> <a href="/tags/BVH/" style="font-size: 12.5px;">BVH</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CG/" style="font-size: 20px;">CG</a> <a href="/tags/CG-Algorithm/" style="font-size: 10px;">CG-Algorithm</a> <a href="/tags/CV/" style="font-size: 10.63px;">CV</a> <a href="/tags/Code/" style="font-size: 14.38px;">Code</a> <a href="/tags/DB/" style="font-size: 19.38px;">DB</a> <a href="/tags/DFS/" style="font-size: 12.5px;">DFS</a> <a href="/tags/DP/" style="font-size: 13.13px;">DP</a> <a href="/tags/DSA/" style="font-size: 11.25px;">DSA</a> <a href="/tags/Dijkstra/" style="font-size: 10px;">Dijkstra</a> <a href="/tags/EG/" style="font-size: 12.5px;">EG</a> <a href="/tags/Floyd/" style="font-size: 10.63px;">Floyd</a> <a href="/tags/GI/" style="font-size: 11.25px;">GI</a> <a href="/tags/Glints/" style="font-size: 10px;">Glints</a> <a href="/tags/HDR/" style="font-size: 10px;">HDR</a> <a href="/tags/HQX/" style="font-size: 10px;">HQX</a> <a href="/tags/Heap/" style="font-size: 10px;">Heap</a> <a href="/tags/Kits/" style="font-size: 13.75px;">Kits</a> <a href="/tags/LCA/" style="font-size: 10px;">LCA</a> <a href="/tags/LLG/" style="font-size: 12.5px;">LLG</a> <a href="/tags/MCMC/" style="font-size: 10.63px;">MCMC</a> <a href="/tags/MIS/" style="font-size: 10px;">MIS</a> <a href="/tags/MLT/" style="font-size: 10px;">MLT</a> <a href="/tags/Maya/" style="font-size: 10px;">Maya</a> <a href="/tags/MySQL/" style="font-size: 11.88px;">MySQL</a> <a href="/tags/NEE/" style="font-size: 10px;">NEE</a> <a href="/tags/OS/" style="font-size: 17.5px;">OS</a> <a href="/tags/PBRT/" style="font-size: 10px;">PBRT</a> <a href="/tags/Paper/" style="font-size: 15.63px;">Paper</a> <a href="/tags/Radiometry/" style="font-size: 10px;">Radiometry</a> <a href="/tags/RayTracing/" style="font-size: 10px;">RayTracing</a> <a href="/tags/SAH/" style="font-size: 10px;">SAH</a> <a href="/tags/SDF/" style="font-size: 10px;">SDF</a> <a href="/tags/SGJ/" style="font-size: 10.63px;">SGJ</a> <a href="/tags/SQL/" style="font-size: 13.13px;">SQL</a> <a href="/tags/SQLServer/" style="font-size: 10.63px;">SQLServer</a> <a href="/tags/STL/" style="font-size: 11.25px;">STL</a> <a href="/tags/Shadow/" style="font-size: 10px;">Shadow</a> <a href="/tags/WHM/" style="font-size: 16.88px;">WHM</a> <a href="/tags/WX/" style="font-size: 11.88px;">WX</a> <a href="/tags/YLQ/" style="font-size: 18.13px;">YLQ</a> <a href="/tags/book/" style="font-size: 10.63px;">book</a> <a href="/tags/computation/" style="font-size: 18.75px;">computation</a> <a href="/tags/csharp/" style="font-size: 16.25px;">csharp</a> <a href="/tags/images/" style="font-size: 10px;">images</a> <a href="/tags/installation/" style="font-size: 11.88px;">installation</a> <a href="/tags/js/" style="font-size: 10px;">js</a> <a href="/tags/linux/" style="font-size: 11.25px;">linux</a> <a href="/tags/math/" style="font-size: 10px;">math</a> <a href="/tags/mitsuba/" style="font-size: 11.88px;">mitsuba</a> <a href="/tags/mobaxterm/" style="font-size: 10px;">mobaxterm</a> <a href="/tags/nothing/" style="font-size: 10.63px;">nothing</a> <a href="/tags/obs/" style="font-size: 10px;">obs</a> <a href="/tags/occlusion/" style="font-size: 15px;">occlusion</a> <a href="/tags/ps/" style="font-size: 10px;">ps</a> <a href="/tags/software/" style="font-size: 10px;">software</a> <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/tree/" style="font-size: 11.25px;">tree</a> <a href="/tags/vscode/" style="font-size: 10.63px;">vscode</a> <a href="/tags/win/" style="font-size: 10.63px;">win</a> <a href="/tags/xv6/" style="font-size: 16.25px;">xv6</a> <a href="/tags/%E4%BA%8C%E5%88%86/" style="font-size: 10.63px;">二分</a> <a href="/tags/%E5%85%83%E5%AE%87%E5%AE%99/" style="font-size: 10.63px;">元宇宙</a> <a href="/tags/%E5%87%A0%E4%BD%95/" style="font-size: 10px;">几何</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 11.88px;">可见性</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 10.63px;">并查集</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">拓扑排序</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">排序</a> <a href="/tags/%E6%99%AE%E5%90%95%E5%85%8B%E5%9D%90%E6%A0%87/" style="font-size: 10px;">普吕克坐标</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 10px;">最小生成树</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 13.13px;">最短路</a> <a href="/tags/%E7%BA%BF%E6%AE%B5%E6%A0%91/" style="font-size: 10px;">线段树</a>
-    </div>
-  </div>
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/10/">October 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">March 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/09/">September 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2022/10/23/CG/WHM-GAMES103/11/">GAMES103.王华民.11.Incompressible Fluid Dynamics and Eulerian Fluids</a>
-          </li>
-        
-          <li>
-            <a href="/2022/10/23/CG/Papers/2021/bvh-survey-3/">(论文)[2021] A Survey on Bounding Volume Hierarchies for Ray Tracing(4)</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/28/CG/Kits/MIS-NEE/">NEE、MIS(多重重要性采样)</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/18/CG/WHM-GAMES103/10/">GAMES103.王华民.10.Surface Waves</a>
-          </li>
-        
-          <li>
-            <a href="/2022/04/17/CG/WHM-GAMES103/09-1/">GAMES103.王华民.09.Collision Handling(1)</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2022 John Doe<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
 
     </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
-    
-
-
-<script src="/js/jquery-3.4.1.min.js"></script>
-
-
+  </footer>
 
   
-<script src="/fancybox/jquery.fancybox.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 
 
-<script src="/js/script.js"></script>
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
 
 
 
-
-
-  </div>
 </body>
 </html>
