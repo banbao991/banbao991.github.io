@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="首先利用 pathcut 算法快速搜索得到代表性的纯镜面的路径，然后利用链式的球面高斯将其扩展，之后用于 path guiding">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2022] Unbiased Caustics Rendering Guided by Representative Specular Paths">
+<meta property="og:url" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="首先利用 pathcut 算法快速搜索得到代表性的纯镜面的路径，然后利用链式的球面高斯将其扩展，之后用于 path guiding">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/theme-snail.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/reflectors-and-receiver.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/pathcut.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/specular-cannot-glossy-can.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/radiance-approx.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/SG-dot-SG-is-SG.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/SG-approx-from-glossy-path-region.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/ex.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/parallax-adaption.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/spherical-reflector-images-eq.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/arbitrary-curved-reflector-images-eq.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/delta.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/delta-total.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/theme-snail.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/musa.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/reflective-surface.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/three-bumpy-cylinder-scene.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/ring-scene.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/sphere-scene.png">
+<meta property="og:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/failure-case.png">
+<meta property="article:published_time" content="2022-10-23T05:26:37.000Z">
+<meta property="article:modified_time" content="2023-06-16T04:37:15.763Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="path guiding">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/theme-snail.png">
+
+
+<link rel="canonical" href="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/","path":"2022/10/23/CG/Papers/2022/pathcut-caustic/","title":"(论文)[2022] Unbiased Caustics Rendering Guided by Representative Specular Paths"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2022] Unbiased Caustics Rendering Guided by Representative Specular Paths | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pathcut-caustic"><span class="nav-text">pathcut caustic</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#abstract"><span class="nav-text">ABSTRACT</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">1 INTRODUCTION</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%8B%E5%89%8D%E6%96%B9%E6%B3%95%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">之前方法的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%A6%81%E8%B4%A1%E7%8C%AE"><span class="nav-text">主要贡献</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#relatedwork"><span class="nav-text">2 RELATEDWORK</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#our-approach"><span class="nav-text">3 OUR APPROACH</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#problem-analysis-and-motivation"><span class="nav-text">3.1 Problem analysis and
+motivation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-text">定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pathcut-%E6%B5%81%E7%A8%8B"><span class="nav-text">pathcut 流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#solution-overview"><span class="nav-text">3.2 Solution Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#relaxed-path-cuts-for-glossy-materials"><span class="nav-text">3.3 Relaxed path cuts
+for glossy materials</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2%E9%98%B6%E6%AE%B5"><span class="nav-text">搜索阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%82%E8%A7%A3%E9%98%B6%E6%AE%B5"><span class="nav-text">求解阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="nav-text">一个问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA"><span class="nav-text">讨论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#approximating-incident-illumination-with-sgs"><span class="nav-text">3.4 Approximating
+incident illumination with SGs</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sg"><span class="nav-text">SG</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%91%E4%BC%BC-brdf-lobeslice"><span class="nav-text">近似 BRDF lobe&#x2F;slice</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#radiance-%E4%BC%B0%E8%AE%A1"><span class="nav-text">radiance 估计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sg-%E4%B9%98%E7%A7%AF"><span class="nav-text">SG 乘积</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#shading"><span class="nav-text">shading</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spatial-reusing-of-representative-specular-path"><span class="nav-text">3.5 Spatial
+reusing of representative specular path</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%97%8B%E8%BD%AC"><span class="nav-text">如何旋转</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#spherical-reflector"><span class="nav-text">Spherical reflector</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arbitrary-curved-reflector"><span class="nav-text">Arbitrary-curved reflector</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA-1"><span class="nav-text">讨论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rendering"><span class="nav-text">3.6 Rendering</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA-2"><span class="nav-text">讨论</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#results"><span class="nav-text">4 RESULTS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#discussion-and-limitations"><span class="nav-text">5 DISCUSSION AND LIMITATIONS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E5%85%B6%E4%BB%96%E6%96%B9%E6%B3%95"><span class="nav-text">对比其他方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%86%E5%B7%AE%E6%A0%A1%E5%87%86"><span class="nav-text">视差校准</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%9B%E9%A1%BF%E6%B3%95%E6%B1%82%E8%A7%A3"><span class="nav-text">牛顿法求解</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#conclusion"><span class="nav-text">6 CONCLUSION</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#limitation"><span class="nav-text">limitation</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">260</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">83</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/10/23/CG/Papers/2022/pathcut-caustic/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2022] Unbiased Caustics Rendering Guided by Representative Specular Paths | Banbao">
+      <meta itemprop="description" content="首先利用 pathcut 算法快速搜索得到代表性的纯镜面的路径，然后利用链式的球面高斯将其扩展，之后用于 path guiding">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2022] Unbiased Caustics Rendering Guided by Representative Specular Paths
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-10-23 13:26:37" itemprop="dateCreated datePublished" datetime="2022-10-23T13:26:37+08:00">2022-10-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-06-16 12:37:15" itemprop="dateModified" datetime="2023-06-16T12:37:15+08:00">2023-06-16</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">首先利用 pathcut 算法快速搜索得到代表性的纯镜面的路径，然后利用链式的球面高斯将其扩展，之后用于 path guiding</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="pathcut-caustic">pathcut caustic</h1>
+<ul>
+<li><strong><em>Unbiased Caustics Rendering Guided by Representative
+Specular Paths</em></strong></li>
+<li>Sig Asia ’22 Conference Papers</li>
+<li><a target="_blank" rel="noopener" href="https://wangningbei.github.io/2022/PathcutGuiding.html">主页</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Lihns/caustics-pathcut">代码</a></li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/theme-snail.png"></p>
+<h1 id="abstract">ABSTRACT</h1>
+<ul>
+<li>首先<strong>快速</strong>搜索得到纯镜面的路径，然后利用链式的球面高斯将其扩展，之后用于
+path guiding</li>
+</ul>
+<h1 id="introduction">1 INTRODUCTION</h1>
+<h2 id="之前方法的问题">之前方法的问题</h2>
+<ul>
+<li>path tracing 的问题：盲目采样</li>
+<li>path guiding 的问题：在线学习还不足以捕获高频信息</li>
+<li>MLT 的问题：时间一致性问题，连续帧可能不一致</li>
+<li>Zeltner 的问题：只能处理镜面</li>
+</ul>
+<h2 id="主要贡献">主要贡献</h2>
+<ul>
+<li>a path guiding approach via <strong>representative specular
+paths</strong>,</li>
+<li>a relaxed path cut approach to represent light transport among
+<strong>glossy</strong> surfaces,</li>
+<li>an <strong>SG-based representation</strong> to approximate the
+contribution from a representative specular path, and</li>
+<li>a <strong>spatial reuse strategy</strong> combined with <strong>a
+parallax-aware representation</strong> to improve the performance.</li>
+</ul>
+<h1 id="relatedwork">2 RELATEDWORK</h1>
+<ul>
+<li>bidirectional Monte Carlo sampling
+<ul>
+<li>BDPT</li>
+<li>Photon Mapping：通常是有偏的</li>
+</ul></li>
+<li>path guiding
+<ul>
+<li>学习的分布 + BRDF（利用 MIS）
+<ul>
+<li>高斯混合模型：GMM（Gaussian Mixture Model）</li>
+<li>空间结构划分：spatial-directional tree</li>
+</ul></li>
+<li>学习的分布 + BRDF（利用乘积）</li>
+<li>学习的分布
+<ul>
+<li>deep neural network model</li>
+<li>offline, scene-independent deep-learning approach</li>
+</ul></li>
+<li>评价
+<ul>
+<li>Pros：consistent and temporally coherent</li>
+<li>Cons：由于算法框架问题，不能处理 difficult paths、high-frequency
+effects</li>
+</ul></li>
+</ul></li>
+<li>specular manifold sampling（<span style="color:red"><strong>TO
+LEARN</strong></span>）
+<ul>
+<li>Manifold exploration
+<ul>
+<li>作为 MLT 的插件被提出，适用于 caustic</li>
+<li>不支持 glossy，需要把 specular 和 diffuse 严格硬性划分开（rigid
+separation）才能计算</li>
+<li>改进：Half vector space 使得划分更自然</li>
+<li>改进：适应复杂几何，解决 Jacobian 求解问题</li>
+<li>评价：基于 MLT，时序不稳定</li>
+</ul></li>
+<li>manifold next event estimation（MNEE）：基于 MC 框架
+<ul>
+<li>改进：扩展到 BDPT</li>
+<li>改进：同时处理 caustic 和 glints，提高了鲁棒性和收敛率
+<ul>
+<li>问题：large-roughness reflectors</li>
+</ul></li>
+</ul></li>
+<li>analytic expressions
+<ul>
+<li>Slope-Space Integrals for Specular Next Event Estimation</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="our-approach">3 OUR APPROACH</h1>
+<h2 id="problem-analysis-and-motivation">3.1 Problem analysis and
+motivation</h2>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/reflectors-and-receiver.png"></p>
+<h3 id="定义">定义</h3>
+<ul>
+<li>reflectors：the surfaces that are <strong>closer to the light
+source</strong> and are <strong>casting caustics</strong></li>
+<li>receiver：the surface that <strong>shows the caustics</strong></li>
+</ul>
+<h3 id="pathcut-流程">pathcut 流程</h3>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/pathcut.png"></p>
+<ul>
+<li>问题
+<ul>
+<li>find <strong>a representative path</strong> for each <strong>glossy
+path region</strong></li>
+<li>compute the <strong>radiance distribution</strong>, once we have a
+representative path</li>
+</ul></li>
+</ul>
+<h2 id="solution-overview">3.2 Solution Overview</h2>
+<ul>
+<li>总体思想
+<ul>
+<li>对于每一个 glossy
+的路径区域，找到一条代表性的<strong>纯镜面光路</strong>（使用 relaxed
+path cut 算法）</li>
+<li>使用 SG 积分去近似这条光路上的 radiance
+分布，保存在一系列缓存点上（空间复用）</li>
+<li>渲染的时候，补偿视差，实现精确的 guiding</li>
+</ul></li>
+<li>适用范围：caustic
+<ul>
+<li><strong>point</strong> light sources and <strong>small area</strong>
+light sources</li>
+<li>只实现了 reflective，（refractive 实现类似）</li>
+<li>constant roughness（不支持 roughness 贴图）</li>
+</ul></li>
+</ul>
+<h2 id="relaxed-path-cuts-for-glossy-materials">3.3 Relaxed path cuts
+for glossy materials</h2>
+<h3 id="搜索阶段">搜索阶段</h3>
+<ul>
+<li>我们对区间求交的条件进行一个 relaxed</li>
+<li>法线区间 <span class="math inline">\(n\)</span>，半角向量区间 <span class="math inline">\(v\)</span>，求他们的点积最大值，如果大于给定值
+<span class="math inline">\(\cos\theta\)</span>
+，则认为相交（这条路径可行，可以保留）
+<ul>
+<li><span id="eq1" style="color:red"><strong>Spherical Gaussian
+compact-<span class="math inline">\(\epsilon\)</span>
+support</strong></span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\theta=\arccos\left(\dfrac{\ln(\epsilon\pi\alpha^2)\alpha^2}{2}+1\right)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\epsilon\)</span> 是阈值，通常设置为
+0.01</li>
+<li><span class="math inline">\(\alpha\)</span>
+表示粗糙程度（roughness）</li>
+</ul>
+<h3 id="求解阶段">求解阶段</h3>
+<ul>
+<li>现在我们得到了 leaf path cut</li>
+<li>使用 Newton solver 进行求解 <span class="math inline">\(l\)</span>
+到 <span class="math inline">\(x\)</span> 的光路
+<ul>
+<li>端点 <span class="math inline">\(l\)</span>：光源上的点</li>
+<li>端点 <span class="math inline">\(x\)</span>：receiver
+上的点（焦散显示的点）</li>
+</ul></li>
+</ul>
+<h4 id="一个问题">一个问题</h4>
+<ul>
+<li>被当作纯镜面的光路求解的时候，求解得到的点可能落在三角形外面，但是对于
+glossy 的反射叶来说，仍然和三角形相交</li>
+<li>此时我们在三角形内部找一个点，使得误差最小</li>
+<li>找到点之后，我们使用的上面的 SG compact-<span class="math inline">\(\epsilon\)</span> <a href="#eq1">公式</a>进行判断是否合理（保留 or 拒绝）</li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/specular-cannot-glossy-can.png"></p>
+<ul>
+<li>此时我们得到了 representative path</li>
+</ul>
+<h3 id="讨论">讨论</h3>
+<ul>
+<li>当三角形表面法线起伏很大时（bumpy），一个 leaf path cut
+可能会有多个解，但是牛顿法只能找到一个解
+<ul>
+<li>Interval Newton 能够找到所有解，但是计算代价很大</li>
+</ul></li>
+<li>我们这里直接假设三角形表面的法线起伏小（smooth），因此只存在一个解</li>
+<li>如果表面材质变得十分粗糙（large roughness），此时 pathcut
+的剪枝效率很低，建议用其他方法求解</li>
+</ul>
+<h2 id="approximating-incident-illumination-with-sgs">3.4 Approximating
+incident illumination with SGs</h2>
+<ul>
+<li>对于上面找到的每一条 representative path，我们需要估计 glossy path
+region 的贡献</li>
+<li>之前的方法
+<ul>
+<li>Loubet[Sig20]：slope space
+<ul>
+<li><span style="color:red"><strong>TO LEARN</strong></span></li>
+<li>限制：one intermediate glossy interaction</li>
+</ul></li>
+</ul></li>
+<li>我们使用基于 SG 的方法，能够扩展到<strong>多跳</strong></li>
+</ul>
+<h3 id="sg">SG</h3>
+<ul>
+<li>Spherical Gaussian（SG）
+<ul>
+<li><span class="math inline">\(\mathbf{p}\)</span>：中心方向</li>
+<li><span class="math inline">\(\lambda\)</span>：sharpnes（集中程度）</li>
+<li><span class="math inline">\(A\)</span>：amplitude（强度）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+G(\mathbf{v};\mathbf{p},\lambda,A)=Ae^{\lambda(\mathbf{p}\cdot\mathbf{v})-1}
+\]</span></p>
+<h3 id="近似-brdf-lobeslice">近似 BRDF lobe/slice</h3>
+<ul>
+<li>一个 BRDF lobe 能被一个 SG 近似
+<ul>
+<li><span class="math inline">\(\mathbf{p_{\rho}}=2(\mathbf{n}\cdot\mathbf{o})\mathbf{n}-\mathbf{o}\)</span></li>
+<li><span class="math inline">\(\lambda_{\rho}=\dfrac{\lambda_{\text{NDF}}}{4\vert{\mathbf{n}\cdot\mathbf{o}}\vert}\)</span></li>
+<li><span class="math inline">\(C_{\rho}=C_{\text{NDF}}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\rho(\mathbf{i},\mathbf{o})\approx
+G_{\rho}(\mathbf{i};\mathbf{p_{\rho}},\lambda_{\rho},C_{\rho})
+\]</span></p>
+<ul>
+<li>其中
+<ul>
+<li><span class="math inline">\(\mathbf{o}\)</span>：view direction</li>
+<li><span class="math inline">\(\mathbf{n}\)</span>：normal</li>
+<li><span class="math inline">\(\lambda_{\text{NDF}}=\dfrac{2}{\alpha^2}\)</span></li>
+<li><span class="math inline">\(C_{\text{NDF}}=\dfrac{1}{\pi\alpha^2}\)</span></li>
+</ul></li>
+<li>NDF：normal distribution function
+<ul>
+<li><span class="math inline">\(\alpha\)</span>：表示材质的粗糙程度</li>
+</ul></li>
+</ul>
+<h3 id="radiance-估计">radiance 估计</h3>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/radiance-approx.png"></p>
+<ul>
+<li><span class="math inline">\(\mathbf{y}\)</span>：reflector
+point</li>
+<li>point light or a small spherical light at position <span class="math inline">\(\mathbf{l}\)</span> with radius <span class="math inline">\(r\)</span> and intensity <span class="math inline">\(I\)</span></li>
+<li><span style="color:red"><strong>TO LEARN</strong></span></li>
+</ul>
+<h3 id="sg-乘积">SG 乘积</h3>
+<ul>
+<li><strong>The product integral of two SGs</strong> can be approximated
+as another <strong>SG</strong></li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/SG-dot-SG-is-SG.png"></p>
+<ul>
+<li><span class="math inline">\(\theta\)</span>：<span class="math inline">\(\langle\mathbf{n},\mathbf{i}\rangle\)</span></li>
+<li>Since the variation of <span class="math inline">\(\cos\theta\)</span> over varying <span class="math inline">\(i\)</span> is subtle, we use <span class="math inline">\(\mathbf{n}\cdot\mathbf{p}_l\)</span> to
+approximate it</li>
+<li>这个式子能够很容易扩展到多个 bounces</li>
+</ul>
+<h3 id="shading">shading</h3>
+<ul>
+<li>对于一个着色点（shading point） <span class="math inline">\(\mathbf{x}\)</span> 来说，来自一个 <strong>glossy
+path region</strong> 的入射 <strong>radiance</strong> 分布被使用一个 SG
+来近似</li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/SG-approx-from-glossy-path-region.png"></p>
+<ul>
+<li>如图，上面的结果都是使用 SG 来近似
+<ul>
+<li><span class="math inline">\(G_{\rho}(\mathbf{i})\)</span>：the
+radiance at the emitter（SG）</li>
+<li><span class="math inline">\(G_{l}(\mathbf{i})\)</span>：a BRDF slice
+with outgoing direction <span class="math inline">\(\mathbf{o}\)</span>（SG）</li>
+<li><span class="math inline">\(G_{r}(\mathbf{o})\)</span>：对于每一个
+representative specular path，对于从这段 glossy path region 到 <span class="math inline">\(\mathbf{x}\)</span> 点的入射 radiance 分布被近似为
+<span class="math inline">\(G_{r}(\mathbf{o})\)</span>
+<ul>
+<li>上面有两个：蓝色、红色</li>
+</ul></li>
+</ul></li>
+<li>使用 GMM 来表示多条 representative specular path 的结果
+<ul>
+<li>GMM：<span style="color:red"><strong>TO LEARN</strong></span></li>
+</ul></li>
+<li>实际过程中发现，相邻的三角形可能会有相同的 reflector
+point，因此我们计算不同的 representative paths 上的 reflector
+points，如果它们之间的距离小于设定阈值，则认为似乎同一个 reflector point
+<ul>
+<li>只保留一条 representative path</li>
+</ul></li>
+<li>实测发现这样的近似效果很好（更多看补充材料）</li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/ex.png"></p>
+<h2 id="spatial-reusing-of-representative-specular-path">3.5 Spatial
+reusing of representative specular path</h2>
+<ul>
+<li>预计算
+<ul>
+<li>对每一个着色点都在线运行牛顿法求解是很耗时的</li>
+<li>观察发现相邻的着色点的入射 radiance 分布类似</li>
+<li>因此可以离线预计算一部分点（cached points）的入射 radiance
+分布（GMMs），然后用这些分布去近似每一个新的 着色点</li>
+</ul></li>
+<li>shading
+<ul>
+<li>先找到最近的 cached point 的 GMMs，然后根据视差修正</li>
+<li>如下图，着色点 <span class="math inline">\(x\)</span>，右边绿色的点是离 <span class="math inline">\(x\)</span> 最近的 cached point <span class="math inline">\(y\)</span></li>
+<li>此时橙色的是 <span class="math inline">\(y\)</span> 的入射 radiance
+分布 SG1，紫色的是应该近似成的入射 radiance 分布 SG2</li>
+<li>此时我们将 SG1 进行旋转，实现由于视差导致的补偿</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/parallax-adaption.png"></p>
+<ul>
+<li>如何旋转？
+<ul>
+<li>计算 emitter 关于 reflector 的像，然后把镜像和着色点 <span class="math inline">\(x\)</span> 连线，计算得到正确的方向 <span class="math inline">\(\hat{\mathbf{o}}\)</span>
+<ul>
+<li>这里的 reflector 指的是 representative specular path 中到达 cached
+point 之前的最后一个 reflector</li>
+</ul></li>
+<li>将 SG1 的中心方向 <span class="math inline">\(\mathbf{o}\)</span>
+旋转为 <span class="math inline">\(\hat{\mathbf{o}}\)</span></li>
+</ul></li>
+</ul>
+<h3 id="如何旋转">如何旋转</h3>
+<ul>
+<li>Ruppert et al. 2020
+<ul>
+<li>the parallax-aware representation for <strong>planar
+reflection</strong></li>
+<li><span style="color:red"><strong>TO LEARN</strong></span></li>
+</ul></li>
+<li>受这个启发，我们通过将曲面拆分为两个具有不同主方向（principal
+directions）的 reflectors，从而能够纠正任意曲线的 reflector 的视差</li>
+</ul>
+<h4 id="spherical-reflector">Spherical reflector</h4>
+<ul>
+<li>示意图如上图的右子图</li>
+<li>两个主轴
+<ul>
+<li>the focal axis（normal）</li>
+<li>the sphere’s tangent axis（tangent）</li>
+</ul></li>
+<li>计算像点（<strong>凸面镜成像公式</strong>）</li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/spherical-reflector-images-eq.png"></p>
+<ul>
+<li>focal length <span class="math inline">\(f\)</span>
+<ul>
+<li>concave mirror（凹面镜）：positive</li>
+<li>convex mirror（凸面镜）：negative</li>
+</ul></li>
+<li>计算得到像点之后，连接得到修正的 SG 的主方向 <span class="math inline">\(\hat{\mathbf{o}}\)</span></li>
+</ul>
+<h4 id="arbitrary-curved-reflector">Arbitrary-curved reflector</h4>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/arbitrary-curved-reflector-images-eq.png"></p>
+<ul>
+<li>对于任意曲面的 reflector 来说，不存在视角无关的像的位置</li>
+<li>对于任意曲面，可以找到两个主曲率方向（principal curvature
+directions），可以把这个曲面使用 focal axis 为主曲率方向的两个 spherical
+reflector 来近似
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cs.otago.ac.nz/postgrads/alexis/DiffGeom/node24.html">主曲率方向</a>（<span style="color:red"><strong>TO LEARN</strong></span>）
+<ul>
+<li>这两个方向是正交的，可通过<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/149584374">高斯曲率和平均曲率</a>计算</li>
+</ul></li>
+<li>如上图，就是蓝色和红色的方向</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/delta.png"></p>
+<ul>
+<li>对于每一个方向求解一个像点
+<ul>
+<li>这个时候我们会得到一个偏移量（上图中的 <span class="math inline">\(\Delta\)</span> ）</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/delta-total.png"></p>
+<ul>
+<li>对两个方向的偏移量进行叠加，得到总的偏移量，总的偏移量定位了像的位置
+<ul>
+<li><span class="math inline">\(\mathbf{s},\mathbf{t}\)</span>
+是两个主曲率方向，两个 <span class="math inline">\(\Delta\)</span>
+对应各自的偏移量</li>
+</ul></li>
+<li>修正的 SG 的方向为 <span class="math inline">\(\mathbf{xy&#39;}\)</span></li>
+<li><span style="color:red"><strong>这样的视差补偿只适用于 one-bounce
+的反射</strong></span>，对于 multi-bounces 的情况，我们将之前的
+reflector 都当作 spherical reflector
+<ul>
+<li>具体的见补充资料</li>
+</ul></li>
+</ul>
+<h3 id="讨论-1">讨论</h3>
+<ul>
+<li>缓存点的建立
+<ul>
+<li>我们的三角形大小都是相似的，为每一个 receiver
+上的三角形生成一个缓存点，然后构建一个 pont cloud</li>
+<li>如果三角形的大小是任意的，建议在三角形内部采样</li>
+</ul></li>
+<li>缓存点数据
+<ul>
+<li>GMM</li>
+<li>用于视差补偿的信息
+<ul>
+<li><span class="math inline">\(d_v,h_v\)</span></li>
+<li>reflector point <span class="math inline">\(\mathbf{y}\)</span></li>
+<li>tangent frame at <span class="math inline">\(\mathbf{y}\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="rendering">3.6 Rendering</h2>
+<ul>
+<li>相机发射光线，光线和某个三角形相交</li>
+<li>找到这个三角形上关联的缓存点，得到 GMM</li>
+<li>对 GMM 内部的所有 SG 进行视差补偿，构建新的 GMM</li>
+<li>使用 MIS 对 BRDF 采样和对 GMM 联合采样，采样一个出射方向，递归进行
+<ul>
+<li>constant probability（0.5）</li>
+</ul></li>
+<li>对每一个 bounce 都使用 NEE（next event estimation）</li>
+</ul>
+<h3 id="讨论-2">讨论</h3>
+<ul>
+<li>我们对每一个 GMM 添加了一个保护性的 smooth
+lobe（覆盖整个半球），这样保证所有可能方向都被采样到</li>
+<li><strong>无偏的</strong>（证明作为后续工作）</li>
+</ul>
+<h1 id="results">4 RESULTS</h1>
+<ul>
+<li>利用 mitsuba 实现
+<ul>
+<li>支持材质：<strong>rough conductor</strong> as
+<strong>reflector</strong> olny</li>
+</ul></li>
+<li>对比算法
+<ul>
+<li>PT、BDPT、PPG、SMS（specular manifold sampling）、SNEE（specular
+next event estimation）</li>
+<li>reference：65536spp with BDPT</li>
+<li>equal time
+<ul>
+<li>the precomputation and the rendering</li>
+</ul></li>
+</ul></li>
+<li>测试环境
+<ul>
+<li>4.20GHz Intel i7 (8 cores) with 16 GB of main memory</li>
+</ul></li>
+<li>RMSE（Root Mean Square Error）</li>
+<li>我们的算法支持
+<ul>
+<li>point light</li>
+<li>small sphere lights with less than 0.01 radian
+(radius/distance)</li>
+<li>环境光留给 PT</li>
+</ul></li>
+<li>场景设置
+<ul>
+<li>突出 one-bounce or multi-bounce reflective caustics</li>
+</ul></li>
+</ul>
+<h1 id="discussion-and-limitations">5 DISCUSSION AND LIMITATIONS</h1>
+<h2 id="对比其他方法">对比其他方法</h2>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/theme-snail.png"></p>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/musa.png"></p>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/reflective-surface.png"></p>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/three-bumpy-cylinder-scene.png"></p>
+<h2 id="视差校准">视差校准</h2>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/ring-scene.png"></p>
+<h2 id="牛顿法求解">牛顿法求解</h2>
+<ul>
+<li>不使用牛顿法求解，则直接使用三角形中心来表示 representative specular
+path 中的节点</li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/sphere-scene.png"></p>
+<h1 id="conclusion">6 CONCLUSION</h1>
+<h2 id="limitation">limitation</h2>
+<ul>
+<li>Performance：跳数多跑得慢
+<ul>
+<li>我们的实现最多支持两跳</li>
+<li>small roughness 效果好</li>
+</ul></li>
+<li>Extremely low-roughness materials：SG 近似和视差修正不够准确</li>
+</ul>
+<p><img src="/2022/10/23/CG/Papers/2022/pathcut-caustic/failure-case.png"></p>
+<ul>
+<li>Subdivision of the meshes：网格需要足够细分，才能够有效找到路径
+<ul>
+<li>densely tessellated</li>
+<li></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/path-guiding/" rel="tag"># path guiding</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/10/22/software/vscode/03/" rel="prev" title="右键通过 VSCode 打开">
+                  <i class="fa fa-chevron-left"></i> 右键通过 VSCode 打开
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/10/24/Kits/learn-git/" rel="next" title="Git 基础知识">
+                  Git 基础知识 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="训练一个隐空间到最终结果的映射，隐空间中的变量影响最终结果">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VAE(Auto Encoding Variational Bayes)">
+<meta property="og:url" content="http://example.com/2022/10/29/CV/VAE/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="训练一个隐空间到最终结果的映射，隐空间中的变量影响最终结果">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/marginal-likelihood.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/marginal-likelihood-rewrite.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/lower-bound.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/lower-bound2.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/MC-gradient-phi.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/MC-gradient-phi2.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/MC.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/SGVB.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/SGVB2.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/SGVB-v2.png">
+<meta property="og:image" content="http://example.com/2022/10/29/CV/VAE/AVEB.png">
+<meta property="article:published_time" content="2022-10-29T04:11:49.000Z">
+<meta property="article:modified_time" content="2023-06-16T04:29:43.466Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CV">
+<meta property="article:tag" content="VAE">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/10/29/CV/VAE/marginal-likelihood.png">
+
+
+<link rel="canonical" href="http://example.com/2022/10/29/CV/VAE/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2022/10/29/CV/VAE/","path":"2022/10/29/CV/VAE/","title":"VAE(Auto Encoding Variational Bayes)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>VAE(Auto Encoding Variational Bayes) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#auto-encoding-variational-bayes"><span class="nav-text">Auto Encoding Variational
+Bayes</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-text">问题描述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%82%E7%94%A8"><span class="nav-text">适用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%B4%E6%98%8E"><span class="nav-text">说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#the-variational-bound"><span class="nav-text">The variational bound</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sgvb-estimator"><span class="nav-text">SGVB estimator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#aevb-algorithm"><span class="nav-text">AEVB algorithm</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-text">参考资料</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">260</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">83</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/10/29/CV/VAE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="VAE(Auto Encoding Variational Bayes) | Banbao">
+      <meta itemprop="description" content="训练一个隐空间到最终结果的映射，隐空间中的变量影响最终结果">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          VAE(Auto Encoding Variational Bayes)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-10-29 12:11:49" itemprop="dateCreated datePublished" datetime="2022-10-29T12:11:49+08:00">2022-10-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-06-16 12:29:43" itemprop="dateModified" datetime="2023-06-16T12:29:43+08:00">2023-06-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CV/" itemprop="url" rel="index"><span itemprop="name">CV</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">训练一个隐空间到最终结果的映射，隐空间中的变量影响最终结果</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="auto-encoding-variational-bayes">Auto Encoding Variational
+Bayes</h1>
+<h2 id="方法">方法</h2>
+<h3 id="问题描述">问题描述</h3>
+<ul>
+<li>数据集 <span class="math inline">\(\mathrm{X}=\left\{\mathrm{x}^{(i)}\right\}_{i=1}^{N}\)</span>
+是 <span class="math inline">\(N\)</span> 个独立同分布的样本</li>
+<li>假设 <span class="math inline">\(\mathrm{x}^{(i)}\)</span>
+是由一个连续的随机变量 <span class="math inline">\(\mathrm{z}\)</span>
+产生的</li>
+<li>过程如下
+<ul>
+<li>首先根据某个先验分布 <span class="math inline">\(p_{\theta^\ast}(\mathrm{z})\)</span> 产生一个样本
+<span class="math inline">\(\mathrm{z}^{(i)}\)</span></li>
+<li>然后再根据条件概率 <span class="math inline">\(p_{\theta^\ast}(\mathrm{x}\vert\mathrm{z})\)</span>
+生成样本 <span class="math inline">\(\mathrm{x}^{(i)}\)</span></li>
+</ul></li>
+<li>假设 <span class="math inline">\(p_{\theta^\ast}(\mathrm{z}),p_{\theta^\ast}(\mathrm{x}\vert\mathrm{z})\)</span>
+来自于参数族分布 <span class="math inline">\(p_{\theta}(\mathrm{z}),p_{\theta}(\mathrm{x}\vert\mathrm{z})\)</span>，他们对于
+<span class="math inline">\(\theta,\mathrm{z}\)</span>
+都是几乎处处可导的</li>
+<li>问题：我们不知道真实的 <span class="math inline">\(\theta^\ast\)</span> 和隐变量 <span class="math inline">\(\mathrm{z}\)</span></li>
+</ul>
+<h4 id="适用">适用</h4>
+<ul>
+<li>不对后验分布做简化的假设，适合通用场景</li>
+<li>Intractability
+<ul>
+<li><span class="math inline">\(p_{\theta}(\mathrm{x})=\int
+p_{\theta}(\mathrm{z})p_{\theta}(\mathrm{x}\vert\mathrm{z})\;\mathrm{dz}\)</span>
+很难估计和求导（不能直接用最大似然估计）</li>
+<li><span class="math inline">\(p_{\theta}(\mathrm{z}\vert\mathrm{x})=p_{\theta}(\mathrm{x}\vert\mathrm{z})p_{\theta}(\mathrm{z})/p_{\theta}(\mathrm{x})\)</span>
+不好求（不能使用 EM 算法）
+<ul>
+<li>EM（Expectation Maximization）</li>
+<li>随机初始化 <span class="math inline">\(\theta\)</span></li>
+<li>E-step：估计 <span class="math inline">\(p_{\theta}(\mathrm{z}\vert\mathrm{x})\)</span></li>
+<li>M-step：更新 <span class="math inline">\(\theta\)</span></li>
+</ul></li>
+<li>mean-field VB（Variational Bayesian）算法也不能运行</li>
+<li>比较常见，当似然函数 <span class="math inline">\(p_{\theta}(\mathrm{z}\vert\mathrm{x})\)</span>
+比较复杂的时候
+<ul>
+<li>带非线性激活层的神经网络</li>
+</ul></li>
+</ul></li>
+<li>A large dataset
+<ul>
+<li>batch optimization is too costly</li>
+<li>希望使用更小的 batch，甚至是单个数据点</li>
+<li>基于采样的方法开销大，例如 MC-EM，采样很耗时</li>
+</ul></li>
+</ul>
+<h4 id="说明">说明</h4>
+<ul>
+<li>我们的方法试图解决如下 3 个问题
+<ul>
+<li>快速估计 <span class="math inline">\(\theta\)</span></li>
+<li>快速估计 <span class="math inline">\(p_{\theta}(\mathrm{z}\vert\mathrm{x})\)</span></li>
+<li>快速估计 <span class="math inline">\(p_{\theta}(\mathrm{x}\vert\mathrm{z})\)</span></li>
+</ul></li>
+<li>recognition model <span class="math inline">\(q_{\phi}(\mathrm{z}\vert\mathrm{x})\)</span>
+<ul>
+<li>对复杂的后验分布 <span class="math inline">\(p_{\theta}(\mathrm{z}\vert\mathrm{x})\)</span>
+的估计</li>
+<li>和变分推断的限制不一样，我们不要求是可因子化的，参数 <span class="math inline">\(\phi\)</span> 也不需要从闭式期望中求出</li>
+</ul></li>
+<li>我们提出一个方法能够将 recognition model <span class="math inline">\(q_{\phi}(\mathrm{z}\vert\mathrm{x})\)</span> 和
+generative model parameters <span class="math inline">\(\theta\)</span>
+一起训练的学习方法</li>
+<li>encoder：<span class="math inline">\(q_{\phi}(\mathrm{z}\vert\mathrm{x})\)</span></li>
+<li>decoder：<span class="math inline">\(p_{\theta}(\mathrm{x}\vert\mathrm{z})\)</span></li>
+</ul>
+<h3 id="the-variational-bound">The variational bound</h3>
+<ul>
+<li>marginal likelihood，给定 <span class="math inline">\(\theta\)</span> 下的 <span class="math inline">\(\mathrm{x}\)</span> 的分布的似然函数</li>
+</ul>
+<p><img src="/2022/10/29/CV/VAE/marginal-likelihood.png"></p>
+<ul>
+<li>重写每一个项（<span id="eq1">EQ1</span>）</li>
+</ul>
+<p><img src="/2022/10/29/CV/VAE/marginal-likelihood-rewrite.png"></p>
+<ul>
+<li>KL 散度是非负的，因此 <span class="math inline">\(\mathcal{L}\)</span> 项也被称为 (variational)
+lower bound</li>
+</ul>
+<p><span class="math display">\[
+D_{KL}(p(x)\Vert q(x)) = \int p(x)\log\left(\frac{p(x)}{q(x)}\right)
+\mathrm{d}x
+\]</span></p>
+<ul>
+<li>以下的 <span class="math inline">\(\mathrm{x}\)</span> 代表 <span class="math inline">\(\mathrm{x}^{(i)}\)</span>
+<ul>
+<li><span id="eq2"><strong>Eq2</strong></span></li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/29/CV/VAE/lower-bound.png"></p>
+<ul>
+<li>推导</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\mathcal{L}(\theta, \phi ;\mathrm{x}^{(i)})
+&amp;=\log p_{\theta} (\mathrm{x}^{(i)}) - D_{KL}(q_{\phi}
+(\mathrm{z}|\mathrm{x}^{(i)}) \Vert p_{\theta}
+(\mathrm{z}|\mathrm{x}^{(i)}))\\
+&amp;=\mathbb{E}_{q_{\phi} (\mathrm{z}|\mathrm{x})} [\log p_{\theta}
+(\mathrm{x})]-\mathbb{E}_{q_{\phi} (\mathrm{z}|\mathrm{x})} [\log
+q_{\phi} (\mathrm{z}|\mathrm{x}) - \log p_{\theta}
+(\mathrm{z}|\mathrm{x})]\\
+&amp;=\mathbb{E}_{q_{\phi} (\mathrm{z}|\mathrm{x})} \Big[\log
+\Big(p_{\theta} (\mathrm{x})p_{\theta} (\mathrm{z}|\mathrm{x})\Big)-\log
+q_{\phi} (\mathrm{z}|\mathrm{x})\Big]\\
+&amp;=\mathbb{E}_{q_{\phi} (\mathrm{z}|\mathrm{x})} [\log p_{\theta}
+(\mathrm{z},\mathrm{x})-\log q_{\phi} (\mathrm{z}|\mathrm{x})]
+\end{align}
+\]</span></p>
+<ul>
+<li>也可以重写为如下式子
+<ul>
+<li><span id="eq3"><strong>Eq3</strong></span></li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/29/CV/VAE/lower-bound2.png"></p>
+<ul>
+<li>推导</li>
+</ul>
+<p>$$ <span class="math display">\[\begin{align}
+\mathcal{L}(\theta, \phi ;\mathrm{x}^{(i)})
+&amp;=\mathbb{E}_{q_{\phi} (\mathrm{z}|\mathrm{x})}\left[\log p_{\theta}
+(\mathrm{z},\mathrm{x})-\log q_{\phi} (\mathrm{z}|\mathrm{x})\right]\\
+&amp;=\mathbb{E}_{q_{\phi} (\mathrm{z}|\mathrm{x})}\left[\log
+\left(\dfrac{p_{\theta} (\mathrm{z},\mathrm{x})}{q_{\phi}
+(\mathrm{z}|\mathrm{x})}\right)\right]\\
+&amp;=\mathbb{E}_{q_{\phi} (\mathrm{z}|\mathrm{x})}\left[\log
+\left(\dfrac{p_{\theta} (\mathrm{x}\vert\mathrm{z})p_{\theta}
+(\mathrm{z})}{q_{\phi} (\mathrm{z}|\mathrm{x})}\right)\right]\\
+&amp;=\mathbb{E}_{q_{\phi} (\mathrm{z}|\mathrm{x})}\left[\log p_{\theta}
+(\mathrm{x}\vert\mathrm{z})+\log p_{\theta} (\mathrm{z})-\log q_{\phi}
+(\mathrm{z}|\mathrm{x})\right]\\
+
+&amp;=\mathbb{E}_{q_{\phi} (\mathrm{z}|\mathrm{x})}[\log p_{\theta}
+(\mathrm{x}\vert\mathrm{z})]-D_{KL}(q_{\phi} (\mathrm{z}|\mathrm{x})
+\Vert p_{\theta} (\mathrm{z}))\\
+\end{align}\]</span> $$</p>
+<ul>
+<li>通过优化 <span class="math inline">\(\theta,\phi\)</span>
+让下界最小化</li>
+<li><span class="math inline">\(\mathcal{L}\)</span> 对 <span class="math inline">\(\phi\)</span> 求导困难
+<ul>
+<li><span class="math inline">\(\mathrm{z}\)</span>
+的具体分布不知道，随意采样会导致方差很大</li>
+<li>按照分布采样的估计</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/29/CV/VAE/MC-gradient-phi.png"></p>
+<figure>
+<img src="/2022/10/29/CV/VAE/MC-gradient-phi2.png" alt="image-20221030111014197">
+<figcaption aria-hidden="true">image-20221030111014197</figcaption>
+</figure>
+<h3 id="sgvb-estimator">SGVB estimator</h3>
+<ul>
+<li>a practical estimator of the lower bound and its derivatives</li>
+<li>假设后验分布的形式为 <span class="math inline">\(q_{\phi}(\mathrm{z}\vert\mathrm{x})\)</span>
+<ul>
+<li>也可以应用在 <span class="math inline">\(q_{\phi}(\mathrm{z})\)</span></li>
+</ul></li>
+<li>The fully variational Bayesian method for inferring a posterior over
+the parameters is given in the appendix.
+<ul>
+<li><span style="color:red"><strong>看附录</strong></span></li>
+</ul></li>
+<li>我们可以重参数化一个随机变量 <span class="math inline">\(\hat{\mathrm{z}}\sim
+g_{\phi}(\epsilon,\mathrm{x})\)</span>
+<ul>
+<li><span class="math inline">\(g\)</span> 可微分的</li>
+<li>其中 <span class="math inline">\(\epsilon\)</span>
+是一个已知分布的随机噪声</li>
+<li><span style="color:red"><strong>如何选择看后面</strong></span></li>
+</ul></li>
+<li>现在可以构造一个对 <span class="math inline">\(f(\mathrm{z})\)</span> 的通用的 MC 估计</li>
+</ul>
+<p><img src="/2022/10/29/CV/VAE/MC.png"></p>
+<ul>
+<li>将其应用在<a href="#eq2">Eq2</a>，得到 SGVB（Stochastic Gradient
+Variational Bayes）估计</li>
+</ul>
+<p><img src="/2022/10/29/CV/VAE/SGVB.png"></p>
+<p><img src="/2022/10/29/CV/VAE/SGVB2.png"></p>
+<ul>
+<li>通常 <a href="#eq3">Eq3</a> 中的 KL
+散度部分能被显式积分得到（见附录），只有重建误差需要通过采样估计</li>
+<li>因此得到一个方差更小的估计</li>
+</ul>
+<p><img src="/2022/10/29/CV/VAE/SGVB-v2.png"></p>
+<h3 id="aevb-algorithm">AEVB algorithm</h3>
+<p><img src="/2022/10/29/CV/VAE/AVEB.png"></p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.sohu.com/a/226209674_500659">变分自编码器VAE：原来是这么一回事
+| 附开源代码</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/78311644">【机器学习】EM——期望最大（非常详细）</a></li>
+<li><a target="_blank" rel="noopener" href="https://spaces.ac.cn/archives/5716">用变分推断统一理解生成模型（VAE、GAN、AAE、ALI）</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/161277762">Auto-Encoding
+Variational Bayes(VAE)</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CV/" rel="tag"># CV</a>
+              <a href="/tags/VAE/" rel="tag"># VAE</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/10/26/installation/linux-pytorch/" rel="prev" title="linux-pytorch 配置">
+                  <i class="fa fa-chevron-left"></i> linux-pytorch 配置
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  <script src='https://unpkg.com/mermaid@/dist/mermaid.min.js'></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({theme: 'forest'});
+    }
+  </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
