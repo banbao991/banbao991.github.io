@@ -92,7 +92,7 @@ class MyData {
 
   get_all_data() {
     let ret = new Array();
-    this._data.forEach((ele) => {ret = ret.concat(ret, ele)});
+    this._data.forEach((ele) => {ret = ret.concat(ele)});
     return ret;
   }
 }
@@ -807,8 +807,8 @@ function show_pics(year, month, images_original) {
                     img_idx = ((img_idx % images.length) + images.length) %
                         images.length;
 
-                    // console.log(img_idx, images.length,
-                    // offset_for_auto_play_img_idx);
+                    console.log(img_idx, images.length,
+                    offset_for_auto_play_img_idx);
 
                     if (img_idx === last_img_idx) {
                       return;
