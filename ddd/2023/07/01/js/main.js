@@ -699,7 +699,8 @@ function open_the_related_event(ele, road_curve, year) {
 /**
  * 显示图片
  */
-function show_pics(year, month, images) {
+function show_pics(year, month, images_original) {
+  let images = images_original;
   d3.select('#container').select('svg').remove();
 
   let div_show_images = d3.select('#container')
@@ -715,10 +716,11 @@ function show_pics(year, month, images) {
     let img_idx = 0;
     let cannot_auto_play = false;
     let auto_play_timer = null;
+    let offset_for_auto_play_img_idx = 0;
 
-    show_img_with_index(img_idx);
+    show_img_with_index();
 
-    function show_img_with_index(idx) {
+    function show_img_with_index() {
       const div_height = $(window).height();
       const div_width = $(window).width();
 
@@ -731,20 +733,23 @@ function show_pics(year, month, images) {
       const max_width =
           d3.max(DATA_LIST.get_all_data().map((d) => get_image_width(d._data)));
 
-      const raw = images[idx];
+      const raw = images[img_idx];
       div_show_images.selectAll('*').remove();
 
-      let ele = raw._data;
-      ele.width = get_image_width(ele);
-      ele.height = image_height;
+      const ele = raw._data;
+      let ele_width = get_image_width(ele);
       div_show_images.style('width', `${max_width}px`)
           .style('margin-top', `${image_height / 400 * 50}px`);
 
       // [1] image
       div_show_images.append('div')
-          .style('height', `${ele.height}px`)
+          .style('height', `${image_height}px`)
+          .style('margin', '0 auto')  // center
+          .style('width', `${ele_width}px`)
           .style('text-align', `center`)
-          .append(() => (ele));
+          .append(() => (ele))
+          .style('height', '100%')
+          .style('width', '100%');
       // .on('click', () => {
       //   img_idx = (img_idx + 1) % images.length;
       //   show_img_with_index(img_idx);
@@ -768,32 +773,62 @@ function show_pics(year, month, images) {
           .attr('class', (d) => (d.class))
           .on('click', (e, d) => {
             if (d.i === 0) {
+              offset_for_auto_play_img_idx -= img_idx;
               img_idx = 0;
             } else if (d.i === 1) {
+              --offset_for_auto_play_img_idx;
               img_idx = (img_idx - 1 + images.length) % images.length;
             } else if (d.i === 2) {
+              ++offset_for_auto_play_img_idx;
               img_idx = (img_idx + 1) % images.length;
             } else if (d.i === 3) {
               // auto play
               if (cannot_auto_play === false) {
-                const offset_for_img_idx = img_idx;
+                offset_for_auto_play_img_idx = img_idx;
                 let last_img_idx = img_idx;
                 cannot_auto_play = true;
-                auto_play_timer = d3.timer((elapsed) => {
-                  img_idx = Math.floor(elapsed / 5000 + offset_for_img_idx);
-                  if (img_idx === last_img_idx) {
-                    return;
-                  }
-                  if (img_idx < images.length) {
-                    last_img_idx = img_idx;
-                    show_img_with_index(img_idx);
-                  } else {
-                    cannot_auto_play = false;
-                    auto_play_timer.stop();
-                    auto_play_timer = null;
-                    console.log('Stop Auto Playing!');
-                  }
-                }, 100);
+                // 每隔多久更新一次图片
+                const update_image_time_interval = 5000;
+                let update_image_time = 0;
+                if (auto_play_timer === null) {
+                  auto_play_timer = d3.timer((elapsed) => {
+                    {
+                      // 每隔 update_image_time_interval 时间更新一次
+                      if (elapsed < update_image_time) {
+                        return;
+                      }
+                      update_image_time += update_image_time_interval;
+                    }
+
+                    // 自动播放的时候允许点击上一张、下一张、回到第一张
+                    img_idx = Math.floor(
+                        elapsed / update_image_time_interval +
+                        offset_for_auto_play_img_idx);
+                    img_idx = ((img_idx % images.length) + images.length) %
+                        images.length;
+
+                    // console.log(img_idx, images.length,
+                    // offset_for_auto_play_img_idx);
+
+                    if (img_idx === last_img_idx) {
+                      return;
+                    }
+                    if (img_idx < images.length) {
+                      last_img_idx = img_idx;
+                      show_img_with_index();
+                    } else {
+                      // infinite loop
+                      // img_idx = images.length - 1;
+                      // cannot_auto_play = false;
+                      // auto_play_timer.stop();
+                      // auto_play_timer = null;
+                      // console.log('Stop Auto Playing!');
+                      // show_img_with_index();  // update button
+
+                      console.log('[Button Click] No Reach Here');
+                    }
+                  }, 100);
+                }
               } else {
                 cannot_auto_play = false;
                 auto_play_timer.stop();
@@ -818,7 +853,8 @@ function show_pics(year, month, images) {
             } else {
               console.log('[div_show_images]: on(\'click\') error!');
             }
-            show_img_with_index(img_idx);
+            // console.log(img_idx);
+            show_img_with_index();
           });
 
       // [3] infos
@@ -835,13 +871,14 @@ function show_pics(year, month, images) {
 function update_buttons(cannot_auto_play) {
   const num = 6;
   let classes = [
-    'fa-backward-fast', 'fa-circle-left', 'fa-circle-right', 'fa-play',
-    'fa-reply-all', 'fa-arrow-rotate-left'
+    'fa-backward-fast', 'fa-circle-left', 'fa-circle-right',
+    (cannot_auto_play === true ? 'fa-stop' : 'fa-play'), 'fa-reply-all',
+    'fa-arrow-rotate-left'
   ];
   let titles = [
     '第一张图片', '上一张图片', '下一张图片',
     `${(cannot_auto_play === true ? '停止' : '')}自动播放`,
-    '选择所有日期图片，定位到随机一张', '返回选择年界面'
+    '选择所有日期图片，定位到随机一张(自动播放时失效)', '返回选择年界面'
   ];
   let t = new Array();
   for (let i = 0; i < num; ++i) {
