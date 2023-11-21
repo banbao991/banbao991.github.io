@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="RRS 实现部分">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2022-SIG] EARS: Efficiency-Aware Russian Roulette and Splitting(2)">
+<meta property="og:url" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="RRS 实现部分">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq28-relative-efficiency.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq29-30-fixed-point-function.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/rrs-iteration-example.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/psedo-code.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/psedo-code-lr.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq31-efficiency-average-on-channels.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq32-RRS-factor-for-multi-channel.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq33-global-cost.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq34-global-variance.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/sd-tree.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq35-2-moment.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq36-37-variance.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/test-scenes.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/limit-estimates.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq52-limits.png">
+<meta property="og:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/fig13-approx-of-gamma-and-gamma-prime.png">
+<meta property="article:published_time" content="2023-09-05T08:02:20.000Z">
+<meta property="article:modified_time" content="2023-11-01T16:05:18.245Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="RRS">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/eq28-relative-efficiency.png">
+
+
+<link rel="canonical" href="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/09/05/CG/Papers/2022/EARS/02/","path":"2023/09/05/CG/Papers/2022/EARS/02/","title":"(论文)[2022-SIG] EARS: Efficiency-Aware Russian Roulette and Splitting(2)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2022-SIG] EARS: Efficiency-Aware Russian Roulette and Splitting(2) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ears"><span class="nav-text">EARS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#efficiency-aware-rrs"><span class="nav-text">Efficiency-Aware RRS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#application-to-rendering"><span class="nav-text">Application to rendering</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#objective"><span class="nav-text">Objective</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8D%E5%8A%A8%E7%82%B9%E8%BF%AD%E4%BB%A3%E5%87%BD%E6%95%B0"><span class="nav-text">不动点迭代函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%94%B6%E6%95%9B%E6%80%A7"><span class="nav-text">收敛性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#adapting-the-theory"><span class="nav-text">Adapting the theory</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#nee"><span class="nav-text">NEE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#handling-colors"><span class="nav-text">Handling colors</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#cost-heuristic"><span class="nav-text">Cost heuristic</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#clamping"><span class="nav-text">Clamping</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#global-estimates"><span class="nav-text">Global estimates</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#local-estimate"><span class="nav-text">Local Estimate</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#building-the-estimates"><span class="nav-text">Building the estimates</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#incremental-learning"><span class="nav-text">Incremental learning</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#evaluation"><span class="nav-text">EVALUATION</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE"><span class="nav-text">统计数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#overhead"><span class="nav-text">overhead</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#convergence"><span class="nav-text">Convergence</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#path-guiding"><span class="nav-text">Path Guiding</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#limitation-and-future-work"><span class="nav-text">limitation and future work</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#estimation-error"><span class="nav-text">Estimation error</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#combining-with-adaptive-sampling"><span class="nav-text">Combining with Adaptive
+Sampling</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bidirectional-methods"><span class="nav-text">Bidirectional methods</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-text">其他</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B6%E6%95%9B%E6%80%A7%E8%AF%81%E6%98%8E"><span class="nav-text">收敛性证明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/09/05/CG/Papers/2022/EARS/02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2022-SIG] EARS: Efficiency-Aware Russian Roulette and Splitting(2) | Banbao">
+      <meta itemprop="description" content="RRS 实现部分">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2022-SIG] EARS: Efficiency-Aware Russian Roulette and Splitting(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-09-05 16:02:20" itemprop="dateCreated datePublished" datetime="2023-09-05T16:02:20+08:00">2023-09-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-11-02 00:05:18" itemprop="dateModified" datetime="2023-11-02T00:05:18+08:00">2023-11-02</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">RRS 实现部分</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="ears">EARS</h1>
+<ul>
+<li><a href="/2023/07/10/CG/Papers/2022/EARS/00">目录</a></li>
+</ul>
+<h2 id="efficiency-aware-rrs">Efficiency-Aware RRS</h2>
+<h3 id="application-to-rendering">Application to rendering</h3>
+<ul>
+<li>两个问题
+<ul>
+<li>每一个像素都是一个积分</li>
+<li>RRS 发生在很多跳上</li>
+</ul></li>
+</ul>
+<h4 id="objective">Objective</h4>
+<ul>
+<li>找到一个最优的 local splitting factors 使得整张图片的 total
+efficiency 最大化
+<ul>
+<li>仍然是一个凸优化问题（凸函数的和）</li>
+</ul></li>
+<li><strong><span style="color:red">relMSE 取代 MSE</span></strong>
+<ul>
+<li>方差部分，如果使用<a href="/2023/07/10/CG/Papers/2022/EARS/01/#eq2">原始目标函数</a>的绝对误差度量，会导致一直在优化比较亮的像素，我们使用如下的相对误差度量</li>
+<li>MSE：对亮区域过度采样，导致计算开销都花在比较亮的区域上</li>
+<li>relMSE：计算开销分布更加平均</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/eq28-relative-efficiency.png"></p>
+<ul>
+<li>问题：<span class="math inline">\(I_{\text{px}}\)</span>
+不可知（使用<span style="color:red">降噪</span>后的结果作为标准值）</li>
+</ul>
+<h4 id="不动点迭代函数">不动点迭代函数</h4>
+<ul>
+<li>第 <span class="math inline">\(i\)</span> 次<span id="eq29">迭代</span></li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/eq29-30-fixed-point-function.png"></p>
+<ul>
+<li>计算过程和之前类似</li>
+</ul>
+<p><span class="math display">\[
+\dfrac{\partial{\bar{V}(n)\bar{C}(n)}}{\partial{n}}=\dfrac{\partial{\bar{V}(n)}}{\partial{n}}\bar{C}(n)+\bar{V}(n)\dfrac{\partial{\bar{C}(n)}}{\partial{n}}=0
+\]</span></p>
+<ul>
+<li>细节
+<ul>
+<li><span class="math inline">\(I_{\text{px}}\)</span> 来自于
+relMSE</li>
+<li><span class="math inline">\(T(\bar{\mathrm{x}}_k)\)</span> 是从
+<span class="math inline">\(R\)</span> 项中提取出来的，也就是之前等式 <a href="/2023/07/10/CG/Papers/2022/EARS/01/#eq18">18</a>、<a href="/2023/07/10/CG/Papers/2022/EARS/01/#eq22-23">23</a> 中的 <span class="math inline">\(\dfrac{g}{p}\)</span> 项</li>
+</ul></li>
+<li>3个部分
+<ul>
+<li>prefix：已知</li>
+<li>local：局部估计，可以存储在 5D 的数据结构里</li>
+<li>global：全局信息，可知（所有像素的平均计算代价、方差 <span class="math inline">\(\sum_{\text{px}}\)</span> ）
+<ul>
+<li><a href="#global-estimates">具体的</a></li>
+</ul></li>
+</ul></li>
+<li>算法优势
+<ul>
+<li>虽然是不动点迭代的算法，不需要为所有的前缀路径 <span class="math inline">\(x\)</span> 显式存储连续的 RRS 函数 <span class="math inline">\(n(x)\)</span></li>
+<li>我们只存储相关的统计量（方差、开销）用于下一轮的迭代
+<ul>
+<li><span style="color:red">不是每到一个点就迭代计算 n(x)
+吗？</span>对的，不是</li>
+</ul></li>
+<li>每次迭代随机更新一组前缀 <span class="math inline">\(x\)</span>
+<ul>
+<li>只要前缀能够被采样到，那么更新概率就不为 0，因此最终能收敛</li>
+</ul></li>
+<li>1997 年的论文依赖于前缀 <span class="math inline">\(x\)</span>
+的长度，因此需要降维才能计算，该方法不依赖</li>
+</ul></li>
+</ul>
+<h4 id="收敛性">收敛性</h4>
+<ul>
+<li><span class="math inline">\(\bar{\mathrm{x}}\)</span>
+前后的点是否发生 RRS，不影响这个点 RRS 的收敛性</li>
+<li>其他的点和 <span class="math inline">\(\bar{\mathrm{x}}\)</span>
+处的 RRS 的收敛无关
+<ul>
+<li><span style="color:red">不影响附录 C 收敛性的证明</span></li>
+</ul></li>
+</ul>
+<h4 id="例子">例子</h4>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/rrs-iteration-example.png"></p>
+<ul>
+<li><ol type="a">
+<li>场景设置，黄色部分表示能够产生的焦散的地方</li>
+</ol></li>
+<li><ol start="2" type="a">
+<li>初始化，classic albedo-based <strong>RR</strong>（没有 S）（<span style="color:red">具体看代码</span>），同时保存每一个点的 <span class="math inline">\(\langle L_i\rangle\)</span>
+的统计量（方差、开销）</li>
+</ol>
+<ul>
+<li>方差：反向传播（主要在 diffuse 表面）</li>
+<li>开销：初始开销 = 后缀长度</li>
+</ul></li>
+<li><ol start="3" type="a">
+<li>第一次迭代，高方差 S
+分裂（蓝色、绿色节点），找不到光源的（黄色区域外）被 RR
+删除（橙色节点）</li>
+</ol></li>
+<li><ol start="4" type="a">
+<li>第二次迭代，高方差分裂（绿色节点），找不到光源的被 RR
+删除（橙色节点）</li>
+</ol></li>
+</ul>
+<h2 id="实现">实现</h2>
+<ul>
+<li>Mitsuba 0.6，递归 PT 为基础</li>
+<li>iterative rendering process
+<ul>
+<li>每一轮迭代，对每一个像素采样样本，用于计算 global/local 的方差</li>
+<li>local 的估计存储在 5D 数据结构中</li>
+</ul></li>
+<li>算法：
+<ul>
+<li>初始：classic prefix weight-based RR</li>
+<li>迭代：根据 <a href="#eq29">式子29</a> 更新 RRS 值</li>
+</ul></li>
+<li>减小计算开销：慢慢增长迭代的时间（多 spp
+更新），从而减少更新次数</li>
+<li>迭代早期图片方差大，方差倒数加权合并
+<ul>
+<li>最优合并问题（the optimal combination of image）</li>
+<li>引入 bias（方差估计使用的样本问题）
+<ul>
+<li>bias 小，可忽视，随着迭代增加消失</li>
+<li><span style="color:red">TODO：David Kirk and James Arvo. 1991.
+Unbiased Sampling Techniques for Image Synthesis</span></li>
+</ul></li>
+</ul></li>
+<li>算法伪代码</li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/psedo-code.png"></p>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/psedo-code-lr.png"></p>
+<ul>
+<li>LrEstimate 中的 contribution 部分应该除以样本数（splitting
+factor）</li>
+</ul>
+<h3 id="adapting-the-theory">Adapting the theory</h3>
+<h4 id="nee">NEE</h4>
+<ul>
+<li>和 ADDR 一样，把 NEE 和 BSDF 采样作为一个原子操作（1 NEE + 1
+BSDF）</li>
+<li>这样设定下，RRS 的分析和之前一致，仍然最优</li>
+<li>更一般情况下则不是最优（NEE 数量和 BSDF 数量在不同的 shading point
+不一样）</li>
+</ul>
+<h4 id="handling-colors">Handling colors</h4>
+<ul>
+<li>多通道</li>
+<li>方差对所有通道平均</li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/eq31-efficiency-average-on-channels.png"></p>
+<ul>
+<li>此时最优化的区别就是，需要在对 <span class="math inline">\(\lambda\)</span> 求平均
+<ul>
+<li>component-wise</li>
+<li><span class="math inline">\(I_{\text{px}}\)</span> 表示 relMSE，上面
+<span class="math inline">\((31)\)</span> 没有显式写</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/eq32-RRS-factor-for-multi-channel.png"></p>
+<h4 id="cost-heuristic">Cost heuristic</h4>
+<ul>
+<li>光线数量</li>
+<li>简单近似：所有光线计算代价相同
+<ul>
+<li>shadow rays</li>
+<li>primary rays from the camera</li>
+<li>BSDF samples</li>
+</ul></li>
+</ul>
+<h4 id="clamping">Clamping</h4>
+<ul>
+<li>RRS：<span class="math inline">\((0.05,20)\)</span></li>
+<li>可以避免
+<ul>
+<li>bias：<span class="math inline">\(n(x)=0\)</span></li>
+<li>过多的光线，RRS 过大</li>
+</ul></li>
+</ul>
+<h3 id="global-estimates">Global estimates</h3>
+<ul>
+<li>全局的计算开销
+<ul>
+<li>对所有像素求平均</li>
+<li>一个迭代轮可能有多个 spp</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/eq33-global-cost.png"></p>
+<ul>
+<li>relMSE：和<a target="_blank" rel="noopener" href="https://www.openimagedenoise.org/">降噪</a>后的图片 <span class="math inline">\(\tilde{I}_{\text{px}}\)</span> 做对比
+<ul>
+<li><span class="math inline">\(\langle{I_{\text{px}};n}\rangle_{s}\)</span> 包括
+splitting，每一个 path tree 都会被考虑</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/eq34-global-variance.png"></p>
+<ul>
+<li>outlier：去除 <span class="math inline">\(0.001\%\)</span>
+方差最大的样本
+<ul>
+<li>论文评测的时候实际用的 <span class="math inline">\(0.01\%\)</span></li>
+</ul></li>
+</ul>
+<h3 id="local-estimate">Local Estimate</h3>
+<ul>
+<li>空间八叉树 octree + 方向树 histogram</li>
+<li>方向：<span class="math inline">\(4\times4\)</span>
+直方图，高分辨率提升不大</li>
+<li>octree，40000+样本时候分裂叶子节点（类似 PPG）</li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/sd-tree.png"></p>
+<h4 id="building-the-estimates">Building the estimates</h4>
+<ul>
+<li>每一个方向 <span class="math inline">\(b\)</span> 保存统计量
+<ul>
+<li>方差：<span class="math inline">\(\tilde{V}_b\)</span></li>
+<li>二阶矩：<span class="math inline">\(\tilde{M}_b\)</span></li>
+<li><span class="math inline">\(\langle{L_\text{r}}\rangle\)</span>
+的计算开销：<span class="math inline">\(\tilde{C}_b\)</span></li>
+</ul></li>
+<li><span class="math inline">\(n_b\)</span>：<span class="math inline">\(b\)</span> 内的样本数</li>
+<li>二阶矩</li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/eq35-2-moment.png"></p>
+<ul>
+<li>方差
+<ul>
+<li>这里做了近似
+<ul>
+<li><span style="color:red">TODO：近似是什么？</span></li>
+</ul></li>
+<li><span class="math inline">\((37)\)</span> <span style="color:red">应该没有平方</span></li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/eq36-37-variance.png"></p>
+<h4 id="incremental-learning">Incremental learning</h4>
+<ul>
+<li>根据不动点的理论，这一轮统计量的更新应该只依赖于上一轮，但是如此收敛慢，因此将之前所有轮次的统计量都使用</li>
+<li>利用之前的样本进行学习
+<ul>
+<li>收敛率有所降低，但是统计量可靠性提升了，最终变快了</li>
+</ul></li>
+</ul>
+<h2 id="evaluation">EVALUATION</h2>
+<ul>
+<li>和 ADRRS 进行对比</li>
+<li>对比场景
+<ul>
+<li>只有 RR</li>
+<li>RR+S</li>
+<li>只有 S（都表现得不好）</li>
+</ul></li>
+<li>baseline
+<ul>
+<li>classic prefix weight-based RR（5th bounce 开始启用）</li>
+<li>adaptive sampling
+variant（在线学习方差，预先提供了GT，但是不算在渲染时间中）</li>
+</ul></li>
+<li>测试
+<ul>
+<li>equal-time（10min）</li>
+<li>AMD Ryzen 3950X CPU with 16 cores</li>
+<li>max depth：40</li>
+</ul></li>
+<li>结果 relMSE（平均）
+<ul>
+<li><span class="math inline">\(1.52\times\)</span> ADDR</li>
+<li><span class="math inline">\(5.87\times\)</span> classic RR</li>
+</ul></li>
+<li>最差（Glossy Bathroom）比 ADDR 慢 <span class="math inline">\(9\%\)</span></li>
+<li>场景介绍
+<ul>
+<li>Modern Living Room
+<ul>
+<li>mostly diffuse，large spherical light（前向 PT 友好）</li>
+<li>结果
+<ul>
+<li>与 ADRRS 相比，没有明显提升，但是噪声更均匀</li>
+<li>与 Adaptive PT 相似，焦散噪声变小，其他地方轻微变大</li>
+<li>简单场景中，不如简单算法效果好（额外开销大）</li>
+</ul></li>
+</ul></li>
+<li>Bookshelf、Living Room
+<ul>
+<li>strong，difficult diffuse indirect illumination</li>
+<li>结果
+<ul>
+<li>暗表面过多，classic RR 提前停止</li>
+<li>Splitting 相较于 Adaptive
+的优势，一旦找到一条可行光路，能够生成若干其他可行光路</li>
+</ul></li>
+</ul></li>
+<li>Pool
+<ul>
+<li>优于 ADRRS（variance and cost &gt; expected contributions）</li>
+</ul></li>
+<li>Kitchen（上面两类场景的并集）</li>
+<li>Glossy Bathroom
+<ul>
+<li>homogeneous illumination</li>
+<li>过于简单了</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/test-scenes.png"></p>
+<h3 id="统计数据">统计数据</h3>
+<ul>
+<li>考虑 RR，spp 数增加</li>
+<li>考虑 S，spp 数减小</li>
+<li>和 ADRRS （up 2）相比，EARS 一条光线的分裂数更多（up 67）
+<ul>
+<li>而且更多发生在光线和场景的第一个交点（ADRRS：1，EARS：up 18）</li>
+</ul></li>
+<li><strong>哪里方差大就去优化哪里</strong></li>
+</ul>
+<h3 id="overhead">overhead</h3>
+<ul>
+<li>5D tree：24M，空间划分：22,000 regions
+<ul>
+<li>再大之后，计算开销比收益更大</li>
+</ul></li>
+</ul>
+<h3 id="convergence">Convergence</h3>
+<ul>
+<li>理论收敛，但是实际有问题</li>
+<li>原因：noise in the estimates</li>
+<li>测试：充足迭代轮，能够收敛</li>
+</ul>
+<h3 id="path-guiding">Path Guiding</h3>
+<ul>
+<li>和 Muller 的 PPG 结合
+<ul>
+<li>数据结构一样</li>
+</ul></li>
+<li>classic RR：throughout weight
+<ul>
+<li>albedo 的乘积效果更好</li>
+<li>暗表面的 guiding，如果某个方向采样 pdf 大，但是 throughout weight
+低，则 RR 可能会删除（好处抵消了）</li>
+</ul></li>
+</ul>
+<h2 id="limitation-and-future-work">limitation and future work</h2>
+<ul>
+<li>limit：the accuracy of the required estimates</li>
+<li>future：EARS 和 image space adaptive sampling and bidirectional
+algorithms 结合</li>
+</ul>
+<h3 id="estimation-error">Estimation error</h3>
+<ul>
+<li>Noise in the local estimates</li>
+<li>不同 cache
+的样本数相差太大，估计的准确率相差太大：收敛速度不一样</li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/limit-estimates.png"></p>
+<ul>
+<li>解决方案：spatial filtering（sharing estimates between caches）</li>
+</ul>
+<h3 id="combining-with-adaptive-sampling">Combining with Adaptive
+Sampling</h3>
+<ul>
+<li>在 primary hit point 就是使用了
+RR（增大了方差，把计算资源分配给其他像素了，总体效率提高）
+<ul>
+<li>local 方差小，global 方差大</li>
+<li>可以直接和 adaptive
+相结合，直接不采样这些光线（本身也是浪费了），效率更高</li>
+</ul></li>
+<li>改动：maximize the efficiency of <strong>each individual
+pixel</strong></li>
+</ul>
+<h3 id="bidirectional-methods">Bidirectional methods</h3>
+<ul>
+<li>BDPT 需要考虑 MIS 权重，RRS 也会成为其中的一部分，更加复杂了</li>
+<li>视子路 RRS 会影响 光子路 RRS，更难优化（非凸问题）</li>
+<li><strong>相关性问题</strong></li>
+</ul>
+<h3 id="其他">其他</h3>
+<ul>
+<li>Participating media</li>
+<li>Correlated sampling
+<ul>
+<li>uncorrelated sampling：方差 <span class="math inline">\(\propto
+O(n^{-1})\)</span></li>
+<li>QMC 并不是</li>
+<li>quasi-Monte Carlo sampling</li>
+</ul></li>
+<li>Dynamic scenes
+<ul>
+<li>学习得到的统计量在帧间复用</li>
+</ul></li>
+</ul>
+<h2 id="收敛性证明">收敛性证明</h2>
+<ul>
+<li>凸函数就能保证</li>
+<li>如下证明以 S 为例</li>
+<li><span class="math inline">\(\gamma(n)\)</span> 函数：<a href="#不动点迭代函数">等式 29</a>
+<ul>
+<li>恒正</li>
+<li>只有 global 部分相关</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\gamma(n)=A\sqrt{\dfrac{a+bn}{c+\dfrac{d}{n}}}\in O(\sqrt{n})
+\]</span></p>
+<ul>
+<li>于是有</li>
+</ul>
+<p><span class="math display">\[
+\gamma&#39;(n)&gt;0,\gamma&#39;(n)\in O\left(\dfrac{1}{\sqrt{n}}\right)
+\]</span></p>
+<ul>
+<li>于是 <span class="math inline">\(\gamma(n)\)</span>
+是严格递增的凹函数，而且具有如下的极限性质</li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/eq52-limits.png"></p>
+<ul>
+<li>大致图形如下</li>
+</ul>
+<p><img src="/2023/09/05/CG/Papers/2022/EARS/02/fig13-approx-of-gamma-and-gamma-prime.png"></p>
+<ul>
+<li>此时，存在 <span class="math inline">\(t\)</span> 满足 <span class="math inline">\(\gamma&#39;(t)=1,\gamma(n_f)=n_f\)</span>
+<ul>
+<li><span class="math inline">\(x&gt;t\)</span>：满足条件
+<ul>
+<li><span class="math inline">\(\gamma&#39;(x)&lt;1\)</span></li>
+<li>自映射：<span class="math inline">\([n(t),\infty)\subset
+[t,\infty)\)</span></li>
+</ul></li>
+<li><span class="math inline">\(x&lt;t\Rightarrow
+\gamma(x)&gt;x\)</span></li>
+</ul></li>
+<li>RR、RRS 证明同理</li>
+</ul>
+<h2 id="总结">总结</h2>
+<ul>
+<li>不动点迭代的体现
+<ul>
+<li>使用上一轮的统计量更新 RRS，使用这一轮的 RRS 更新统计量</li>
+<li>下一轮使用的统计量相当于是使用这一轮更新得到的</li>
+<li>统计量的迭代更新和 RRS 的迭代更新是一致的</li>
+</ul></li>
+<li>不动点迭代逻辑：<span class="math inline">\(\gamma_{i-1}\to\text{local}_{i-1}\to\gamma_{i}\)</span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/RRS/" rel="tag"># RRS</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/" rel="prev" title="(论文)[1997-EGSR] An Error Metric for Monte Carlo Ray Tracing">
+                  <i class="fa fa-chevron-left"></i> (论文)[1997-EGSR] An Error Metric for Monte Carlo Ray Tracing
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/09/11/CG/Papers/2021/NRC/" rel="next" title="(论文)[2021-SIG]Real-time Neural Radiance Caching for Path Tracing">
+                  (论文)[2021-SIG]Real-time Neural Radiance Caching for Path Tracing <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

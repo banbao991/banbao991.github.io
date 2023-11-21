@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="BDPT，引言，背景知识与相关工作（基础 BDPT、光子路重用 LVCBPT、概率连接思想 PCBPT）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2023] 基于子空间的双向路径连接渲染技术(1)">
+<meta property="og:url" content="http://example.com/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="BDPT，引言，背景知识与相关工作（基础 BDPT、光子路重用 LVCBPT、概率连接思想 PCBPT）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/2.3-bdpt.jpg">
+<meta property="og:image" content="http://example.com/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/2.4-LVCBPT.jpg">
+<meta property="og:image" content="http://example.com/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/2.4-PCBPT.jpg">
+<meta property="article:published_time" content="2023-07-18T02:05:56.000Z">
+<meta property="article:modified_time" content="2023-08-01T08:48:35.469Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="BDPT">
+<meta property="article:tag" content="Paper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/2.3-bdpt.jpg">
+
+
+<link rel="canonical" href="http://example.com/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/","path":"2023/07/18/CG/Papers/2023/SFJ-BDPT/01/","title":"(论文)[2023] 基于子空间的双向路径连接渲染技术(1)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2023] 基于子空间的双向路径连接渲染技术(1) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E5%AD%90%E7%A9%BA%E9%97%B4%E7%9A%84%E5%8F%8C%E5%90%91%E8%B7%AF%E5%BE%84%E8%BF%9E%E6%8E%A5%E6%B8%B2%E6%9F%93%E6%8A%80%E6%9C%AF1"><span class="nav-text">基于子空间的双向路径连接渲染技术(1)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-text">引言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86%E4%B8%8E%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-text">背景知识与相关工作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B8%B2%E6%9F%93%E6%96%B9%E7%A8%8B"><span class="nav-text">渲染方程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mis"><span class="nav-text">MIS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bdpt"><span class="nav-text">BDPT</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#mc-%E4%BC%B0%E8%AE%A1"><span class="nav-text">MC 估计</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%89%E5%AD%90%E8%B7%AF%E9%87%8D%E7%94%A8"><span class="nav-text">光子路重用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#mc-%E4%BC%B0%E8%AE%A1-1"><span class="nav-text">MC 估计</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E7%8E%87%E8%BF%9E%E6%8E%A5%E6%80%9D%E6%83%B3"><span class="nav-text">概率连接思想</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pcbpt"><span class="nav-text">PCBPT</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-text">其他相关工作</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2023] 基于子空间的双向路径连接渲染技术(1) | Banbao">
+      <meta itemprop="description" content="BDPT，引言，背景知识与相关工作（基础 BDPT、光子路重用 LVCBPT、概率连接思想 PCBPT）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2023] 基于子空间的双向路径连接渲染技术(1)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-07-18 10:05:56" itemprop="dateCreated datePublished" datetime="2023-07-18T10:05:56+08:00">2023-07-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-08-01 16:48:35" itemprop="dateModified" datetime="2023-08-01T16:48:35+08:00">2023-08-01</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">BDPT，引言，背景知识与相关工作（基础 BDPT、光子路重用 LVCBPT、概率连接思想 PCBPT）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="基于子空间的双向路径连接渲染技术1">基于子空间的双向路径连接渲染技术(1)</h1>
+<ul>
+<li><a href="/2023/07/18/CG/Papers/2023/SFJ-BDPT/00/">目录</a></li>
+</ul>
+<h2 id="引言">引言</h2>
+<ul>
+<li>离散像素 <span class="math inline">\(I\)</span> 的颜色与连续的图像
+<span class="math inline">\(I(u,v)\)</span> 的关系
+<ul>
+<li><span class="math inline">\(W_e\)</span>：相机感知函数，表示这个像素点的颜色与哪些位置的值相关</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I=\int W_e(u,v)I(u,v)\;\mathrm{d}u\mathrm{d}v
+\]</span></p>
+<ul>
+<li>光栅化：<span class="math inline">\(W_e(u,v)=\delta(u,v)\)</span></li>
+<li>一般认为光源 <span class="math inline">\(\text{BRDF} =
+0\)</span>，即光线打到光源上就被完全吸收
+<ul>
+<li>因此 PT 中 camera ray 击中光源则停止追踪，<span class="math inline">\(L=L_o+L_r=L_o\)</span></li>
+</ul></li>
+<li>BDPT：
+<ul>
+<li>光源配置 <span class="math inline">\(\to\)</span>
+间接光占比极高</li>
+<li>路径组成复杂</li>
+</ul></li>
+<li>本文（基于 BDPT）
+<ul>
+<li>Subspace-based Probabilistic Connections for Bidirectional Path
+Tracing</li>
+<li>BDPT：光选择过程，光选择函数</li>
+<li>proxy tracing：替换中间的不好的顶点</li>
+</ul></li>
+</ul>
+<h2 id="背景知识与相关工作">背景知识与相关工作</h2>
+<h3 id="渲染方程">渲染方程</h3>
+<ul>
+<li>渲染方程的路径积分形式</li>
+</ul>
+<p><span class="math display">\[
+I=\int_{\Omega}f(\bar{x})\;\mathrm{d}\mu(\bar{x})
+\]</span></p>
+<ul>
+<li>路径：<span class="math inline">\(x_0\)</span> 在光源处，<span class="math inline">\(x_k\)</span> 在摄像机上</li>
+</ul>
+<p><span class="math display">\[
+\bar{x}=x_0\cdots x_k
+\]</span></p>
+<ul>
+<li>面积</li>
+</ul>
+<p><span class="math display">\[
+\mathrm{d}\mu(\bar{x})=\mathrm{d}A(x_0)\cdots\mathrm{d}A(x_k)
+\]</span></p>
+<ul>
+<li>贡献</li>
+</ul>
+<p><span class="math display">\[
+f(\bar{x})=L_e({x}_0,{x}_1)T(\bar{x})W_e({x}_{k-1},{x}_k)
+\]</span></p>
+<p><span class="math display">\[
+T(\bar{x})=GV({x}_0,{x}_1)\left[\prod_{i=1}^{k-1}B({x}_{i-1},{x}_i,{x}_{i+1})GV({x}_i,{x}_{i+1})\right]
+\]</span></p>
+<p><span class="math display">\[
+GV({x}_i,{x}_j)=V({x}_i,{x}_j)\dfrac{\vert\cos\theta_{i,j}\vert\vert\cos\theta_{j,i}\vert}{\Vert{x}_i-{x}_j\Vert^2}
+\]</span></p>
+<h3 id="mis">MIS</h3>
+<ul>
+<li>多重重要性采样</li>
+<li>一条相同路径的采样策略可能有多个，因此需要对他们加权（权值和为
+1）</li>
+<li>平衡启发式：效果上等价于使用新的分布进行采样 <span class="math inline">\(\mathcal{F}(x)\)</span></li>
+</ul>
+<p><span class="math display">\[
+\mathcal{F}(x)=\sum_{i}p_i(x)
+\]</span></p>
+<h3 id="bdpt">BDPT</h3>
+<ul>
+<li>同样的一条路径在 BDPT 中会对应多种不同的采样方式，使用 MIS
+分配权重</li>
+<li>一般流程
+<ul>
+<li>从光源和摄像头各自追踪一条子光路，随后对两条子光路上的任意一对顶点做可见性测试</li>
+<li><strong><span style="color:red">所有都连</span></strong></li>
+</ul></li>
+</ul>
+<p><img src="/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/2.3-bdpt.jpg"></p>
+<ul>
+<li>子路径追踪的本质：采样得到了若干个子路径（路径前缀），pdf
+的形式说明了这一点
+<ul>
+<li>顶点数为 <span class="math inline">\(t\)</span> 的子路径 <span class="math inline">\(\bar{z}\)</span></li>
+<li>有相关性</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p(\bar{z})=p(z_0)\prod_{i=1}^{t-1}p(z_{i-1}\to z_{i})
+\]</span></p>
+<ul>
+<li>采样空间：场景表面集合 <span class="math inline">\(A\)</span>
+的任何一个笛卡尔积 <span class="math inline">\(A^{t}\)</span></li>
+</ul>
+<h4 id="mc-估计">MC 估计</h4>
+<ul>
+<li>光子路径 <span class="math inline">\(\bar{y}\)</span>、视子路径
+<span class="math inline">\(\bar{z}\)</span></li>
+</ul>
+<p><span class="math display">\[
+p(\bar{x})=p(\bar{y})\cdot p(\bar{z})
+\]</span></p>
+<ul>
+<li>MIS：对不同的形成 <span class="math inline">\(\bar{x}\)</span>
+策略，光子路径 <span class="math inline">\(\bar{y}\)</span>、视子路径
+<span class="math inline">\(\bar{z}\)</span> 的顶点数对 <span class="math inline">\((s,t)\)</span>
+<ul>
+<li>长度 <span class="math inline">\(k\)</span>，采样策略 <span class="math inline">\(k+2\)</span></li>
+<li><span class="math inline">\(s+t=k+1\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I=\sum_{s,t} I_{s,t}
+\]</span></p>
+<p><span class="math display">\[
+I_{s,t}=\int w_{s,t}(\bar{x})f(\bar{x})\;\mathrm{d}\mu({\bar{x}})
+\]</span></p>
+<ul>
+<li>平衡启发式</li>
+</ul>
+<p><span class="math display">\[
+w_{s,t}(\bar{x})=\dfrac{p_{s,t}(\bar{x})}{\sum_{s&#39;+t&#39;=k+1}p_{s&#39;,t&#39;}(\bar{x})}
+\]</span></p>
+<ul>
+<li>传统 BDPT：一个像素单独追踪一条光子路径和视子路径</li>
+</ul>
+<h3 id="光子路重用">光子路重用</h3>
+<ul>
+<li>对于不同的像素，光子路的的生成过程是一致的
+<ul>
+<li>有相关性，因此过程中也需要更新光子路</li>
+</ul></li>
+<li>LVCBPT：2 pass
+<ul>
+<li>第一步，追踪多条光源子光路，将追踪出的光顶点存放入光顶点缓存中</li>
+<li>第二步，追踪视线子光路，对视线子光路中的每一个视顶点，在光顶点缓存中随机选取一个光顶点进行连接</li>
+<li>LVC：光顶点缓存（Light Vertex Cache）
+<ul>
+<li><span class="math inline">\(\mathcal{S}\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/2.4-LVCBPT.jpg"></p>
+<ul>
+<li>对于一条路径，他的采样空间为 <span class="math inline">\(\mathcal{S}\)</span></li>
+</ul>
+<h4 id="mc-估计-1">MC 估计</h4>
+<ul>
+<li>选择光子路的时候不会限制长度，只连末端</li>
+<li>采样策略：通过视子路径顶点数 <span class="math inline">\(t\)</span>
+来区分</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+I
+&amp;=\sum_{t}I_t
+=\sum_{t}\int w_t(\bar{x})f(\bar{x})\;\mathrm{d}\mu(\bar{x})\\
+&amp;=\sum_{t}\int_{A_t}\int_{\mathcal{S}}
+w_t(\bar{y}\bar{z})f(\bar{y}\bar{z})\;\mathrm{d}\mu(\bar{y})\mathrm{d}\mu(\bar{z})\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>采样光子路的概率 <span class="math inline">\(p_r(\bar{y})=p_o(\bar{y})\cdot
+p_{select}(\bar{y})\)</span>
+<ul>
+<li>光子路被追踪并且缓存到 LVC 的概率</li>
+<li>从 LVC 中采样得到光子的概率</li>
+<li><strong><span style="color:red">启发</span></strong>：感觉在 path
+guiding 算法中，根本不会考虑构建构建 <span class="math inline">\(\mathcal{S}\)</span> 的概率</li>
+</ul></li>
+<li>具体如下
+<ul>
+<li><span class="math inline">\(M\)</span>：每次迭代的光子路追踪次数</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p_o(\bar{y})=Mp(\bar{y})
+\]</span></p>
+<ul>
+<li>光子路均匀采样，则有
+<ul>
+<li><strong><span style="color:red">有点怪</span></strong>，感觉这个均匀是按照 <span class="math inline">\(\bar{y}\)</span> 的权重加权采样，而不是说 <span class="math inline">\(n\)</span> 条则每一条的概率为 <span class="math inline">\(\dfrac{1}{n}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+p_{select}(\bar{y})
+&amp;=1/\left({M\int_{\mathcal{S}}p(\bar{y&#39;})\;\mathrm{d}\mu(\bar{y&#39;})}\right)\\
+&amp;\xlongequal{?}1/\left({\int_{\mathcal{S}}p_o(\bar{y&#39;})\;\mathrm{d}\mu(\bar{y&#39;})}\right)\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>合在一起可以看到，就是把追踪得到这条光子路的概率归一化之后作为采样权重</li>
+<li>实践上也可以直接取：<span class="math inline">\(p_{r}(\bar{y})=\dfrac{1}{候选光子路数目}\)</span>
+<ul>
+<li>这个是 <span class="math inline">\(n\)</span> 条则每一条的概率为
+<span class="math inline">\(\dfrac{1}{n}\)</span></li>
+</ul></li>
+<li>确切的来说只需要 <span class="math inline">\(p_r(\bar{y})\)</span>
+对所有的光子路求积分为 1 即可</li>
+</ul>
+<h3 id="概率连接思想">概率连接思想</h3>
+<ul>
+<li>连接的时候，可以认为是计算不同的光子路 <span class="math inline">\(\bar{y}\)</span> 的加权贡献值
+<ul>
+<li>类似于 path guiding</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I(\bar{z})=\int_{\mathcal{S}}w_t(\bar{y}\bar{z})f(\bar{y}\bar{z})\;\mathrm{d}\mu(\bar{y})
+\]</span></p>
+<ul>
+<li>LVCBPT 是均匀的选择，如何更好的选择？ <span class="math inline">\(\to\)</span> 光选择问题</li>
+</ul>
+<h4 id="pcbpt">PCBPT</h4>
+<ul>
+<li>Key Idea：不考虑 MIS
+权重函数的影响，认为选择光子路的概率应当正比于视子路与光子路连接形成的<strong>完整光路的贡献值</strong></li>
+<li>每一个视子路的光选择分布都会不太一样，但是实现上，末端相近的视子路使用相同的分布（PMF
+Record）
+<ul>
+<li>KD 树等数据结构</li>
+</ul></li>
+<li>3 Pass
+<ul>
+<li>追踪多条光源子光路，将追踪出的光顶点放人光顶点缓存中</li>
+<li>追踪少量视线子光路，每个视顶点与光顶点缓存中每一个光顶点连接，生成
+PMF Record</li>
+<li>追踪视线子光路，为每个视顶点找到合适的 PMF
+Record，随后重要性采样出光顶点，与其连接</li>
+</ul></li>
+</ul>
+<p><img src="/2023/07/18/CG/Papers/2023/SFJ-BDPT/01/2.4-PCBPT.jpg"></p>
+<ul>
+<li>效率能够达到 BDPT 的 3x~4x</li>
+<li>问题：
+<ul>
+<li>PMF Record 构建慢
+<ul>
+<li>每一条光子路都需要做可见性测试</li>
+<li>光子路更新会使其重建</li>
+</ul></li>
+<li>算法开销正比于光子路个数，因此光子路个数少（100-200）
+<ul>
+<li>早期渲染带来巨大的<strong>像素间相关性</strong></li>
+</ul></li>
+<li>PMF Record 存储的 KD 查询慢</li>
+<li>未考虑 MIS，因此不是最优的</li>
+</ul></li>
+</ul>
+<h3 id="其他相关工作">其他相关工作</h3>
+<ul>
+<li>多光源方法
+<ul>
+<li>Lightcuts、Lightslice</li>
+<li>可见性、方差最小化
+<ul>
+<li>VisibilityCluster</li>
+<li>Bayesian online regression for adaptive direct illumination
+sampling</li>
+</ul></li>
+</ul></li>
+<li>Path Guiding</li>
+<li>Photon Mapping</li>
+<li>ReSTIR</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/BDPT/" rel="tag"># BDPT</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/07/18/CG/Papers/2023/SFJ-BDPT/00/" rel="prev" title="(论文)[2023] 基于子空间的双向路径连接渲染技术(目录)">
+                  <i class="fa fa-chevron-left"></i> (论文)[2023] 基于子空间的双向路径连接渲染技术(目录)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/07/18/Kits/chrome-extension/" rel="next" title="chrome 浏览器插件">
+                  chrome 浏览器插件 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

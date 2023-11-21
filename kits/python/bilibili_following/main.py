@@ -24,8 +24,8 @@ def deal_json(arr: list):
 
     now_time = get_time()
     # 写入 json 文件
-    with open("%s/info-%s.json" % (uid_dir, now_time), "w", encoding="utf-8") as f:
-        f.write(json.dumps(data, ensure_ascii=False))
+    # with open("%s/info-%s.json" % (uid_dir, now_time), "w", encoding="utf-8") as f:
+    # f.write(json.dumps(data, ensure_ascii=False))
 
     # 写入关注列表
     with open("%s/following-%s.txt" % (uid_dir, now_time), "w", encoding="utf-8") as f:
@@ -42,7 +42,29 @@ def download(url: str, file_name) -> str:
         # 出现异常直接退出
         print("Exception Caught!")
         return None
+    # print(res.text)
+    # TODO 现在已经需要登录了
+    # {"code":-101,"message":"账号未登录","ttl":1}
     return json.loads(res.text)["data"]
+
+
+# 处理的主函数
+def parse(args: argparse.Namespace):
+    json_array = []
+    index = 0
+
+    while(True):
+        # 读取 json 文件
+        file_name = "{}/followings{}.json".format(
+            args.input_dir, " ({})".format(index) if index > 0 else "")
+        if(not os.path.exists(file_name)):
+            break
+        # 使用 json 库读取文件
+        with open(file_name, "r", encoding="utf-8") as f:
+            json_array.append(json.loads(f.read())["data"])
+        index += 1
+    # 处理 json 文件
+    deal_json(json_array)
 
 
 # 处理的主函数
@@ -87,6 +109,9 @@ def mkdir(uid: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--uid", "-u")
+    # 添加一个参宿和 method，提示信息为 download/parse
+    parser.add_argument("--method", "-m", help="download/parse")
+    parser.add_argument("--input_dir", "-i", help="the input dir for parse method")
     args = parser.parse_args()
 
     if(args.uid == None):
@@ -94,7 +119,21 @@ if __name__ == "__main__":
         # print("usage: python main.py -u uid")
         # exit()
 
+    if(args.method == None):
+        args.method = "parse"
+
+    if(args.method == "parse"):
+        if(args.input_dir == None):
+            print("error: parse method need input_dir")
+            exit()
+
     # 新建文件夹
     mkdir(args.uid)
-    # 下载 json 文件并处理
-    deal(args.uid)
+
+    if(args.method == "download"):
+        # 下载 json 文件并处理
+        deal(args.uid)
+
+    if(args.method == "parse"):
+        # 处理 json 文件
+        parse(args)

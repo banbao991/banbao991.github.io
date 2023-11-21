@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="并行编程、stream、cuda graph、不同的 momery（texture、surface）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cuda 学习(2)">
+<meta property="og:url" content="http://example.com/2023/09/21/CG/cuda/02/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="并行编程、stream、cuda graph、不同的 momery（texture、surface）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2023/09/21/CG/cuda/02/gpu-activity.png">
+<meta property="og:image" content="http://example.com/2023/09/21/CG/cuda/02/preamble-overlap.png">
+<meta property="og:image" content="http://example.com/2023/09/21/CG/cuda/02/create-a-graph.png">
+<meta property="article:published_time" content="2023-09-21T07:23:51.000Z">
+<meta property="article:modified_time" content="2023-10-04T06:21:43.282Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="cuda">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/09/21/CG/cuda/02/gpu-activity.png">
+
+
+<link rel="canonical" href="http://example.com/2023/09/21/CG/cuda/02/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/09/21/CG/cuda/02/","path":"2023/09/21/CG/cuda/02/","title":"cuda 学习(2)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>cuda 学习(2) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#programming-interface"><span class="nav-text">Programming Interface</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cuda-runtime"><span class="nav-text">CUDA Runtime</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#asynchronous-concurrent-execution"><span class="nav-text">Asynchronous Concurrent
+Execution</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#concurrent-execution-between-host-and-device"><span class="nav-text">Concurrent
+Execution between Host and Device</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#concurrent-kernel-execution"><span class="nav-text">Concurrent Kernel Execution</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#overlap-of-data-transfer-and-kernel-execution"><span class="nav-text">Overlap of Data
+Transfer and Kernel Execution</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#concurrent-data-transfers"><span class="nav-text">Concurrent Data Transfers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#streams"><span class="nav-text">Streams</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#cuda-graphs"><span class="nav-text">CUDA Graphs</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%8D%95%E8%8E%B7%E6%A8%A1%E5%BC%8F"><span class="nav-text">捕获模式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#cuda-user-objects"><span class="nav-text">CUDA User Objects</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%BB%86%E8%8A%82"><span class="nav-text">其他细节</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#multi-device-system"><span class="nav-text">Multi-Device System</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unified-virtual-address-space"><span class="nav-text">Unified Virtual Address
+Space</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#interprocess-communication"><span class="nav-text">Interprocess Communication</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#error-checking"><span class="nav-text">Error Checking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#call-stack"><span class="nav-text">Call Stack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#texture-and-surface-memory"><span class="nav-text">Texture and Surface Memory</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#texture-memory"><span class="nav-text">Texture Memory</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#surface-memory"><span class="nav-text">Surface Memory</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#cuda-arrays"><span class="nav-text">CUDA Arrays</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#readwrite-coherency"><span class="nav-text">Read&#x2F;Write Coherency</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/09/21/CG/cuda/02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="cuda 学习(2) | Banbao">
+      <meta itemprop="description" content="并行编程、stream、cuda graph、不同的 momery（texture、surface）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          cuda 学习(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-09-21 15:23:51" itemprop="dateCreated datePublished" datetime="2023-09-21T15:23:51+08:00">2023-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-10-04 14:21:43" itemprop="dateModified" datetime="2023-10-04T14:21:43+08:00">2023-10-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cuda/" itemprop="url" rel="index"><span itemprop="name">cuda</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">并行编程、stream、cuda graph、不同的 momery（texture、surface）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="programming-interface">Programming Interface</h1>
+<h2 id="cuda-runtime">CUDA Runtime</h2>
+<h3 id="asynchronous-concurrent-execution">Asynchronous Concurrent
+Execution</h3>
+<ul>
+<li>可并行的任务
+<ul>
+<li>host 计算</li>
+<li>device 计算</li>
+<li>host -&gt; device 数据传输</li>
+<li>device -&gt; host 数据传输</li>
+<li>device 内部的数据传输</li>
+<li>device 之间的数据传输</li>
+</ul></li>
+</ul>
+<h4 id="concurrent-execution-between-host-and-device">Concurrent
+Execution between Host and Device</h4>
+<ul>
+<li>异步操作
+<ul>
+<li>Kernel 启动
+<ul>
+<li><code>CUDA_LAUNCH_BLOCKING</code> 修改为 1，则同步（<span style="color:red">debug only</span>）</li>
+</ul></li>
+<li>device 内部数据拷贝</li>
+<li>host -&gt; device 数据拷贝（&lt;=64KB）</li>
+<li><code>Async</code> 后缀的数据拷贝函数</li>
+<li>Memory set function calls</li>
+</ul></li>
+<li>使用 Nsight、Visual Profiler 时，kernel 启动是同步的</li>
+<li>host 不是 page-locked 的时候，<code>Async</code> 变成同步</li>
+</ul>
+<h4 id="concurrent-kernel-execution">Concurrent Kernel Execution</h4>
+<ul>
+<li>CC&gt;=2.0，某些 device 支持多 kernel
+<ul>
+<li><code>concurrentKernels</code> device property</li>
+</ul></li>
+</ul>
+<h4 id="overlap-of-data-transfer-and-kernel-execution">Overlap of Data
+Transfer and Kernel Execution</h4>
+<ul>
+<li><code>asyncEngineCount</code> device property（&gt;0 则支持）</li>
+</ul>
+<h4 id="concurrent-data-transfers">Concurrent Data Transfers</h4>
+<ul>
+<li><code>asyncEngineCount</code> device property（=2 则支持）</li>
+<li>host memory 必须是 page-locked 的</li>
+</ul>
+<h4 id="streams">Streams</h4>
+<ul>
+<li>commands 序列（可以是多个 host threads）</li>
+<li>stream 内部顺序执行、stream 之间乱序</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建</span></span><br><span class="line">cudaStream_t stream[<span class="number">2</span>];</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">2</span>; ++i) &#123;</span><br><span class="line">    <span class="built_in">cudaStreamCreate</span>(&amp;stream[i]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">float</span>* hostPtr;</span><br><span class="line"><span class="built_in">cudaMallocHost</span>(&amp;hostPtr, <span class="number">2</span> * size); <span class="comment">// page-locked</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 任务</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">2</span>; ++i) &#123;</span><br><span class="line">    <span class="comment">// host -&gt; device</span></span><br><span class="line">    <span class="built_in">cudaMemcpyAsync</span>(inputDevPtr + i * size, hostPtr + i * size, size, cudaMemcpyHostToDevice, stream[i]);</span><br><span class="line">    <span class="comment">// kernel execution</span></span><br><span class="line">    MyKernel &lt;&lt;&lt;<span class="number">100</span>, <span class="number">512</span>, <span class="number">0</span>, stream[i]&gt;&gt;&gt;(outputDevPtr + i * size, inputDevPtr + i * size, size);</span><br><span class="line">    <span class="comment">// device -&gt; host</span></span><br><span class="line">    <span class="built_in">cudaMemcpyAsync</span>(hostPtr + i * size, outputDevPtr + i * size, size, cudaMemcpyDeviceToHost, stream[i]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 销毁</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">2</span>; ++i) &#123;</span><br><span class="line">    <span class="built_in">cudaStreamDestroy</span>(stream[i]); <span class="comment">// 异步，当 stream 任务结束之后销毁</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Default Stream
+<ul>
+<li>不指定 stream（或者参数设置为 0）</li>
+</ul></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">编译参数</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">一个 device 一个 stream，会做一些隐式同步（默认）</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NULL stream</span></span><br><span class="line">--default-stream legacy</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">一个 host thread 一个 stream</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Default stream</span></span><br><span class="line">--default-stream per-thread</span><br></pre></td></tr></table></figure>
+<ul>
+<li>nvcc 编译的时候默认 include 了 cuda
+的头文件，因此宏可以不一定有效（需要添加在编译选项里面）
+<ul>
+<li>下面 1、2 有效，3 可能失效</li>
+</ul></li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#define CUDA_API_PER_THREAD_DEFAULT_STREAM 1</span><br><span class="line">-DCUDA_API_PER_THREAD_DEFAULT_STREAM=1</span><br><span class="line">--default-stream per-thread</span><br></pre></td></tr></table></figure>
+<ul>
+<li>显式同步`</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cudaDeviceSynchronize</span>();  <span class="comment">// device 上所有 stream 结束</span></span><br><span class="line"><span class="built_in">cudaStreamSynchronize</span>();  <span class="comment">// stream 上所有 command 结束</span></span><br><span class="line"><span class="built_in">cudaStreamWaitEvent</span>();    <span class="comment">// 等待在某个事件上</span></span><br><span class="line"><span class="built_in">cudaStreamQuery</span>();        <span class="comment">// 返回是否完成</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>隐式同步
+<ul>
+<li>a page-locked host memory allocation,</li>
+<li>a device memory allocation,</li>
+<li>a device memory set,</li>
+<li>a memory copy between two addresses to the same device memory,</li>
+<li>any CUDA command to the NULL stream,</li>
+<li>a switch between the L1/shared memory configurations described in
+Compute Capability 7.x.</li>
+</ul></li>
+<li>编程指导（提高并发）
+<ul>
+<li>没有依赖的操作在有依赖的操作之前发出</li>
+<li>同步操作越晚越好（延迟同步）</li>
+</ul></li>
+<li>Overlapping Behavior
+<ul>
+<li>overlap between two streams（首先需要硬件支持）</li>
+<li>需要考虑硬件支持的类别，合理规划代码执行顺序</li>
+</ul></li>
+<li>Host Functions (Callbacks)
+<ul>
+<li><code>cudaLaunchHostFunc()</code>：insert a CPU function call at any
+point into a stream</li>
+<li>在 host function 执行完之前，之后的 device 代码不会执行
+<ul>
+<li>函数内部不允许作 cuda 调用，否则会陷入死锁（自己等自己）</li>
+</ul></li>
+</ul></li>
+<li>Stream Priorities：<code>cudaStreamCreateWithPriority()</code>
+<ul>
+<li>哪些优先级：<code>cudaDeviceGetStreamPriorityRange()</code></li>
+</ul></li>
+<li>Programmatic Dependent Launch
+<ul>
+<li>CC&gt;=9.0</li>
+<li>kernel2 一部分不依赖于 kernel1，一部分依赖于
+kernel1，此时有一部分并行</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/21/CG/cuda/02/gpu-activity.png"></p>
+<p><img src="/2023/09/21/CG/cuda/02/preamble-overlap.png"></p>
+<h4 id="cuda-graphs">CUDA Graphs</h4>
+<ul>
+<li>依赖图</li>
+<li>defined once，lanched repeatedly</li>
+<li>和 stream 相比
+<ul>
+<li>CPU 启动开销变小了，预先 setup 了</li>
+<li>整个工作流提供给 cuda，能够让 cuda 更好的优化</li>
+</ul></li>
+<li>工作流：definition, instantiation, execution
+<ul>
+<li>只有 execution 有多次执行</li>
+</ul></li>
+<li>Graph Node Types
+<ul>
+<li>kernel</li>
+<li>CPU function call</li>
+<li>memory copy、memset</li>
+<li>empty node</li>
+<li>waiting on an event、recording an event</li>
+<li>signalling an external semaphore、waiting on an external
+semaphore</li>
+<li>child graph</li>
+</ul></li>
+</ul>
+<h5 id="捕获模式">捕获模式</h5>
+<ul>
+<li>Stream capture：可以从 stream 中建立 Graph</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cudaGraph_t graph;</span><br><span class="line"><span class="built_in">cudaStreamBeginCapture</span>(stream);</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="built_in">cudaStreamEndCapture</span>(stream, &amp;graph);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>此时中间的任务不会被执行</li>
+<li>除了 NULL stream 之外，都可用</li>
+<li>可以查询流状态：<code>cudaStreamIsCapturing()</code></li>
+<li>通过
+<code>cudaEventRecord()</code>、<code>cudaStreamWaitEvent()</code>
+实现流之间的依赖关系（如<a href="#graph-1">下图</a>）
+<ul>
+<li>当一个流还未完成，如果此时其依赖于一个捕获模式中的事件，则这个时候当前流也进入捕获模式，两个流此时被同一个
+graph 捕获</li>
+</ul></li>
+<li>当 stream 退出捕获模式时，Stream
+中如果有下一个未捕获项，则它将仍依赖最近的先前未捕获项</li>
+<li>当处于捕获模式的时候，如下状态的查询失效（需要查询每一个操作的返回状态）
+<ul>
+<li>对捕获流相关异步操作的查询是无效的（并未真正执行）</li>
+<li><code>legacy stream</code>（NULL stream） 会和其他的所有 stream
+同步（除了通过 <code>cudaStreamWaitEvent()</code>
+创建的之外），因此对其的查询也失效</li>
+<li>Synchronous APIs 查询同样也失效（会被推入
+<code>legacy stream</code>），例如 <code>cudaMemcpy()</code></li>
+</ul></li>
+<li>当处于捕获模式的时候，如下操作是 invalid 的（看返回值）
+<ul>
+<li>没太看懂：It is invalid to merge two separate capture graphs by
+waiting on a captured event from a stream which is being captured and is
+associated with a different capture graph than the event. It is invalid
+to wait on a non-captured event from a stream which is being captured
+without specifying the cudaEventWaitExternal flag.</li>
+<li>少部分异步操作暂时不支持</li>
+</ul></li>
+<li><span id="graph-1">如下</span> graph
+可以直接创建，也可以通过捕获模式创建（event）</li>
+</ul>
+<p><img src="/2023/09/21/CG/cuda/02/create-a-graph.png"></p>
+<ul>
+<li><span style="color:red">时常检查返回值</span>，graph 中存在
+error，则整个 graph 也会 error</li>
+</ul>
+<h5 id="cuda-user-objects">CUDA User Objects</h5>
+<ul>
+<li><code>cudaUserObjectCreate()</code></li>
+<li>可以维护在 graph 内部的引用计数，当引用计数为 0
+的时候，调用回调函数（析构对象）</li>
+<li>但是无法在 cuda 端等待回调函数完成，可以通过事件手动实现</li>
+</ul>
+<h5 id="其他细节">其他细节</h5>
+<ul>
+<li>暂时用不到，就不看了
+<ul>
+<li>更新初始化好的 graph</li>
+<li>启动 graph</li>
+<li>事件</li>
+<li>同步调用：<code>cudaSetDeviceFlags()</code></li>
+</ul></li>
+</ul>
+<h3 id="multi-device-system">Multi-Device System</h3>
+<ul>
+<li>设备信息</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cudaGetDeviceCount</span>();</span><br><span class="line"><span class="built_in">cudaGetDeviceProperties</span>();</span><br></pre></td></tr></table></figure>
+<ul>
+<li>设置设备：<code>cudaSetDevice()</code>
+<ul>
+<li>所有操作都基于当前 device：内存分配、kernel 执行、stream 创建
+<ul>
+<li>stream 和 kernel 不在一个 device 上会报错</li>
+</ul></li>
+<li>默认 0</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果注释中的两部分位于不同的 device，如下操作失效</span></span><br><span class="line"><span class="built_in">cudaEventRecord</span>();      <span class="comment">// event, stream</span></span><br><span class="line"><span class="built_in">cudaEventElapsedTime</span>(); <span class="comment">// event, event</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 不同 device 也成功</span></span><br><span class="line"><span class="comment">// 内存拷贝操作;                            // stream, current device</span></span><br><span class="line"><span class="built_in">cudaEventSynchronize</span>(); <span class="built_in">cudaEventQuery</span>(); <span class="comment">// input event, current device</span></span><br><span class="line"><span class="built_in">cudaStreamWaitEvent</span>();                    <span class="comment">// stream, event</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>不同的 device 有不同的 default stream</li>
+<li>Peer-to-Peer Memory Access（PCIe，NVLINK）
+<ul>
+<li><code>cudaDeviceCanAccessPeer()</code></li>
+<li>可以读取其他 device 上的内存内容</li>
+<li>条件：64bit app，<code>cudaDeviceEnablePeerAccess()</code></li>
+<li>linux 上有限制（IOMMU on Linux）</li>
+</ul></li>
+<li>Peer-to-Peer Memory Copy
+<ul>
+<li>使用 unified address space 的时候，直接使用普通的
+<code>cudaMemcpy()</code></li>
+<li>否则使用 <code>cudaMemcpyPeer()</code></li>
+<li>device 之间的拷贝，会在两个 device 上任务都完成之后开始，在两个
+device 之后的任务启动之前结束
+<ul>
+<li>和 stream 的并行性质一样，也能并行</li>
+</ul></li>
+<li><code>cudaDeviceEnablePeerAccess()</code>之后，peer-to-peer
+访问不需要通过 host，很快</li>
+</ul></li>
+</ul>
+<h3 id="unified-virtual-address-space">Unified Virtual Address
+Space</h3>
+<ul>
+<li>64 bits + CC&gt;=2.0
+<ul>
+<li>是否支持：<code>deviceProp.unifiedAddressing</code></li>
+</ul></li>
+<li><code>cudaPointerGetAttributes()</code></li>
+<li>此时不需要指定 <code>cudaMemcpy()</code> 的 kind 参数</li>
+<li><code>cudaHostAlloc()</code> 默认就是 portable 的（多设备共享）</li>
+<li>地址能够直接使用，不需要使用
+<code>cudaHostGetDevicePointer()</code></li>
+</ul>
+<h3 id="interprocess-communication">Interprocess Communication</h3>
+<ul>
+<li>进程间通信，必须使用 Inter Process Communication API
+<ul>
+<li>IPC API：64 bits + CC&gt;=2.0</li>
+<li>不支持 <code>cudaMallocManaged()</code> 的内存</li>
+<li><code>cudaIpcxxx()</code></li>
+</ul></li>
+</ul>
+<h3 id="error-checking">Error Checking</h3>
+<ul>
+<li>异步：检查 <code>cudaDeviceSynchronize()</code> 的返回值</li>
+<li>每一个 host thread 都有一个用于设置 error 的变量
+<ul>
+<li>初始化为 <code>cudaSuccess</code></li>
+<li><code>cudaPeekAtLastError()</code> 返回
+error，<code>cudaGetLastError()</code> 返回并重置为
+<code>cudaSuccess</code></li>
+</ul></li>
+<li>kernel 启动是异步的，因此需要在 kernel 启动前将 error
+变量重置（用以检查 kernel 的错误）</li>
+<li>注意：<code>cudaStreamQuery()</code>、<code>cudaEventQuery()</code>
+可能会返回 <code>cudaErrorNotReady</code>
+<ul>
+<li>但是这个并不被视为错误，所以不能被 <code>get/peek</code></li>
+</ul></li>
+</ul>
+<h3 id="call-stack">Call Stack</h3>
+<ul>
+<li>调用栈的大小：<code>cudaDeviceGetLimit()</code>
+、<code>cudaDeviceSetLimit()</code></li>
+</ul>
+<h3 id="texture-and-surface-memory">Texture and Surface Memory</h3>
+<h4 id="texture-memory">Texture Memory</h4>
+<ul>
+<li>支持部分 texturing hardware 的功能</li>
+<li>texture or surface memory instead of global memory
+有优势（DMA）</li>
+<li><strong>texture object</strong>
+<ul>
+<li><code>1D</code>、<code>2D</code>、<code>3D</code></li>
+<li>texels
+<ul>
+<li><code>1-</code>、<code>2-</code>、<code>4-</code></li>
+<li><code>8-int</code>、<code>16-int</code>、<code>float</code></li>
+</ul></li>
+<li>read mode
+<ul>
+<li><code>cudaReadModeNormalizedFloat</code>：解析成
+<code>[0,1]/[-1,1]</code> 之间的 float</li>
+<li><code>cudaReadModeElementType</code>：没有转换</li>
+</ul></li>
+<li>索引：float <code>[0,N-1]</code>（未归一化）</li>
+<li>addressing mode：越界时候的寻址模式</li>
+<li>filtering mode：插值</li>
+</ul></li>
+<li>Texture Object API：introduces the texture object API.
+<ul>
+<li>spitch：height 每次增加多少</li>
+</ul></li>
+<li>16-Bit Floating-Point Textures：explains how to deal with 16-bit
+floating-point textures.
+<ul>
+<li>device：<code>__float2half_rn(float)</code> and
+<code>__half2float(unsigned short)</code></li>
+<li>host：openEXR lib</li>
+</ul></li>
+<li>Layered Textures
+<ul>
+<li><code>cudaMalloc3DArray()</code> with the
+<code>cudaArrayLayered</code> flag</li>
+<li><code>tex1DLayered()</code> and <code>tex2DLayered()</code></li>
+</ul></li>
+<li>Cubemap Textures、Cubemap Layered Textures
+<ul>
+<li><code>cudaMalloc3DArray()</code> with the
+<code>cudaArrayCubemap</code> flag (and <code>cudaArrayLayered</code>
+flag)</li>
+<li>具体使用见表：<code>texCubemap()</code>、<code>texCubemapLayered()</code></li>
+</ul></li>
+<li>Texture Gather：describes a special texture fetch, texture gather.
+<ul>
+<li>要求：2d only、<code>cudaArrayTextureGather</code>、CC&gt;=2.0</li>
+<li><code>tex2Dgather()</code></li>
+<li>返回用于插值的 4 个 texel 的对应通道的数据（例如 4 个 alpha
+值）</li>
+<li>会有精度问题（8bit）：1.9 =&gt; 近似成 2.0 =&gt; 返回 2+3</li>
+</ul></li>
+</ul>
+<h4 id="surface-memory">Surface Memory</h4>
+<ul>
+<li><strong>surface 可读且可写的，texture 只读</strong></li>
+<li>CC&gt;=2.0</li>
+<li><code>cudaArraySurfaceLoadStore</code> flag</li>
+<li>surface object</li>
+<li>byte addressing：需要乘上每一个元素的大小
+<code>sizeof(float)</code></li>
+<li>和 texture 类似</li>
+</ul>
+<h4 id="cuda-arrays">CUDA Arrays</h4>
+<ul>
+<li>对 texture fetching 做了不透明的优化，只能通过 texture/surface api
+使用</li>
+</ul>
+<h4 id="readwrite-coherency">Read/Write Coherency</h4>
+<ul>
+<li><strong>kernel 内部读写不一致</strong></li>
+<li>在同一个 kernel 调用中被缓存，因此在同一个 kernel
+调用中可能存在不一致</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cuda/" rel="tag"># cuda</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/09/13/CG/cuda/01/" rel="prev" title="cuda 学习">
+                  <i class="fa fa-chevron-left"></i> cuda 学习
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/09/26/CG/cuda/03/" rel="next" title="cuda 学习(3)">
+                  cuda 学习(3) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

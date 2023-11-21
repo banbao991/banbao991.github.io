@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Russian Roulette 和 Splitting 的方差分析，最优化 RR+S 方差分析，利用预追踪一些光线，计算得到一些统计量，用这些统计量指导实际光追时获取最优的 RR&#x2F;S 值">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[1997-EGSR] An Error Metric for Monte Carlo Ray Tracing">
+<meta property="og:url" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Russian Roulette 和 Splitting 的方差分析，最优化 RR+S 方差分析，利用预追踪一些光线，计算得到一些统计量，用这些统计量指导实际光追时获取最优的 RR&#x2F;S 值">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq1-MC.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq5-conditional-expectation.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq6-conditional-expectation-recursive.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq7-splitting.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq8.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq9.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq10-rr.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq11-variance-of-splitting.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq12-nested-variance-rr.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq13-rrs.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/dl.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq15-cost.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq23-24.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq25.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq26.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq17-variance-involve-termination.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq18.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq19-termination-cost.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq20-termination-optimal.png">
+<meta property="og:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq21-22-VE.png">
+<meta property="article:published_time" content="2023-08-07T08:40:25.000Z">
+<meta property="article:modified_time" content="2023-10-31T07:49:12.695Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="RRS">
+<meta property="article:tag" content="EGSR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq1-MC.png">
+
+
+<link rel="canonical" href="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/","path":"2023/08/07/CG/Papers/1997/ErrorMetricMCRT/","title":"(论文)[1997-EGSR] An Error Metric for Monte Carlo Ray Tracing"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[1997-EGSR] An Error Metric for Monte Carlo Ray Tracing | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#an-error-metric-for-monte-carlo-ray-tracing"><span class="nav-text">An Error Metric for
+Monte Carlo Ray Tracing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#previous-work"><span class="nav-text">Previous work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#error-of-monte-carlo-simulations"><span class="nav-text">Error of Monte Carlo
+simulations</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AA%E4%BA%A4%E7%82%B9%E4%B8%80%E6%9D%A1%E5%85%89%E7%BA%BF"><span class="nav-text">1个交点一条光线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AA%E4%BA%A4%E7%82%B9%E5%A4%9A%E6%9D%A1%E5%85%89%E7%BA%BF"><span class="nav-text">1个交点多条光线</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9D%A1%E4%BB%B6%E6%9C%9F%E6%9C%9B%E5%85%AC%E5%BC%8F"><span class="nav-text">条件期望公式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ray-tree"><span class="nav-text">ray tree</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#splitting"><span class="nav-text">Splitting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#russian-roulette"><span class="nav-text">Russian Roulette</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E8%88%AC%E6%83%85%E5%86%B5"><span class="nav-text">一般情况</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#optimum-splitting-and-russian-roulette"><span class="nav-text">Optimum splitting and
+Russian Roulette</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%81%E6%98%8E"><span class="nav-text">证明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-text">使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#terminations"><span class="nav-text">Terminations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#implementation"><span class="nav-text">Implementation</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[1997-EGSR] An Error Metric for Monte Carlo Ray Tracing | Banbao">
+      <meta itemprop="description" content="Russian Roulette 和 Splitting 的方差分析，最优化 RR+S 方差分析，利用预追踪一些光线，计算得到一些统计量，用这些统计量指导实际光追时获取最优的 RR/S 值">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[1997-EGSR] An Error Metric for Monte Carlo Ray Tracing
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-08-07 16:40:25" itemprop="dateCreated datePublished" datetime="2023-08-07T16:40:25+08:00">2023-08-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-10-31 15:49:12" itemprop="dateModified" datetime="2023-10-31T15:49:12+08:00">2023-10-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Russian Roulette 和 Splitting 的方差分析，最优化 RR+S 方差分析，利用预追踪一些光线，计算得到一些统计量，用这些统计量指导实际光追时获取最优的 RR/S 值</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="an-error-metric-for-monte-carlo-ray-tracing">An Error Metric for
+Monte Carlo Ray Tracing</h1>
+<ul>
+<li>Mark R. Bolin Gary W. Meyer</li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<ul>
+<li>提出了一种标准，用于衡量蒙特卡洛光线追踪的误差</li>
+<li>visual system 中的误差（传输、显示）
+<ul>
+<li>量化误差，压缩算法带来的误差</li>
+<li>噪声</li>
+</ul></li>
+<li>因此考虑到效率的因素，我们需要知道误差界，从而更好的选择 spp 数</li>
+</ul>
+<h2 id="previous-work">Previous work</h2>
+<ul>
+<li>Kajiya [1986]：The Rendering Equation
+<ul>
+<li>渲染方程</li>
+<li>ray trees 是低效的，大部分贡献不高</li>
+<li>提出了 path tracing 的框架</li>
+</ul></li>
+<li>Kirk [1990-SIG]：Particle Transport and Image Synthesis
+<ul>
+<li>Russian Roulette：当权重小于一个阈值时使用</li>
+<li>Splitting：未给出使用的指导</li>
+</ul></li>
+<li>Arvo [1994]：A Framework for the Analysis of Error in Global
+Illumination Algorithms
+<ul>
+<li>误差评估，主要集中在辐射度算法</li>
+</ul></li>
+<li>Lee [1985]：Statistically Optimized Sampling for Distributed Ray
+Tracing
+<ul>
+<li>在 image plane 中分析，在给定阈值下，需要多少 spp 数</li>
+<li><span style="color:red">TODO</span></li>
+</ul></li>
+</ul>
+<h2 id="error-of-monte-carlo-simulations">Error of Monte Carlo
+simulations</h2>
+<h3 id="个交点一条光线">1个交点一条光线</h3>
+<ul>
+<li>MC 估计</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq1-MC.png"></p>
+<ul>
+<li>函数的方差（函数本身性质，和样本数无关）</li>
+</ul>
+<p><span class="math display">\[
+V\left[f\right]=E\left[f^2\right]-E^2\left[f\right]
+\]</span></p>
+<ul>
+<li>MC 估计的方差
+<ul>
+<li>两个方差的区别，详细看<a href="/2022/03/15/CG/Kits/StratifiedSampling/#方差分析">这里</a></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+V\left[\bar{f}\right]=\dfrac{V\left[f\right]}{N_0}
+\]</span></p>
+<ul>
+<li>此时，如果期望准确率 <span class="math inline">\(V_d\left[\bar{f}\right]\)</span>，函数方差 <span class="math inline">\(V\left[f\right]\)</span>，则需要的样本数 <span class="math inline">\(N_0\)</span></li>
+</ul>
+<p><span class="math display">\[
+N_0=\dfrac{V\left[f\right]}{V\left[\bar{f}\right]}
+\]</span></p>
+<h3 id="个交点多条光线">1个交点多条光线</h3>
+<h4 id="条件期望公式">条件期望公式</h4>
+<ul>
+<li>重期望公式</li>
+</ul>
+<p><span class="math display">\[
+E[X]=E_Y[E_X[X\mid Y]]
+\]</span></p>
+<ul>
+<li>条件期望公式</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+V[X]
+&amp;=V[E[X\mid Y]]+E[V[X\mid Y]]\\
+&amp;=V_Y[E_X[X\mid Y]]+E_Y[V_X[X\mid Y]]
+\end{aligned}
+\]</span></p>
+<ul>
+<li>推导</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+V_X[X\mid Y]
+&amp;=E_X\left[[X-E[X]]^2\mid Y\right]\\
+&amp;=E_X\left[X^2\mid Y\right]-E_X^2[X\mid Y]
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+V_Y[E_X[X\mid Y]]
+&amp;=E_Y\left[\left(E_X[X\mid Y]-E_X[X\mid Y]\right)^2\right]\\
+&amp;=E_Y\left[E_X^2[X\mid Y]\right]-E_Y^2\left[E_X[X\mid Y]\right]\\
+&amp;=E_Y\left[E_X^2[X\mid Y]\right]-E^2[X]\\
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+E_Y[V_X[X\mid Y]]
+&amp;=E_Y\left[E_X\left[X^2\mid Y\right]-E_X^2[X\mid Y]\right]\\
+&amp;=E_Y\left[E_X\left[X^2\mid Y\right]\right]-E_Y\left[E_X^2[X\mid
+Y]\right]\\
+&amp;=E[X^2]-E_Y\left[E_X^2[X\mid Y]\right]\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>于是有</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+V_Y[E_X[X\mid Y]]+E_Y[V_X[X\mid Y]]
+&amp;=E[X^2]-E^2[X]\\
+&amp;=V[X]\\
+\end{aligned}
+\]</span></p>
+<h4 id="ray-tree">ray tree</h4>
+<ul>
+<li>根据 level 展开，得到如下<span id="eq5">式子</span></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq5-conditional-expectation.png"></p>
+<ul>
+<li>递归展开</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq6-conditional-expectation-recursive.png"></p>
+<ul>
+<li>递归示例</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+V[f]
+&amp;=V[E[f\mid x_0]]+{\color{red}E[V[f\mid x_0]]}\\
+&amp;=V[E[f\mid x_0]]+E\Big[V[E[f\mid x_0x_1]\mid x_0]+E[V[f\mid
+x_0x_1]\mid x_0]\Big]\\
+&amp;=V[E[f\mid x_0]]+E[V[E[f\mid x_0x_1]\mid x_0]]+E[E[V[f\mid
+x_0x_1]\mid x_0]]\\
+&amp;=V[E[f\mid x_0]]+E[V[E[f\mid x_0x_1]\mid x_0]]+E[V[f\mid
+x_0x_1]\mid x_0x_1]\\
+&amp;=VE[f\mid x_0]+EV[E[[f\mid x_0x_1]\mid x_0]]+{\color{red}EV[f\mid
+x_0x_1]}\\
+&amp;=\cdots
+\end{aligned}
+\]</span></p>
+<ul>
+<li>每次展开，多一项，即<strong><span style="color:red">每一个 ray tree
+节点引入的方差</span></strong>
+<ul>
+<li>也就是说，<strong><span style="color:red">全局的方差就来自于每一个
+ray tree 节点引入的方差</span></strong></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+EV[E[[f\mid x_0\cdots x_L]\mid x_0\cdots x_{L-1}]]
+\]</span></p>
+<h3 id="splitting">Splitting</h3>
+<ul>
+<li>ray tree 中每一个节点分裂不止一条光线</li>
+<li>例如：<span class="math inline">\(x_0\)</span>
+出采样多个出射方向（多个 <span class="math inline">\(x_1\)</span>
+）</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq7-splitting.png"></p>
+<ul>
+<li><span id="eq9">方差</span></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq8.png"></p>
+<ul>
+<li>和<a href="#eq5">式子 5</a> 相比，方差减小如下</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq9.png"> <span class="math display">\[
+\begin{aligned}
+V[f_\text{S}]
+&amp;=VE[f_\text{S}\mid x_0]+EV[f_\text{S}\mid x_0]\\
+&amp;=VE[f\mid x_0]+\dfrac{1}{N_1}EV[f\mid x_{0}]\\
+&amp;=V[f]+\dfrac{1-N_1}{N_1}EV[f\mid x_{0}]
+\end{aligned}
+\]</span></p>
+<ul>
+<li>但是因为增加了额外的计算开销（发射额外的光线），因此只有 <span class="math inline">\(EV\)</span> 项比 <span class="math inline">\(VE\)</span> 项大时效果才比较好</li>
+</ul>
+<h3 id="russian-roulette">Russian Roulette</h3>
+<ul>
+<li>提前终止不重要的光线</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq10-rr.png"></p>
+<ul>
+<li>期望
+<ul>
+<li>式子中的 <span class="math inline">\(f\equiv f\mid x_0,f_{RR}\equiv
+f_{RR}\mid x_0\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+E[f_{RR}]=P_1E\left[\dfrac{f}{P_1}\right]+(1-P_1)\cdot0=E[f]
+\]</span></p>
+<ul>
+<li>方差如下</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq11-variance-of-splitting.png"></p>
+<ul>
+<li>推导如下
+<ul>
+<li>式子中的 <span class="math inline">\(f\equiv f\mid x_0,f_{RR}\equiv
+f_{RR}\mid x_0\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+V[f_{RR}]
+&amp;=P_1E\left[\dfrac{f}{P_1}-E[f_{RR}]\right]^2+(1-P_1)E\Big[0-E[f_{RR}]\Big]^2\\
+&amp;=\dfrac{1}{P_1}E\Big[f-P_1E[f]\Big]^2+(1-P_1)E^2[f]\\
+&amp;=\dfrac{1}{P_1}\Big(E[f^2]+(P_1^2-2P_1)E^2[f]\Big)+(1-P_1)E^2[f]\\
+&amp;=\dfrac{1}{P_1}\Big(E[f^2]-E^2[f]+(1+P_1^2-2P_1)E^2[f]\Big)+(1-P_1)E^2[f]\\
+&amp;=\dfrac{1}{P_1}V[f]+\dfrac{(1-P_1)P_1+(1-P_1)^2}{P_1}E^2[f]\\
+(结果)&amp;=\dfrac{1}{P_1}V[f]+\dfrac{(1-P_1)}{P_1}E^2[f]\\
+&amp;=\dfrac{1}{P_1}\left(V[f]+E^2[f]\right)-E^2[f]\\
+&amp;=\dfrac{1}{P_1}E[f^2]-E^2[f]\\
+&amp;=\dfrac{1-P_1}{P_1}E[f^2]+V[f]\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>和<a href="#eq5">式子 5</a> 相比，方差增大如下</li>
+<li><strong><span style="color:red">RR 必然增大方差</span></strong></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq12-nested-variance-rr.png"> <span class="math display">\[
+\begin{aligned}
+V[f_\text{RR}]
+&amp;=VE[f_\text{RR}\mid x_0]+EV[f_\text{RR}\mid x_0]\\
+&amp;=VE[f\mid x_0]+EV[f\mid x_0]+\dfrac{1-P_1}{P_1}\left(EV[f\mid
+x_0]+E[E^2[f\mid x_0]]\right)\\
+&amp;=VE[f\mid x_0]+EV[f\mid x_0]+\dfrac{1-P_1}{P_1}\left(EE[f^2\mid
+x_0]\right)\\
+&amp;=V[f]+\dfrac{1-P_1}{P_1}\left(EE[f^2\mid x_0]\right)
+\end{aligned}
+\]</span></p>
+<ul>
+<li>但是因为减少计算开销（发射的光线变少了），因此只有 <span class="math inline">\(EV\)</span> 项和 <span class="math inline">\(EE\)</span> 项比 <span class="math inline">\(VE\)</span> 项小时效果才比较好</li>
+</ul>
+<h3 id="一般情况">一般情况</h3>
+<ul>
+<li>RR+S
+<ul>
+<li>S 比较简单，直接除以数量即可</li>
+<li>RR 比较复杂，分类讨论</li>
+</ul></li>
+<li>方差，综合式子 <span class="math inline">\((5)(8)(11)\)</span></li>
+<li><span class="math inline">\(N_L\)</span>：RR概率 / 分裂数目</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq13-rrs.png"></p>
+<ul>
+<li><span class="math inline">\(D_L\)</span></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/dl.png"></p>
+<h2 id="optimum-splitting-and-russian-roulette">Optimum splitting and
+Russian Roulette</h2>
+<ul>
+<li>之前的工作：ad-hoc（scene-specific）
+<ul>
+<li>RR：N bounce &amp;&amp; weight 降低到一定值之后</li>
+<li>S：固定设置为 1（PT） or N</li>
+</ul></li>
+<li>quality</li>
+</ul>
+<p><span class="math display">\[
+Q=cost\times V[f]
+\]</span></p>
+<ul>
+<li>通过光线数目来衡量，cost 可以被表示为</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq15-cost.png"></p>
+<ul>
+<li>求解最优的 <span class="math inline">\(N_L\)</span>：<span class="math inline">\(\dfrac{\partial Q}{\partial N_L}=0\)</span></li>
+</ul>
+<p><span class="math display">\[
+N_L=\sqrt{\dfrac{D_L}{D_{L-1}}}\quad\quad(16)
+\]</span></p>
+<h3 id="证明">证明</h3>
+<ul>
+<li>把无关项写到一起</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq23-24.png"></p>
+<ul>
+<li>最小化 <span class="math inline">\(Q\)</span></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq25.png"></p>
+<ul>
+<li>代回 <span class="math inline">\(Q\)</span></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq26.png"></p>
+<ul>
+<li>此时 <span class="math inline">\(C_1^{\ast}Q_1^{\ast}\)</span>
+最小，则 <span class="math inline">\(Q\)</span> 最小
+<ul>
+<li>同理需要 <span class="math inline">\(C_L^{\ast}Q_L^{\ast}\)</span>
+最小</li>
+</ul></li>
+<li>根据 <span class="math inline">\((25)(23)\)</span> 得到</li>
+</ul>
+<p><span class="math display">\[
+D_0=\dfrac{V[f]}{cost}
+\]</span></p>
+<ul>
+<li>此时观察 <span class="math inline">\((23)(24)\)</span>，可以得到
+<span class="math inline">\((16)\)</span> 的结果</li>
+</ul>
+<p><span class="math display">\[
+N_L=\sqrt{\dfrac{D_L}{D_{L-1}}}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(L=1\)</span> 显然， <span class="math inline">\(L&gt;1\)</span> 类似的方法推导即可</li>
+</ul>
+<h3 id="使用">使用</h3>
+<ul>
+<li>最优的 <span class="math inline">\(N_L\)</span> 不好应用，因为 <span class="math inline">\(D_{L-1}/D_L\)</span> 依赖于 <span class="math inline">\(\text{level}=L-1,L+1\)</span> 是否 RR
+<ul>
+<li><span class="math inline">\(L+1\)</span>
+未知，这个本身就是我们计算的问题（循环依赖）</li>
+</ul></li>
+<li>trick：假设成立，验证是否可行，可行则继续，不可行则回退
+<ul>
+<li><span class="math inline">\(\text{level}=1\)</span> 开始</li>
+<li>每一个 level，我们都假设在 <span class="math inline">\(L,L+1\)</span> 都使用 RR
+<ul>
+<li>如果计算得到的 <span class="math inline">\(N_L&lt;1\)</span>，则进入
+<span class="math inline">\(L+1\)</span>（可能符合我们的假设）</li>
+<li>如果 <span class="math inline">\(N_L\ge1\)</span>，和假设不符，此时
+<span class="math inline">\(L\)</span> 不使用 RR（与预期不符），回退
+<span class="math inline">\(L-1\)</span>，重新计算最优的 <span class="math inline">\(N_{L-1}\)</span>
+<ul>
+<li>如果 <span class="math inline">\(N_{L-1}\)</span> 之前 <span class="math inline">\(&lt;1\)</span>，现在 <span class="math inline">\(\ge1\)</span>，还需要继续回退</li>
+<li>否则进入 <span class="math inline">\(L\)</span>，重新计算 <span class="math inline">\(N_L\)</span></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="terminations">Terminations</h2>
+<ul>
+<li>提前结束：击中光源、打空
+<ul>
+<li>很常见</li>
+</ul></li>
+<li>考虑提前终止的影响</li>
+<li><span class="math inline">\(L-1\)</span> 停止的光线不会影响 <span class="math inline">\(L\)</span> 的方差，因此只有到达 <span class="math inline">\(L\)</span> 的占比 <span class="math inline">\(R_L\)</span> （到达 <span class="math inline">\(L\)</span>）的光线会带来方差</li>
+<li>因此有
+<ul>
+<li><span class="math inline">\(EV\)</span> 只考虑能够到达 <span class="math inline">\(1\)</span> 的光线</li>
+</ul></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq17-variance-involve-termination.png"></p>
+<ul>
+<li><span class="math inline">\(R\)</span> 这一项的含义：<span style="color:red">所有的方差分析建立在能够到达 <span class="math inline">\(L\)</span> 的光线</span></li>
+<li>推导：<span class="math inline">\(t\)</span> 表示停止，<span class="math inline">\(c\)</span> 表示继续</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+V[f]&amp;\\
+(分段积分)&amp;=V_{t}[f]+V_{c}[f]\\
+&amp;=V_tE[f\mid x_0]+E_tV[f\mid x_0]+V_cE[f\mid x_0]+E_cV[f\mid x_0]\\
+&amp;=V_tE[f\mid x_0]+0+V_cE[f\mid x_0]+E_cV[f\mid x_0]\\
+&amp;=V_tE[f\mid x_0]+V_cE[f\mid x_0]+E_cV[f\mid x_0]\\
+&amp;=VE[f\mid x_0]+E_cV[f\mid x_0]\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>更新 RR、S
+<ul>
+<li>综合式子 <span class="math inline">\((8)(11)(17)\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq18.png"></p>
+<ul>
+<li>这里的 <span class="math inline">\(VE_L,EE_L^2\)</span> 只计算到达
+<span class="math inline">\(L\)</span> 的光线</li>
+<li>cost 更新</li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq19-termination-cost.png"></p>
+<ul>
+<li>最优结果
+<ul>
+<li>分母重用之前的表达，但是只考虑能够到达 <span class="math inline">\(L\)</span> 的光线</li>
+</ul></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq20-termination-optimal.png"></p>
+<h2 id="implementation">Implementation</h2>
+<ul>
+<li>实现上为了计算 <span class="math inline">\(D\)</span>，需要预先采样样本计算一些期望和方差</li>
+<li>算法思路
+<ul>
+<li>预先采样 pilot samples，估计 <span class="math inline">\(D\)</span>
+以及 <span class="math inline">\(N_L\)</span></li>
+<li>image plane 的防擦好被计算得到</li>
+<li>根据要求的精度，为每一个像素计算 spp</li>
+</ul></li>
+<li>输入
+<ul>
+<li>pilot sampling rate</li>
+<li>target variance within the image plane</li>
+</ul></li>
+<li>为了估计方差，在每一个交点都需要发射若干光线
+<ul>
+<li>实现上，随着深度增加可以减少样本数</li>
+</ul></li>
+<li>计算顺序
+<ul>
+<li>每一个 level 都能采样，此时能够计算
+<ul>
+<li><span class="math inline">\(V[f]\)</span>：像素</li>
+<li><span class="math inline">\(V[f\mid x_0\cdots x_{L-1}],E^2[f\mid
+x_0\cdots x_{L-1}]\)</span>：level <span class="math inline">\(L\)</span></li>
+</ul></li>
+<li>根据上面的值计算 <span class="math inline">\(E\big[V[f\mid x_0\cdots
+x_{L-1}]\big],E\big[E^2[f\mid x_0\cdots x_{L-1}]\big]\)</span></li>
+<li>同时可以光线数目估计 <span class="math inline">\(R_L\)</span></li>
+<li>都算完了，根据<a href="#eq9">式子 9</a>，计算 <span class="math inline">\(VE\)</span> 项</li>
+</ul></li>
+</ul>
+<p><img src="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/eq21-22-VE.png"></p>
+<ul>
+<li>最后可以估计 <span class="math inline">\(N_L\)</span> 了</li>
+<li>这个方法计算代价很高，因为需要大量的 pilot samples</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/RRS/" rel="tag"># RRS</a>
+              <a href="/tags/EGSR/" rel="tag"># EGSR</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/08/02/CG/Kits/MC-of-rcp-2/" rel="prev" title="积分倒数的无偏估计（分子非常数）">
+                  <i class="fa fa-chevron-left"></i> 积分倒数的无偏估计（分子非常数）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/09/05/CG/Papers/2022/EARS/02/" rel="next" title="(论文)[2022-SIG] EARS: Efficiency-Aware Russian Roulette and Splitting(2)">
+                  (论文)[2022-SIG] EARS: Efficiency-Aware Russian Roulette and Splitting(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

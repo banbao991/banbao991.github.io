@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="与其他图形 API 交互、版本信息、硬件实现">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cuda 学习(3)">
+<meta property="og:url" content="http://example.com/2023/09/26/CG/cuda/03/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="与其他图形 API 交互、版本信息、硬件实现">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2023/09/26/CG/cuda/03/compatibility-of-cuda-versions.png">
+<meta property="article:published_time" content="2023-09-26T12:46:02.000Z">
+<meta property="article:modified_time" content="2023-10-19T07:58:33.665Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="cuda">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/09/26/CG/cuda/03/compatibility-of-cuda-versions.png">
+
+
+<link rel="canonical" href="http://example.com/2023/09/26/CG/cuda/03/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/09/26/CG/cuda/03/","path":"2023/09/26/CG/cuda/03/","title":"cuda 学习(3)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>cuda 学习(3) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#programming-interface"><span class="nav-text">Programming Interface</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cuda-runtime"><span class="nav-text">CUDA Runtime</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#graphics-interoperability"><span class="nav-text">Graphics Interoperability</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#opengl"><span class="nav-text">OpenGL</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#direct3d"><span class="nav-text">Direct3D</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sli-mode"><span class="nav-text">SLI mode</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#external-resource-interoperability"><span class="nav-text">External Resource
+Interoperability</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#vulkan"><span class="nav-text">Vulkan</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#direct3d-12"><span class="nav-text">Direct3D 12</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#direct3d-11"><span class="nav-text">Direct3D 11</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#nvsci"><span class="nav-text">NVSCI</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#versioning-and-compatibility"><span class="nav-text">Versioning and Compatibility</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#compute-modes"><span class="nav-text">Compute Modes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mode-switches"><span class="nav-text">Mode Switches</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tesla-compute-cluster-mode-for-window"><span class="nav-text">Tesla Compute Cluster
+Mode for Window</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#hardware-implementation"><span class="nav-text">Hardware Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#simt-architecture"><span class="nav-text">SIMT Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hardware-multithreading"><span class="nav-text">Hardware Multithreading</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/09/26/CG/cuda/03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="cuda 学习(3) | Banbao">
+      <meta itemprop="description" content="与其他图形 API 交互、版本信息、硬件实现">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          cuda 学习(3)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-09-26 20:46:02" itemprop="dateCreated datePublished" datetime="2023-09-26T20:46:02+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-10-19 15:58:33" itemprop="dateModified" datetime="2023-10-19T15:58:33+08:00">2023-10-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cuda/" itemprop="url" rel="index"><span itemprop="name">cuda</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">与其他图形 API 交互、版本信息、硬件实现</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="programming-interface">Programming Interface</h1>
+<h2 id="cuda-runtime">CUDA Runtime</h2>
+<h3 id="graphics-interoperability">Graphics Interoperability</h3>
+<ul>
+<li>opengl、dx</li>
+<li><code>cudaGraphicsxxx</code> 函数</li>
+<li>需要 register、unregister 的操作
+<ul>
+<li><strong>操作耗时</strong></li>
+<li>一般：buffer 创建的时候 register、销毁的时候 unregister</li>
+<li><code>struct cudaGraphicsResource</code></li>
+</ul></li>
+<li>register 之后可以多次 map</li>
+<li>之后可以让 kernel 进行操作</li>
+</ul>
+<h4 id="opengl">OpenGL</h4>
+<ul>
+<li>可以映射的资源
+<ul>
+<li>OpenGL buffer, texture, and renderbuffer objects</li>
+</ul></li>
+<li>有示例代码</li>
+</ul>
+<h4 id="direct3d">Direct3D</h4>
+<ul>
+<li>Direct3D 9Ex, Direct3D 10, and Direct3D 11</li>
+</ul>
+<h4 id="sli-mode">SLI mode</h4>
+<ul>
+<li>Scalable Link Interface（多 GPU）
+<ul>
+<li>多显卡当作一张</li>
+<li><a target="_blank" rel="noopener" href="https://docs.nvidia.com/gameworks/content/technologies/desktop/sli.htm">Nvidia
+SLI</a>：5 种模式
+<ul>
+<li>Split Frame Rendering (SFR)：每一帧内部的不同任务交给不同 GPU</li>
+<li>Alternate Frame Rendering (AFR)：不同帧交给不同 GPU
+<ul>
+<li>AFR of SFR：每一帧分配一组 GPU</li>
+</ul></li>
+<li>Boost Performance Hybrid SLI Rendering：SFR 类似，但是 GPU
+之间不平均（有多有少，有主次）</li>
+<li>SLIAA</li>
+<li>Compatibility mode：只使用一个 GPU（默认行为）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="external-resource-interoperability">External Resource
+Interoperability</h3>
+<ul>
+<li>更底层：vulkan、DX12、DX11</li>
+<li>让 cuda 可以导入被一些 API 隐式导出的 objects
+<ul>
+<li>These objects are typically exported by other APIs using
+<strong>handles native to the Operating System</strong></li>
+<li>例如：<strong>文件描述符</strong></li>
+<li>包括：<strong>memory objects</strong> and <strong>synchronization
+objects</strong></li>
+</ul></li>
+</ul>
+<h4 id="vulkan">Vulkan</h4>
+<ul>
+<li>vulkan 的 device 和 cuda 的 device 必须一致
+<ul>
+<li>UUID 判断</li>
+</ul></li>
+</ul>
+<h4 id="direct3d-12">Direct3D 12</h4>
+<h4 id="direct3d-11">Direct3D 11</h4>
+<h4 id="nvsci">NVSCI</h4>
+<ul>
+<li>NVIDIA Software Communication Interface</li>
+<li>不同库之间的通信问题</li>
+<li><strong>NvSciBuf</strong> and <strong>NvSciSync</strong> are
+interfaces developed for serving the following purposes:
+<ul>
+<li>NvSciBuf: Allows applications to allocate and exchange buffers in
+memory</li>
+<li>NvSciSync: Allows applications to manage synchronization objects at
+operation boundaries</li>
+</ul></li>
+</ul>
+<h2 id="versioning-and-compatibility">Versioning and Compatibility</h2>
+<ul>
+<li>两个关键的版本
+<ul>
+<li>Compute Capability：硬件信息</li>
+<li>CUDA：驱动信息，（头文件 <code>CUDART_VERSION</code>）</li>
+</ul></li>
+<li>cuda 版本是向后兼容的（<em>backward
+compatible</em>），但不是向前兼容的（<em>forward compatible</em>）</li>
+</ul>
+<p><img src="/2023/09/26/CG/cuda/03/compatibility-of-cuda-versions.png"></p>
+<ul>
+<li>早期的 Telsa 架构，新的向前兼容的方式 <a target="_blank" rel="noopener" href="https://docs.nvidia.com/deploy/cuda-compatibility/index.html">CUDA
+Compatibility</a>（现在已经不支持了，指导如何软件升级）</li>
+</ul>
+<h2 id="compute-modes">Compute Modes</h2>
+<ul>
+<li>device 的 3 种模式：nvidia-smi 设置
+<ul>
+<li><em>Default</em> compute mode</li>
+<li><em>Exclusve-process</em> compute mode：只能有 1 个进程创建</li>
+<li><em>Prohibited</em> compute mode：不允许创建</li>
+</ul></li>
+</ul>
+<h2 id="mode-switches">Mode Switches</h2>
+<ul>
+<li>显示模式的切换（分辨率、位深、……），可能会导致 cuda
+运行时函数调用失败，返回无效上下文</li>
+</ul>
+<h2 id="tesla-compute-cluster-mode-for-window">Tesla Compute Cluster
+Mode for Window</h2>
+<ul>
+<li>TCC 模式不支持图形功能</li>
+</ul>
+<h1 id="hardware-implementation">Hardware Implementation</h1>
+<ul>
+<li>一个 SM 上的线程
+<ul>
+<li>SIMT：<em>Single-Instruction, Multiple-Thread</em></li>
+</ul></li>
+<li>GPU：没有分支预测、推测执行</li>
+<li>NVIDIA GPU：little-endian</li>
+</ul>
+<h2 id="simt-architecture">SIMT Architecture</h2>
+<ul>
+<li>32 parallel threads called <strong>warps</strong></li>
+<li>warp 里面的线程
+<ul>
+<li>相同的 program address</li>
+<li>独立的 instruction address counter、register state</li>
+</ul></li>
+<li><em>half-warp</em>、 <em>quarter-warp</em>
+<ul>
+<li>按照顺序 50%（25%） 划分</li>
+</ul></li>
+<li>multiprocessor 将分到的 block(s) 里的 thread 划分为 warp，通过
+<em>warp scheduler</em> 调度执行
+<ul>
+<li>划分方式：thread ID 连续的划分为一组</li>
+</ul></li>
+<li>一个 warp 里的 thread
+<ul>
+<li>最高效：所有的线程的 execution path 都相同</li>
+<li>branch divergence
+<ul>
+<li>如果存在分支，则都会执行一遍（不满足的分支在执行的时候停止）</li>
+</ul></li>
+</ul></li>
+<li>硬件实现
+<ul>
+<li>Volta 之前，warp 只有一个 PC，active mask 标识线程是否活动</li>
+<li>Volta（含）之后</li>
+</ul></li>
+</ul>
+<h2 id="hardware-multithreading">Hardware Multithreading</h2>
+<ul>
+<li></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cuda/" rel="tag"># cuda</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/09/21/CG/cuda/02/" rel="prev" title="cuda 学习(2)">
+                  <i class="fa fa-chevron-left"></i> cuda 学习(2)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/10/08/CG/Papers/2016/ADRRS/" rel="next" title="(论文)[2016-SIG] Adjoint-Driven Russian Roulette and Splitting in Light Transport Simulation">
+                  (论文)[2016-SIG] Adjoint-Driven Russian Roulette and Splitting in Light Transport Simulation <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

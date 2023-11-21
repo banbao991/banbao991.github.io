@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="联合优化 RRS，通过估计当前 path 的期望贡献来计算 RRS 系数，其中期望贡献由 weight 和预计算的 irradiance 计算得到">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2016-SIG] Adjoint-Driven Russian Roulette and Splitting in Light Transport Simulation">
+<meta property="og:url" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="联合优化 RRS，通过估计当前 path 的期望贡献来计算 RRS 系数，其中期望贡献由 weight 和预计算的 irradiance 计算得到">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq1-mc-estimator.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq2-outgoing-weight.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/fig2-transported-quantity.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq3-rrs.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/fig3-adrrs.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq4-rrs-factor.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/fig4-path-contribution.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq5-weight-invariant.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/fig5-weight-window.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq6-weight-window-lower-bound.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/fig7-cache.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq8-irradiance.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq9-estimate-of-adjoint.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/alg1.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq10-pg-zv-design.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq10.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq11-final-adjoint.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq12-best-q-in-zv.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq12-fig.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/pg-in-zv.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/RRS-as-importance-sampling.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-light-transport.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-visual-importance-transport.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq-1-light-tracing-mc.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq-4-path-tracing-mc.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq5-zv-light-tracing.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq6-zv-path-tracing.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq7-zv-survival-probability.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq9.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-symmetric.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq10-11-proof.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq12-13.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq-collision-1.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq-14-hypothesis.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq-v-hat-defination.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq7.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq18-transport.png">
+<meta property="og:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/s-eq19.png">
+<meta property="article:published_time" content="2023-10-08T05:01:13.000Z">
+<meta property="article:modified_time" content="2023-11-14T06:22:52.992Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="RRS">
+<meta property="article:tag" content="TOG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/eq1-mc-estimator.png">
+
+
+<link rel="canonical" href="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/10/08/CG/Papers/2016/ADRRS/","path":"2023/10/08/CG/Papers/2016/ADRRS/","title":"(论文)[2016-SIG] Adjoint-Driven Russian Roulette and Splitting in Light Transport Simulation"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2016-SIG] Adjoint-Driven Russian Roulette and Splitting in Light Transport Simulation | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#adrrs"><span class="nav-text">ADRRS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%A1%E7%8C%AE"><span class="nav-text">贡献</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#related-work"><span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#background"><span class="nav-text">Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#adjoint-driven-rr-and-splitting"><span class="nav-text">Adjoint-Driven RR and
+Splitting</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#unified-russian-roulette-and-splitting"><span class="nav-text">Unified Russian Roulette
+and Splitting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#determining-the-rrs-factor"><span class="nav-text">Determining the RRS Factor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#weight-invariant-in-adrrs"><span class="nav-text">Weight Invariant in ADRRS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#algorithm"><span class="nav-text">Algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#weight-window"><span class="nav-text">Weight Window</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#adjoint-solution-estimate"><span class="nav-text">Adjoint Solution Estimate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#measurement-estimate"><span class="nav-text">Measurement Estimate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#path-sampling-algorithm"><span class="nav-text">Path Sampling Algorithm</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#combining-adrrs-with-path-guiding"><span class="nav-text">Combining ADRRS with Path
+Guiding</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#adrrs-and-zero-variance-schemes"><span class="nav-text">ADRRS and Zero-Variance
+Schemes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#result"><span class="nav-text">Result</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#limitation-discussion-and-future-work"><span class="nav-text">Limitation, Discussion,
+and Future Work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sup"><span class="nav-text">sup</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#transport"><span class="nav-text">transport</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%87%E6%A0%B7"><span class="nav-text">采样</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#light-tracing-%E8%AF%81%E6%98%8E"><span class="nav-text">Light Tracing 证明</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#emission"><span class="nav-text">emission</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%AD%E9%97%B4%E8%8A%82%E7%82%B9"><span class="nav-text">中间节点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pg"><span class="nav-text">PG</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%81%E6%98%8E"><span class="nav-text">证明</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/10/08/CG/Papers/2016/ADRRS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2016-SIG] Adjoint-Driven Russian Roulette and Splitting in Light Transport Simulation | Banbao">
+      <meta itemprop="description" content="联合优化 RRS，通过估计当前 path 的期望贡献来计算 RRS 系数，其中期望贡献由 weight 和预计算的 irradiance 计算得到">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2016-SIG] Adjoint-Driven Russian Roulette and Splitting in Light Transport Simulation
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-10-08 13:01:13" itemprop="dateCreated datePublished" datetime="2023-10-08T13:01:13+08:00">2023-10-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2023-11-14 14:22:52" itemprop="dateModified" datetime="2023-11-14T14:22:52+08:00">2023-11-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">联合优化 RRS，通过估计当前 path 的期望贡献来计算 RRS 系数，其中期望贡献由 weight 和预计算的 irradiance 计算得到</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="adrrs">ADRRS</h1>
+<ul>
+<li>Adjoint-Driven Russian Roulette and Splitting in Light Transport
+Simulation</li>
+<li><a target="_blank" rel="noopener" href="https://cgg.mff.cuni.cz/~jaroslav/papers/2016-adrrs/index.htm">作者网站</a></li>
+<li>Code：<a target="_blank" rel="noopener" href="https://github.com/iRath96/ears">EARS</a>
+中有实现</li>
+</ul>
+<h2 id="贡献">贡献</h2>
+<ul>
+<li>将 RR 和 Splitting 结合到一个统一的框架里（RRS）</li>
+<li>通过路径的 <em>total expected contribution</em> 来决定 RRS 系数
+<ul>
+<li>thoughput</li>
+<li>pre-computed irradiance</li>
+</ul></li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<ul>
+<li>传统
+<ul>
+<li>RR，基于
+<ul>
+<li>local surface reflectivity</li>
+<li>accumulated path weight (a.k.a. throughput)</li>
+</ul></li>
+<li>Splitting，基于
+<ul>
+<li>heuristics based on local BRDF roughness</li>
+</ul></li>
+<li>local 的特征容易实现，但是效果不好</li>
+</ul></li>
+<li>问题：忽略了真实分布
+<ul>
+<li><em>actual distribution of light</em></li>
+<li><em>visual importance</em></li>
+</ul></li>
+<li>ex：暗表面长路径
+<ul>
+<li>local surface based RR：会被过早截断</li>
+<li>复杂可见性、参与介质场景中常见</li>
+</ul></li>
+<li>本文：根据路径的 <em>total expected contribution</em> 来决定 RRS
+系数
+<ul>
+<li>path weight <span class="math inline">\(\times\)</span> adjoint
+transport solution（预计算保存在场景中）</li>
+</ul></li>
+</ul>
+<h2 id="related-work">Related Work</h2>
+<ul>
+<li>Particle transport
+<ul>
+<li><em>analog</em>：根据物理的概率来决定
+collisions、absorption、scattering，所有的粒子都等价</li>
+<li><em>non-analog simulations</em>：修改概率，提高效率</li>
+</ul></li>
+<li>RR+S
+<ul>
+<li>throughout based：不考虑 expected future behavior</li>
+</ul></li>
+<li>Importance sampling</li>
+<li>Adjoints：<strong><span style="color:red">TODO</span></strong></li>
+<li>Path guiding</li>
+<li>Weight window
+<ul>
+<li><strong>increases robustness</strong></li>
+<li>RR and splitting are combined in one variance reduction tool called
+the <em>weight window</em></li>
+<li>当 weight 小于/大于 weight window 时使用 RR/S，从而使得 weight
+保持在 window 内部</li>
+<li>Booth and Hendricks [1984]
+<ul>
+<li>让 window 的中心 inversely proportional to
+重要性函数（让重要的地方粒子更多）</li>
+</ul></li>
+</ul></li>
+<li>Go-with-the-winners
+<ul>
+<li>Szirmay-Kalos and Antal [2005]
+<ul>
+<li>efficiency analysis：基于 local material properties、scene dependent
+parameters</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="background">Background</h2>
+<ul>
+<li>particle tracing / unidirectional path tracing</li>
+<li>MC 估计：weight <span class="math inline">\(\times\)</span> radiance
+<ul>
+<li><span class="math inline">\(\text{i}=\text{incident}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq1-mc-estimator.png"></p>
+<ul>
+<li>在位置 <span class="math inline">\(\mathrm{y}\)</span>
+反射之后的出射权重
+<ul>
+<li><span class="math inline">\(\text{o}=\text{outgoing}\)</span></li>
+<li><span class="math inline">\(\hat{\nu}\)</span>：在应用了 RRS 之后的
+weight</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq2-outgoing-weight.png"></p>
+<ul>
+<li>文章中的 <span class="math inline">\(\omega_o\)</span> 指向 quantity
+传输的方向</li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/fig2-transported-quantity.png"></p>
+<ul>
+<li>Russian roulette and splitting</li>
+</ul>
+<h2 id="adjoint-driven-rr-and-splitting">Adjoint-Driven RR and
+Splitting</h2>
+<h3 id="unified-russian-roulette-and-splitting">Unified Russian Roulette
+and Splitting</h3>
+<ul>
+<li><span id="eq3">RRS</span>
+<ul>
+<li><span class="math inline">\(q&lt;1\)</span>：RR</li>
+<li><span class="math inline">\(q&gt;1\)</span>：S（非整数情况后面说明）</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq3-rrs.png"></p>
+<ul>
+<li>示意图，所有新生成的粒子 <span class="math inline">\(\hat{\nu}\)</span> 相同</li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/fig3-adrrs.png"></p>
+<h3 id="determining-the-rrs-factor">Determining the RRS Factor</h3>
+<ul>
+<li>让 <span class="math inline">\(q\)</span> 正比于期望的<span id="eq4">贡献值</span>
+<ul>
+<li>直观的，当达不到期望贡献值时，则倾向于停止</li>
+<li>理论在 weight invariant 部分</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq4-rrs-factor.png"></p>
+<ul>
+<li><span class="math inline">\(\Psi\)</span> 的含义
+<ul>
+<li>light subpath：visual importance <span class="math inline">\(W\)</span></li>
+<li>camera subpath：radiance <span class="math inline">\(L\)</span></li>
+</ul></li>
+<li>这里<strong><span style="color:red">不考虑自发光</span></strong>，因为我们只在意 <span class="math inline">\(\mathrm{y}\)</span> 处的 scatter 的能量的期望值
+<ul>
+<li>合理的，自发光 RRS 不管是多少，结果都是一个精确值，不受影响</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\Psi^{\text{r}}=\Psi-\Psi^{\text{e}}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(c(\mathrm{y},\omega_\text{i})\)</span>
+的可视化
+<ul>
+<li>注意每一条虚线都是对 <span class="math inline">\(\Psi^{\text{o}}\)</span>
+的<strong>无偏估计</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/fig4-path-contribution.png"></p>
+<h3 id="weight-invariant-in-adrrs">Weight Invariant in ADRRS</h3>
+<ul>
+<li>设计的时候，保证如下<span id="eq5">不变量</span>
+<ul>
+<li><strong>which holds for particle weight in a zero-variance (ZV)
+scheme</strong>
+<ul>
+<li>具体见<a href="#sup">附录</a></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq5-weight-invariant.png"></p>
+<ul>
+<li>从<a href="#eq3">式子 3</a> 和<a href="#eq5">式子 5</a> 能够得到<a href="#eq4">式子 4</a></li>
+</ul>
+<h2 id="algorithm">Algorithm</h2>
+<ul>
+<li>计算 RRS 系数 <span class="math inline">\(q\)</span> 需要 <span class="math inline">\(I,\Psi\)</span>
+<ul>
+<li>我们对 <span class="math inline">\(I,\Psi\)</span> 进行近似估计</li>
+<li>因为近似存在偏差（不够准确），weight window 用于修正</li>
+</ul></li>
+</ul>
+<h3 id="weight-window">Weight Window</h3>
+<ul>
+<li>放松 RRS（在 RRS 执行之前留有余地），提高鲁棒性
+<ul>
+<li>放松 <span class="math inline">\(\hat{\nu}\)</span> 的限制，保证
+<span class="math inline">\(\hat{\nu}\in[\delta^{-},\delta^{+}]\)</span>
+即可，而不是 <span class="math inline">\(\hat{\nu}=C_{\text{ww}}\)</span></li>
+</ul></li>
+<li>保证权重 <span class="math inline">\(\hat{\nu}\)</span>
+都在设置的范围内
+<ul>
+<li><span class="math inline">\(\nu_i\in[\delta^{-},\delta^{+}]\)</span>：不变
+<span class="math inline">\(\Longrightarrow\)</span> <span class="math inline">\(\hat{\nu}=\nu_i\)</span></li>
+<li><span class="math inline">\(\nu_i&gt;\delta^{+}\)</span>：split，<span class="math inline">\(q=\dfrac{\nu_i}{\delta^{+}}\Longrightarrow\hat{\nu}=\delta^{+}\)</span></li>
+<li><span class="math inline">\(\nu_i &lt;\delta^{-}\)</span>：RR，<span class="math inline">\(q=\dfrac{\nu_i}{\delta^{-}}\Longrightarrow\hat{\nu}=\delta^{-}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/fig5-weight-window.png"></p>
+<ul>
+<li>split 的非整数情况
+<ul>
+<li>概率 <span class="math inline">\(\lfloor{q}\rfloor+1-q\)</span> 发射
+<span class="math inline">\(\lfloor{q}\rfloor\)</span> 条光线</li>
+<li>概率 <span class="math inline">\(1-\lfloor{q}\rfloor+q\)</span> 发射
+<span class="math inline">\(\lfloor{q}\rfloor+1\)</span> 条光线</li>
+</ul></li>
+<li><span id="eq6">window center</span> 设置为<a href="#eq5">式子 5</a>
+的值
+<ul>
+<li>具体如何计算后面说</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\dfrac{\delta^{-}+\delta^{+}}{2}=C_{\text{ww}}=\dfrac{\tilde{I}}{\tilde{\Psi}_{\text{o}}^{\text{r}}(\mathrm{y},\omega_\text{i})}\qquad(6)
+\]</span></p>
+<ul>
+<li>推荐设置
+<ul>
+<li><span class="math inline">\(\delta^{+}=s\delta^{-}\)</span></li>
+<li><span class="math inline">\(s=5\)</span></li>
+<li>早期一些核科学研究的推荐设置</li>
+</ul></li>
+<li>此时可以得到</li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq6-weight-window-lower-bound.png"></p>
+<ul>
+<li>在 weight window <strong>之后</strong>，我们还会对 <span class="math inline">\(q\)</span> 加上 clamp
+<ul>
+<li>很小的 RRS 系数会导致大方差（估计不准）
+<ul>
+<li>RR 必然带来方差的增大</li>
+</ul></li>
+</ul></li>
+<li>weight window 相当于是给 <span class="math inline">\(\hat{\nu}\)</span> 做了 clamp</li>
+</ul>
+<h3 id="adjoint-solution-estimate">Adjoint Solution Estimate</h3>
+<ul>
+<li><span class="math inline">\(\tilde{\Psi}_{\text{o}}^{\text{r}}(\mathrm{y},\omega_\text{i})\)</span></li>
+<li>之前
+<ul>
+<li>photon/importon density estimate：慢而且不准</li>
+<li>spatial-directional distribution</li>
+</ul></li>
+<li>我们：无方向的缓存，而且鲁棒
+<ul>
+<li><span class="math inline">\((a)\)</span> 就是我们的方法</li>
+<li><span class="math inline">\((b)\)</span> 加上了 path guiding</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/fig7-cache.png"></p>
+<ul>
+<li>预训练 <em>irradiance</em>（/<em>diffuse visual
+importance</em>）<span class="math inline">\(G\)</span></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq8-irradiance.png"></p>
+<ul>
+<li>adjoint 的估计
+<ul>
+<li><span class="math inline">\(\kappa(\mathrm{y})\)</span>：total
+material reflectivity（albedo）</li>
+<li><span class="math inline">\(\dfrac{\kappa(\mathrm{y})}{\pi}\)</span>：Lambert
+漫反射的 BRDF</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq9-estimate-of-adjoint.png"></p>
+<ul>
+<li>为什么是上面的表达形式
+<ul>
+<li>在方向上做平均（Lambert）
+<ul>
+<li><span class="math inline">\(\Psi^{\text{r}}_{\text{o}}(\mathrm{y},\omega_i)=\Psi^{\text{r}}_{\text{o}}(\mathrm{y})\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\Psi^{\text{r}}_{\text{o}}(\mathrm{y})
+&amp;=\int_{\Omega}\Psi_{\text{i}}(\mathrm{y},\omega)\dfrac{\kappa(\mathrm{y})}{\pi}\cos\theta_{\mathrm{y}}\;\mathrm{d}\omega\\
+&amp;=\dfrac{\kappa(\mathrm{y})}{\pi}{\color{red}\int_{\Omega}\Psi_{\text{i}}(\mathrm{y},\omega)\cos\theta_{\mathrm{y}}\;\mathrm{d}\omega}\\
+&amp;=\dfrac{\kappa(\mathrm{y})}{\pi}{\color{red}G(\mathrm{y})}\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>预计算：Vorba 2014（<a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/2601097.2601203">On-line learning
+of parametric mixture models for light transport simulation</a>）
+<ul>
+<li>和他不一样的地方，我们双向追踪光线，构建 <span class="math inline">\(\tilde{G}\)</span> 的估计（irradiance/diffuse
+visual importance）</li>
+<li>Vorba：fit directional distributions</li>
+<li>EARS 对于预计算的实现：空间划分做累计和（类似 PPG）</li>
+</ul></li>
+<li>细节：借鉴 Vorba（细节看论文）
+<ul>
+<li>当 <span class="math inline">\(\tilde{G}\)</span>
+无法获得的时候，使用 kernel density estimation 从临近的粒子中获取一个
+estimate
+<ul>
+<li>每一个粒子都带有一个半径（最深的最大），同时让光场快的地方更密集</li>
+</ul></li>
+<li>每一轮迭代使用 progressive kernel density estimation 更新 <span class="math inline">\(\tilde{G}\)</span>，同时计算 rel-error <span class="math inline">\(\dfrac{\text{stddev}(\tilde{G})}{\tilde{G}}\)</span></li>
+<li>ADRRS 只有在 rel-error &lt; 30% 的时候使用，否则使用一个全局固定的
+large weight window</li>
+<li>smoother：周围的缓存做平均</li>
+</ul></li>
+</ul>
+<h3 id="measurement-estimate">Measurement Estimate</h3>
+<ul>
+<li><span class="math inline">\(\tilde{I}\)</span>：EARS
+中使用降噪后的结果</li>
+<li>之前
+<ul>
+<li>使用一个常数，而不是 <span class="math inline">\(\tilde{I}\)</span>，使得在一次 collision
+的时候，particle 的权重恰好落在区间中心</li>
+</ul></li>
+<li>camera ray
+<ul>
+<li>实际实现上，使用记录的缓存用于更新</li>
+<li>发射 4 条 jittered primary rays，查询 irradiance
+<ul>
+<li>diffuse/glossy：碰到即返回</li>
+<li>specular：继续</li>
+<li>10 条还没碰到，则在 10th 处查询</li>
+</ul></li>
+</ul></li>
+<li>light ray
+<ul>
+<li>已经获得的结果，所有像素的平均值（因为我们不知道会被贡献给哪一个像素）</li>
+</ul></li>
+</ul>
+<h3 id="path-sampling-algorithm">Path Sampling Algorithm</h3>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/alg1.png"></p>
+<ul>
+<li>First Collision
+<ul>
+<li>camera ray：第一次 RRS 系数 <span class="math inline">\(q=1\)</span>
+<ul>
+<li>第一次使用只会用于降低像素内的方差，这通常很小
+<ul>
+<li><strong><span style="color:red">Why</span></strong></li>
+</ul></li>
+</ul></li>
+<li>light ray：第一次也能发生</li>
+</ul></li>
+<li>避免 ray tree 太大
+<ul>
+<li>RRS &lt;= 100</li>
+<li>每一条路径上的最大分裂次数 &lt;= 1000
+<ul>
+<li>RRS 累乘</li>
+</ul></li>
+</ul></li>
+<li>NEE：对每一条分裂的 ray 做 NEE
+<ul>
+<li><span class="math inline">\(q\)</span> pairs</li>
+</ul></li>
+</ul>
+<h2 id="combining-adrrs-with-path-guiding">Combining ADRRS with Path
+Guiding</h2>
+<ul>
+<li>Vorba 14
+<ul>
+<li>classic RR 可能会去除 Path Guiding 的效果</li>
+<li><span class="math inline">\(\delta^{-}=1\mathrm{e}^{-6}\)</span>
+设置很小，效果并不好，失去 RR 的意义了</li>
+<li>引入 splitting，当 weight &gt; 2 original value 时使用
+splitting，同时设置 <span class="math inline">\(s=2\times10^{6}\)</span></li>
+</ul></li>
+<li>我们
+<ul>
+<li>基于 Vorba 14，同时预计算 <span class="math inline">\(\tilde{G}\)</span> 和 directional sampling
+distribution
+<ul>
+<li>训练的时候也加入 ADRRS</li>
+</ul></li>
+<li>进一步的，我们利用 distribution 构建更好的 adjoint</li>
+</ul></li>
+<li>利用 distribution 估计 adjoint <span class="math inline">\(\tilde{\Psi}_{\text{o}}^{\text{r}}(\mathrm{y},\omega_\text{i})\)</span>
+<ul>
+<li>利用前一个点 <span class="math inline">\(\mathrm{x}\)</span>
+进行估计</li>
+<li>根据 PG 的 ZV 估计设计要求（<span class="math inline">\(\tilde{G}(\mathrm{x})\)</span>
+做归一化），有如下式子，推导得到式子 10</li>
+<li>根据式子 10 和之前式子 9，得到实际使用的 adjoint 估计（式子 11）
+<ul>
+<li>取 <span class="math inline">\(\max\)</span>，则 <span class="math inline">\(C_{\text{ww}}\)</span>
+越小，则停止的光线数越少（<span class="math inline">\(\delta^{-}\)</span> 也小了），避免方差太大（glossy
+场景）</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq10-pg-zv-design.png"></p>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq10.png"></p>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq11-final-adjoint.png"></p>
+<h2 id="adrrs-and-zero-variance-schemes">ADRRS and Zero-Variance
+Schemes</h2>
+<ul>
+<li><span id="eq12">zero variance (ZV)</span></li>
+<li>ZV 条件下，推导得到 <span class="math inline">\(\mathrm{y}\)</span>
+处的 <span class="math inline">\(q\)</span> 如下，具体过程见<a href="#sup">附录</a>
+<ul>
+<li>前一个点 <span class="math inline">\(\mathrm{x}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq12-best-q-in-zv.png"></p>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/eq12-fig.png"></p>
+<ul>
+<li>ZV 下</li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/pg-in-zv.png"></p>
+<ul>
+<li>这样得到的 <span class="math inline">\(q\)</span> 和 <span class="math inline">\(\mathrm{x}\)</span> 之前的情况都无关（不包含 <span class="math inline">\(\tilde{v}\)</span> 项）</li>
+<li>RRS as importance sampling
+<ul>
+<li>这样子的 <span class="math inline">\(q\)</span>，好像是一种重要性采样</li>
+<li>实际 pdf 比零方差高了，就使用 RR，减小采样；低了，就使用
+S，增加样本</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/RRS-as-importance-sampling.png"></p>
+<ul>
+<li>Residual variance
+<ul>
+<li>RR 下，等价于拒绝采样（rejection sampling）</li>
+<li>splitting 不能降低 <span class="math inline">\(\mathrm{x}\)</span>
+出的方差，因为其发生在 <span class="math inline">\(\mathrm{y}\)</span></li>
+<li>因此如果 pdf 很差，ADRRS 起到的补救作用很小
+<ul>
+<li>光路：diffuse wall -&gt; spacular-like floor -&gt; light</li>
+<li>diffuse 的 pdf 很差，则 floor 的 splitting 补救作用很小</li>
+</ul></li>
+</ul></li>
+<li>Zero-variance sampling
+<ul>
+<li>ZV scheme：<span class="math inline">\(p(\omega\mid\mathrm{x})=p_{\text{zv}}(\omega\mid\mathrm{x}),\forall\omega\)</span></li>
+<li>如此可以获取 ZV 的 <span class="math inline">\(q=q_{\text{zv}}=1\)</span></li>
+<li>理解：pdf 是 ZV 了，就不需要 RRS 了</li>
+<li>不同点
+<ul>
+<li>PG：<span class="math inline">\(\mathrm{x}\)</span> 点的估计是 ZV
+的</li>
+<li>ADRRS：<span class="math inline">\(\mathrm{y}\)</span>
+处的方差降低了</li>
+</ul></li>
+</ul></li>
+<li>Path guiding methods
+<ul>
+<li>pdf 越接近 ZV，则就不需要 RRS 了</li>
+<li>否则，RRS 用于弥补 pdf 的偏差</li>
+</ul></li>
+</ul>
+<h2 id="result">Result</h2>
+<ul>
+<li>1 hour on an Intel Core i7-2600K CPU using 8 logical cores.
+<ul>
+<li>training time included</li>
+</ul></li>
+<li>max bounces：40</li>
+<li>indirect light dominated scene</li>
+</ul>
+<h2 id="limitation-discussion-and-future-work">Limitation, Discussion,
+and Future Work</h2>
+<ul>
+<li>Inaccurate adjoint and measurement estimates</li>
+<li>Efficiency-driven RR and splitting</li>
+<li>Splitting and combined estimators
+<ul>
+<li>with BDPT</li>
+</ul></li>
+<li>Participating media</li>
+</ul>
+<h2 id="sup">sup</h2>
+<h3 id="transport">transport</h3>
+<ul>
+<li>radiance transport
+<ul>
+<li>分母：归一化（分子的积分）</li>
+<li><span class="math inline">\(\mathrm{x}\)</span>：发射，<span class="math inline">\(\mathrm{y}\)</span>：收集</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-light-transport.png"></p>
+<ul>
+<li>visual importance transport
+<ul>
+<li>分母：归一化</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-visual-importance-transport.png"></p>
+<ul>
+<li>light tracing
+<ul>
+<li>估计如下
+<ul>
+<li>可以看 PT 的 MC 估计，相当于此时的权重函数为 <span class="math inline">\(L\)</span>，此时收集的 transport 为 <span class="math inline">\(W\)</span></li>
+<li><span class="math inline">\(\mathcal{M}\)</span>：全表面空间</li>
+<li>想象一个像素是一个小 patch，到达/出去这个 patch 的 flux 定义如下
+<ul>
+<li><span class="math inline">\(W\)</span>：这个 patch
+直接可见的点及其方向 <span class="math inline">\(\Rightarrow\)</span>
+1</li>
+<li><span class="math inline">\(L\)</span>：radiance</li>
+<li>flux：垂直，需要乘 <span class="math inline">\(\cos\)</span></li>
+</ul></li>
+<li>也就是说这里的 <span class="math inline">\(I\)</span> 指的是通量
+<span style="color:red"><strong>flux</strong></span></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq-1-light-tracing-mc.png"></p>
+<ul>
+<li>path tracing
+<ul>
+<li>估计如下</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq-4-path-tracing-mc.png"></p>
+<h3 id="采样">采样</h3>
+<ul>
+<li>出射采样，以 light tracing 为例，配套的估计是 visual importance
+transport</li>
+<li>emission：首先采样一个光源</li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq5-zv-light-tracing.png"></p>
+<ul>
+<li><span id="seq6">scatter</span>：发生散射的地方，出射方向的概率正比于总出射
+<span class="math inline">\(L\)</span></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq6-zv-path-tracing.png"></p>
+<h3 id="light-tracing-证明">Light Tracing 证明</h3>
+<ul>
+<li><span id="seq7">survival probability</span></li>
+<li>这样的设计，能够让路径只有在相机处恰好完全终止（相机不与 visual
+importance 交互）</li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq7-zv-survival-probability.png"></p>
+<ul>
+<li>证明如下<span id="seq9">式子</span></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq9.png"></p>
+<ul>
+<li>已知
+<ul>
+<li>采样是 ZV 的，包括 light ray/camera ray</li>
+<li>对称性</li>
+<li>红色：radiance transport</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-symmetric.png"></p>
+<ul>
+<li>分类讨论：主体思路，数学归纳法证明</li>
+</ul>
+<h4 id="emission">emission</h4>
+<ul>
+<li><strong>注意光源不散射，除了发光外不与光线交互</strong></li>
+<li>RRS 前
+<ul>
+<li>按照正比发射：<span class="math inline">\(p=\dfrac{WL\cos}{I}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq10-11-proof.png"></p>
+<ul>
+<li>RRS 后
+<ul>
+<li>RRS 的 ZV 定义（<a href="#seq7">式子 7</a>）+ RRS 前系数</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq12-13.png"></p>
+<h4 id="中间节点">中间节点</h4>
+<ul>
+<li><span class="math inline">\(\mathrm{x}\)</span>：发射，<span class="math inline">\(\mathrm{y}\)</span>：收集
+<ul>
+<li>归纳法，假设 <span class="math inline">\(\mathrm{x}\)</span>
+满足要求</li>
+</ul></li>
+<li>RRS 前
+<ul>
+<li>在 <span class="math inline">\(\mathrm{x}\)</span> 处散射</li>
+<li>根据<a href="#seq6">式子 6</a>，此时 <span class="math inline">\(L\)</span> 变为 <span class="math inline">\(\hat{v}f_\text{s}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq-collision-1.png"></p>
+<ul>
+<li>归纳</li>
+</ul>
+<p><span class="math display">\[
+\hat{v}(\mathrm{x},\omega_{\text{i}}^{\text{x}})=\dfrac{I}{W_{\text{o}}^{\text{r}}(\mathrm{x},\omega_{\text{i}}^{\text{x}})}
+\]</span></p>
+<ul>
+<li>此时能够得到
+<ul>
+<li><span class="math inline">\(\nu=\dfrac{\hat{\nu}f_{\text{s}}\cos}{p}=\dfrac{I}{W_{\text{o}}}\cdot
+f_{\text{s}}\cos\cdot\dfrac{W_{\text{o}}}{W_{\text{i}}f_{s}\cos}=\dfrac{I}{W_{\text{i}}}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq-14-hypothesis.png"></p>
+<ul>
+<li>RRS 后的推导和 emission 一样，于是得到 <span class="math inline">\(\mathrm{y}\)</span> 也满足结果</li>
+</ul>
+<h3 id="pg">PG</h3>
+<ul>
+<li>原始论文中<a href="#eq12">式子 12</a> 的证明
+<ul>
+<li>当前点 <span class="math inline">\(\mathrm{y}\)</span> 的 RRS
+系数由前一个点 <span class="math inline">\(\mathrm{x}\)</span> 的采样
+pdf 和 ZV pdf 决定</li>
+</ul></li>
+<li>更一般的版本：<span class="math inline">\(p^{\text{r}}_{\text{zv}}\)</span> 代替 <span class="math inline">\(p_{\text{zv}}\)</span>（不包含 emission，这样在
+emission 处也正确）
+<ul>
+<li>都替换成 <span class="math inline">\(X^{\text{r}}\)</span> 就行</li>
+</ul></li>
+</ul>
+<h4 id="证明">证明</h4>
+<ul>
+<li>定义</li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq-v-hat-defination.png"></p>
+<ul>
+<li>对称性 + <a href="#seq9">上面的证明</a> <span class="math inline">\(\hat{v}(y)\)</span></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq7.png"></p>
+<ul>
+<li>transport</li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq18-transport.png"></p>
+<ul>
+<li><a href="#seq9">上面的证明</a> <span class="math inline">\(\hat{\nu}(x)\)</span></li>
+</ul>
+<p><img src="/2023/10/08/CG/Papers/2016/ADRRS/s-eq19.png"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/RRS/" rel="tag"># RRS</a>
+              <a href="/tags/TOG/" rel="tag"># TOG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/09/26/CG/cuda/03/" rel="prev" title="cuda 学习(3)">
+                  <i class="fa fa-chevron-left"></i> cuda 学习(3)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/10/16/CG/Papers/2023/NPM/" rel="next" title="(论文)[2023-SIGC] Neural Parametric Mixtures for Path Guiding">
+                  (论文)[2023-SIGC] Neural Parametric Mixtures for Path Guiding <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
