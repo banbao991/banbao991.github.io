@@ -21,21 +21,35 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="论文阅读">
+    <meta name="description" content="使用 VMM 表示用于采样的 pdf，使用神经网络估计 VMM 的参数">
 <meta property="og:type" content="article">
 <meta property="og:title" content="(论文)[2023-SIGC] Neural Parametric Mixtures for Path Guiding">
 <meta property="og:url" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/index.html">
 <meta property="og:site_name" content="Banbao">
-<meta property="og:description" content="论文阅读">
+<meta property="og:description" content="使用 VMM 表示用于采样的 pdf，使用神经网络估计 VMM 的参数">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/fig1-parallax-error.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/eq1-rendering-eq.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/eq2-rendering-eq-MC.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/pipeline.svg">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/tab1-mapping.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/eq7-KL-divergence.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/eq8-MC-of-KL-divergence.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/eq9-derivate-on-theta.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/eq10-best-Phi.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/eq13-latent-feature.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/fig3-error-curve.png">
+<meta property="og:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/fig3-legend.png">
 <meta property="article:published_time" content="2023-10-16T07:23:02.000Z">
-<meta property="article:modified_time" content="2023-10-16T07:33:07.732Z">
+<meta property="article:modified_time" content="2024-03-05T08:16:02.885Z">
 <meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="CG">
 <meta property="article:tag" content="Paper">
 <meta property="article:tag" content="SIG">
 <meta property="article:tag" content="path guiding">
+<meta property="article:tag" content="NN">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/10/16/CG/Papers/2023/NPM/fig1-parallax-error.png">
 
 
 <link rel="canonical" href="http://example.com/2023/10/16/CG/Papers/2023/NPM/">
@@ -135,7 +149,7 @@
 
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           Table of Contents
@@ -148,6 +162,8 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#npm"><span class="nav-text">NPM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#introduction"><span class="nav-text">introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#related-work"><span class="nav-text">related work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#preliminary"><span class="nav-text">preliminary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#npm-1"><span class="nav-text">NPM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#radiance-based-npm"><span class="nav-text">Radiance-based NPM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#optimizing-npm"><span class="nav-text">Optimizing NPM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#full-integrand-learning"><span class="nav-text">Full Integrand Learning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-text">其他</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#multi-resolution-spatial-embedding"><span class="nav-text">Multi-resolution Spatial
+Embedding</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#online-training-scheme"><span class="nav-text">Online Training Scheme</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#guiding-network"><span class="nav-text">Guiding Network</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E8%AE%A8%E8%AE%BA"><span class="nav-text">结果讨论</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94"><span class="nav-text">对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#evaluation"><span class="nav-text">Evaluation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#discussion"><span class="nav-text">Discussion</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#future"><span class="nav-text">Future</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -162,18 +178,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-count">295</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-count">97</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -237,7 +253,7 @@
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
       <meta itemprop="name" content="(论文)[2023-SIGC] Neural Parametric Mixtures for Path Guiding | Banbao">
-      <meta itemprop="description" content="论文阅读">
+      <meta itemprop="description" content="使用 VMM 表示用于采样的 pdf，使用神经网络估计 VMM 的参数">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
@@ -251,9 +267,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2023-10-16 15:23:02 / Modified: 15:33:07" itemprop="dateCreated datePublished" datetime="2023-10-16T15:23:02+08:00">2023-10-16</time>
+      <time title="Created: 2023-10-16 15:23:02" itemprop="dateCreated datePublished" datetime="2023-10-16T15:23:02+08:00">2023-10-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-03-05 16:16:02" itemprop="dateModified" datetime="2024-03-05T16:16:02+08:00">2024-03-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -275,7 +297,7 @@
     </span>
 </div>
 
-            <div class="post-description">论文阅读</div>
+            <div class="post-description">使用 VMM 表示用于采样的 pdf，使用神经网络估计 VMM 的参数</div>
         </div>
       </header>
 
@@ -283,7 +305,342 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        
+        <h1 id="npm">NPM</h1>
+<ul>
+<li>Neural Parametric Mixtures for Path Guiding</li>
+<li>SIGGRAPH 2022</li>
+<li><a target="_blank" rel="noopener" href="https://neuropara.github.io">主页</a></li>
+</ul>
+<h2 id="摘要">摘要</h2>
+<ul>
+<li>NPM：神经网络隐式表示 PG 使用的 pdf</li>
+</ul>
+<h2 id="introduction">introduction</h2>
+<ul>
+<li>之前的 PG 方法一般不能很好的构建 spatial-directional 之间的相关性
+<ul>
+<li>离散化的问题</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/fig1-parallax-error.png"></p>
+<ul>
+<li>之前的方法，需要大量训练得到 spatial/directional 合适的细分程度</li>
+<li>NPM
+<ul>
+<li>一个方便<strong>学习 + 采样</strong>的分布，快速学习（SGD
+就行），lightweight MLP</li>
+<li>连续建模</li>
+<li>GPU</li>
+<li>可以直接学习 BSDF x L 的结果</li>
+</ul></li>
+</ul>
+<h2 id="related-work">related work</h2>
+<ul>
+<li>Path Guiding</li>
+<li>Parametric Mixture Models
+<ul>
+<li>比较好的特性
+<ul>
+<li>closed-form solutions for products, convolutions and integrals</li>
+<li>采样快</li>
+</ul></li>
+<li>Gaussian mixtures</li>
+<li>von Mises-Fisher mixtures</li>
+</ul></li>
+<li>Implicit Neural Representation
+<ul>
+<li>NeRF</li>
+</ul></li>
+</ul>
+<h2 id="preliminary">preliminary</h2>
+<ul>
+<li>渲染方程：<span class="math inline">\(\omega_o\)</span> 表示 <span style="color:red;font-weight:bold">camera rays</span> 的方向</li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/eq1-rendering-eq.png"></p>
+<ul>
+<li><span class="math inline">\(N=1\)</span> 样本 MC 无偏估计</li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/eq2-rendering-eq-MC.png"></p>
+<ul>
+<li>Von Mises-Fisher（vMF）
+<ul>
+<li>方向：<span class="math inline">\(\mu\in\mathbb{S}^2\)</span></li>
+<li>sharpness：<span class="math inline">\(\kappa\in[0,+\infty]\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+v(\omega\mid\mu,\kappa)=\dfrac{\kappa}{4\pi\sinh\kappa}\exp\left(\kappa\mu^{T}\omega\right)
+\]</span></p>
+<ul>
+<li>VMM 是 vMF 的加权混合（<span class="math inline">\(\lambda_i\)</span>）</li>
+</ul>
+<p><span class="math display">\[
+\mathcal{V}(\omega\mid\Theta)=\sum_{i=1}^{K}\lambda_i\cdot
+v_i(\omega\mid\mu_i,\kappa_i)
+\]</span></p>
+<ul>
+<li>VMM 的优势
+<ul>
+<li>fewer parameters (4 floats per component)</li>
+<li>efficient importance sampling</li>
+<li>closed-form product and integration</li>
+</ul></li>
+</ul>
+<h2 id="npm-1">NPM</h2>
+<ul>
+<li>pipeline</li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/pipeline.svg"></p>
+<h3 id="radiance-based-npm">Radiance-based NPM</h3>
+<ul>
+<li>NPM 想要实现的目标</li>
+</ul>
+<p><span class="math display">\[
+\mathcal{V}(\omega_i\mid\Theta(\mathrm{x}))\propto
+L_{\text{i}}(\mathrm{x},\omega_i)
+\]</span></p>
+<ul>
+<li>NPM 将输入解码成 VMM 的参数 <span class="math inline">\(\hat{\Theta}(\mathrm{x})\)</span>，用于采样
+<ul>
+<li><span class="math inline">\(\Phi\)</span> 表示 MLP
+中待学习的参数</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\text{NPM}_{\text{radiance}}(\mathrm{x}\mid\Phi)=\hat{\Theta}(\mathrm{x})
+\]</span></p>
+<ul>
+<li>为了保证网络输出的参数满足 vMF 的要求，对网络输出做一个映射
+<ul>
+<li>加了<span id="ac-last">激活函数</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\lambda_i,\kappa_i&gt;0,\mu_i\in\mathbb{S}^2,\sum_{i=1}^{K}\lambda_i=1
+\]</span></p>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/tab1-mapping.png"></p>
+<ul>
+<li>网络：最直观的方式就是直接使用 MLP：<span class="math inline">\(\mathrm{x}\to\hat{\Theta}\)</span>
+<ul>
+<li>一个简单的神经网络无法模拟高频信息，因此 NPM 加上了一个 trainable
+<strong>multi-resolution spatial embedding</strong></li>
+</ul></li>
+</ul>
+<h3 id="optimizing-npm">Optimizing NPM</h3>
+<ul>
+<li>SGD</li>
+<li><span class="math inline">\(\Theta_{\text{gt}}(\mathrm{x})\)</span>
+是未知的</li>
+<li>之前的算法：EM（不适用于隐式的方法）</li>
+<li>将真实分布 <span class="math inline">\(\mathcal{D}\)</span>
+和我们学习的分布 <span class="math inline">\(\mathcal{V}\)</span> 之间的
+KL 散度作为 loss</li>
+<li>给定位置 <span class="math inline">\(\mathrm{x}\)</span>，loss
+如下</li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/eq7-KL-divergence.png"></p>
+<ul>
+<li>在 radiance-based PG 中，<span class="math inline">\(\mathcal{D}\propto L_i\)</span>
+<ul>
+<li>在实际实现中，我们直接使用 <span class="math inline">\(L_i\)</span></li>
+<li>使用 <span class="math inline">\(k\mathcal{D}\)</span> 还是 <span class="math inline">\(\mathcal{D}\)</span> 不影响最值</li>
+</ul></li>
+<li>loss 没法直接得到，使用 MC 估计
+<ul>
+<li><span class="math inline">\(N\)</span> samples</li>
+<li><span class="math inline">\(\tilde{p}\)</span>：采样分布，我们使用
+BSDF 和 VMM 的 MIS</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/eq8-MC-of-KL-divergence.png"></p>
+<ul>
+<li>loss 到参数的梯度（用于训练）如下</li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/eq9-derivate-on-theta.png"></p>
+<ul>
+<li>实际训练对：<span class="math inline">\((\mathrm{x},\omega_i)\to
+L_i\)</span> 分布在不同的空间位置，需要在每个位置都收敛</li>
+<li>我们希望得到的最优 <span class="math inline">\(\Phi\)</span>，满足</li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/eq10-best-Phi.png"></p>
+<ul>
+<li>adaptive training：梯度最大的地方，loss 最大（占主导）</li>
+</ul>
+<h3 id="full-integrand-learning">Full Integrand Learning</h3>
+<ul>
+<li>需要考虑 <span class="math inline">\(\omega_o\)</span>，对于神经网络来说很自然，能够表示就能够学习</li>
+</ul>
+<p><span class="math display">\[
+\text{NPM}_{\text{product}}(\mathrm{x},\omega_o\mid\Phi)=\hat{\Theta}(\mathrm{x},\omega_o)
+\]</span></p>
+<ul>
+<li>想要训练的目标变成</li>
+</ul>
+<p><span class="math display">\[
+\mathcal{V}(\omega_i\mid\hat{\Theta}(\mathrm{x},\omega_o))\propto
+f_{\text{s}}(\mathrm{x},\omega_o,\omega_i)L_{\text{i}}(\mathrm{x},\omega_i)\left\vert\cos\theta_i\right\vert
+\]</span></p>
+<ul>
+<li>其中 <span class="math inline">\(\cos\)</span> 可以使用一个 constant
+vMF 来表示</li>
+</ul>
+<h3 id="其他">其他</h3>
+<ul>
+<li>Auxiliary Feature Inputs（去掉效果掉的不多）
+<ul>
+<li>surface normal <span class="math inline">\(\mathrm{n}(\mathrm{x})\)</span> and roughness</li>
+</ul></li>
+<li>Input Encoding
+<ul>
+<li>模拟 non-linearity between multidimensional inputs and outputs
+<ul>
+<li>trainable multi-resolution spatial embedding</li>
+<li>和 NRC 一样</li>
+</ul></li>
+<li><span class="math inline">\(\omega_{\text{o}},\mathrm{n}(\mathrm{x})\)</span>：spherical
+harmonics
+<ul>
+<li>NeRF</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="实现">实现</h2>
+<h3 id="multi-resolution-spatial-embedding">Multi-resolution Spatial
+Embedding</h3>
+<ul>
+<li>映射：<span class="math inline">\(\mathrm{x}\to\hat{\Theta}\)</span>（radiance-based
+version）
+<ul>
+<li><span class="math inline">\(\mathbb{R}^3\to\mathbb{R}^{4\times
+K}\)</span></li>
+</ul></li>
+<li>直接使用 MLP，很难建模空间上的高频变化</li>
+<li>使用可学习的多分辨率的空间编码</li>
+<li><span class="math inline">\(L\)</span> 个 3D 均匀网格 <span class="math inline">\(G_1,\cdots,G_l,\cdots G_L\)</span>
+<ul>
+<li>每一个都覆盖整个空间</li>
+<li>每一个的空间分辨率为 <span class="math inline">\(D_l^3\)</span>（成倍增加）</li>
+<li>每一个网格位置定义一个 latent feature vector <span class="math inline">\(v\in \mathbb{R}^{f}\)</span>
+<ul>
+<li>非格点位置，线性插值</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/eq13-latent-feature.png"></p>
+<ul>
+<li><span class="math inline">\(V_l[\mathrm{x}]\)</span>：对应的用于插值的 8
+个位置的 latent vector</li>
+<li>radiance-based NPM 现在变成如下形式
+<ul>
+<li><span class="math inline">\(\Phi_{\text{E}}\)</span>：spatial
+embedding</li>
+<li><span class="math inline">\(\Phi_{\text{M}}\)</span>：MLP</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\text{NPM}_{\text{radiance}}\left(G(\mathrm{x}\mid\Phi_{\text{E}})\mid\Phi_{\text{M}}\right)=\hat{\Theta}(\mathrm{x})
+\]</span></p>
+<h3 id="online-training-scheme">Online Training Scheme</h3>
+<ul>
+<li>Optix + GPU，wavefront</li>
+<li>structure-of-arrays (SoA) memory layout</li>
+<li>Training Scheme
+<ul>
+<li>边训练，边渲染</li>
+<li>固定比例的 budget(spp/time) 用于渲染
+<ul>
+<li>实验：<span class="math inline">\(25\%\)</span></li>
+</ul></li>
+<li>NPM 在 150spp（15s，1000 training step）便能够收敛</li>
+</ul></li>
+</ul>
+<h3 id="guiding-network">Guiding Network</h3>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/NVlabs/tiny-cuda-nn">tiny-cuda-nn</a></li>
+<li>MLP
+<ul>
+<li>3 linear layers of width 64</li>
+<li>ReLU activation（最后一层使用<a href="#ac-last">表格</a>中的激活函数）</li>
+</ul></li>
+<li>VMM：8 vMF（<span class="math inline">\(K=8\)</span>）</li>
+<li>Grid Embembbing：<span class="math inline">\(L=8\)</span>
+<ul>
+<li>increasing resolutions：<span class="math inline">\(D_1=8,D_8=68\)</span></li>
+<li>feature：<span class="math inline">\(F=4\)</span> floats</li>
+</ul></li>
+<li>training
+<ul>
+<li><span class="math inline">\(\text{lr}=0.005\)</span></li>
+<li>Adaptive momentum techniques（Adam）</li>
+<li><a target="_blank" rel="noopener" href="https://www.mitsuba-renderer.org/~wenzel/files/vmf.pdf">vMF
+采样</a></li>
+</ul></li>
+<li>inference
+<ul>
+<li>EMA（NRC 相似）</li>
+</ul></li>
+</ul>
+<h2 id="结果讨论">结果讨论</h2>
+<ul>
+<li>RTX3070</li>
+<li>不开 NEE、RR，最大深度 10</li>
+<li>720p</li>
+<li>metric：relMSE、MAPE、MRSE</li>
+<li>MIS：（fixed）50% BSDF + 50% Method</li>
+</ul>
+<h3 id="对比">对比</h3>
+<ul>
+<li>在训练早期，结果就已经比较好了
+<ul>
+<li><span style="color:#e8b558;font-weight:bold">黄色</span>的是 PT</li>
+</ul></li>
+</ul>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/fig3-error-curve.png"></p>
+<p><img src="/2023/10/16/CG/Papers/2023/NPM/fig3-legend.png"></p>
+<ul>
+<li>和 Rath 的 VAPG 相比，又快又好
+<ul>
+<li>和 PPG 相比，平均有 1.5x 的加速</li>
+</ul></li>
+</ul>
+<h3 id="evaluation">Evaluation</h3>
+<ul>
+<li>Trainable Spatial Embedding
+<ul>
+<li>No Encoding ~ Frequency &lt; Single-Resolution &lt;
+Multi-Resolution</li>
+</ul></li>
+<li>Training Efficiency
+<ul>
+<li>少量样本的时候，效果就已经比较好了（&gt; VAPG）</li>
+</ul></li>
+</ul>
+<h3 id="discussion">Discussion</h3>
+<ul>
+<li>Path Guiding Extensions
+<ul>
+<li>学习 MIS 的采样概率（论文固定 50%）</li>
+<li>VAPG 中的理论：学 <span class="math inline">\(L_i^2\)</span></li>
+</ul></li>
+<li>Performance Analysis
+<ul>
+<li>720p 过一遍网络：3ms</li>
+<li>training step（<span class="math inline">\(2^{18}\)</span>
+samples）：10ms</li>
+<li>2M params：&lt;10 MB 内存</li>
+</ul></li>
+<li>Alternative Solutions
+<ul>
+<li>其他方法复杂，不适合 GPU</li>
+</ul></li>
+</ul>
+<h2 id="future">Future</h2>
+<ul>
+<li>更好的基函数
+<ul>
+<li>VMM 数量固定，表达不够准确</li>
+</ul></li>
+</ul>
 
     </div>
 
@@ -297,6 +654,7 @@
               <a href="/tags/Paper/" rel="tag"># Paper</a>
               <a href="/tags/SIG/" rel="tag"># SIG</a>
               <a href="/tags/path-guiding/" rel="tag"># path guiding</a>
+              <a href="/tags/NN/" rel="tag"># NN</a>
           </div>
 
         
@@ -331,7 +689,7 @@
 
 <div class="copyright">
   &copy; 2021 – 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

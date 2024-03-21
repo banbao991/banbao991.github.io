@@ -21,20 +21,34 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="NRC">
+    <meta name="description" content="使用神经网络去预测 radiance，实时渲染">
 <meta property="og:type" content="article">
-<meta property="og:title" content="(论文)[2021-SIG]Real-time Neural Radiance Caching for Path Tracing">
+<meta property="og:title" content="(论文)[2021-SIG] Real-time Neural Radiance Caching for Path Tracing">
 <meta property="og:url" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/index.html">
 <meta property="og:site_name" content="Banbao">
-<meta property="og:description" content="NRC">
+<meta property="og:description" content="使用神经网络去预测 radiance，实时渲染">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/scattered-radiance.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/fig2-nrc.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/eq2-ema.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/eq3-path-termination.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/eq4-a0.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/fig5-path-termination.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/table1-input-encoding.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/fig6-mlp.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/fig8-reflectance%20-actorization.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/fig9-encoding-simplification.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/eq5-ref-loss.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/flip.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/glass-nrc.png">
+<meta property="og:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/glass-ref.png">
 <meta property="article:published_time" content="2023-09-11T05:52:35.000Z">
-<meta property="article:modified_time" content="2023-10-23T02:41:59.465Z">
+<meta property="article:modified_time" content="2024-03-18T11:31:01.442Z">
 <meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="CG">
 <meta property="article:tag" content="Paper">
 <meta property="article:tag" content="SIG">
+<meta property="article:tag" content="NN">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/2023/09/11/CG/Papers/2021/NRC/scattered-radiance.png">
 
@@ -43,10 +57,10 @@
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/09/11/CG/Papers/2021/NRC/","path":"2023/09/11/CG/Papers/2021/NRC/","title":"(论文)[2021-SIG]Real-time Neural Radiance Caching for Path Tracing"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/09/11/CG/Papers/2021/NRC/","path":"2023/09/11/CG/Papers/2021/NRC/","title":"(论文)[2021-SIG] Real-time Neural Radiance Caching for Path Tracing"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>(论文)[2021-SIG]Real-time Neural Radiance Caching for Path Tracing | Banbao</title>
+<title>(论文)[2021-SIG] Real-time Neural Radiance Caching for Path Tracing | Banbao</title>
   
 
 
@@ -149,7 +163,9 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#nrc"><span class="nav-text">NRC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%A1%E7%8C%AE"><span class="nav-text">贡献</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-text">相关工作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nrc-1"><span class="nav-text">NRC</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#nrc"><span class="nav-text">NRC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%A1%E7%8C%AE"><span class="nav-text">贡献</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-text">相关工作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nrc-1"><span class="nav-text">NRC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#algorithm-overview"><span class="nav-text">Algorithm Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E9%A2%9C%E8%89%B2"><span class="nav-text">输出颜色</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0%E7%BD%91%E7%BB%9C"><span class="nav-text">更新网络</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fast-adaptation-of-the-cache-by-self-training"><span class="nav-text">Fast Adaptation
+of the Cache by Self-training</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#temporally-stable-cache-queries"><span class="nav-text">Temporally Stable Cache
+Queries</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#path-termination"><span class="nav-text">Path Termination</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9B%86%E6%88%90"><span class="nav-text">集成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#input-encoding"><span class="nav-text">Input Encoding</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fully-fused-nn"><span class="nav-text">Fully Fused NN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E8%AE%BE%E8%AE%A1"><span class="nav-text">整体设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#inference"><span class="nav-text">inference</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#training"><span class="nav-text">training</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90"><span class="nav-text">结果分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA"><span class="nav-text">讨论</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0"><span class="nav-text">简单实现</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -164,18 +180,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">287</span>
+          <span class="site-state-item-count">295</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">95</span>
+        <span class="site-state-item-count">97</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -238,12 +254,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="(论文)[2021-SIG]Real-time Neural Radiance Caching for Path Tracing | Banbao">
-      <meta itemprop="description" content="NRC">
+      <meta itemprop="name" content="(论文)[2021-SIG] Real-time Neural Radiance Caching for Path Tracing | Banbao">
+      <meta itemprop="description" content="使用神经网络去预测 radiance，实时渲染">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          (论文)[2021-SIG]Real-time Neural Radiance Caching for Path Tracing
+          (论文)[2021-SIG] Real-time Neural Radiance Caching for Path Tracing
         </h1>
 
         <div class="post-meta-container">
@@ -261,7 +277,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-10-23 10:41:59" itemprop="dateModified" datetime="2023-10-23T10:41:59+08:00">2023-10-23</time>
+      <time title="Modified: 2024-03-18 19:31:01" itemprop="dateModified" datetime="2024-03-18T19:31:01+08:00">2024-03-18</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -283,7 +299,7 @@
     </span>
 </div>
 
-            <div class="post-description">NRC</div>
+            <div class="post-description">使用神经网络去预测 radiance，实时渲染</div>
         </div>
       </header>
 
@@ -294,6 +310,7 @@
         <h1 id="nrc">NRC</h1>
 <ul>
 <li>Real-time Neural Radiance Caching for Path Tracing</li>
+<li>2021 SIGGRAPH</li>
 </ul>
 <h2 id="贡献">贡献</h2>
 <ul>
@@ -385,11 +402,452 @@ interreflection
 </ul>
 <h2 id="nrc-1">NRC</h2>
 <ul>
-<li>一个网络估计 radiance</li>
+<li>一个网络估计 radiance
+<ul>
+<li>输入：spatio-directional coordinates</li>
+<li>实时 <span class="math inline">\(\to\)</span> 支持动态场景</li>
+</ul></li>
 </ul>
 <p><img src="/2023/09/11/CG/Papers/2021/NRC/scattered-radiance.png"></p>
+<h3 id="algorithm-overview">Algorithm Overview</h3>
 <ul>
-<li></li>
+<li>渲染一帧包含两步：输出像素颜色、更新网络</li>
+</ul>
+<h4 id="输出颜色">输出颜色</h4>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/fig2-nrc.png"></p>
+<ul>
+<li>对于每一个像素都追一条短路径（<span class="math inline">\(\mathrm{x}_0\cdots \mathrm{x}_2\)</span>）
+<ul>
+<li>停止条件：网络中获取的值足够接近真实值（启发式）</li>
+</ul></li>
+<li>中间节点都加上 NEE（<span class="math inline">\(\mathrm{x}_1\)</span>），BSDF 和下面的 MIS
+<ul>
+<li>primary hit point：screen-space ReSTIR</li>
+<li>后继节点：LightBVH</li>
+</ul></li>
+<li>终止节点使用网络中估计的 radiance（<span class="math inline">\(\mathrm{x}_2\)</span>）：<span style="color:#c30e23;font-weight:bold">红色的结果</span></li>
+</ul>
+<h4 id="更新网络">更新网络</h4>
+<ul>
+<li>扩展少量短路径用于训练（<span class="math inline">\(3\%\)</span>​）
+<ul>
+<li>扩展节点：<em>training suffix</em>（<span class="math inline">\(\mathrm{y}_1\cdots \mathrm{y}_4\)</span>）</li>
+<li>终止条件：覆盖面积够大（终止节点 <span class="math inline">\(\mathrm{y}_4\)</span>）</li>
+</ul></li>
+<li>绝大部分情况下，后缀只会有一个节点</li>
+<li>后缀节点上得到的 radiance 用于训练网络</li>
+</ul>
+<h3 id="fast-adaptation-of-the-cache-by-self-training">Fast Adaptation
+of the Cache by Self-training</h3>
+<ul>
+<li>为了适应动态场景，我们需要支持快速的 adaption</li>
+<li>目标值：不是通过 MC 求得，而是通过网络自身更新
+<ul>
+<li>长训练路径的末端更新，往前传递目标值</li>
+</ul></li>
+<li>有点像 Q-learning
+<ul>
+<li><span style="color:red;font-weight:bold">TODO</span></li>
+</ul></li>
+<li>self-training 的好处（和 fully path-traced estimates 相比）
+<ul>
+<li>没有 PT 那么大的噪声（但是引入了 potential bias）</li>
+<li>随着迭代进行能够捕获 GI</li>
+</ul></li>
+<li>self-training 的问题
+<ul>
+<li>如果末端顶点访问网络时，这个位置没有被训练到，则会引入较大误差</li>
+<li>只会训练到一部分的 light
+transport（只有在训练中能够连接到光源的结果会被送入网络训练）
+<ul>
+<li>访问网络的顶点需要被训练到才能取得好结果</li>
+</ul></li>
+</ul></li>
+<li>问题解决：分配 <span class="math inline">\(\mu\)</span>
+比例的轮次使用真实的 PT 结果
+<ul>
+<li>论文：<span class="math inline">\(\mu=\dfrac{1}{16}\)</span></li>
+</ul></li>
+</ul>
+<h3 id="temporally-stable-cache-queries">Temporally Stable Cache
+Queries</h3>
+<ul>
+<li>适应动态场景的快速 adaption
+<ul>
+<li>高学习率的梯度下降方法</li>
+<li>帧内有多个不同学习率的 step（数据不重复使用）</li>
+</ul></li>
+<li>问题：时间上不稳定（即使场景、相机不动也会有，估计存在噪声）
+<ul>
+<li>flickering and oscillations（闪烁和抖动）</li>
+</ul></li>
+<li>exponential moving average (EMA)
+<ul>
+<li><span class="math inline">\(W_{t}\)</span> 表示网络输出</li>
+<li>small <span class="math inline">\(t\)</span></li>
+<li><span class="math inline">\(\alpha\in[0,1]\)</span>（论文 <span class="math inline">\(\alpha=0.99\)</span>）</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/eq2-ema.png"></p>
+<ul>
+<li><span class="math inline">\(\overline{W}_{t}\)</span> 依赖于 <span class="math inline">\(W_{t}\)</span>，但是不会被用于训练网络
+<ul>
+<li>EMA 只是用在网络训练的 optimizer 中（tinycudann 中集成了）</li>
+</ul></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1803.05407">2018 论文</a>指出：EMA
+加权是最优的</li>
+<li>不同位置的收敛速度差不多，8 帧（70ms）后就能差强人意</li>
+</ul>
+<h3 id="path-termination">Path Termination</h3>
+<ul>
+<li>相机顶点 <span class="math inline">\(\mathrm{x}_0\)</span></li>
+<li>当路径扩展到的面积足够大时，此时可以用模糊的结果替代，此时路径停止
+<ul>
+<li><span class="math inline">\(p\)</span>：BSDF 采样的
+pdf（可以的话，就是 BSDF）</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/eq3-path-termination.png"></p>
+<ul>
+<li>解释
+<ul>
+<li><span class="math inline">\(\dfrac{\text{d}^2}
+{\vert{\cos}\vert}\;\mathrm{d}\omega=\;\mathrm{d}A\)</span></li>
+<li>BSDF 值越大，立体角越小（反相关）
+<ul>
+<li>单位球面上均匀采样时，<span class="math inline">\(p\cdot\mathrm{d}\omega=1\)</span></li>
+</ul></li>
+</ul></li>
+<li>camera 到 primary vertex 的扩展面积
+<ul>
+<li>假定是 spherical image plane，<span class="math inline">\(p=\dfrac{1}{4\pi}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/eq4-a0.png"></p>
+<ul>
+<li>停止条件如下，其中 <span class="math inline">\(c\)</span>
+是超参数（<span class="math inline">\(c=0.01\)</span>）
+<ul>
+<li>启发式</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+a(\mathrm{x}_0\cdots\mathrm{x}_n)&gt;c\cdot a_0
+\]</span></p>
+<ul>
+<li>如果被选中作为 training suffix，满足如下条件时停止
+<ul>
+<li>启发式</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+a(\mathrm{x}_n\cdots\mathrm{x}_m)&gt;c\cdot a_0
+\]</span></p>
+<ul>
+<li>示意图，停止位置：<span class="math inline">\(n=2/4\)</span></li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/fig5-path-termination.png"></p>
+<h3 id="集成">集成</h3>
+<ul>
+<li>60fps（~16.6ms）</li>
+<li>每一帧：
+<ul>
+<li>tracing of paths</li>
+<li>shading at every vertex</li>
+<li>querying and updating the cache</li>
+</ul></li>
+<li>长训练路径指定：屏幕空间做 tiling
+<ul>
+<li>a single random offset，均匀的选取长路径（基本没有开销）</li>
+</ul></li>
+<li>当 tracing 结束的时候
+<ul>
+<li>短路径回传，形成结果图</li>
+<li>长训练路径，需要记录 rendering + training
+radiance（一个用于训练，一个用于渲染结果图）
+<ul>
+<li><span style="color:red;font-weight:bold">TODO</span>：是否可以这一帧都使用短路径的结果，长训练路径中只用于训练？</li>
+</ul></li>
+</ul></li>
+<li>训练
+<ul>
+<li>所有样本使用 LCG 进行打乱，形成 <span class="math inline">\(s\)</span> 个 batch，每个 batch 中有 <span class="math inline">\(l\)</span> 个样本
+<ul>
+<li>打乱取消相关性（image region）</li>
+</ul></li>
+<li>每一个 batch 进行一次优化</li>
+<li><span class="math inline">\(s\times l=4\times
+16384=65536\)</span></li>
+<li><strong>有限</strong>且差不多的样本数（stable work
+load），与分辨率无关
+<ul>
+<li>帧间根据上一帧样本数调整 tile size，使得总的样本数差不多</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="input-encoding">Input Encoding</h3>
+<ul>
+<li>只输入 <span class="math inline">\((\mathrm{x},\omega)\)</span> 给
+NN 效果不好</li>
+<li>辅助信息
+<ul>
+<li>surface normal <span class="math inline">\(\mathrm{n}\)</span></li>
+<li>surface roughness <span class="math inline">\(r\)</span></li>
+<li>diffuse reflectance <span class="math inline">\(\alpha\)</span></li>
+<li>specular reflectance <span class="math inline">\(\beta\)</span></li>
+</ul></li>
+<li>当 input 和 radiance 的关系为线性的时候，NN 容易学习到他们之间的关系
+<ul>
+<li><span class="math inline">\(\alpha,\beta\)</span> 已经满足</li>
+<li>其他变量需要编码：kernel trick（变换到高维空间中）
+<ul>
+<li>性能开销：输入变大，输入层 NN 变大</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/table1-input-encoding.png"></p>
+<ul>
+<li><span class="math inline">\(\omega,\mathrm{n},r\)</span>：one-blob
+encoding（<a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/3341156">NIS2019</a>）
+<ul>
+<li>条件：scale of the nonlinearities is about the same order of
+magnitude as the size of the blobs</li>
+<li>相对平滑，小扰动不会对 radiance 产生很大的变化</li>
+<li><span class="math inline">\(k=4\)</span></li>
+</ul></li>
+<li><span class="math inline">\(\mathrm{x}\)</span>：frequency
+encoding（<a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.5555/3295222.3295349">Attention2017</a>，<a target="_blank" rel="noopener" href="https://dl.acm.org/doi/abs/10.1145/3503250">Nerf2020</a>）
+<ul>
+<li>微小扰动会发生巨大变化（阴影、几何边界）</li>
+<li><span class="math inline">\(12 \sin\)</span>
+<ul>
+<li>不使用 <span class="math inline">\(\cos\)</span> 损失不大</li>
+<li>frequency <span class="math inline">\(2^d,d\in[0,11]\)</span></li>
+</ul></li>
+</ul></li>
+<li>最终输入维度：<span class="math inline">\(14\to62\to64\)</span>
+<ul>
+<li>pad 2 位，底层矩阵乘法加速
+<ul>
+<li>pad 值为 1 ，让网络隐式学习 bias（架构中没有 bias vector）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="fully-fused-nn">Fully Fused NN</h2>
+<ul>
+<li>自己实现，比 TensorFlow (2015-v2.5.0) 快
+<ul>
+<li>半精度 + tensor core</li>
+<li>batch size
+<ul>
+<li>训练：<span class="math inline">\(2^{14}=16384\)</span></li>
+<li>推理：<span class="math inline">\(1920\times1080\approx2^{21}\)</span></li>
+<li>加速：<span class="math inline">\(5\times\sim10\times\)</span></li>
+</ul></li>
+<li>更好的利用 GPU 内存的 hierarchy</li>
+</ul></li>
+<li>对于小网络而言，memory traffic 是瓶颈</li>
+<li>The key to improving performance is thus
+<ul>
+<li>to <strong>minimize</strong> traffic to <strong>slow “global”
+memory</strong> (VRAM and high-level caches)</li>
+<li>and to fully <strong>utilize</strong> fast <strong>on-chip
+memory</strong> (low-level caches, “shared” memory, and registers).</li>
+</ul></li>
+<li>整个网络在一个 GPU kernel 中实现，global memory
+只在网络输入输出中发生</li>
+<li>从头实现的好处：可以为我们的需求定制网络</li>
+</ul>
+<h3 id="整体设计">整体设计</h3>
+<h4 id="inference">inference</h4>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/fig6-mlp.png"></p>
+<ul>
+<li><span class="math inline">\(64\times128\)</span> 能放到 shaded
+memory 中
+<ul>
+<li>thread block size：128（RTX3090 最合适的数量）</li>
+<li><span class="math inline">\(M_{\text{in}}=M_{\text{hidden}}=64\)</span></li>
+</ul></li>
+<li>具体乘法的时候划分为半精度的 <span class="math inline">\(16\times16\)</span> 的矩阵乘法（适应
+TensorCore）</li>
+<li>thread block 内部计算
+<ul>
+<li>每一个 warp计算 <span class="math inline">\(16\times128\)</span>
+block-row 的 <span class="math inline">\(H&#39;\)</span></li>
+<li>对于 warp 内的每一个线程
+<ul>
+<li>先一起加载 <span class="math inline">\(W\)</span> 的 <span class="math inline">\(16\times64\)</span></li>
+<li>然后<strong>依次</strong>加载 <span class="math inline">\(H\)</span>
+的 <span class="math inline">\(64\)</span> 列，<span class="math inline">\(W\)</span> 乘上 <span class="math inline">\(H\)</span> 的 <span class="math inline">\(64\times16\)</span></li>
+</ul></li>
+<li>warp 共享加载 <span class="math inline">\(W\)</span></li>
+<li>不同 warp 加载的行不一样，因此每一个 thread block 中只会从 global
+memory 中加载一次 NN</li>
+</ul></li>
+<li>接下来需要考虑的就是减少 block 的个数，在 RTX3090 上，最合适的 block
+size 是上面说的 <span class="math inline">\(128\)</span></li>
+</ul>
+<h4 id="training">training</h4>
+<ul>
+<li>没加速</li>
+<li>general matrix multiplication (GEMM) routines of the CUTLASS
+template library (in split-k mode)</li>
+</ul>
+<h2 id="实现">实现</h2>
+<ul>
+<li><p>Architecture</p>
+<ul>
+<li><p>7 层网络</p></li>
+<li><p>5 层 hidder layers：64 neurons each</p></li>
+<li><p>ReLU</p></li>
+<li><p>输出：<span class="math inline">\(64\to3\)</span>（RGB
+值）</p></li>
+<li><p>所有层都不带 bias
+vector（加了没有提升，而且不加实现更简单）</p></li>
+<li><p>网络很浅，不会出现梯度消失的问题</p></li>
+</ul></li>
+<li><p>Reflectance factorization</p>
+<ul>
+<li>diffuse albedo and specular reflectance
+<ul>
+<li><span class="math inline">\(\alpha(\mathrm{x},\omega)+\beta(\mathrm{x},\omega)\)</span></li>
+</ul></li>
+<li>让带有纹理的结果表现更好</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/fig8-reflectance%20-actorization.png"></p>
+<ul>
+<li>High-performance primitives for encoding
+<ul>
+<li>在肉眼观察差不多的情况下，每帧减少 0.25ms</li>
+<li>原始的 one-blob and frequency encoding 依赖于难计算的函数
+<ul>
+<li>Gaussian kernels, trigonometric function</li>
+</ul></li>
+<li>使用如下函数代替
+<ul>
+<li>quartic kernel, triangle wave</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/fig9-encoding-simplification.png"></p>
+<ul>
+<li>Relative loss
+<ul>
+<li><span class="math inline">\(L_{\text{s}}\)</span>
+存在噪声，估计残差（<span style="color:red;font-weight:bold">admits
+unbiased gradient estimates？</span>）（<a target="_blank" rel="noopener" href="https://proceedings.mlr.press/v80/lehtinen18a/lehtinen18a.pdf">2018Noise2Noise</a>），分母归一化</li>
+<li><span class="math inline">\(\epsilon=0.01\)</span></li>
+<li><span class="math inline">\(\text{sg}(\cdot)\)</span>：梯度反传时作为常数（stop
+gradient）</li>
+<li>每个通道使用如下变量归一化：squared luminance across the
+spectrum</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/eq5-ref-loss.png"></p>
+<ul>
+<li>Optimizer：<strong>Adam</strong>
+<ul>
+<li>first-order optimizers：Adam 收敛最快（需要帧数少）（SGD、Novograd
+相比）</li>
+<li>second order optimizer：Shampoo（需要帧数少，但是每帧开销 +
+0.3ms）</li>
+</ul></li>
+</ul>
+<h2 id="结果分析">结果分析</h2>
+<ul>
+<li>perceptually based metric</li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/flip.png"></p>
+<ul>
+<li>对比算法
+<ul>
+<li>PT（light BVH+NEE）</li>
+<li>PT+ReSTIR</li>
+<li>PT+ReSTIR+NRC</li>
+</ul></li>
+<li>Self-training
+<ul>
+<li>和只用 PT 的结果作为真实值进行对比
+<ul>
+<li>PT：如果路径被我们启发式的终止，则返回 0</li>
+</ul></li>
+<li>self-training 只多了一次查询网络的开销，但是捕获了 multi-bounce
+的光照</li>
+</ul></li>
+<li>cache 质量很高
+<ul>
+<li>heuristic hit 查询（NRC 本身）质量很好</li>
+<li>first no-specular 就查询，质量还行</li>
+<li>问题
+<ul>
+<li>缺失 sharp detail</li>
+<li>axis-aligned stripes（频率编码问题）（其他编码更差）</li>
+</ul></li>
+<li>根据我们启发式的规则，停止的时候 path 的覆盖范围大，bias
+全被平均掉了，同时 AO 不需要特殊处理（本身就是一种平均）</li>
+</ul></li>
+<li>DDGI
+<ul>
+<li>DDGI is a modern extension of irradiance probes, relying on
+<strong>modulation by the surface normal and albedo</strong> to
+approximate the scattered radiance.</li>
+<li>DDGI 在 Lambert 材质表现最好</li>
+<li>DDGI 在第一次遇到 diffuse（not specular/glossy）表面的时候就进行
+probe 的查询（激进）</li>
+<li>DDGI 快、噪声少（1spp噪声小），但是 bias 大</li>
+<li>NRC 训练比 DDGI 快，每帧样本数少，trace rays 少
+<ul>
+<li>NRC：<span class="math inline">\(2^{16}=65536\)</span></li>
+<li>DDGI：<span class="math inline">\(16^3\)</span> grid，<span class="math inline">\(16^3\cdot256=1048576=16\times\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="讨论">讨论</h2>
+<ul>
+<li>预计算：好的初始化
+<ul>
+<li>效果有限，现在收敛很快</li>
+</ul></li>
+<li>cache 的bias
+<ul>
+<li>频率编码、EMA 不能解决低频的闪烁问题</li>
+</ul></li>
+<li>更多输入：shadows、caustics</li>
+<li>对离线渲染产生帮助</li>
+<li>体渲染</li>
+<li>Path guiding</li>
+<li>Improved path termination
+<ul>
+<li><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/2487228.2487239">covariance
+tracing</a></li>
+<li><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/2766949">bundle
+coherence</a></li>
+<li>our cache currently provides little benefit when <strong>transport
+is dominated by dielectric materials</strong> such as glass</li>
+</ul></li>
+</ul>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/glass-nrc.png"></p>
+<p><img src="/2023/09/11/CG/Papers/2021/NRC/glass-ref.png"></p>
+<ul>
+<li>NRC 可以认为是一种 denoise</li>
+</ul>
+<h1 id="简单实现">简单实现</h1>
+<ul>
+<li><a href="/utils/image_compare/?/2023/09/11/CG/Papers/2021/NRC/;17637spp.png;nrc.png;pt.png">图片对比链接</a></li>
+<li>参数
+<ul>
+<li>max-bounce=6（中间结点数）</li>
+<li>RRS=1.0</li>
+<li>1spp</li>
+<li>开 NEE</li>
+</ul></li>
+<li>NRC 实现
+<ul>
+<li>training suffix 不终止</li>
+<li>屏幕空间 ReSTIR 未实现</li>
+<li>没有实现纹理（albedo）的分离</li>
+</ul></li>
 </ul>
 
     </div>
@@ -403,6 +861,7 @@ interreflection
               <a href="/tags/CG/" rel="tag"># CG</a>
               <a href="/tags/Paper/" rel="tag"># Paper</a>
               <a href="/tags/SIG/" rel="tag"># SIG</a>
+              <a href="/tags/NN/" rel="tag"># NN</a>
           </div>
 
         
@@ -437,7 +896,7 @@ interreflection
 
 <div class="copyright">
   &copy; 2021 – 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
