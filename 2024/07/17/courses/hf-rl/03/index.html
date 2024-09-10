@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Q-Learning 的神经网络版本，能够处理状态很多的情况，但似乎处理不了行动很多的情况">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Deep Reinforcement Learning Course(3)">
+<meta property="og:url" content="http://example.com/2024/07/17/courses/hf-rl/03/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Q-Learning 的神经网络版本，能够处理状态很多的情况，但似乎处理不了行动很多的情况">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/07/17/courses/hf-rl/03/deep.jpg">
+<meta property="og:image" content="http://example.com/2024/07/17/courses/hf-rl/03/deep-q-network.jpg">
+<meta property="og:image" content="http://example.com/2024/07/17/courses/hf-rl/03/temporal-limitation.png">
+<meta property="og:image" content="http://example.com/2024/07/17/courses/hf-rl/03/Q-learning-8.png">
+<meta property="og:image" content="http://example.com/2024/07/17/courses/hf-rl/03/dqn.png">
+<meta property="og:image" content="http://example.com/2024/07/17/courses/hf-rl/03/double-q-learning.png">
+<meta property="og:image" content="http://example.com/2024/07/17/courses/hf-rl/03/successive_halving_comment.png">
+<meta property="og:image" content="http://example.com/2024/07/17/courses/hf-rl/03/bayesian_optim.png">
+<meta property="og:image" content="http://example.com/2024/07/17/courses/hf-rl/03/successive_halving_comment.png">
+<meta property="article:published_time" content="2024-07-17T10:14:14.000Z">
+<meta property="article:modified_time" content="2024-07-22T08:21:10.410Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="RL">
+<meta property="article:tag" content="NN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/07/17/courses/hf-rl/03/deep.jpg">
+
+
+<link rel="canonical" href="http://example.com/2024/07/17/courses/hf-rl/03/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/07/17/courses/hf-rl/03/","path":"2024/07/17/courses/hf-rl/03/","title":"Deep Reinforcement Learning Course(3)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Deep Reinforcement Learning Course(3) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#unit3"><span class="nav-text">Unit3</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#q-leaning-to-deep-q-learning"><span class="nav-text">Q-leaning to Deep Q-learning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dqn"><span class="nav-text">DQN</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#deep-q-learning"><span class="nav-text">Deep Q-Learning</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="nav-text">稳定性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hw3"><span class="nav-text">HW3</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%85%E8%AF%BB%E6%9D%90%E6%96%99"><span class="nav-text">阅读材料</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bunit2"><span class="nav-text">BUnit2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#automatic-hyperparameter-tuning"><span class="nav-text">automatic hyperparameter
+tuning</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sampler"><span class="nav-text">sampler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scheduler"><span class="nav-text">scheduler</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#optuna"><span class="nav-text">Optuna</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">314</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">102</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/07/17/courses/hf-rl/03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Deep Reinforcement Learning Course(3) | Banbao">
+      <meta itemprop="description" content="Q-Learning 的神经网络版本，能够处理状态很多的情况，但似乎处理不了行动很多的情况">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Deep Reinforcement Learning Course(3)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-07-17 18:14:14" itemprop="dateCreated datePublished" datetime="2024-07-17T18:14:14+08:00">2024-07-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-07-22 16:21:10" itemprop="dateModified" datetime="2024-07-22T16:21:10+08:00">2024-07-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/hg-rl/" itemprop="url" rel="index"><span itemprop="name">hg-rl</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Q-Learning 的神经网络版本，能够处理状态很多的情况，但似乎处理不了行动很多的情况</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="unit3">Unit3</h1>
+<ul>
+<li>Deep Q-learning With Atari Games</li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<ul>
+<li>Q-learning 能有效的原因：状态离散、少</li>
+</ul>
+<h2 id="q-leaning-to-deep-q-learning">Q-leaning to Deep Q-learning</h2>
+<ul>
+<li>Q-learning 是一种<strong>打表</strong>的算法</li>
+<li>Atari 环境
+<ul>
+<li>输入为图片，有 <span class="math inline">\(256^{210\times160\times3}\)</span> 种可能性</li>
+<li>分辨率 <span class="math inline">\(210\times160\)</span></li>
+<li>RGB 三通道</li>
+</ul></li>
+<li>使用参数化的 <span class="math inline">\(Q_{\theta}(s,a)\)</span>
+进行代替</li>
+</ul>
+<p><img src="/2024/07/17/courses/hf-rl/03/deep.jpg" style="zoom:67%;"></p>
+<h2 id="dqn">DQN</h2>
+<ul>
+<li>The Deep Q-Network</li>
+<li>架构如下
+<ul>
+<li>输入： 4 帧连续的图片（stack）</li>
+<li>输出：<strong>vector</strong> of Q-values for <strong>each possible
+action</strong> at that state</li>
+</ul></li>
+</ul>
+<p><img src="/2024/07/17/courses/hf-rl/03/deep-q-network.jpg"></p>
+<ul>
+<li>预处理输入
+<ul>
+<li>像素压至：84x84</li>
+<li>灰度化：RGB -&gt; gray</li>
+<li>裁剪：有些游戏可以裁剪掉不重要的区域</li>
+</ul></li>
+<li>stack 的原因：捕获运动信息，抵抗 temporal limitation</li>
+</ul>
+<p><img src="/2024/07/17/courses/hf-rl/03/temporal-limitation.png"></p>
+<h2 id="deep-q-learning">Deep Q-Learning</h2>
+<ul>
+<li>和之前相比，将 <code>TD Error</code> 作为训练的 loss</li>
+</ul>
+<p><img src="/2024/07/17/courses/hf-rl/03/Q-learning-8.png"></p>
+<ul>
+<li>算法分为两个步骤：sampling + training
+<ul>
+<li>sampling：使用 <span class="math inline">\(\epsilon\text{-greedy}\)</span>
+策略采样行动，保存状态对</li>
+<li>training：在 sampling 阶段得到的状态对中，采样 minibatch 进行训练
+<ul>
+<li><span class="math inline">\(y_j\)</span>：Q-Target，我们认为的真值（对真值的估计）</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2024/07/17/courses/hf-rl/03/dqn.png"></p>
+<h3 id="稳定性">稳定性</h3>
+<ul>
+<li>Deep QL 带来了不稳定性
+<ul>
+<li>bootstrapping：使用的 return 并不是真实值，而是估计</li>
+<li>网络本身的不稳定</li>
+<li>策略：<em>Experience Replay</em>、<em>Fixed
+Q-Target</em>、<em>Double Deep Q-Learning</em></li>
+</ul></li>
+<li>Experience Replay
+<ul>
+<li>replay memory <span class="math inline">\(D\)</span>
+记录下来，后面可以多次学习</li>
+<li>降低相关性（只学习最新的，导致振荡或者背离）、避免灾难性遗忘</li>
+</ul></li>
+<li>Fixed Q-Target
+<ul>
+<li><span class="math inline">\(C\)</span>
+步之后，更新用于计算真值的网络 <span class="math inline">\(\hat{Q}\)</span>（网络 <span class="math inline">\(Q\)</span> 一直被更新）</li>
+<li><span class="math inline">\(\hat{Q}\)</span>：不是一直更新，<span class="math inline">\(C\)</span> 步内使用相同的 Q-Target</li>
+<li>如果真值和 Q-Target 都在变化，比较难学习，导致训练振荡</li>
+</ul></li>
+<li>Double Deep Q-Learning
+<ul>
+<li>Double DQNs，Double Deep Q-Learning neural networks</li>
+<li>使用两个神经网络，一个用于选择最优的 action（sampling
+phase），一个用于计算 Q-Target（training phase），互相更新</li>
+</ul></li>
+</ul>
+<p><img src="/2024/07/17/courses/hf-rl/03/double-q-learning.png"></p>
+<ul>
+<li>其他改进
+<ul>
+<li><span style="color:red"> Prioritized Experience Replay</span></li>
+<li><span style="color:red">Dueling Deep Q-Learning</span></li>
+</ul></li>
+</ul>
+<h2 id="hw3">HW3</h2>
+<ul>
+<li>库：<a target="_blank" rel="noopener" href="https://github.com/DLR-RM/rl-baselines3-zoo">RL-Baselines-3 Zoo
+integration</a></li>
+<li>框架： <a target="_blank" rel="noopener" href="https://stable-baselines3.readthedocs.io/en/master/">Stable-Baselines3</a></li>
+<li>最原始的 DQL（没有 double DQL 等改进）</li>
+<li>训练约 30 min，纯跑代码，没有写的环节
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/vwxyzjn/cleanrl/blob/master/cleanrl/dqn_atari.py">实现</a></li>
+</ul></li>
+</ul>
+<h2 id="阅读材料">阅读材料</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://youtu.be/Psrhxy88zww">Foundations of Deep RL
+Series, L2 Deep Q-Learning by Pieter Abbeel</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1312.5602">Playing Atari with Deep
+Reinforcement Learning</a></li>
+<li><a target="_blank" rel="noopener" href="https://papers.nips.cc/paper/2010/hash/091d584fced301b442654dd8c23b3fc9-Abstract.html">Double
+Deep Q-Learning</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1511.05952">Prioritized Experience
+Replay</a></li>
+</ul>
+<h1 id="bunit2">BUnit2</h1>
+<h2 id="automatic-hyperparameter-tuning">automatic hyperparameter
+tuning</h2>
+<ul>
+<li>"n VS B/n" trade-off
+<ul>
+<li>n: number of configurations</li>
+<li>B / n: budget per configuration</li>
+</ul></li>
+<li>随着时间增加，减少测试的 config 种类</li>
+</ul>
+<p><img src="/2024/07/17/courses/hf-rl/03/successive_halving_comment.png"></p>
+<ul>
+<li>寻找最优 config
+<ul>
+<li><strong>sampler</strong>（search algo）：选取 config</li>
+<li><strong>pruner</strong>（scheduler）：继续执行这个
+config，或者停止执行</li>
+</ul></li>
+</ul>
+<h3 id="sampler">sampler</h3>
+<ul>
+<li>grid search：可能找不到</li>
+<li>random search：更好</li>
+<li>贝叶斯优化
+<ul>
+<li>虚线：真实值</li>
+<li>每次试图优化最坏的地方（图上：acquisition max 处）</li>
+</ul></li>
+</ul>
+<p><img src="/2024/07/17/courses/hf-rl/03/bayesian_optim.png"></p>
+<ul>
+<li>Black Box Optimization
+<ul>
+<li>Evolution Strategies（ES，CMA-ES）</li>
+<li>Particle Swarm Optimization（PSO）</li>
+</ul></li>
+</ul>
+<h3 id="scheduler">scheduler</h3>
+<ul>
+<li>Median Pruner：最好的结果差于中位数，则舍弃
+<ul>
+<li>Prune if the trial’s best intermediate result is worse than median
+of intermediate results of previous trials at the same step</li>
+</ul></li>
+<li>Successive Halving
+<ul>
+<li>过一段时间就丢弃一半的 config</li>
+</ul></li>
+</ul>
+<p><img src="/2024/07/17/courses/hf-rl/03/successive_halving_comment.png"></p>
+<h2 id="optuna">Optuna</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://optuna.org/">Optuna</a>：库，自动选取最优的超参</li>
+<li><a target="_blank" rel="noopener" href="https://huggingface.co/learn/deep-rl-course/unitbonus2/optuna">教程</a>
+<ul>
+<li>首先展示了使用不同的参数，结果影响很大</li>
+</ul></li>
+<li>步骤
+<ul>
+<li>Define the search space</li>
+<li>Define the objective function</li>
+<li>Choose sampler and pruner</li>
+<li>Get a coffee/Take a nap</li>
+</ul></li>
+<li>科研陷阱
+<ul>
+<li>HP（Hyper Parameters） optimization not needed (train longer
+first)</li>
+<li>Noisy evaluation: multiple eval</li>
+<li>Search space too small/wide</li>
+<li>Slow optimization: smaller budget</li>
+<li>Training not stable: manual tweaks</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RL/" rel="tag"># RL</a>
+              <a href="/tags/NN/" rel="tag"># NN</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/07/15/courses/hf-rl/02/" rel="prev" title="Deep Reinforcement Learning Course(2)">
+                  <i class="fa fa-chevron-left"></i> Deep Reinforcement Learning Course(2)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/07/18/courses/hf-rl/04/" rel="next" title="Deep Reinforcement Learning Course(4)">
+                  Deep Reinforcement Learning Course(4) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

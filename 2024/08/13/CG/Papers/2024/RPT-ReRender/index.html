@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="任务是当场景中有物体发生微小变化的时候，如何从已经渲染的图像获得变化后的图像；文章提出了计算 residual integral 的方法，重要性采样变化的路径空间用于高效计算，同时提出 path mapping 充分利用前后两帧之间的相关性。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2024-EGSR] Residual path integrals for re-rendering">
+<meta property="og:url" content="http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="任务是当场景中有物体发生微小变化的时候，如何从已经渲染的图像获得变化后的图像；文章提出了计算 residual integral 的方法，重要性采样变化的路径空间用于高效计算，同时提出 path mapping 充分利用前后两帧之间的相关性。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/teaser.png">
+<meta property="og:image" content="http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/fig2-example-of-dynamic-paths.png">
+<meta property="og:image" content="http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/fig3-dynamic-path-sampling-techniques.png">
+<meta property="og:image" content="http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/fig3-d-MIS.png">
+<meta property="og:image" content="http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/fig5-path-mapping.png">
+<meta property="article:published_time" content="2024-08-13T04:28:16.000Z">
+<meta property="article:modified_time" content="2024-09-09T08:01:09.400Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="EGSR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/teaser.png">
+
+
+<link rel="canonical" href="http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/","path":"2024/08/13/CG/Papers/2024/RPT-ReRender/","title":"(论文)[2024-EGSR] Residual path integrals for re-rendering"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2024-EGSR] Residual path integrals for re-rendering | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#residual-path-integrals-for-re-rendering"><span class="nav-text">Residual path
+integrals for re-rendering</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#related-work"><span class="nav-text">Related work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#residual-path-integral"><span class="nav-text">Residual path integral</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#primal-path-integral"><span class="nav-text">Primal path integral</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#residual-path-integral-1"><span class="nav-text">residual path integral</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#characterizing-dynamic-paths"><span class="nav-text">Characterizing dynamic paths</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dynamic-path-space"><span class="nav-text">Dynamic path space</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sampling-the-dynamic-path-space"><span class="nav-text">Sampling the dynamic path
+space</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sampling-dynamic-vertices"><span class="nav-text">Sampling dynamic vertices</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dynamic-from-light"><span class="nav-text">（1）Dynamic from light</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dynamic-from-sensor"><span class="nav-text">（2）Dynamic from sensor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dynamic-two-ends"><span class="nav-text">（3）Dynamic two ends</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sampling-dynamic-edges"><span class="nav-text">Sampling dynamic edges</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ghost-from-light"><span class="nav-text">（4）Ghost from light</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ghost-from-sensor"><span class="nav-text">（5）Ghost from sensor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ghost-two-ends"><span class="nav-text">（6）Ghost two ends</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA"><span class="nav-text">讨论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#technique-combination"><span class="nav-text">Technique combination</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#path-mapping"><span class="nav-text">Path mapping</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#object-movement"><span class="nav-text">object movement</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#same-vertex"><span class="nav-text">same vertex</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#random-replay"><span class="nav-text">random replay</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dynamicghost-pair"><span class="nav-text">dynamic&#x2F;ghost pair</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#path-rejection"><span class="nav-text">Path rejection</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#results-and-discussion"><span class="nav-text">Results and discussion</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#incremental-re-rendering"><span class="nav-text">Incremental re-rendering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#timings-and-overhead"><span class="nav-text">Timings and overhead</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ablations-and-analysis"><span class="nav-text">Ablations and analysis</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#limitations"><span class="nav-text">Limitations</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C%E4%B8%8E%E5%B1%95%E6%9C%9B"><span class="nav-text">结果与展望</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B4%E6%9D%A1%E5%85%89%E8%B7%AF%E7%9A%84%E6%98%A0%E5%B0%84"><span class="nav-text">整条光路的映射</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">314</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">102</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/13/CG/Papers/2024/RPT-ReRender/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2024-EGSR] Residual path integrals for re-rendering | Banbao">
+      <meta itemprop="description" content="任务是当场景中有物体发生微小变化的时候，如何从已经渲染的图像获得变化后的图像；文章提出了计算 residual integral 的方法，重要性采样变化的路径空间用于高效计算，同时提出 path mapping 充分利用前后两帧之间的相关性。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2024-EGSR] Residual path integrals for re-rendering
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-08-13 12:28:16" itemprop="dateCreated datePublished" datetime="2024-08-13T12:28:16+08:00">2024-08-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-09-09 16:01:09" itemprop="dateModified" datetime="2024-09-09T16:01:09+08:00">2024-09-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">任务是当场景中有物体发生微小变化的时候，如何从已经渲染的图像获得变化后的图像；文章提出了计算 residual integral 的方法，重要性采样变化的路径空间用于高效计算，同时提出 path mapping 充分利用前后两帧之间的相关性。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="residual-path-integrals-for-re-rendering">Residual path
+integrals for re-rendering</h1>
+<ul>
+<li>Bing Xu、Tzu-Mao Li、Iliyan Georgiev、Trevor Hedstrom、Ravi
+Ramamoorthi</li>
+<li><a target="_blank" rel="noopener" href="https://bingxu.tech/projects/2024_residual/page.html">项目主页</a></li>
+<li>任务：移动场景中的物体，或者修改材质，更快的渲染得到修改后的图片</li>
+<li>teaser 如下，同时间比较</li>
+</ul>
+<p><img src="/2024/08/13/CG/Papers/2024/RPT-ReRender/teaser.png"></p>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>residual path integral
+<ul>
+<li>前一帧正确渲染，只渲染两帧之间的不同之处</li>
+</ul></li>
+<li>贡献
+<ul>
+<li>将经典的 path integral 扩展到 residual path integral</li>
+<li>在 residual path integral 中对 non-zero
+贡献的路径进行重要性采样</li>
+<li>path mappings：新老路径之间的双射</li>
+</ul></li>
+</ul>
+<h1 id="related-work">Related work</h1>
+<ul>
+<li>Temporal reprojection</li>
+<li>Spatio-directional caching, path guiding, and resampling</li>
+<li>Gradient-domain rendering</li>
+<li>Incremental radiosity</li>
+<li>Dynamic photon mapping and virtual point lights</li>
+<li>Scene editing and re-rendering</li>
+<li>Portal sampling
+<ul>
+<li>sampling sparse path space (e.g., lights that go through a pinhole
+of a scene)</li>
+</ul></li>
+</ul>
+<h1 id="residual-path-integral">Residual path integral</h1>
+<h2 id="primal-path-integral">Primal path integral</h2>
+<ul>
+<li>视子路出发，初始点 <span class="math inline">\(x_0\)</span>，BDPT
+的范式（面积采样）</li>
+</ul>
+<p><span class="math display">\[
+I=\int_{\Omega}f(\boldsymbol{p})\;\mathrm{d}\mu(\boldsymbol{p})
+\]</span></p>
+<h2 id="residual-path-integral-1">residual path integral</h2>
+<ul>
+<li>输入
+<ul>
+<li>前一帧的渲染结果 <span class="math inline">\(I_1\)</span></li>
+<li>前一帧的当前帧的几何、材质配置
+<ul>
+<li><strong>只有微小差别，只有很小部分在变化</strong></li>
+</ul></li>
+</ul></li>
+<li>计算 residual：<span class="math inline">\(I_2-I_1\)</span></li>
+</ul>
+<p><span class="math display">\[
+I_2-I_1=\int_{\Omega_2}f(\boldsymbol{p})d\mu(\boldsymbol{p})-\int_{\Omega_1}f(\boldsymbol{q})d\mu(\boldsymbol{q})
+\]</span></p>
+<ul>
+<li>找到映射：<span class="math inline">\(\mathrm{q}=T(\mathrm{p})\)</span>，重新参数化
+<ul>
+<li>简写：<span class="math inline">\(\Omega=\Omega_2\)</span></li>
+<li><span class="math inline">\(f_1,f_2\)</span>：因为路径贡献必须在对应帧的配置下计算</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+I_{2}-I_{1}&amp;
+=\int_{\Omega}\left(f_{2}(\boldsymbol{p})-f_{1}(T(\boldsymbol{p}))\left\vert
+T&#39;(\boldsymbol{p})\right\vert\right) d\mu(\boldsymbol{p}) \\
+&amp;=\int_{\Omega}f_{\mathrm{d}}(\boldsymbol{p}) d\mu(\boldsymbol{p})
+\end{aligned}
+\]</span></p>
+<ul>
+<li><span id="fig2">示意图</span>
+<ul>
+<li>ghost object（上一帧位置）</li>
+<li>dynamic object（现在位置）</li>
+<li>对应修改材质，则重合</li>
+</ul></li>
+</ul>
+<p><img src="/2024/08/13/CG/Papers/2024/RPT-ReRender/fig2-example-of-dynamic-paths.png"></p>
+<h2 id="characterizing-dynamic-paths">Characterizing dynamic paths</h2>
+<ul>
+<li>dynamic path：在当前帧下，满足下面两个条件之一，<a href="#fig2">示意图</a>
+<ul>
+<li>有顶点落在 dynamic object 上（at least one dynamic vertex）</li>
+<li>有边经过 ghost object（at least one dynamic edge）</li>
+</ul></li>
+<li>反之为 static path</li>
+</ul>
+<h2 id="dynamic-path-space">Dynamic path space</h2>
+<ul>
+<li>small changes =&gt; 大部分是 static path =&gt; 对 residual
+没有贡献</li>
+<li><span class="math inline">\(\Omega =
+\mathcal{D}\cup\mathcal{S}\)</span>
+<ul>
+<li><span class="math inline">\(\mathcal{D}\)</span>：dynamic path
+space</li>
+<li><span class="math inline">\(\mathcal{S}\)</span>：zero-contribution
+static path space</li>
+</ul></li>
+<li>目的：高效采样空间 <span class="math inline">\(\mathcal{D}\)</span></li>
+</ul>
+<h1 id="sampling-the-dynamic-path-space">Sampling the dynamic path
+space</h1>
+<ul>
+<li><p>采样从 ghost/dynamic object 出发</p>
+<ul>
+<li>采样点 <span class="math inline">\(x_{D}/x_{G}=y_0=z_0\)</span></li>
+<li>生成两条子路径 <span class="math inline">\(y_0\cdots
+y_{s-1},z_0\cdots z_{t-1}\)</span>
+<ul>
+<li>如果子路径只有一个点，则称为 <span class="math inline">\(x_{L}/x_{E}\)</span></li>
+</ul></li>
+</ul></li>
+<li><p>光源：NEE，相机：light tracing（和 NEE 类似连相机？）</p></li>
+<li><p><span id="sample-dps">分类</span></p></li>
+</ul>
+<p><img src="/2024/08/13/CG/Papers/2024/RPT-ReRender/fig3-dynamic-path-sampling-techniques.png"></p>
+<h2 id="sampling-dynamic-vertices">Sampling dynamic vertices</h2>
+<h3 id="dynamic-from-light">（1）Dynamic from light</h3>
+<ul>
+<li>light subpath 只有一个点 <span class="math inline">\(x_{L}\)</span></li>
+<li>BSDF 采样 light subpath</li>
+</ul>
+<h3 id="dynamic-from-sensor">（2）Dynamic from sensor</h3>
+<ul>
+<li>eye subpath 只有一个点 <span class="math inline">\(x_{E}\)</span>，和 (1）对称</li>
+<li>(1） (2） 在直接光照下等价，3 个顶点，此时只通过 (1）处理</li>
+</ul>
+<h3 id="dynamic-two-ends">（3）Dynamic two ends</h3>
+<ul>
+<li>光源方向：法向半球采样</li>
+<li>相机方向：BSDF 采样</li>
+</ul>
+<h2 id="sampling-dynamic-edges">Sampling dynamic edges</h2>
+<ul>
+<li>先在 ghost object 表面采样一个点（按面积采样）</li>
+</ul>
+<h3 id="ghost-from-light">（4）Ghost from light</h3>
+<ul>
+<li>面积采样得到 <span class="math inline">\(x_{G}\)</span>（<span style="color:red">最终是不作为路径节点的</span>）</li>
+<li>采样光源 <span class="math inline">\(x_{L}\)</span></li>
+<li><span class="math inline">\(\overrightarrow{x_{L}x_{G}}\)</span>
+作为方向，求交得到 <span class="math inline">\(z_1\)</span></li>
+<li>pdf 计算</li>
+</ul>
+<p><span class="math display">\[
+p(\bar{x})=p(x_{L})\overrightarrow{p_1}(\bar{z})\prod_{i=2}^{t-1}\overrightarrow{p_i}(\bar{z})
+\]</span></p>
+<ul>
+<li><span class="math inline">\(p_1\)</span>：面积转立体角转面积（<span style="color:red">这下面其实省略了微分部分 <span class="math inline">\(\mathrm{d}\)</span></span>）
+<ul>
+<li>利用立体角作为中间量建立联系</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\overrightarrow{p_1}(\bar{z})=p(x_G)\frac{\Vert
+x_G-x_L\Vert^2}{\left|n_{x_G}\cdot\overrightarrow{x_Gx_1}\right|}\cdot\frac{\left\vert
+n_{x_1}\cdot\overleftarrow{x_Gx_1}\right\vert}{\parallel
+x_1-x_L\parallel^2}
+\]</span></p>
+<h3 id="ghost-from-sensor">（5）Ghost from sensor</h3>
+<ul>
+<li>采样相机 <span class="math inline">\(x_{E}\)</span>，和
+（4）对称</li>
+</ul>
+<h3 id="ghost-two-ends">（6）Ghost two ends</h3>
+<ul>
+<li>采样 <span class="math inline">\(x_{G}\)</span></li>
+<li>均匀采样一个方向 <span class="math inline">\(p_{dir}\)</span>，由这个方向，自然的形成点 <span class="math inline">\(x_1,x_2\)</span>（<a href="#sample-dps">如图</a>）</li>
+<li>然后向两端 BSDF 采样延伸（+NEE）</li>
+<li>pdf 计算</li>
+</ul>
+<p><span class="math display">\[
+p(\bar{x})=\prod_{i=1}^{t-1}\overrightarrow{p_{i}}(\bar{z})\prod_{i=1}^{s-1}\overrightarrow{p_{i}}(\bar{y})
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+\overrightarrow{p_{1}}(\bar{z})\overrightarrow{p_{1}}(\bar{y})
+&amp;=p(x_{G})\cdot g_{G,x1,x2}\\
+&amp;=p(x_{G})\cdot
+\frac{\left\vert\cos(N_{x_1},\overleftarrow{x_1x_2})\right\vert\cdot\left\vert\cos(N_{x_2},\overleftarrow{x_1x_2})\right\vert}{\left\vert\cos(N_{x_G},\overleftarrow{x_1x_2})\right\vert}\cdot\frac{p_{\mathrm{dir}}}{\Vert
+x_1-x_2\Vert^2}\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>具体推导有两步</li>
+<li>立体角转换为面积</li>
+</ul>
+<p><span class="math display">\[
+p_{\mathrm{dir}}=\frac{\Vert
+x_1-x_G\Vert^2}{\vert\cos(N_{x_2},\overleftarrow{x_1x_2})\vert}\cdot
+\overrightarrow{p_{1}}(\bar{y})
+\]</span></p>
+<ul>
+<li>面积转换为另一个面积，上面的（4）是一样的</li>
+</ul>
+<p><span class="math display">\[
+\overrightarrow{p_1}(\bar{z})=p(x_G)\frac{\Vert
+x_G-x_1\Vert^2}{\left|n_{x_G}\cdot\overrightarrow{x_Gx_1}\right|}\cdot\frac{\left\vert
+n_{x_1}\cdot\overleftarrow{x_Gx_1}\right\vert}{\parallel
+x_2-x_1\parallel^2}
+\]</span></p>
+<ul>
+<li>两个式子，计算下 <span class="math inline">\(\overrightarrow{p_{1}}(\bar{z})\overrightarrow{p_{1}}(\bar{y})\)</span>
+就得到结果了</li>
+</ul>
+<h3 id="讨论">讨论</h3>
+<ul>
+<li>采样技术的好坏，取决于场景</li>
+<li>如果 ghost/dynamic objects
+容易连接到光源和相机，那么（3）（6）用处不大，反之效果好</li>
+<li>如何实现整条光路的映射，看<a href="#last-chapter">最后章节</a></li>
+</ul>
+<h2 id="technique-combination">Technique combination</h2>
+<ul>
+<li>MIS</li>
+<li>例如如下情况，有 5 种采样方式
+<ul>
+<li>ghost hit 作为起点（4），dynamic hit 作为起点（1）</li>
+</ul></li>
+</ul>
+<p><img src="/2024/08/13/CG/Papers/2024/RPT-ReRender/fig3-d-MIS.png"></p>
+<ul>
+<li><span class="math inline">\(N_k\)</span> 长的路径，和 dynamic object
+有 <span class="math inline">\(N_D\)</span> 个交点，和 ghost object 有
+<span class="math inline">\(N_G\)</span> 条边相交，那么就一共有 <span class="math inline">\(N_D+N_G\)</span> 种采样策略
+<ul>
+<li>这么说的话，应该是把 （1）（2）（3）区分开了（从论文中这 3
+种路径的正则表达式也可以看出）
+<ul>
+<li>3 个节点的直接光照只会被（1）采样得到</li>
+<li>（3）不包括采样相机和光源</li>
+</ul></li>
+</ul></li>
+<li>另外加上常规的 PT，用于渲染 static path（补齐整个采样空间）
+<ul>
+<li>有些光路使用 camera tracing 更容易追到</li>
+<li>（7）PT with selection</li>
+</ul></li>
+<li>MIS：平衡启发式，<span class="math inline">\(N_D+N_G+1\)</span>
+种采样技术
+<ul>
+<li><span class="math inline">\(&lt;7\)</span>：可能连接失败，可能
+rejection</li>
+</ul></li>
+<li>计算复杂度：<span class="math inline">\(O(N_D+N_G)\)</span>
+<ul>
+<li>在每一个点上保存累乘的 forward/backward
+pdf，计算的使用总的除以记录的
+<ul>
+<li>和 BDPT 实现类似（mitsuba）</li>
+</ul></li>
+<li><span class="math inline">\(O((N_D+N_G)\times N_k)\)</span> 降至
+<span class="math inline">\(O(N_D+N_G)\)</span></li>
+</ul></li>
+</ul>
+<h1 id="path-mapping">Path mapping</h1>
+<ul>
+<li>思路，转换为每一个节点的变换
+<ul>
+<li>sensor -&gt; emitter</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+T(\boldsymbol{p})=T(x_0x_1\ldots x_{k-2}x_{k-1})=t(x_0)t(x_1)\ldots
+t(x_{k-2})t(x_{k-1})
+\]</span></p>
+<ul>
+<li><span id="fig5-path-mapping">示意图</span></li>
+</ul>
+<p><img src="/2024/08/13/CG/Papers/2024/RPT-ReRender/fig5-path-mapping.png"></p>
+<ul>
+<li>有 5 种基本变换形式 <span class="math inline">\(t\)</span>，对应
+Jacobians <span class="math inline">\(\vert{t&#39;}\vert\)</span></li>
+</ul>
+<h2 id="object-movement">object movement</h2>
+<ul>
+<li><strong>Transform with object movement</strong></li>
+<li>dynamic/ghost obejct 上的刚性变换</li>
+<li><span class="math inline">\(t(x_i)=T_{obj}(x_i)\quad\mathrm{if}\quad
+x_i\in\{x_D,x_G\}\)</span></li>
+<li>For rigid motions of articulated bodies, <span class="math inline">\(\vert{t&#39;}\vert=1\)</span></li>
+<li>如图 （1b）所示，如果 base path 和 dynamic obejct
+有多个交点，则拒绝映射（<span style="color:red">如何处理？</span>）
+<ul>
+<li>可能会引发很大的区别</li>
+</ul></li>
+</ul>
+<h2 id="same-vertex">same vertex</h2>
+<ul>
+<li><strong>Keep vertex the same</strong></li>
+<li>static object 上的顶点不变</li>
+<li><span class="math inline">\(t\left(x_{i}\right)=x_{i}\quad\mathrm{if}\quad
+x_{i}\in\{\mathbf{x}_{S}\}\)</span></li>
+<li><span class="math inline">\(\vert t&#39;\vert=1\quad\mathrm{if}\quad
+t\left(x_{i-1}\right)=x_{i-1}\)</span></li>
+<li>这样的操作允许 path re-connection（前一个点 <span class="math inline">\(x_{i-1}\)</span> 可以和当前点 <span class="math inline">\(x_i\)</span> 连接）</li>
+<li>此时，如果 <span class="math inline">\(x_{i-1}\)</span>
+被映射到了另外的点，<span class="math inline">\(\vert
+t&#39;\vert\)</span> 不再是 1</li>
+</ul>
+<p><span class="math display">\[
+\mid t&#39;\mid=\frac{\cos\left(t\left(x_{i-1}\right)\leftarrow
+x_i\right)}{\cos\left(x_{i-1}\leftarrow x_i\right)}\cdot\frac{\Vert
+x_{i-1}-x_i\Vert^2}{\Vert t\left(x_{i-1}\right)-x_i\Vert^2}.
+\]</span></p>
+<ul>
+<li>一个 path 避免多次连接（可能导致很大的 Jacobian）
+<ul>
+<li>Jacobian 的累乘</li>
+</ul></li>
+<li>连接条件：参考 ResTIR
+<ul>
+<li><span class="math inline">\(x_i\)</span> 不是 dynamic vertex</li>
+<li>roughness threshold：<span class="math inline">\(\min\left(\alpha(x_{i-1}),\alpha(t(x_{i-1})),\alpha(x_{i})\right)\geq\alpha_{min}\)</span></li>
+<li>distance threshold：<span class="math inline">\(\min\left(\|t(x_{i-1})-x_{i}\|,\|x_{i-1}-x_{i}\|\right)\geq
+d_{min}\)</span></li>
+</ul></li>
+</ul>
+<h2 id="random-replay">random replay</h2>
+<ul>
+<li><strong>Random-seed replay</strong></li>
+<li>使用同样的随机数生成 ray <span class="math inline">\(\overrightarrow{x_{i-1}x_{i}},\overrightarrow{t(x_{i-1})t(x_{i})}\)</span></li>
+</ul>
+<h2 id="dynamicghost-pair">dynamic/ghost pair</h2>
+<ul>
+<li><strong>Mapping between the dynamic and ghost pair</strong></li>
+<li>直接映射到对应点，然后继续光追
+<ul>
+<li>上图的 3a、3b</li>
+</ul></li>
+</ul>
+<h2 id="path-rejection">Path rejection</h2>
+<ul>
+<li><strong>Path rejection</strong></li>
+<li>当 path mapping 失败或者主动停止时，使用这个方案</li>
+<li>主动停止条件
+<ul>
+<li>mapped path 重连的时候被遮挡（或被 dynamic obejct 遮挡）</li>
+<li>Jacobian 超过阈值（导致 fireflier），设置为 10</li>
+<li>base path 多次击中 dynamic object（&gt;1）</li>
+</ul></li>
+<li>条件1、3 发生较少，因为移动较少
+<ul>
+<li>dynamic objects 占据较多时发生多</li>
+</ul></li>
+<li>条件 2 发生更少</li>
+<li>具体方式，无偏性的保证
+<ul>
+<li>we sample from both frames and employ two-way path mapping to
+<strong>ensure the coverage of the entire integral domain</strong>.</li>
+<li>和论文类似：Improved sampling for gradient-domain Metropolis light
+transport</li>
+</ul></li>
+</ul>
+<h1 id="results-and-discussion">Results and discussion</h1>
+<h2 id="实现">实现</h2>
+<ul>
+<li>渲染器：<a target="_blank" rel="noopener" href="https://www.embree.org/">Intel Embree</a></li>
+<li>AMD Ryzen 16-Core Processor</li>
+<li>额外维护两个加速结构：dynamic/ghost obejcts
+<ul>
+<li>dynamic：连接的时候可见性测试</li>
+<li>ghost：计算 MIS 需要</li>
+<li>代价很小：只有少部分会移动</li>
+</ul></li>
+<li>无偏测试：能收敛到 reference</li>
+</ul>
+<h2 id="incremental-re-rendering">Incremental re-rendering</h2>
+<ul>
+<li>对比算法：PT，Correlated PT</li>
+<li>PT：只考虑移动物体对相机直接可见的场景（公平性）
+<ul>
+<li>感觉对 PT 不应该都一样吗？对 residual 难度不一样？</li>
+<li>大部分测试场景都是 PT 友好的</li>
+</ul></li>
+<li>Correlated PT：<span style="color:red">不太懂具体怎么做的</span>
+<ul>
+<li>渲染 residual，然后累加</li>
+</ul></li>
+<li>比较 reference、residual reference 的区别
+<ul>
+<li>等时间的 MSE 都低</li>
+</ul></li>
+<li>dynamic object 距离光源越近，residual 越大
+<ul>
+<li>我们的方法不管距离怎么变化，收敛都很快</li>
+<li><strong>在这种情况下，直接 PT 有可能会更好</strong></li>
+</ul></li>
+<li>Scene Editing
+<ul>
+<li>当光源/相机移动的时候，最优的退化为 light/camera tracing</li>
+<li>材质编辑则比较简单，不需要 MIS 采样那一大堆</li>
+</ul></li>
+</ul>
+<h2 id="timings-and-overhead">Timings and overhead</h2>
+<ul>
+<li>光线从中间物体出发，cache miss 很严重
+<ul>
+<li>留到 future work：potential batching and coherency optimization</li>
+<li>计算开销：10-20%</li>
+<li>因此，同时间对比中，PT 有更多光线（random walk）</li>
+</ul></li>
+</ul>
+<h2 id="ablations-and-analysis">Ablations and analysis</h2>
+<ul>
+<li>只展示变化部分（<span class="math inline">\(\mathcal{D}\)</span>）
+<ul>
+<li><strong>PT with selection</strong>：path tracing where only the
+paths affected by the dynamic objects are selected and contributing to
+the shown image</li>
+<li>论文效果更好（比 PT 好）</li>
+</ul></li>
+<li>path mapping 是否开启
+<ul>
+<li>关闭：不做
+mapping，而是在两帧图像中各自采样论文中的采样策略，计算图像</li>
+<li>path mapping 有效</li>
+</ul></li>
+<li>当移动的物体变多，论文方法变差
+<ul>
+<li>论文假定：变化东西很少</li>
+</ul></li>
+<li>当物体变化的量变大，论文方法能保持一致，但是 path mapping
+作用减弱</li>
+</ul>
+<h1 id="limitations">Limitations</h1>
+<ul>
+<li>可以和 light/camera tracing 结合</li>
+<li>算法不适合 camera/light 移动的场景</li>
+<li>不同的 dynamic/ghost 上的方差不同：适应性采样</li>
+</ul>
+<h1 id="结果与展望">结果与展望</h1>
+<ul>
+<li>Conclusion
+<ul>
+<li>theoretical framework</li>
+</ul></li>
+<li>future work
+<ul>
+<li>better importance sampling techniques</li>
+<li>better path mappings</li>
+<li>上面二者联合优化</li>
+<li>支持 deformable movement</li>
+<li>参与介质（体渲染）</li>
+</ul></li>
+</ul>
+<h1 id="整条光路的映射"><span id="last-chapter">整条光路的映射</span></h1>
+<ul>
+<li>base path <span class="math inline">\(\boldsymbol{p}\)</span> from
+new scene <span class="math inline">\(\to\)</span> old scene</li>
+<li>标准 PT 可以让帧间使用相同的随机数，以增强相关性；动态场景则比较难
+<ul>
+<li>我们的方法起点在光路中间，不确定是在哪个像素，因此很难使用这个</li>
+</ul></li>
+<li>核心思想：<strong>尽早的进行 path reconnection</strong>，原因如下
+<ul>
+<li>efficiency, in terms of path reuse</li>
+<li>increasing correlation between the two paths</li>
+</ul></li>
+<li>连接之前使用 Random seed replay（增强相关性）</li>
+<li>Dynamic from sensor
+<ul>
+<li><a href="#fig5-path-mapping">图上的 1a</a> 是一个例子，<span class="math inline">\(x_1\)</span> 无法连接，因为 glossy 条件；直到
+<span class="math inline">\(x_3\)</span> 才满足连接条件</li>
+<li>图上的 2 也是满足的例子</li>
+</ul></li>
+<li>Dynamic from sensor
+<ul>
+<li>3a 中 <span class="math inline">\(t(x_D)\)</span> 延长线的交点和
+<span class="math inline">\(x_1\)</span> 不连接，是因为 large
+Jacobian</li>
+<li>当物体移动过大的时候，Dynamic from sensor 使用 Transform with object
+movement 策略，效果不好，相关性很差</li>
+<li>这里使用直接延长的策略</li>
+<li>Ghost from sensor 也类似</li>
+</ul></li>
+<li>Ghost from light、Ghost two ends 这两种情况
+<ul>
+<li>直接使用 independent tracing</li>
+<li>使用和上面差不多的方式，相关性较差；原因是 ghost
+都是空的，会打到其他物体，从而贡献给其他像素</li>
+</ul></li>
+</ul>
+<h1 id="总结">总结</h1>
+<ul>
+<li>满抽象的，不太理解无偏性的保证
+<ul>
+<li>这个 mapped path 的形成方式是唯一的吗？不唯一的话需要计算 pdf
+吧</li>
+<li>无偏的原因？
+<ul>
+<li>和 dynamic object
+只会有一次相交，在采样前的操作的都是确定性的操作</li>
+</ul></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/EGSR/" rel="tag"># EGSR</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/08/07/CG/Papers/2024/NB/" rel="prev" title="(论文)[2024-SIG-C] Neural Bounding">
+                  <i class="fa fa-chevron-left"></i> (论文)[2024-SIG-C] Neural Bounding
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

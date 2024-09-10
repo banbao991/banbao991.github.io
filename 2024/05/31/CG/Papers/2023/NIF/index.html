@@ -30,6 +30,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2024/05/31/CG/Papers/2023/NIF/eq1-mapping.png">
 <meta property="og:image" content="http://example.com/2024/05/31/CG/Papers/2023/NIF/fig2a-nif-outer-network.png">
+<meta property="og:image" content="http://example.com/2024/05/31/CG/Papers/2023/NIF/gird-per-object.png">
 <meta property="og:image" content="http://example.com/2024/05/31/CG/Papers/2023/NIF/eq2-Touter.png">
 <meta property="og:image" content="http://example.com/2024/05/31/CG/Papers/2023/NIF/eq3-NIFouter.png">
 <meta property="og:image" content="http://example.com/2024/05/31/CG/Papers/2023/NIF/fig2a-nif-inner-network.png">
@@ -39,12 +40,12 @@
 <meta property="og:image" content="http://example.com/2024/05/31/CG/Papers/2023/NIF/tab2-speedup.png">
 <meta property="og:image" content="http://example.com/2024/05/31/CG/Papers/2023/NIF/fig10-cost-visualization.png">
 <meta property="article:published_time" content="2024-05-31T12:48:13.000Z">
-<meta property="article:modified_time" content="2024-06-04T09:10:28.564Z">
+<meta property="article:modified_time" content="2024-08-05T08:41:50.825Z">
 <meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="CG">
+<meta property="article:tag" content="NN">
 <meta property="article:tag" content="Paper">
 <meta property="article:tag" content="HPG">
-<meta property="article:tag" content="NN">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/2024/05/31/CG/Papers/2023/NIF/eq1-mapping.png">
 
@@ -174,7 +175,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">303</span>
+          <span class="site-state-item-count">314</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -185,7 +186,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">101</span>
+        <span class="site-state-item-count">102</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -271,7 +272,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-06-04 17:10:28" itemprop="dateModified" datetime="2024-06-04T17:10:28+08:00">2024-06-04</time>
+      <time title="Modified: 2024-08-05 16:41:50" itemprop="dateModified" datetime="2024-08-05T16:41:50+08:00">2024-08-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -313,6 +314,11 @@
 <li>线程之间不存在 divergence</li>
 <li>内存时间都可控，网络大小与场景复杂度无关</li>
 <li>直接光照测试中达到 35% 的提升</li>
+</ul></li>
+<li><span style="color:red">论文的设置似乎无法求解这样的 shadow
+ray，光源在物体内部，即光线和物体有交点，但是在 <span class="math inline">\(t_{\max}\)</span> 之外</span>
+<ul>
+<li>可见判定为不可见</li>
 </ul></li>
 </ul>
 <h1 id="neural-intersection-function">Neural Intersection Function</h1>
@@ -409,7 +415,7 @@ AABB</span>：<strong>指的是物体的 AABB，也就是 TLAS
 的交点</li>
 <li>如果在内部，则反向延长到物体表面的交点上
 <ul>
-<li>一般来说都在物体表面，除了<a href="#overlapping-Objects">如下情况</a></li>
+<li>一般来说都在物体表面，除了<a href="#overlapping-objects">如下情况</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -431,21 +437,25 @@ AABB</span>：<strong>指的是物体的 AABB，也就是 TLAS
 </ul>
 <p><img src="/2024/05/31/CG/Papers/2023/NIF/fig2a-nif-outer-network.png"></p>
 <ul>
-<li>输入的参数化
-<ul>
+<li>输入的参数化：<span class="math inline">\(\mathrm{p&#39;},\mathrm{d&#39;}\)</span></li>
 <li><span class="math inline">\(\mathrm{p&#39;}\)</span>
 <ul>
 <li>首先将这个点转化为和 AABB 的交点（解决 aliased rays 的问题）</li>
 <li>压缩，AABB 和一个球是双射的（concave），从 3D 转化为 2D
 <ul>
 <li><span style="color:red">丢失了具体是哪一个 AABB
-的信息？怎么区分是哪一个物体呢？</span></li>
-<li>感觉这里不区分也 OK，因为下面的 procedural UV mapping
-区分了物体</li>
+的信息？怎么区分是哪一个物体呢？</span>
+<ul>
+<li>肯定都来自物体的 AABB 表面，可以对物体的 AABB 表面进行 UV 映射</li>
+<li>论文：<span style="color:red">不同的物体之间共享网络，但是 Grid
+不共享</span>，如此便能区分</li>
 </ul></li>
 </ul></li>
+</ul></li>
+</ul>
+<p><img src="/2024/05/31/CG/Papers/2023/NIF/gird-per-object.png"></p>
+<ul>
 <li><span class="math inline">\(\mathrm{d&#39;}\)</span>：3D <span class="math inline">\(\to\)</span> 2D</li>
-</ul></li>
 </ul>
 <p><img src="/2024/05/31/CG/Papers/2023/NIF/eq2-Touter.png"></p>
 <ul>
@@ -458,14 +468,21 @@ AABB</span>：<strong>指的是物体的 AABB，也就是 TLAS
 <ul>
 <li>位置，方向：3D <span class="math inline">\(\to\)</span> 2D
 <ul>
-<li>procedural UV mapping（因为交点必然在表面上）</li>
+<li>方向和之前一样</li>
+<li>位置比较特殊，因为现在不是凸的了，AABB
+的中心沿着一个方向可能有多个交点，因此还需要记录下到 AABB 中心的距离
+<span class="math inline">\(\mathrm{r}&#39;\)</span></li>
 </ul></li>
-<li>AABB 的中心压着一个方向可能有多个交点，因此还需要记录下到 AABB
-中心的距离 <span class="math inline">\(\mathrm{r}&#39;\)</span></li>
 </ul>
 <p><img src="/2024/05/31/CG/Papers/2023/NIF/eq4-T-inner.png"></p>
 <ul>
-<li>Grid Encoding：2D、2D、1D</li>
+<li>Grid Encoding：2D、2D、1D
+<ul>
+<li><strong>这里相当于把原来的位置 3d Encoding 变成了 2d +
+1d</strong></li>
+</ul></li>
+<li><strong>这里的 Grid 和前面的不共享，一个 object 在 outer/inner
+网络中各自有一组 Grid</strong></li>
 </ul>
 <h3 id="note">Note</h3>
 <ul>
@@ -576,7 +593,10 @@ vector（latent vector）长度 <span class="math inline">\(N\)</span>
 <li>Memory Footprint
 <ul>
 <li>尽可能使用 half-precision floating points</li>
-<li>一共 321KB 左右（输入 10M 个三角形）</li>
+<li>单个物体一共 321KB 左右（输入 10M 个三角形）
+<ul>
+<li>物体多了 Grid 的大小上去了</li>
+</ul></li>
 </ul></li>
 <li>Primary Visibility Computation（第一个交点）
 <ul>
@@ -659,8 +679,7 @@ vector（latent vector）长度 <span class="math inline">\(N\)</span>
 <li>例如 X 和 Y 的 AABB 内部，而且在 X 物体上的光线
 <ul>
 <li>对于 X，光线直接用于训练</li>
-<li>对于 Y 将光线反向延长到和 Y 的交点之后用于训练（只需要判断和 Y
-的可见性）</li>
+<li>对于 Y ，则只需要判断和 Y 的可见性</li>
 </ul></li>
 </ul></li>
 <li>示例：torus+torus+猴子</li>
@@ -696,8 +715,8 @@ vector（latent vector）长度 <span class="math inline">\(N\)</span>
 <li>inner network 处理光线数量</li>
 </ol></li>
 </ul></li>
-<li>下面的都是 ms 时间：<span style="color:red">感觉好慢？可能是 Mesh
-比较多吧</span></li>
+<li>下面的都是 ms 时间：<span style="color:red">感觉好慢？</span>可能是
+Mesh 比较多吧，AMD 就是比较慢</li>
 </ul></li>
 </ul>
 <p><img src="/2024/05/31/CG/Papers/2023/NIF/tab2-speedup.png"></p>
@@ -739,9 +758,9 @@ vector（latent vector）长度 <span class="math inline">\(N\)</span>
     <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/NN/" rel="tag"># NN</a>
               <a href="/tags/Paper/" rel="tag"># Paper</a>
               <a href="/tags/HPG/" rel="tag"># HPG</a>
-              <a href="/tags/NN/" rel="tag"># NN</a>
           </div>
 
         

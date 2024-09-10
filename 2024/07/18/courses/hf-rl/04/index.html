@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="policy-based 的算法（直接输出 policy），policy-gradient 方法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Deep Reinforcement Learning Course(4)">
+<meta property="og:url" content="http://example.com/2024/07/18/courses/hf-rl/04/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="policy-based 的算法（直接输出 policy），policy-gradient 方法">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/07/18/courses/hf-rl/04/policy_based.png">
+<meta property="og:image" content="http://example.com/2024/07/18/courses/hf-rl/04/aliased-state.png">
+<meta property="og:image" content="http://example.com/2024/07/18/courses/hf-rl/04/cart_pole.png">
+<meta property="og:image" content="http://example.com/2024/07/18/courses/hf-rl/04/pixelcopter.png">
+<meta property="article:published_time" content="2024-07-18T10:46:32.000Z">
+<meta property="article:modified_time" content="2024-07-23T13:18:59.240Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="RL">
+<meta property="article:tag" content="NN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/07/18/courses/hf-rl/04/policy_based.png">
+
+
+<link rel="canonical" href="http://example.com/2024/07/18/courses/hf-rl/04/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/07/18/courses/hf-rl/04/","path":"2024/07/18/courses/hf-rl/04/","title":"Deep Reinforcement Learning Course(4)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Deep Reinforcement Learning Course(4) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#unit4"><span class="nav-text">Unit4</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#policy-based-methods"><span class="nav-text">policy-based methods</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#policy-gradient-%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-text">policy-gradient 的优缺点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#advantages"><span class="nav-text">Advantages</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#disadvantages"><span class="nav-text">Disadvantages</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5-policy-gradient-methods"><span class="nav-text">深入 policy-gradient methods</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#gradient-ascent"><span class="nav-text">Gradient Ascent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reinforce-algorithm"><span class="nav-text">Reinforce algorithm</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#the-policy-gradient-theorem"><span class="nav-text">the Policy Gradient Theorem</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hw4"><span class="nav-text">HW4</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E5%80%92%E6%9C%A8%E6%A3%92"><span class="nav-text">不倒木棒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flappy-bird"><span class="nav-text">Flappy Bird</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">314</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">102</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/07/18/courses/hf-rl/04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Deep Reinforcement Learning Course(4) | Banbao">
+      <meta itemprop="description" content="policy-based 的算法（直接输出 policy），policy-gradient 方法">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Deep Reinforcement Learning Course(4)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-07-18 18:46:32" itemprop="dateCreated datePublished" datetime="2024-07-18T18:46:32+08:00">2024-07-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-07-23 21:18:59" itemprop="dateModified" datetime="2024-07-23T21:18:59+08:00">2024-07-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/hg-rl/" itemprop="url" rel="index"><span itemprop="name">hg-rl</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">policy-based 的算法（直接输出 policy），policy-gradient 方法</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="unit4">Unit4</h1>
+<ul>
+<li>Policy Gradient With Pytorch</li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<ul>
+<li>直接优化 policy</li>
+<li><strong>policy gradient</strong> 是其中一类方法
+<ul>
+<li>Monte Carlo <strong>Reinforce</strong> 是一种 <strong>policy
+gradient</strong> 方法</li>
+</ul></li>
+</ul>
+<h2 id="policy-based-methods">policy-based methods</h2>
+<ul>
+<li>What are the policy-based methods？</li>
+<li>3 类强化学习方法
+<ul>
+<li><em>value-based methods</em></li>
+<li><em>policy-based methods</em></li>
+<li><em>actor-critic</em> method：上面两种的结合</li>
+</ul></li>
+<li>policy based：参数化 policy
+<ul>
+<li>例如使用 NN 输出一个行动上的分布：<span class="math inline">\(\pi_\theta(s)=\mathbb{P}[A|s;\theta]\)</span>，然后使用梯度下降优化参数</li>
+</ul></li>
+<li>流程：CartPole-v1 游戏为例</li>
+</ul>
+<p><img src="/2024/07/18/courses/hf-rl/04/policy_based.png"></p>
+<ul>
+<li>policy-based methods 和 policy-gradient methods 的区别
+<ul>
+<li>policy-gradient 是一种 policy-based 方法</li>
+</ul></li>
+</ul>
+<h2 id="policy-gradient-的优缺点">policy-gradient 的优缺点</h2>
+<h3 id="advantages">Advantages</h3>
+<ul>
+<li>可以直接输出 policy（不需要保存额外的 action 数据等）
+<ul>
+<li>不需要自己实现 <strong>exploration/exploitation
+trade-off</strong></li>
+</ul></li>
+<li>可以学习随机策略
+<ul>
+<li><p>不需要处理 <strong>perceptual aliasing</strong>
+问题：相同/类似状态，但是需要不同的行动</p></li>
+<li><p>如下任务：机器人寻宝游戏；机器人只能感知到前后左右的墙壁状态</p>
+<ul>
+<li><p>灰色区域状态相同，都是 <span class="math inline">\(\phi(s)=\overbrace{(\underbrace{1}_{\text{up}}\underbrace{0}_{\text{right}}\underbrace{1}_{\text{down}}\underbrace{0}_{\text{left}})}^{\text{walls=state}}\)</span></p></li>
+<li><p>如果输出结果一样（往左或往右），此时很难找到财富（只能靠
+exploration）</p></li>
+<li><p>随机策略（往左、往右各50%）则会好很多</p></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2024/07/18/courses/hf-rl/04/aliased-state.png"></p>
+<ul>
+<li>高维、连续行动空间效果更好
+<ul>
+<li>Deep Q-Learning 无法处理无穷种行动的情况</li>
+<li>例如自动驾驶，转方向盘的角度有无穷种可能</li>
+</ul></li>
+<li>收敛性更好
+<ul>
+<li>随机策略的 policy 随着训练变化慢</li>
+<li>如果是确定性策略，例如上一时刻 Q-value <span class="math inline">\(\text{(l,r)=(0.10,0.09)}\)</span>，然后这一时刻变成了
+Q-value <span class="math inline">\(\text{(l,r)=(0.10,0.11)}\)</span>，那么 policy
+就发生了剧变</li>
+</ul></li>
+</ul>
+<h3 id="disadvantages">Disadvantages</h3>
+<ul>
+<li>容易陷入局部最优</li>
+<li>训练更慢</li>
+<li>方差大</li>
+</ul>
+<h2 id="深入-policy-gradient-methods">深入 policy-gradient methods</h2>
+<ul>
+<li><em>parameterized stochastic policy</em></li>
+<li><em>action preference</em>：the probability of taking each
+action</li>
+<li>目标：更多的采样收益更大的行动</li>
+<li>idea：如果当前 episode 收益高，则认为当前 episode 中所有的 action
+都是好的</li>
+<li>Training Loop 的伪代码如下
+<ul>
+<li>Collect an episode with the <span class="math inline">\(\pi\)</span>
+(policy).</li>
+<li>Calculate the return(sum of rewards).</li>
+<li>Update the weights of the <span class="math inline">\(\pi\)</span>
+<ul>
+<li>If <span style="color:#317820"><strong>positive
+return</strong></span> <span class="math inline">\(\to\)</span> increase
+the probability of each (state, action) pairs taken during the
+episode.</li>
+<li>If <span style="color:#cc3f2a"><strong>negative
+return</strong></span> <span class="math inline">\(\to\)</span> decrease
+the probability of each (state, action) taken during the episode.</li>
+</ul></li>
+</ul></li>
+<li>score/objective function（目标函数）：<span class="math inline">\(J(\theta)=\mathbb{E}_{\tau\sim\pi}[R(\tau)]\)</span>
+<ul>
+<li>和 episode 不同，trajectory 只有一系列 state、action，不包括
+reward</li>
+<li><span class="math inline">\(J(\theta)\)</span>：输入
+trajectory，输出期望 return</li>
+<li><em>expected return</em>：<em>expected cumulative reward</em></li>
+</ul></li>
+<li>理解：感觉像是压缩了信息，直接把 reward 信息保存到 <span class="math inline">\(\theta\)</span> 里面了</li>
+</ul>
+<p><span class="math display">\[
+J(\theta)=\sum_\tau P(\tau;\theta)R(\tau)
+\]</span></p>
+<p><span class="math display">\[
+P(\tau;\theta)=\left[\prod_{t=0}P(s_{t+1}|s_t,a_t)\pi_\theta(a_t|s_t)\right]
+\]</span></p>
+<ul>
+<li>目的：找到 <span class="math inline">\(\theta\)</span>，最大化目标函数</li>
+</ul>
+<h3 id="gradient-ascent">Gradient Ascent</h3>
+<ul>
+<li>最大化 <span class="math inline">\(\to\)</span> gradient
+ascent（梯度上升）</li>
+<li>梯度上升：<span class="math inline">\(\theta\leftarrow\theta+\alpha*\nabla_\theta
+J(\theta)\)</span></li>
+<li>问题
+<ul>
+<li>无法准确计算梯度，通过样本进行估计</li>
+<li>不能对状态微分（Markov Decision Process dynamics）</li>
+</ul></li>
+<li>如何微分？Policy Gradient Theorem！
+<ul>
+<li>对任意可微的 policy、任意目标函数，都有
+<ul>
+<li>红色部分应该加上吧？</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\nabla_\theta
+J(\theta)=\mathbb{E}_{\pi_\theta}\left[{\color{red}\sum_{t=0}}\nabla_\theta\log\pi_\theta(a_t\mid
+s_t)R(\tau)\right]
+\]</span></p>
+<h3 id="reinforce-algorithm">Reinforce algorithm</h3>
+<ul>
+<li>Monte Carlo Reinforce、Monte-Carlo policy-gradient</li>
+<li>算法流程（Loop）
+<ul>
+<li>Use the policy <span class="math inline">\(\pi_\theta\)</span> to
+collect an episode <span class="math inline">\(\tau\)</span></li>
+<li>Use the episode to estimate the gradient <span class="math inline">\(\hat{g}=\nabla_\theta J(\theta)\)</span>
+<ul>
+<li><span class="math inline">\(\nabla_\theta
+J(\theta)\approx\hat{g}=\sum_{t=0}\nabla_\theta\log\pi_\theta(a_t|s_t)R(\tau)\)</span></li>
+</ul></li>
+<li>Update the weights of the policy：<span class="math inline">\(\theta\leftarrow\theta+\alpha\hat{g}\)</span></li>
+</ul></li>
+<li><strong>collect multiple episodes
+(trajectories)</strong>：梯度多次平均</li>
+</ul>
+<p><span class="math display">\[
+\nabla_\theta
+J(\theta)\approx\hat{g}=\frac1m\sum_{i=1}^m\sum_{t=0}\nabla_\theta\log\pi_\theta(a_t^{(i)}|s_t^{(i)})R(\tau^{(i)})
+\]</span></p>
+<h2 id="the-policy-gradient-theorem">the Policy Gradient Theorem</h2>
+<ul>
+<li><em>derivative log trick</em>（also called <em>likelihood ratio
+trick</em> or <em>REINFORCE trick</em>）</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\nabla_\theta J(\theta)
+&amp;=\nabla_\theta\sum_\tau P(\tau;\theta)R(\tau)\\
+&amp;=\sum_\tau \nabla_\theta P(\tau;\theta)R(\tau)\\
+&amp;=\sum_\tau \frac{P(\tau;\theta)}{P(\tau;\theta)}\cdot \nabla_\theta
+P(\tau;\theta)R(\tau)\\
+&amp;=\sum_\tau \frac{P(\tau;\theta)}{P(\tau;\theta)}\cdot \nabla_\theta
+P(\tau;\theta)R(\tau)\\
+&amp;=\sum_\tau P(\tau;\theta)\nabla_\theta \log P(\tau;\theta)R(\tau)\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>展开 <span class="math inline">\(P\)</span>
+<ul>
+<li>initial state distribution <span class="math inline">\(\mu(s_0)\)</span>，state transition dynamics <span class="math inline">\(P\)</span>
+<ul>
+<li>二者都不依赖于 <span class="math inline">\(\theta\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\nabla_\theta \log P(\tau;\theta)
+&amp;=\nabla_\theta \log\left[\mu(s_0)\prod_{t=0}^HP(s_{t+1}\mid
+s_t,a_t)\pi_\theta(a_t\mid s_t)\right]\\
+&amp;=\nabla_\theta\left[\log\mu(s_0)+\sum\limits_{t=0}^H\log
+P(s_{t+1}\mid s_t,a_t)+\sum\limits_{t=0}^H\log\pi_\theta(a_t\mid
+s_t)\right]\\
+&amp;=\nabla_\theta \log\mu(s_0)+\nabla_\theta\sum_{t=0}^H\log
+P(s_{t+1}\mid
+s_t,a_t)+\nabla_{\theta}\sum_{t=0}^{H}\log\pi_{\theta}(a_{t}\mid
+s_{t})\\
+&amp;=\nabla_{\theta}\sum_{t=0}^{H}\log\pi_{\theta}(a_{t}\mid s_{t})
+\end{aligned}
+\]</span></p>
+<ul>
+<li>于是</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\nabla_\theta J(\theta)
+&amp;=\sum_\tau
+P(\tau;\theta)\left[\nabla_{\theta}\sum_{t=0}^{H}\log\pi_{\theta}(a_{t}\mid
+s_{t})\right]R(\tau)\\
+&amp;=\sum_\tau\sum_{t=0}^{H}
+P(\tau;\theta)\nabla_{\theta}\log\pi_{\theta}(a_{t}\mid s_{t})R(\tau)
+\end{aligned}
+\]</span></p>
+<h2 id="hw4">HW4</h2>
+<h3 id="不倒木棒">不倒木棒</h3>
+<p><img src="/2024/07/18/courses/hf-rl/04/cart_pole.png"></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.gymlibrary.dev/environments/classic_control/cart_pole/">CartPole-v1</a>
+<ul>
+<li>观察空间：4（Cart 位置、速度；Pole 角度、角速度）</li>
+<li>行动空间：2（左右）</li>
+</ul></li>
+<li>算法：Allgorith REINFORCE</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\text{1: }\textbf{procedure}~\text{REINFORCE}\\
+&amp;\text{2: }\quad\text{Start with policy model}~\pi_\theta\\
+&amp;\text{3: }\quad \textbf{repeat}:\\
+&amp;\text{4: }\quad \quad\text{Generate an
+episode}~S_0,A_0,r_0,\ldots,S_{T-1},A_{T-1},r_{T-1}\text{ following }
+\pi_\theta(\cdot)\\
+&amp;\text{5: }\quad \quad \textbf{for}~t~\text{from}~T-1~\text{to}~0:\\
+&amp;\text{6: }\quad \quad \quad G_t=\sum_{k=t}^{T-1}\gamma^{k-t}r_k\\
+&amp;\text{7: }\quad \quad
+L(\theta)=\frac1T\sum_{t=0}^{T-1}G_t\log\pi_\theta(A_t|S_t)\\
+&amp;\text{8: }\quad \quad
+\text{Optimize}~\pi_\theta~\text{using}~\nabla L(\theta)\\
+&amp;\text{9: }\textbf{end procedure}\end{aligned}
+\]</span></p>
+<h3 id="flappy-bird">Flappy Bird</h3>
+<p><img src="/2024/07/18/courses/hf-rl/04/pixelcopter.png"></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://pygame-learning-environment.readthedocs.io/en/latest/user/games/pixelcopter.html">PixelCopter</a>
+<ul>
+<li>观察空间：7（y 坐标、速度、到地板、天花板的距离、下一个障碍物水平 x
+距离、下一个障碍物的左上角、右下角的 y 坐标）</li>
+<li>行动空间：2（上升、不动）</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RL/" rel="tag"># RL</a>
+              <a href="/tags/NN/" rel="tag"># NN</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/07/17/courses/hf-rl/03/" rel="prev" title="Deep Reinforcement Learning Course(3)">
+                  <i class="fa fa-chevron-left"></i> Deep Reinforcement Learning Course(3)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/08/07/CG/Papers/2024/NB/" rel="next" title="(论文)[2024-SIG-C] Neural Bounding">
+                  (论文)[2024-SIG-C] Neural Bounding <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

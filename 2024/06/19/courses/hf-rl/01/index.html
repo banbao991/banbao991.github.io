@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="强化学习框架、基本概念介绍；两个小实验，简单的跑一跑别人的代码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Deep Reinforcement Learning Course(1)">
+<meta property="og:url" content="http://example.com/2024/06/19/courses/hf-rl/01/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="强化学习框架、基本概念介绍；两个小实验，简单的跑一跑别人的代码">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/06/19/courses/hf-rl/01/RL_process.jpg">
+<meta property="og:image" content="http://example.com/2024/06/19/courses/hf-rl/01/policy_2.jpg">
+<meta property="og:image" content="http://example.com/2024/06/19/courses/hf-rl/01/value_2.jpg">
+<meta property="og:image" content="http://example.com/2024/06/19/courses/hf-rl/01/deep.jpg">
+<meta property="og:image" content="http://example.com/2024/06/19/courses/hf-rl/01/lunar_lander.png">
+<meta property="article:published_time" content="2024-06-19T05:28:16.000Z">
+<meta property="article:modified_time" content="2024-07-23T05:51:26.300Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="RL">
+<meta property="article:tag" content="NN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/06/19/courses/hf-rl/01/RL_process.jpg">
+
+
+<link rel="canonical" href="http://example.com/2024/06/19/courses/hf-rl/01/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/06/19/courses/hf-rl/01/","path":"2024/06/19/courses/hf-rl/01/","title":"Deep Reinforcement Learning Course(1)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Deep Reinforcement Learning Course(1) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%BE%E7%A8%8B"><span class="nav-text">课程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#unit0"><span class="nav-text">Unit0</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#unit1"><span class="nav-text">Unit1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0"><span class="nav-text">什么是强化学习</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rl-framework"><span class="nav-text">RL Framework</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#type-of-tasks"><span class="nav-text">Type of tasks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#explorationexploitation-trade-off"><span class="nav-text">Exploration&#x2F;Exploitation
+trade-off</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#solving-rl-problems"><span class="nav-text">solving RL problems</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#deep-rl"><span class="nav-text">Deep RL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hw1"><span class="nav-text">HW1</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bunit1"><span class="nav-text">BUnit1</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">314</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">102</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/06/19/courses/hf-rl/01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Deep Reinforcement Learning Course(1) | Banbao">
+      <meta itemprop="description" content="强化学习框架、基本概念介绍；两个小实验，简单的跑一跑别人的代码">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Deep Reinforcement Learning Course(1)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-06-19 13:28:16" itemprop="dateCreated datePublished" datetime="2024-06-19T13:28:16+08:00">2024-06-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-07-23 13:51:26" itemprop="dateModified" datetime="2024-07-23T13:51:26+08:00">2024-07-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/hg-rl/" itemprop="url" rel="index"><span itemprop="name">hg-rl</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">强化学习框架、基本概念介绍；两个小实验，简单的跑一跑别人的代码</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="课程">课程</h1>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://huggingface.co/learn/deep-rl-course">网站</a></p></li>
+<li><p>本地环境：py310</p>
+<ul>
+<li>box2d 问题：<a target="_blank" rel="noopener" href="https://www.swig.org/download.html">swig</a>（直接下载 Windows
+版本可执行文件），然后之下下面命令</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">conda install swig</span><br><span class="line">pip install box2d</span><br></pre></td></tr></table></figure>
+<ul>
+<li>默认是 cpu 的 torch 版本，需要自己安装 <a target="_blank" rel="noopener" href="https://pytorch.org/get-started/locally/">cuda</a> 版本</li>
+<li>生成视频出了问题：<code>pip install decorator==4.4.2</code></li>
+<li>shimmy 版本问题：<code>pip install shimmy=1</code></li>
+</ul></li>
+</ul>
+<h1 id="unit0">Unit0</h1>
+<ul>
+<li>Unit 0. Welcome To The Course</li>
+<li>课程与网站介绍</li>
+</ul>
+<h1 id="unit1">Unit1</h1>
+<ul>
+<li>Introduction to Deep Reinforcement Learning</li>
+<li>目的
+<ul>
+<li>训练一个模型，<strong>a lunar lander to land correctly on the
+Moon</strong></li>
+<li>训练一个小狗捡木棍的模型</li>
+</ul></li>
+</ul>
+<h2 id="什么是强化学习">什么是强化学习</h2>
+<ul>
+<li>What is Reinforcement Learning?</li>
+</ul>
+<h2 id="rl-framework">RL Framework</h2>
+<ul>
+<li>The Reinforcement Learning Framework</li>
+<li>The RL Process</li>
+</ul>
+<p><img src="/2024/06/19/courses/hf-rl/01/RL_process.jpg"></p>
+<ul>
+<li><p>概念</p>
+<ul>
+<li>state <span class="math inline">\(S_0\)</span>：状态</li>
+<li>action <span class="math inline">\(A_0\)</span>：行动</li>
+<li>reward <span class="math inline">\(R_1\)</span>：奖励</li>
+<li>next state <span class="math inline">\(S_1\)</span></li>
+</ul></li>
+<li><p>目标：最大化 cumulative reward（<strong>expected
+return</strong>）</p></li>
+<li><p><strong>Markov Decision Process</strong> (MDP)</p></li>
+<li><p>决策只与当前状态有关（与之前状态无关）</p></li>
+<li><p>Observations/States Space</p>
+<ul>
+<li>State <span class="math inline">\(s\)</span>：a
+<strong>complete</strong> description of the state of the world
+<ul>
+<li>国际象棋中的整个棋局</li>
+</ul></li>
+<li>Observation <span class="math inline">\(o\)</span>：a
+<strong>partial</strong> description of the state
+<ul>
+<li>游戏里面的观察视野</li>
+</ul></li>
+</ul></li>
+<li><p>Action Space</p>
+<ul>
+<li><strong>all possible actions</strong> in an environment</li>
+<li>可以是离散的、也可以是连续的（<em>discrete</em> or <em>continuous
+space</em>）</li>
+</ul></li>
+<li><p>Rewards and the discounting</p>
+<ul>
+<li>reward：<strong>the only feedback</strong> for the agent</li>
+<li>return（<span style="color:red">cumulative</span>
+reward）：收益：<span class="math inline">\(R(\tau)=r_{t+1}+r_{t+2}+\cdots=\sum_{k=0}^{\infty}r_{t+k+1}\)</span>
+<ul>
+<li><span class="math inline">\(\tau\)</span>：trajectory（轨迹），一系列
+state+action 的集合</li>
+</ul></li>
+<li>discount rate <span class="math inline">\(\gamma\in[0,1]\)</span>
+<ul>
+<li><span class="math inline">\(R(\tau)=\sum_{k=0}^{\infty}\gamma^{k}r_{t+k+1}\)</span></li>
+<li><span class="math inline">\(\gamma\)</span>：越大越在意长期收益（<strong>long-term
+reward</strong>），越小越在意短期收益（<strong>short term
+reward</strong>）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="type-of-tasks">Type of tasks</h2>
+<ul>
+<li>两类问题：<strong>episodic</strong>、<strong>continuing</strong></li>
+<li>episodic task
+<ul>
+<li>存在初始状态和结束状态：有一个情节（episode）</li>
+<li>例如：游戏，进入游戏的初始状态，通关条件（即结束状态）</li>
+</ul></li>
+<li>continuing tasks
+<ul>
+<li>没有终止状态，一直持续下去</li>
+<li>例如：炒股</li>
+</ul></li>
+</ul>
+<h2 id="explorationexploitation-trade-off">Exploration/Exploitation
+trade-off</h2>
+<ul>
+<li>exploration：尝试随机策略去获取更多环境信息</li>
+<li>exploitation：利用已有信息最大化收益</li>
+<li>trade
+off：只使用当前信息可能不是最优的，尝试更多可能带来更高的收益（也有可能没有收益）</li>
+</ul>
+<h2 id="solving-rl-problems">solving RL problems</h2>
+<ul>
+<li>两种解决 RL 问题的思路：<strong>Policy-Based</strong>
+Methods、<strong>Value-Based</strong> Methods</li>
+<li><strong>policy-based</strong>：<span class="math inline">\(\text{state}\to\pi(\text{state})\to\text{action}\)</span>
+<ul>
+<li><strong>直接</strong>学习最优的 policy</li>
+<li>RL 就是为了求解最优的 <span class="math inline">\(\pi^{\ast}\)</span></li>
+<li>对 policy 分类
+<ul>
+<li>确定性的（deterministic）：<span class="math inline">\(a=\pi(s)\)</span>
+<ul>
+<li>每一个状态确定唯一的行动</li>
+</ul></li>
+<li>随机性的（stochastic）：<span class="math inline">\(\pi(a\mid
+s)=P\left[A\mid s\right]\)</span></li>
+</ul></li>
+</ul></li>
+<li><strong>value-based</strong>
+<ul>
+<li>学习什么状态是最优的，然后找到走向最优状态的行动</li>
+<li>价值定义：从这一点出发，能够获得的收益越大，则越有价值
+<ul>
+<li><span class="math inline">\(v_\pi(s)=\mathbb{E}_\pi\left[R_{t+1}+\gamma
+R_{t+2}+\gamma^2R_{t+3}+\ldots\mid S_t=s\right]\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">policy-based</th>
+<th style="text-align: center;"><strong>value-based</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><img src="/2024/06/19/courses/hf-rl/01/policy_2.jpg"></td>
+<td style="text-align: center;"><img src="/2024/06/19/courses/hf-rl/01/value_2.jpg"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="deep-rl">Deep RL</h2>
+<ul>
+<li>引入神经网络：<strong>deep neural network</strong></li>
+<li>一个示例，具体之后讲解</li>
+</ul>
+<p><img src="/2024/06/19/courses/hf-rl/01/deep.jpg"></p>
+<h2 id="hw1">HW1</h2>
+<ul>
+<li>TLDR：跑别人的环境，跑别人的算法，20 分钟</li>
+<li>准备
+<ul>
+<li>环境：<code>gymnasium[box2d]</code></li>
+<li>DeepRL 库：<code>stable-baselines3[extra]</code></li>
+</ul></li>
+<li>做一个月球降落器：<a target="_blank" rel="noopener" href="https://gymnasium.farama.org/environments/box2d/lunar_lander/">Lunar
+Lander</a>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://colab.research.google.com/github/huggingface/deep-rl-class/blob/master/notebooks/unit1/unit1.ipynb">hw
+链接</a></li>
+</ul></li>
+<li>行动：不动，左喷，中间喷，右喷</li>
+</ul>
+<p><img src="/2024/06/19/courses/hf-rl/01/lunar_lander.png"></p>
+<h1 id="bunit1">BUnit1</h1>
+<ul>
+<li>TLDR：跑别人的环境，跑别人的算法，40 分钟</li>
+<li>小狗叼木棍的任务
+<ul>
+<li>state：木棍位置、和木棍的相对距离、腿的关节朝向</li>
+<li>action：腿的关节朝向</li>
+<li>reward：到目标的距离、时间、关节转动次数、获取到目标</li>
+</ul></li>
+<li>库：<a target="_blank" rel="noopener" href="https://github.com/Unity-Technologies/ml-agents">MLAgents</a></li>
+<li><a target="_blank" rel="noopener" href="https://huggingface.co/spaces/ThomasSimonini/Huggy">在线玩</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RL/" rel="tag"># RL</a>
+              <a href="/tags/NN/" rel="tag"># NN</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/06/15/CG/Papers/2023/3DGS/" rel="prev" title="(论文)[2023-SIG] 3D Gaussian Splatting for Real-Time Radiance Field Rendering">
+                  <i class="fa fa-chevron-left"></i> (论文)[2023-SIG] 3D Gaussian Splatting for Real-Time Radiance Field Rendering
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/07/15/courses/hf-rl/02/" rel="next" title="Deep Reinforcement Learning Course(2)">
+                  Deep Reinforcement Learning Course(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
