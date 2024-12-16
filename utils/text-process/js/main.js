@@ -19,16 +19,20 @@ const DEFAULT_FUNTION = 2;
 function main() {
   initialize_textareas();
   add_button();
+  set_function(DEFAULT_FUNTION);
 }
 
 function initialize_textareas() {
   const container = d3.select('#textareas');
   container.selectAll('div').remove();
   textareas_input = container.append('div').append('textarea');
-  set_function(DEFAULT_FUNTION);
 }
 
 function set_function(i) {
+  d3.selectAll('button').style('background-color', 'white');
+  d3.select('button:nth-child(' + (i + 1) + ')')
+      .style('background-color', 'lightblue');
+
   if (i < 0 || i >= FUNCTIONS.length) {
     console.log('Invalid function index:', i);
     return;

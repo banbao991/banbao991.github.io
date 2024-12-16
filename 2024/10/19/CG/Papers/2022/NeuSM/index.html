@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="神经阴影贴图；通过将光源大小编码进输入，能够实现一个网络同时输出软硬阴影；类似 noise2noise 的学习，设计 loss，提高了时间上的稳定性；通过简化 UNet 架构实现实时性（">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2022-SIGC] Neural Shadow Mapping">
+<meta property="og:url" content="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="神经阴影贴图；通过将光源大小编码进输入，能够实现一个网络同时输出软硬阴影；类似 noise2noise 的学习，设计 loss，提高了时间上的稳定性；通过简化 UNet 架构实现实时性（">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/fig2-overview.png">
+<meta property="og:image" content="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/fig3-relative-sensitivity.png">
+<meta property="og:image" content="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/fig4-vgg-aa.png">
+<meta property="og:image" content="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/fig5.temporal-spatial.png">
+<meta property="og:image" content="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/fig7-unet.png">
+<meta property="og:image" content="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/fig10-penumbra.png">
+<meta property="og:image" content="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/tab1-MSE.png">
+<meta property="article:published_time" content="2024-10-19T05:16:43.000Z">
+<meta property="article:modified_time" content="2024-10-27T13:28:24.594Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/fig2-overview.png">
+
+
+<link rel="canonical" href="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/10/19/CG/Papers/2022/NeuSM/","path":"2024/10/19/CG/Papers/2022/NeuSM/","title":"(论文)[2022-SIGC] Neural Shadow Mapping"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2022-SIGC] Neural Shadow Mapping | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-shadow-mapping"><span class="nav-text">Neural Shadow Mapping</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-text">相关工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#overview"><span class="nav-text">OVERVIEW</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#feature-selection"><span class="nav-text">Feature selection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#loss-function-and-temporal-stability"><span class="nav-text">Loss function and temporal
+stability</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A6%81%E6%B1%82-1"><span class="nav-text">要求 1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A6%81%E6%B1%82-2"><span class="nav-text">要求 2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#temporal-stability-measurement"><span class="nav-text">Temporal stability
+measurement</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#network-architecture-and-optimizations"><span class="nav-text">Network architecture and
+optimizations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#network-depth-optimizations"><span class="nav-text">Network depth optimizations</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#limitation"><span class="nav-text">limitation</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/10/19/CG/Papers/2022/NeuSM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2022-SIGC] Neural Shadow Mapping | Banbao">
+      <meta itemprop="description" content="神经阴影贴图；通过将光源大小编码进输入，能够实现一个网络同时输出软硬阴影；类似 noise2noise 的学习，设计 loss，提高了时间上的稳定性；通过简化 UNet 架构实现实时性（<5ms）；针对不同场景的最大半影大小，可以使用不同深度的网络；通过微扰，挑选出对结果影响最大的 4 个通道作为网络输入（减少了输入的通道数，原来 13）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2022-SIGC] Neural Shadow Mapping
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-10-19 13:16:43" itemprop="dateCreated datePublished" datetime="2024-10-19T13:16:43+08:00">2024-10-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-10-27 21:28:24" itemprop="dateModified" datetime="2024-10-27T21:28:24+08:00">2024-10-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">神经阴影贴图；通过将光源大小编码进输入，能够实现一个网络同时输出软硬阴影；类似 noise2noise 的学习，设计 loss，提高了时间上的稳定性；通过简化 UNet 架构实现实时性（<5ms）；针对不同场景的最大半影大小，可以使用不同深度的网络；通过微扰，挑选出对结果影响最大的 4 个通道作为网络输入（减少了输入的通道数，原来 13）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="neural-shadow-mapping">Neural Shadow Mapping</h1>
+<ul>
+<li>We propose a <strong>machine learning-based</strong> method that
+generates <strong>high quality hard and soft shadows</strong> for
+<strong>dynamic objects</strong> in <strong>real time</strong>.</li>
+<li>优势
+<ul>
+<li>不需要光追硬件</li>
+<li>&lt;6ms</li>
+<li>&lt;1.5MB 内存</li>
+<li>低端 GPU 可行</li>
+</ul></li>
+<li>光栅化的硬阴影 =&gt; temporally-stable hard and soft shadows</li>
+<li>输入包含光源大小：因此可以在训好的网络中生成软/硬阴影</li>
+</ul>
+<h1 id="相关工作">相关工作</h1>
+<ul>
+<li>现代阴影算法：combine many <strong>cascaded maps</strong></li>
+<li>Filtering-based
+<ul>
+<li>PCF、PCSS</li>
+<li>statistical proxies：VSM、Convolution Shadow Maps</li>
+<li>Moment shadow maps（sota）</li>
+</ul></li>
+<li>Screen-space methods：使用 G-buffers</li>
+<li>Ray tracing hardware</li>
+</ul>
+<h1 id="overview">OVERVIEW</h1>
+<p><img src="/2024/10/19/CG/Papers/2022/NeuSM/fig2-overview.png"></p>
+<ul>
+<li>训练：<strong>有监督学习</strong>
+<ul>
+<li>输入：shadow pass + G-Buffer pass 获取到的 buffer</li>
+<li>GT：ray traced shadow</li>
+</ul></li>
+<li>网络（优化前）：UNet（&gt;25MBs、&gt;100ms）</li>
+<li>简单：即插即用</li>
+<li>训练输入：光栅化不 MSAA（希望网络去学）
+<ul>
+<li><strong>view-space</strong> depth <span class="math inline">\(d\)</span> and normal <span class="math inline">\(\mathbf{n}\)</span></li>
+<li>emitter-to-occluder depth <span class="math inline">\(z\)</span> and
+<strong>emitter-space</strong> normal <span class="math inline">\(\mathbf{n_e}\)</span></li>
+<li>pixel-to-emitter distance <span class="math inline">\(z_f\)</span> ,
+the emitter radius (size) <span class="math inline">\(r_e\)</span> for
+spherical sources
+<ul>
+<li><span class="math inline">\(r_e\)</span> 控制阴影软硬程度：<span class="math inline">\(0-4\)</span>（点光源 - 半径为 50cm 的球）</li>
+</ul></li>
+<li>dot products <span class="math inline">\(\{c_e , c_c \}\)</span> of
+<span class="math inline">\(\mathrm{n}\)</span> with the emitter
+direction and <span class="math inline">\(\mathrm{n}\)</span> with the
+viewing direction</li>
+</ul></li>
+<li>GT
+<ul>
+<li>PT + mild Gaussian filter</li>
+<li>8x multi-sample anti-alising (MSAA)</li>
+</ul></li>
+</ul>
+<h2 id="feature-selection">Feature selection</h2>
+<ul>
+<li>feature selection network 效率低，而且带宽不友好，于是我们自己选
+<ul>
+<li>输入有 15 个通道：<span class="math inline">\(U=\left\{d,{\bf
+n},z,{\bf
+n_e},z_{f},c_e,c_{c}\right\}+\left\{z-z_{f},z_{f},z_{f},c_{c}/d,{\bf
+n}\cdot{\bf n_e}\right\}\)</span></li>
+</ul></li>
+<li>定义
+sensitivity：给某个输入通道的纹理进行扰动，看对网络输出结果的影响</li>
+<li>Absolute sensitivity <span class="math inline">\(S_i\)</span></li>
+</ul>
+<p><span class="math display">\[
+S_i
+=\mathbb{E}\left[\frac{(\phi(f_{i}+\epsilon_{i})-\phi(f_{i}))}{0.1\sigma_{i}}\right],
+\epsilon_{i}\sim \mathcal{N}(0,0.1\sigma_{i})
+\]</span></p>
+<ul>
+<li>relative sensitivity：<span class="math inline">\(s_i=S_i/\sum
+S_i\)</span>
+<ul>
+<li>across different training instances（一个场景的多个实例）</li>
+</ul></li>
+<li>选择过程：一开始使用所有通道，然后拒绝 <span class="math inline">\(s_i\)</span> 最低的，重复直到左右的 <span class="math inline">\(s_i&gt;1.5\%\)</span></li>
+<li>最终结果：不同场景的 relative sensitivity</li>
+</ul>
+<p><img src="/2024/10/19/CG/Papers/2022/NeuSM/fig3-relative-sensitivity.png"></p>
+<ul>
+<li>这样节省了 2.5ms</li>
+</ul>
+<h2 id="loss-function-and-temporal-stability">Loss function and temporal
+stability</h2>
+<ul>
+<li>两个要求
+<ul>
+<li>能够处理硬阴影边界和几何（AA 后处理）</li>
+<li>训练和推理都不需要历史的 buffer</li>
+</ul></li>
+<li>节省带宽 + 容易嵌入 tiled renderer</li>
+</ul>
+<h3 id="要求-1">要求 1</h3>
+<ul>
+<li>a weighted combination of <strong>per-pixel difference</strong> and
+<strong>VGG-19 perceptual loss</strong></li>
+<li>VGG 能起到抗锯齿作用</li>
+</ul>
+<p><img src="/2024/10/19/CG/Papers/2022/NeuSM/fig4-vgg-aa.png"></p>
+<h3 id="要求-2">要求 2</h3>
+<ul>
+<li>时间上的不稳定性来源：shadow-map aliasing
+<ul>
+<li><strong>shadow map texels</strong> do not align one-to-one with
+<strong>screen pixels</strong></li>
+<li>小的移动可能会导致深度对比的时候有大的变化（尤其是阴影边界）</li>
+</ul></li>
+<li>noise2noise 论文启发：训练引入噪声（perturbation 扰动）</li>
+<li>下面操作：在扰动的情况下，依然能得到变化不大的结果</li>
+<li>每一个迭代轮，对 camera and emitter position 进行扰动
+<ul>
+<li>正比于 the distance from the scene and size of emitter</li>
+</ul></li>
+<li>每次扰动，选择所有输入进行训练，但是只选择其中的一个状态作为真值
+<ul>
+<li>输入状态不同，但是 GT 相同</li>
+<li>只有一个样本反传梯度，例如下面的<span style="color:red">红色的</span> <span class="math inline">\({\color{red}x_{0}}\)</span>
+<ul>
+<li><span class="math inline">\(x_i\)</span>：网络输出，<span class="math inline">\(\tilde{x}\)</span>：GT</li>
+</ul></li>
+<li><span class="math inline">\(p=3,\alpha=0.9\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathcal{L}=L({\color{red}x_{0}},\tilde{x})+\sum_{i=1}^{p}L({\color{red}x_{0}},x_{i})
+\]</span></p>
+<p><span class="math display">\[
+{\cal L}(y,\tilde{y})\,=\,\alpha\cdot|y-\tilde{y}|\,+\,(1-\alpha)\cdot
+\text{VGG19}(y,\tilde{y})
+\]</span></p>
+<ul>
+<li>扰动：时间稳定性变好，空间模糊变多</li>
+</ul>
+<p><img src="/2024/10/19/CG/Papers/2022/NeuSM/fig5.temporal-spatial.png"></p>
+<h2 id="temporal-stability-measurement">Temporal stability
+measurement</h2>
+<ul>
+<li>之前的工作一起评估 spatio-temporal，因此不太好（因为我们牺牲了
+spatial 想取得更好的 temporal）</li>
+<li>构造</li>
+</ul>
+<p><span class="math display">\[
+E=\frac{1}{P}\sum_{p,t}\left\{\exp(\alpha D_{t}(p))-1\right\}
+\]</span></p>
+<p><span class="math display">\[
+D_{t}(p)\ =\ |I_{t}(p)-I_{t-1}(m(p))|
+\]</span></p>
+<ul>
+<li><span class="math inline">\(m(p)\)</span>：应用 motion vector
+到上一帧的结果</li>
+<li><span class="math inline">\(P\)</span>：所有像素</li>
+<li><span class="math inline">\(\alpha=3\)</span>：penalty for large
+changes</li>
+<li>We <strong>reject</strong> pixels that <strong>fail depth and normal
+comparison</strong> with its reprojection.</li>
+<li>用这个指标去评价 temporal 的稳定性：效果比 TAA 好，而且 -1.3ms</li>
+<li><strong>这个指标是用于评价，而不是训练</strong></li>
+</ul>
+<h2 id="network-architecture-and-optimizations">Network architecture and
+optimizations</h2>
+<ul>
+<li>原版 UNet 太慢：&gt;100ms</li>
+<li>压缩</li>
+</ul>
+<p><img src="/2024/10/19/CG/Papers/2022/NeuSM/fig7-unet.png"></p>
+<ul>
+<li>每一层：composed of one 3x3 convolution and one 1x1 convolution
+layer</li>
+<li>上采样：<strong>bi-linear interpolation</strong>
+<ul>
+<li>快，不是原来的 transpose convolutions</li>
+</ul></li>
+<li>skip connections：使用算术和，而不是 feature concatenation</li>
+<li>结果：25MB -&gt; 2.5MB，28ms</li>
+<li>半精度存储：1.5 MB，17ms</li>
+<li>其他不提高 temporal 的修改
+<ul>
+<li>Average-pool instead of Max-pool：更加平滑</li>
+<li>去除第一层的 skip-connection：输入 depth 存在锯齿</li>
+</ul></li>
+<li>UNet 内到外的时间开销（通道/2，分辨率x4），由于存在 cache
+miss，时间不止 x2</li>
+<li>其他优化：优化第一层（开销最大）
+<ul>
+<li>naive：套一个降采样，最后上采样（会丢失细节）</li>
+<li>我们：2x2 合成一个
+<ul>
+<li>输入： <span class="math inline">\(h\times w\times ch\to h/2\times
+w/2\times 4ch\)</span></li>
+<li>decoder
+端逆向操作：前4个通道双线性插值，然后再把后12个通道累加到对应位置（填补细节）</li>
+</ul></li>
+<li>此时优化到 5.8ms</li>
+</ul></li>
+</ul>
+<h2 id="network-depth-optimizations">Network depth optimizations</h2>
+<ul>
+<li>上面的优化都是通用的，下面的优化是 scene-specific 的</li>
+<li>浅层网络：快（训练、推理）</li>
+<li><strong>我们先根据场景配置估计出最大的半影大小，然后根据这个值调整网络深度</strong></li>
+<li>假设：spherical occluder（或者 bounding sphere）</li>
+<li>每个像素：认为半影大小 <span class="math inline">\(=x_a+x_b\)</span></li>
+</ul>
+<p><img src="/2024/10/19/CG/Papers/2022/NeuSM/fig10-penumbra.png"> <span class="math display">\[
+\{x_a,x_b\}=z_f\tan(\theta\pm\theta_\delta)-r_e
+\]</span></p>
+<ul>
+<li>取所有像素所有帧的半影大小，95%分位数作为我们的判定值（<span class="math inline">\(x\)</span> 个像素）</li>
+<li>卷积让分辨率减半，感受野（effective receptive
+field）随层数变化：<span class="math inline">\(\times2^l\)</span>
+<ul>
+<li><span class="math inline">\(3\times3\)</span> kernel：<span class="math inline">\(l=\log_2(p_w/3)\)</span></li>
+</ul></li>
+<li>验证：3个网络层数：3、5、7，MSE 如下</li>
+</ul>
+<p><img src="/2024/10/19/CG/Papers/2022/NeuSM/tab1-MSE.png"></p>
+<h1 id="结果">结果</h1>
+<ul>
+<li>训练可以泛化：在一个场景中训完之后，可以在场景中加入没有见过的物体</li>
+<li>对比算法：MSM、PCSS、GPU ray-tracing+denoise（5spp+SVGF）</li>
+<li>分辨率：1kx2k</li>
+<li>测试：AMD 5600X CPU and Nvidia 2080Ti GPU</li>
+<li>Each scene is trained on <span class="math inline">\(\le\)</span>
+400 images of resolution 2kx1k on a cluster for roughly <strong>16 hours
+(75 training epochs)</strong></li>
+</ul>
+<h1 id="limitation">limitation</h1>
+<ul>
+<li>常见屏幕空间问题：unavailability of layered depth information
+<ul>
+<li>camera-space 和 screen space 像素不是一一对应的</li>
+</ul></li>
+<li>shading points 和 occluders 之间的距离不能准确计算</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/10/04/CG/Papers/2024/BSDF-IS-Diffusion/" rel="prev" title="(论文)[2024-SIGA] BSDF importance sampling using a diffusion model">
+                  <i class="fa fa-chevron-left"></i> (论文)[2024-SIGA] BSDF importance sampling using a diffusion model
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/10/27/CG/Papers/2020/DeepPM/" rel="next" title="(论文)[2020-EGSR] Deep Kernel Density Estimation for Photon Mapping">
+                  (论文)[2020-EGSR] Deep Kernel Density Estimation for Photon Mapping <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

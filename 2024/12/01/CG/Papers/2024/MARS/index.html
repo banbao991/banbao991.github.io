@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="RRS 的 MIS 优化，不同的采样方式分配不同的光线数（EARS 是相同的）；相当于联合优化 RRS 和 MIS 分配的光线数目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2024-SIGA-C] MARS: Multi-sample Allocation through Russian roulette and Splitting">
+<meta property="og:url" content="http://example.com/2024/12/01/CG/Papers/2024/MARS/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="RRS 的 MIS 优化，不同的采样方式分配不同的光线数（EARS 是相同的）；相当于联合优化 RRS 和 MIS 分配的光线数目">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/12/01/CG/Papers/2024/MARS/fig2-sample-allocation.png">
+<meta property="og:image" content="http://example.com/2024/12/01/CG/Papers/2024/MARS/fig3-1d-example.png">
+<meta property="og:image" content="http://example.com/2024/12/01/CG/Papers/2024/MARS/fig4-convergence.png">
+<meta property="article:published_time" content="2024-12-01T08:22:14.000Z">
+<meta property="article:modified_time" content="2024-12-10T16:40:27.763Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/12/01/CG/Papers/2024/MARS/fig2-sample-allocation.png">
+
+
+<link rel="canonical" href="http://example.com/2024/12/01/CG/Papers/2024/MARS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/12/01/CG/Papers/2024/MARS/","path":"2024/12/01/CG/Papers/2024/MARS/","title":"(论文)[2024-SIGA-C] MARS: Multi-sample Allocation through Russian roulette and Splitting"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2024-SIGA-C] MARS: Multi-sample Allocation through Russian roulette and Splitting | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#mars"><span class="nav-text">MARS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B9%8B%E5%89%8D%E5%B7%A5%E4%BD%9C"><span class="nav-text">之前工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%90%86%E8%AE%BA"><span class="nav-text">理论</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cost-model"><span class="nav-text">cost model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#variance-model"><span class="nav-text">variance model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%8C%96"><span class="nav-text">优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#proxy-model"><span class="nav-text">proxy model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8D%E5%8A%A8%E7%82%B9"><span class="nav-text">不动点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#application-to-path-tracing"><span class="nav-text">Application to Path Tracing</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%94%E7%94%A81-path-guiding"><span class="nav-text">应用1-Path Guiding</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#evaluation"><span class="nav-text">Evaluation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%94%E7%94%A82-bdpt"><span class="nav-text">应用2-BDPT</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%99%90%E5%88%B6%E4%B8%8E%E5%B1%95%E6%9C%9B"><span class="nav-text">限制与展望</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/01/CG/Papers/2024/MARS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2024-SIGA-C] MARS: Multi-sample Allocation through Russian roulette and Splitting | Banbao">
+      <meta itemprop="description" content="RRS 的 MIS 优化，不同的采样方式分配不同的光线数（EARS 是相同的）；相当于联合优化 RRS 和 MIS 分配的光线数目">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2024-SIGA-C] MARS: Multi-sample Allocation through Russian roulette and Splitting
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-12-01 16:22:14" itemprop="dateCreated datePublished" datetime="2024-12-01T16:22:14+08:00">2024-12-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-12-11 00:40:27" itemprop="dateModified" datetime="2024-12-11T00:40:27+08:00">2024-12-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">RRS 的 MIS 优化，不同的采样方式分配不同的光线数（EARS 是相同的）；相当于联合优化 RRS 和 MIS 分配的光线数目</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="mars">MARS</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://graphics.cg.uni-saarland.de/publications/meyer-2024-sigasia-mars.html">项目主页</a></li>
+<li>作者
+<ul>
+<li>JOSHUA MEYER, <strong>ALEXANDER RATH</strong>（EARS 一作）, ÖMERCAN
+YAZICI
+<ul>
+<li>Saarland University, Germany</li>
+</ul></li>
+<li>PHILIPP SLUSALLEK, German Research Center for Artificial
+Intelligence, Germany and Saarland University, Germany</li>
+</ul></li>
+<li>mitsuba 0.6</li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li><p>在之前的算法，MIS 一般都只考虑 1 sample MIS，而 RRS
+工作中，对于每个 N，选择相同数量的 NEE、BSDF 光线</p></li>
+<li><p>本文优化了这点，MIS 的时候，不同策略自动选择最优的光线数</p></li>
+<li><p>示意图</p>
+<ul>
+<li><ol start="3" type="a">
+<li>只和像素有关</li>
+</ol></li>
+<li><ol start="4" type="a">
+<li>和像素、位置都相关</li>
+</ol></li>
+</ul></li>
+</ul>
+<p><img src="/2024/12/01/CG/Papers/2024/MARS/fig2-sample-allocation.png"></p>
+<h1 id="之前工作">之前工作</h1>
+<ul>
+<li>Importance sampling （IS）（path guiding）</li>
+<li>Multiple importance sampling（MIS）</li>
+<li>Path tracing</li>
+<li>Bidirectional methods：BDPT
+<ul>
+<li>每个视子路连接相同数量的光子路</li>
+</ul></li>
+<li>Mixture sampling ratios
+<ul>
+<li>大部分只考虑直接光照，也就是说，这个 MIS weight 是 per-pixel
+的【上图 (c)】</li>
+<li>只优化了：one-sample MIS</li>
+</ul></li>
+<li>Russian roulette and splitting
+<ul>
+<li>BSDF rays 的数量和 NEE rays 相同</li>
+</ul></li>
+<li>Multi-sample allocation
+<ul>
+<li>简单 RRS + MIS ratio 效果不好，应该被联合优化</li>
+</ul></li>
+</ul>
+<h1 id="理论">理论</h1>
+<ul>
+<li>不动点迭代，EARS 的推导泛化</li>
+</ul>
+<p><span class="math display">\[
+I=\int_{\mathcal{X}}f(x)\,\mathrm{d}x
+\]</span></p>
+<ul>
+<li>model
+<ul>
+<li><span class="math inline">\(n_t\)</span> 种采样策略，策略 <span class="math inline">\(t\)</span> 分配 <span class="math inline">\(\beta_t\)</span> 条光线（budget）</li>
+<li><span class="math inline">\(\langle I_t\rangle\)</span>：primary
+estimator of technique <span class="math inline">\(t\)</span></li>
+<li><span class="math inline">\(\langle
+I;\beta\rangle\)</span>：secondary estimator for <span class="math inline">\(I\)</span> with <span class="math inline">\(\beta\)</span> samples</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\langle
+I\rangle=\sum_{t=1}^{n_{t}}{\frac{1}{\beta_{t}}}\sum_{s=1}^{\beta_{t}}\langle
+I_{t}(x_{t,s})\rangle=\sum_{t=1}^{n_{t}}\langle
+I_{t}(x_{t},\cdot);\beta_{t}\rangle
+\]</span></p>
+<ul>
+<li>不同策略定义域可能不同（总的定义域需要包含整体），需要计算权重</li>
+</ul>
+<p><span class="math display">\[
+\langle
+I_{t}(x)\rangle=\sum_{i=1}^{n_{i}}{\frac{f_{i}(x)}{p_{t}(x)}}w_{i t}(x)
+\]</span></p>
+<ul>
+<li>连续样本数：<span class="math inline">\(\beta_t\in\mathbb{N}\to\mathbb{R}^{+}\)</span>（好操作），最终计算光线数</li>
+</ul>
+<p><span class="math display">\[
+r(\beta)=
+\left\{
+\begin{array}{l l}
+\lfloor\beta\rfloor+1&amp;\quad\text{with probability
+}\beta-\lfloor\beta\rfloor,\\
+\lfloor\beta\rfloor&amp;\quad\mathrm{otherwise}\\
+\end{array}
+\right.
+\]</span></p>
+<ul>
+<li>效率</li>
+</ul>
+<p><span class="math display">\[
+{\mathcal{E}}\left[\langle
+I\rangle\right]=\frac{1}{\mathbb{V}\left[\langle
+I\rangle\right]\mathbb{C}\left[\langle I\rangle\right]}
+\]</span></p>
+<ul>
+<li>需要考虑每一个样本 <span class="math inline">\(\beta_t\)</span> 的
+variance 和 cost</li>
+</ul>
+<h2 id="cost-model">cost model</h2>
+<ul>
+<li>每种策略的代价求和 + 汇总的代价 <span class="math inline">\(\mathbb{C}_{\Delta}\)</span></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{C}\left[\langle
+I\rangle\right]=\sum_{t=1}^{n_t}\beta_t\mathbb{C}_t+\mathbb{C}_{\Delta}
+\]</span></p>
+<h2 id="variance-model">variance model</h2>
+<ul>
+<li>首先对所有独立采样策略求和
+<ul>
+<li>【<span id="eq1" style="font-weight:bold">式子 1</span>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{V}\left[\langle
+I\rangle\right]=\sum_{t=1}^{n_t}\mathbb{V}\left[\langle
+I_{t};\beta_{t}\rangle\right]
+\]</span></p>
+<ul>
+<li>存在 stochastic rounding（小数部分）【<span style="color:red;font-weight:bold">先不管，副录有证明</span>】
+<ul>
+<li><span class="math inline">\(\langle I_t\rangle\)</span>
+表示只用这种技术（的方差、期望）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{V}\left[\langle I_{t};\beta_{t}\rangle\right]
+=
+\frac{1}{\beta_{t}}\mathbb{V}\left[\langle I_{t}\rangle\right]
++
+\rho(\beta_{t})\mathbb{E}^{2}\left[\langle I_{t}\rangle\right]
+\]</span></p>
+<p><span class="math display">\[
+\rho(\beta)=\dfrac{(\beta-\lfloor\beta\rfloor)(\lceil\beta\rceil-\beta)}{\beta^2}
+\]</span></p>
+<h2 id="优化">优化</h2>
+<ul>
+<li>找到最优的 <span class="math inline">\(\beta_t\)</span>，让 <span class="math inline">\({\mathcal{E}}^{-1}\left[\langle
+I\rangle\right]\)</span> 最小</li>
+<li>方差计算
+<ul>
+<li><a href="/2023/08/07/CG/Papers/1997/ErrorMetricMCRT/#russian-roulette">推导</a></li>
+<li>但是由于 <span class="math inline">\(\beta_t&gt;1\)</span>
+的时候，存在 stochastic rounding，这里有近似
+<ul>
+<li><strong>近似</strong>：把复杂的 <span class="math inline">\(\rho(\beta)\)</span> 不管了
+<ul>
+<li><strong>EARS 也使用了这种近似</strong></li>
+</ul></li>
+</ul></li>
+<li><span class="math inline">\(\beta_t\le 1\)</span> 不存在近似的
+<ul>
+<li>【<span id="eq2" style="font-weight:bold">式子 2</span>】</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{V}\left[\langle I_t;\beta_t\rangle\right]=
+\left\{
+\begin{array}{ll}
+\dfrac{1}{\beta_t}\mathbb{E}\left[\langle
+I_{t}\rangle^2\right]-\mathbb{E}^2\left[\langle
+I_{t}\rangle\right]&amp;\text{if }\beta_t\le1 \\
+\dfrac{1}{\beta_t}\mathbb{V}\left[\langle
+I_{t}\rangle\right]&amp;\text{otherwise}\\
+\end{array}
+\right.
+\]</span></p>
+<h2 id="proxy-model">proxy model</h2>
+<ul>
+<li>在上面的近似之后，可以得到微分
+<ul>
+<li>证明：根据 <a href="#eq1">式子 1</a> 展开，然后根据上面的 <a href="#eq2">式子 2</a>展开每一项</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\dfrac{\mathrm{d}\mathbb{V}\left[\langle
+I\rangle\right]}{\mathrm{d}\beta_t}=
+\left\{
+\begin{array}{ll}
+-\dfrac{1}{\beta_t^2}\mathbb{E}\left[\langle
+I_{t}\rangle^2\right]+\sum_{k=1}^{n_t}\dfrac{1}{\beta_t}\dfrac{\mathrm{d}\mathbb{E}\left[\langle
+I_{k}\rangle^2\right]}{\mathrm{d}\beta_t}&amp;\text{if }\beta_t\le1 \\
+-\dfrac{1}{\beta_t^2}\mathbb{V}\left[\langle
+I_{t}\rangle\right]+\sum_{k=1}^{n_t}\dfrac{1}{\beta_t}\dfrac{\mathrm{d}\mathbb{V}\left[\langle
+I_{k}\rangle\right]}{\mathrm{d}\beta_t}&amp;\text{otherwise}\\
+\end{array}
+\right.
+\]</span></p>
+<ul>
+<li>MIS 权重会存在 <span class="math inline">\(\beta_t\)</span>，所以<strong>第二项</strong>很难计算
+<ul>
+<li><strong>论文只考虑 balance heuristic</strong></li>
+</ul></li>
+<li>对于 <strong>budget-unaware MIS weights</strong>（MIS 权重不包含
+<span class="math inline">\(\beta_t\)</span>），第二项为
+0，可以化简如下</li>
+</ul>
+<p><span class="math display">\[
+\dfrac{\mathrm{d}\mathbb{V}\left[\langle
+I\rangle\right]}{\mathrm{d}\beta_t}=
+\left\{
+\begin{array}{ll}
+-\dfrac{1}{\beta_t^2}\mathbb{E}\left[\langle
+I_{t}\rangle^2\right]&amp;\text{if }\beta_t\le1 \\
+-\dfrac{1}{\beta_t^2}\mathbb{V}\left[\langle
+I_{t}\rangle\right]&amp;\text{otherwise}\\
+\end{array}
+\right.
+\]</span></p>
+<ul>
+<li>上述 proxy 是 bugdet-unware MIS 最优的</li>
+<li><strong>如果是 budget-aware MIS，可能会偏离最优解</strong>
+<ul>
+<li>做了两个实验说明问题，说明不考虑上面的第二项时，会出现问题
+<ul>
+<li>差别不大（1D、实验）</li>
+<li>在应用中（PG、BDPT），比理论最优解更好</li>
+</ul></li>
+</ul></li>
+<li>下图是 1D 实验
+<ul>
+<li>积分函数 <span class="math inline">\(f(x)\)</span></li>
+<li>两个采样 pdf <span class="math inline">\(p_1(x),p_2(x)\)</span></li>
+<li><span class="math inline">\(p_2\)</span> 更好，但是慢 30x</li>
+<li>方法：OS（Optimal mixture
+sampling）、RRS、OS+RRS、Ours、Opt（理论最优）
+<ul>
+<li>OS+RRS 效果并不好，因为没有联合优化</li>
+</ul></li>
+<li>（b）（c）热力图应该是表示 performance</li>
+<li>（d）表示 （c） 中考虑/不考虑 MIS 中含有 <span class="math inline">\(\beta_t\)</span> 的梯度 error（1
+表示完全匹配）</li>
+</ul></li>
+</ul>
+<p><img src="/2024/12/01/CG/Papers/2024/MARS/fig3-1d-example.png"></p>
+<h2 id="不动点">不动点</h2>
+<ul>
+<li>推导方式和 EARS 基本一致，结论也看着差不多
+<ul>
+<li>【<span style="color:red;font-weight:bold">先不管，副录有证明</span>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\beta_t=
+\left\{
+\begin{array}{ll}
+\beta_{t}^{\mathrm{RR}}=\sqrt{
+\dfrac{\mathbb{C}\left[\langle{I}\rangle\right]}
+{\mathbb{C}_t}
+\dfrac{\mathbb{E}\left[\langle{I_t}\rangle^2\right]}
+{\mathbb{V}\left[\langle{I}\rangle\right]}}
+&amp;\text{if }\beta^{\text{RR}}&lt;1 \\
+\beta_{t}^{\mathrm{RR}}=\sqrt{
+\dfrac{\mathbb{C}\left[\langle{I}\rangle\right]}
+{\mathbb{C}_t}
+\dfrac{\mathbb{V}\left[\langle{I_t}\rangle\right]}
+{\mathbb{V}\left[\langle{I}\rangle\right]}}
+&amp;\text{if }\beta^{\text{S}}&gt;1 \\
+1&amp;\text{otherwise}
+\end{array}
+\right.
+\]</span></p>
+<ul>
+<li>解析解难算，使用不动点迭代求解</li>
+<li>收敛快，上面 1D 例子</li>
+</ul>
+<p><img src="/2024/12/01/CG/Papers/2024/MARS/fig4-convergence.png"></p>
+<h2 id="application-to-path-tracing">Application to Path Tracing</h2>
+<ul>
+<li>Primary estimator</li>
+</ul>
+<p><span class="math display">\[
+\langle L_{\text{r},t}(x,\omega_{0})\rangle=\frac{\langle
+L_{\mathrm{i}}(x,\omega_{\mathrm{i}})\rangle\,B(x,\omega_{\mathrm{i}},\omega_{0})\left|\cos\theta_{\mathrm{i}}\right|}{p_t(\omega_{\mathrm{i}}\mid
+x,\omega_{0})}\;w_{t}(x,\omega_{\mathrm{i}},\omega_{\mathrm{o}}),
+\]</span></p>
+<ul>
+<li>Secondary estimator
+<ul>
+<li>path prefix <span class="math inline">\(\bar{x}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\langle
+L_\text{r}(x,\omega_{0})\rangle=\sum_{t=1}^{n_{t}}\frac{1}{\beta_{t}(\bar{x})}\sum_{s=1}^{\beta_{t}(\bar{x})}\langle
+L_{\text{r},t}(x_{s},\omega_{0})\rangle=\sum_{t=1}^{n_{t}}\langle
+L_{\text{r},t};\beta_{t}(\bar{x})\rangle
+\]</span></p>
+<ul>
+<li>Random walks（PT 过程），递归</li>
+<li>效率定义：EARS 相同，var 使用 <span class="math inline">\(I_{\text{px}}^2\)</span> 归一化</li>
+<li>优化：和上面类似</li>
+</ul>
+<p><span class="math display">\[
+\beta_t=
+\left\{
+\begin{array}{ll}
+\beta_{t}^{\mathrm{RR}}=
+\dfrac{T(\bar{x})}{I_{\text{px}}}
+\sqrt{
+\dfrac{\mathbb{C}_{\mathrm{I}}}
+{\mathbb{C}_t}
+\dfrac{\mathbb{E}\left[\langle{L_{\text{r},t}}\rangle^2\right]}
+{\mathbb{V}_\mathrm{I}}}
+&amp;\text{if }\beta^{\text{RR}}&lt;1 \\
+\beta_{t}^{\mathrm{RR}}=\sqrt{
+\dfrac{\mathbb{C}_{\mathrm{I}}}
+{\mathbb{C}_t}
+\dfrac{\mathbb{V}\left[\langle{L_{\text{r},t}}\rangle\right]}
+{\mathbb{V}_\mathrm{I}}}
+&amp;\text{if }\beta^{\text{S}}&gt;1 \\
+1&amp;\text{otherwise}
+\end{array}
+\right.
+\]</span></p>
+<ul>
+<li><span class="math inline">\(T(\bar{x})\)</span>：累乘
+<ul>
+<li>相机响应函数、<span class="math inline">\(1/\text{pdf}\)</span>、BSDF、MIS 权重</li>
+</ul></li>
+</ul>
+<h1 id="应用1-path-guiding">应用1-Path Guiding</h1>
+<ul>
+<li>NEE + BSDF + PPG</li>
+<li><strong>基本上和 EARS 一样</strong></li>
+<li>PPG 的一轮迭代，认为是我们的一轮不动点迭代</li>
+<li>local estimates
+<ul>
+<li>cost, variances, and second moments <strong>for each region and each
+technique</strong></li>
+</ul></li>
+<li>image statistics：OIDN denoiser</li>
+<li>Fixed-point iteration
+<ul>
+<li>warm up：前 3 轮，throughput based RR + no Splitting</li>
+</ul></li>
+<li>outlier clampling
+<ul>
+<li>路径贡献 clamp &lt;= 50 pixels color【只用于 local/image variance
+估计】</li>
+</ul></li>
+<li><span class="math inline">\(\beta_t\)</span>：[0.05, 20]</li>
+<li>Handling colors：channel-wise 计算，然后乘在一起
+<ul>
+<li>perform computations channel-wise and use the <span class="math inline">\(L_2\)</span> norm to compute the final sample
+counts【<span style="color:red;font-weight:bold">啥意思？</span>】</li>
+</ul></li>
+</ul>
+<h2 id="evaluation">Evaluation</h2>
+<ul>
+<li>path guiding：based on mixture optimization using gradient
+descent【Vorba et al. 2019】</li>
+<li>EARS</li>
+<li>对比：throughput-based RR【5th bounce 开始】</li>
+<li>其他：1st bounce 开始</li>
+<li>An ablation (“Ours + Grad. Descent”)【<span style="color:red;font-weight:bold">TODO</span>】
+<ul>
+<li>combines gradientdescent (mixing BSDF and guiding) and our approach
+(sample counts of NEE and the mixture) to demonstrate that our approach
+chooses <strong>better mixtures</strong> than the previous
+state-of-the-art optimizer.</li>
+</ul></li>
+<li>setup
+<ul>
+<li>2.5min训练+2.5min测试</li>
+<li>maxpath length：40</li>
+<li>tree：72MB</li>
+<li>9 training iterations：time x2</li>
+<li>relMSE 评估</li>
+<li>1% brightest outliers removal</li>
+</ul></li>
+<li>十个场景：1.32× 加速（相对 EARS）、17% fewer rays
+<ul>
+<li><strong><span style="color:red">讲道理应该和 EARS+Optimal MIS
+对比才有说服力</span></strong></li>
+<li>我们的方法能够检测在不同的点，什么方法更差【然后降低他的采样数】</li>
+</ul></li>
+<li>收敛测试：我们算法能收敛到正确解</li>
+</ul>
+<h1 id="应用2-bdpt">应用2-BDPT</h1>
+<ul>
+<li>【<span style="color:red;font-weight:bold">略过，不太懂</span>】</li>
+</ul>
+<h1 id="限制与展望">限制与展望</h1>
+<ul>
+<li>overhead：短时间训练，收集的统计信息不好，结果不好</li>
+<li>Local estimates：outlier removal 太简单，参考更复杂的
+<ul>
+<li>【EG-2018】Re-Weighting Firefly Samples for Improved Finite-Sample
+Monte Carlo Estimates</li>
+</ul></li>
+<li>Discontinuity artefacts
+<ul>
+<li>Noise in the spatial caches</li>
+</ul></li>
+<li>Proxy accuracy</li>
+<li>Dynamic scenes</li>
+<li>MIS weights：只考虑了平衡启发式</li>
+<li>Correlated Techniques
+<ul>
+<li>方差拆分认为是独立的，没有考虑相关的情况（photon mapping）</li>
+</ul></li>
+<li>Applications outside of rendering
+<ul>
+<li><strong>any Monte Carlo integration</strong> problem that relies on
+<strong>multi-sample MIS</strong> estimation</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/11/17/Kits/badminton/" rel="prev" title="羽毛球训练">
+                  <i class="fa fa-chevron-left"></i> 羽毛球训练
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/12/09/CG/Papers/2024/StatMCD/" rel="next" title="(论文)[2024-SIGA-C] A Statistical Approach to Monte Carlo Denoising">
+                  (论文)[2024-SIGA-C] A Statistical Approach to Monte Carlo Denoising <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

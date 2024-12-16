@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="ResTIR GI，如何在 PT 中重采样一条路径，如何做 shift mapping">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (3)">
+<meta property="og:url" content="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="ResTIR GI，如何在 PT 中重采样一条路径，如何做 shift mapping">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/path-nee-ris.png">
+<meta property="og:image" content="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/path-all-ris.png">
+<meta property="og:image" content="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/identity-shift-G.png">
+<meta property="og:image" content="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/identiti-shift-specular.png">
+<meta property="og:image" content="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/alg6-Reservoir-in-ReSTIR-PT.png">
+<meta property="og:image" content="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/shift-mapping-procedure.png">
+<meta property="og:image" content="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/2-reuse-in-Volumetric-ReSTIR.png">
+<meta property="article:published_time" content="2024-10-02T12:15:14.000Z">
+<meta property="article:modified_time" content="2024-10-02T13:42:59.818Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/path-nee-ris.png">
+
+
+<link rel="canonical" href="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/","path":"2024/10/02/CG/Papers/2023/ReSTIR-Course/03/","title":"(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (3)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (3) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#restir"><span class="nav-text">ReSTIR</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#restir-path-tracing"><span class="nav-text">06-ReSTIR Path Tracing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ris-with-a-path-tracer"><span class="nav-text">RIS with a path tracer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#reuse-path-samples"><span class="nav-text">Reuse path samples</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#good-shift-mapping"><span class="nav-text">Good shift mapping</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#common-shift-mappings"><span class="nav-text">Common shift mappings</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#efficient-shift-mapping-for-rtr"><span class="nav-text">Efficient shift mapping for
+RTR</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ensuring-invertibility"><span class="nav-text">Ensuring Invertibility</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%A4%E4%B8%AA%E6%9D%A1%E4%BB%B6"><span class="nav-text">两个条件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B"><span class="nav-text">流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#path-samples-with-lobetechnique-tags"><span class="nav-text">Path Samples with
+Lobe&#x2F;Technique Tags</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#primary-sample-spaces"><span class="nav-text">Primary Sample Spaces</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#jacobian-%E8%AE%A1%E7%AE%97"><span class="nav-text">Jacobian
+计算</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#restir-pt-%E7%BB%86%E8%8A%82"><span class="nav-text">ReSTIR PT 细节</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#volume-rendering"><span class="nav-text">Volume rendering</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (3) | Banbao">
+      <meta itemprop="description" content="ResTIR GI，如何在 PT 中重采样一条路径，如何做 shift mapping">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (3)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2024-10-02 20:15:14 / Modified: 21:42:59" itemprop="dateCreated datePublished" datetime="2024-10-02T20:15:14+08:00">2024-10-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">ResTIR GI，如何在 PT 中重采样一条路径，如何做 shift mapping</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="restir">ReSTIR</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://intro-to-restir.cwyman.org/">主页</a></li>
+<li>update：March 4, 2024</li>
+</ul>
+<h1 id="restir-path-tracing">06-ReSTIR Path Tracing</h1>
+<ul>
+<li>路径空间积分形式
+<ul>
+<li>从 <a href="#4-restir-di">DI</a> 扩展出来</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+L(\mathbf{x}_{1}\to\mathbf{x}_{0})=\sum_{D=2}^{\infty}\int_{\mathcal{A}^{D-1}}\Big(\prod_{j=1}^{D-1}f_{s}(\mathbf{x}_{j+1}\to\mathbf{x}_{j}\to\mathbf{x}_{j-1})G(\mathbf{x}_{j}\leftrightarrow\mathbf{x}_{j+1})V(\mathbf{x}_{j}\leftrightarrow\mathbf{x}_{j+1})\Big)L_{e}(\mathbf{x}_{D}\to\mathbf{x}_{D-1})
+\mathrm{d}\mathbf{x}_{2}\ldots\mathrm{d}\mathbf{x}_{D}
+\]</span></p>
+<ul>
+<li>路径：<span class="math inline">\(D-1\)</span> bounce</li>
+</ul>
+<p><span class="math display">\[
+[{\color{red}\mathrm{x}_{0},\mathrm{x}_{1}},\mathrm{x}_{2},\mathrm{x}_{3},\cdots,\mathrm{x}_D]
+\]</span></p>
+<h2 id="ris-with-a-path-tracer">RIS with a path tracer</h2>
+<ul>
+<li>NEE 开启之后，会形成 path tree
+<ul>
+<li>RIS：选取一整条路径</li>
+</ul></li>
+<li>只考虑 NEE 的 RIS
+<ul>
+<li>RIS 过程：重新采样一个顶点 <span class="math inline">\(x\in\{x_2,x_3,x_4,x_5\}\)</span>（<span class="math inline">\(x_1\)</span> 则表示 <span class="math inline">\(X_1\)</span> 这条 NEE ray）</li>
+<li><span class="math inline">\(w_{i}=m_{i}(x_{i})\hat{p}(x_{i})W_{x_{i}}\)</span>
+<ul>
+<li><span class="math inline">\(m_i(x_i)=1\)</span>，互斥，形成的光路长度不一样，属于不同的路径子空间
+<ul>
+<li>例如 <span class="math inline">\(x_1\)</span>，则是 <span class="math inline">\(X_1\)</span> NEE ray，则整条光路长度为 3</li>
+</ul></li>
+<li><span class="math inline">\(\hat{p}(x_{i})=f(x_i)\)</span>、<span class="math inline">\(W_{x_{i}}=\dfrac{1}{p(x_i)}\)</span>：这些在 PT
+框架下都有容易获取</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/path-nee-ris.png"></p>
+<ul>
+<li>如果考虑所有的光路作为 RIS 的候选，则需要考虑一条路径可能同时被
+NEE、BSDF（常规 PT）采样得到
+<ul>
+<li>那么 <span class="math inline">\(m_i(x_i)\)</span> 此时 <span class="math inline">\(\le1\)</span></li>
+<li>例如下图中，<span class="math inline">\(X_4,X_5\)</span> 的 mis 将会
+&lt;1</li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/path-all-ris.png"></p>
+<h2 id="reuse-path-samples">Reuse path samples</h2>
+<ul>
+<li>最简单的方式：identity shift（area measure）</li>
+</ul>
+<p><span class="math display">\[
+T([{\color{gray}x_0,x_1},x_2,\ldots,x_D])=[{\color{gray}y_0,y_1},x_2,\ldots,x_D]
+\]</span></p>
+<ul>
+<li>重连 <span class="math inline">\(y_1,x_2\)</span>
+<ul>
+<li>重新计算 BSDF 贡献、几何项、可见性项（发射 shadow ray）</li>
+</ul></li>
+<li>biasd 版本：加速、减少内存开销
+<ul>
+<li>认为 <span class="math inline">\(\overline{x_2y_1}\)</span> 近似等于
+<span class="math inline">\(\overline{x_2x_1}\)</span>：少数情况下效果不错</li>
+</ul></li>
+<li>specular 的复用问题很大</li>
+</ul>
+<h2 id="good-shift-mapping">Good shift mapping</h2>
+<ul>
+<li>good：假定每一个像素都有一个比较好的重要性采样 <span class="math inline">\(p_X\approx \bar{p}\)</span>，理想的形式应该是
+shift mapping 之后生成的样本和 <span class="math inline">\(p_X\)</span>
+类似
+<ul>
+<li>下式：对于 <span class="math inline">\(i\)</span> 像素的一个好的
+shift mapping</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\bar{p}_j(T(x))\left\vert\frac{\partial T}{\partial
+x}\right\vert\approx\bar{p}_i(x)
+\]</span></p>
+<ul>
+<li>identity shift（area measure）：如果 <span class="math inline">\(x_2\)</span> 是 diffuse 的话，这是容易满足的
+<ul>
+<li>但是如果 <span class="math inline">\(\overline{x_2y_1}\)</span>
+、<span class="math inline">\(\overline{x_2x_1}\)</span>
+距离相差太远，几何项差太多，那么结果也不好</li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/identity-shift-G.png"></p>
+<ul>
+<li>如果 <span class="math inline">\(x_1/y_1/x_2\)</span> 存在
+specular，这样效果就很差
+<ul>
+<li>如下图，黑色高贡献，但是蓝色几乎贡献为 0</li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/identiti-shift-specular.png"></p>
+<h2 id="common-shift-mappings">Common shift mappings</h2>
+<ul>
+<li>借鉴 gradient domain rendering</li>
+<li>假设相邻像素变化小
+<ul>
+<li>那么相邻相像素 <span class="math inline">\(i,j\)</span> 的 <span class="math inline">\(\hat{p}\)</span> 归一化因子类似</li>
+<li>假设 <span class="math inline">\(\hat{p}\approx f\)</span></li>
+<li>于是 good shift mapping 条件如下</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+f_j(T(x))\left\vert\frac{\partial T}{\partial x}\right\vert\approx
+f_i(x)
+\]</span></p>
+<ul>
+<li>和 gradient domain rendering 用的条件一样，可以参考它所用的 shift
+mapping</li>
+<li>Half-vector shift
+<ul>
+<li>对于 specular，拷贝对应点（<span class="math inline">\(k\)</span>）的 tangent-space half-vector，直到
+<span class="math inline">\(y_k\)</span> 和 <span class="math inline">\(x_{k+1}\)</span> 能够连接</li>
+<li>双射要求 <span class="math inline">\(y_k,x_{k+1}\)</span> 都是
+diffuse（roughness 大于给定值）</li>
+<li>出发点：尽可能保留相近的 throughput
+<ul>
+<li>当处理 bounce 数变多（多次连不上），产生大的
+divergence，效果不太好</li>
+</ul></li>
+<li>合适的材质，效果不错</li>
+</ul></li>
+<li>目的：<strong>preserve the path contribution</strong></li>
+</ul>
+<h2 id="efficient-shift-mapping-for-rtr">Efficient shift mapping for
+RTR</h2>
+<ul>
+<li>hybrid shift
+<ul>
+<li>random replay</li>
+<li>additional distance condition</li>
+<li>只根据采样 lobe 的 roughness 进行顶点分类</li>
+</ul></li>
+<li>优点
+<ul>
+<li>存储小：一个重连接的顶点、随机数种子</li>
+<li>glossy/refraction 材质效果好</li>
+</ul></li>
+<li>目的：为了保持贡献相近</li>
+</ul>
+<h3 id="ensuring-invertibility">Ensuring Invertibility</h3>
+<h4 id="两个条件">两个条件</h4>
+<ul>
+<li>Distance Condition（为什么不是比例）
+<ul>
+<li>第 2 个是为了保证可逆</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\min(\Vert\mathrm{x}_k-\mathrm{x}_{k-1}\Vert,\Vert\mathrm{x}_k-\mathrm{y}_{k-1}\Vert)\geq
+d_{\min}
+\]</span></p>
+<ul>
+<li>Roughness Condition（足够粗糙，这样对重连接友好）
+<ul>
+<li><span class="math inline">\(\ell\)</span>：表示采样到的 lobe
+<ul>
+<li>如果存在多个 lobe，则 <span class="math inline">\(\ell=\mathop{\arg\max}_{\ell}\alpha(\ell)\)</span></li>
+</ul></li>
+<li><span class="math inline">\(\alpha\)</span>：roughness（specular
+<span class="math inline">\(\to\)</span> diffuse：<span class="math inline">\(0\to1\)</span>）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\min(\alpha_{\mathrm{x}_{k-1}}(\ell_{k-1}),\alpha_{\mathrm{y}_{k-1}}(\ell_{k-1}^{\prime}),\alpha_{\mathrm{x}_{k}}(\ell_{k}))\geq\alpha_{\min}
+\]</span></p>
+<h4 id="流程">流程</h4>
+<ul>
+<li>在 base path 形成的过程中（PT），满足如下两个条件的最小 <span class="math inline">\(k(k\ge2)\)</span> 对应的节点 <span class="math inline">\(\mathrm{x}_k\)</span> 被保存为 reconnection
+vertex</li>
+</ul>
+<p><span class="math display">\[
+\Vert\mathrm{x}_k-\mathrm{x}_{k-1}\Vert\ge
+d_{\min},\min(\alpha_{\mathrm{x}_{k-1}}(\ell_{k-1}),\alpha_{\mathrm{x}_{k}}(\ell_{k}))\geq\alpha_{\min}
+\]</span></p>
+<ul>
+<li>shift 的时候，使用 random replay（相同的随机数种子生成路径）生成
+offset path，直到 <span class="math inline">\(\mathrm{y}_{k-1}\)</span>
+和 <span class="math inline">\(\mathrm{x}_{k}\)</span> 相连
+<ul>
+<li>为了可逆，同时需要满足 <span class="math inline">\(\Vert\mathrm{x}_k-\mathrm{y}_{k-1}\Vert\ge
+d_{\min},\min(\alpha_{\mathrm{y}_{k-1}}(\ell_{k-1}),\alpha_{\mathrm{x}_{k}}(\ell_{k}))\geq\alpha_{\min}\)</span></li>
+<li><span class="math inline">\(\ell&#39;_{k-1}=\ell_{k-1}\)</span>，直接复制
+<ul>
+<li>如果 <span class="math inline">\(\mathrm{y}_{k-1}\)</span> 上不存在
+<span class="math inline">\(\ell_{k-1}\)</span> 这个 lobe，那么 shift
+失败</li>
+</ul></li>
+</ul></li>
+<li>不存在更小的 <span class="math inline">\(k&#39;&lt;k\)</span>
+满足上述条件（指 base&amp;offset path），否则违反可逆
+<ul>
+<li><span style="color:red">疑惑</span>：所以上面的 <span class="math inline">\(k\)</span> 是整体生成的还是只通过 base path
+就能生成？
+<ul>
+<li>只能是 base path 生成</li>
+</ul></li>
+<li>感觉像是 base path 生成之后，之后只能在 <span class="math inline">\(k\)</span> 处重连接</li>
+</ul></li>
+</ul>
+<h3 id="path-samples-with-lobetechnique-tags">Path Samples with
+Lobe/Technique Tags</h3>
+<ul>
+<li>为了满足 path space 到 primary sample spaces (for the random number
+sequence) 的双射，需要将路径扩展到带 lobe 的</li>
+</ul>
+<p><span class="math display">\[
+\bar{\mathrm{x}}=[{\color{gray}\mathrm{x}_0,(\mathrm{x}_1,}\ell_1),(\mathrm{x}_2,\ell_2),\ldots,(\mathrm{x}_{D-1},\ell_{D-1}),\mathrm{x}_D]
+\]</span></p>
+<ul>
+<li><span class="math inline">\(0\le\ell_j\le N_{\text{lobe}}\)</span>
+表示 <span class="math inline">\(\mathrm{x}_j\)</span> 采样到的 lobe
+类型
+<ul>
+<li><span class="math inline">\(N_{\text{lobe}}\)</span> is the <span id="n-lobe-definition">total number of lobes in the scene</span></li>
+</ul></li>
+<li>如果光源被 NEE 采样得到，<span class="math inline">\(\ell_{D-1}=N_{\text{lobe}}\)</span>
+标识这个信息</li>
+<li>如此便能通过random replay 完全复现这条路径
+<ul>
+<li>要求使用的随机数除了路径生成，不用于其他</li>
+</ul></li>
+<li>重写：长度 <span class="math inline">\(D+1\)</span> 的路径
+<ul>
+<li><span class="math inline">\(\bar{\ell}=\left[\ell_1,\ell_2,\cdots,\ell_{D-1}\right]\in\mathcal{L}_{D}\)</span></li>
+<li>上面的 <span class="math inline">\(\bar{\mathrm{x}}\in\bar{\Omega}_{D}\)</span></li>
+<li><span class="math inline">\(m_t(\mathrm{x})\)</span>：NEE、BSDF 的
+MIS，<span class="math inline">\(\ell_{D-1}\)</span> 标识 NEE 还是 BSDF
+采样</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I=\sum_{D=1}^\infty\int_{\bar{\Omega}_D}\bar{f}(\bar{\mathrm{\mathrm{x}}})
+\mathrm{d}\bar{\mathrm{x}}=\sum_{D=1}^\infty\sum_{\bar{\ell}\in\mathcal{L}_D}\int_{sA^D}m_t(\mathrm{x})f_{\bar{\ell}}(\mathrm{x})
+\mathrm{d}\mathrm{x}
+\]</span></p>
+<h3 id="primary-sample-spaces">Primary Sample Spaces</h3>
+<ul>
+<li><p>ReSTIR PT uses primary sample space(PSS) parameterization for the
+paths.</p></li>
+<li><p>PSS 好处</p>
+<ul>
+<li>路径积分可以直接通过 <span class="math inline">\(f/p\)</span>
+表示，不用分开记录 <span class="math inline">\(f,p\)</span>（浮点误差小）</li>
+<li>shift mapping 过程中，random replay 的顶点 Jacobian =
+identity，方便计算</li>
+</ul></li>
+<li><p>PSS 形式的路径积分</p>
+<ul>
+<li><p><span class="math inline">\(\mathbf{u}\)</span>：随机数序列</p></li>
+<li><p><span class="math inline">\(\mathcal{U}_D=[0,1]^{\mathcal{N}(D)}\)</span>：超立方体，<span class="math inline">\(\mathcal{N}_D\)</span> 表示 <span class="math inline">\(\mathbf{u}\)</span> 的长度</p></li>
+<li><p><span class="math inline">\(F(\bar{\mathbf{u}}) =
+\bar{f}(\mathcal{X}(\bar{\mathbf{u}}))/p(\mathcal{X}(\bar{\mathbf{u}}))\)</span></p></li>
+<li><p><span class="math inline">\(\mathcal{X}(\bar{\mathbf{u}})\)</span>：映射到采样到的路径</p></li>
+<li><p><span class="math inline">\(\mathbf{u}\)</span> 和 <span class="math inline">\(\bar{\mathrm{x}}\)</span> 是双射</p></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I=\sum_{D=1}^\infty\int_{\mathcal{U}_D}F(\bar{\mathbf{u}})\;\mathrm{d}\bar{\mathbf{u}}
+\]</span></p>
+<h4 id="jacobian-计算"><span id="6-jacobian-calc">Jacobian
+计算</span></h4>
+<ul>
+<li>重连接的计算（其他的话是 identity）</li>
+<li><span class="math inline">\(\omega_{k-1}^{x}\)</span>：<span class="math inline">\(\mathrm{x}_{k-1}\)</span> 到 <span class="math inline">\(\mathrm{x}_{k}\)</span> 的单位向量</li>
+<li>根据面积采样和立体角采样建立联系
+<ul>
+<li><span class="math inline">\(\mathrm{x}_{k}=\mathrm{y}_{k}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\left\vert\frac{\partial\omega_{k-1}^y}{\partial\omega_{k-1}^x}\right\vert
+=\left\vert\frac{\partial\omega_{k-1}^y}{\partial\mathrm{y}_{k}}\right\vert
+\cdot
+\left\vert\frac{\partial\mathrm{x}_{k}}{\partial\omega_{k-1}^x}\right\vert
+=\left\vert\frac{\cos\theta_k^y}{\cos\theta_k^x}\right\vert\frac{\Vert\mathrm{x}_k-\mathrm{x}_{k-1}\Vert^2}{\Vert\mathrm{x}_k-\mathrm{y}_{k-1}\Vert^2}
+\]</span></p>
+<ul>
+<li>会影响 <span class="math inline">\(\mathrm{x}_{k-1},\mathrm{x}_{k}\)</span>
+<ul>
+<li>如果 <span class="math inline">\(\mathrm{x}_{k}\)</span>
+是光源，则只影响 <span class="math inline">\(\mathrm{x}_{k-1}\)</span>，红色部分为 1</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\left\vert\frac{\partial\bar{\mathbf{u}}^y}{\partial\bar{\mathbf{u}}^x}\right\vert=
+\left\vert\frac{\partial\bar{\mathbf{u}}_{k-1}^y}{\partial\bar{\mathbf{u}}_{k-1}^x}\right\vert
+{\color{red}\left\vert\frac{\partial\bar{\mathbf{u}}_k^y}{\partial\bar{\mathbf{u}}_k^x}\right\vert}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathrm{x}_{k-1}\)</span>
+<ul>
+<li><span class="math inline">\(p_{(\omega,\ell)_{k-1}^x}(\mathbf{x}_k)=p_{\omega_{k-1}^x}(\mathbf{x}_k)\cdot
+p_{\ell_{k-1}^x}\)</span>：采样 lobe 和方向的联合分布，立体角度量
+<ul>
+<li>如果是光源，那么将面积度量转化为立体角度量，lobe 采样 <span class="math inline">\(p_{\ell_{k-1}^x}=1\)</span></li>
+</ul></li>
+<li><span class="math inline">\(p(x)\;\mathrm{d}x=p(y)\;\mathrm{d}y\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\left\vert\frac{\partial\bar{\mathbf{u}}_{k-1}^y}{\partial\bar{\mathbf{u}}_{k-1}^{x}}\right\vert=\left\vert\frac{\partial\bar{\mathbf{u}}_{k-1}^y}{\partial\omega_{k-1}^y}\right\vert\left\vert\frac{\partial\omega_{k-1}^y}{\partial\omega_{k-1}^x}\right\vert\left\vert\frac{\partial\omega_{k-1}^x}{\partial\bar{\mathbf{u}}_{k-1}^x}\right\vert=\frac{p_{(\omega,\ell)_{k-1}^y}(\mathbf{y}_k)}{p_{(\omega,\ell)_{k-1}^x}(\mathbf{x}_k)}\left\vert\frac{\partial\omega_{k-1}^y}{\partial\omega_{k-1}^x}\right\vert
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathrm{x}_{k}\)</span>：<span class="math inline">\(\mathrm{x}_{k}=\mathrm{y}_{k}\)</span></li>
+</ul>
+<p><span class="math display">\[
+\left\vert\frac{\partial\bar{\mathbf{u}}_k^y}{\partial\bar{\mathbf{u}}_k^x}\right\vert=\left\vert\frac{\partial\bar{\mathbf{u}}_k^y}{\partial\omega_k^y}\right\vert\left\vert\frac{\partial\omega_k^x}{\partial\bar{\mathbf{u}}_k^x}\right\vert=\frac{p_{(\omega,\ell)_k^y}(\mathbf{y}_{k+1})}{p_{(\omega,\ell)_k^x}(\mathbf{x}_{k+1})}
+\]</span></p>
+<ul>
+<li>根据重连接定义：<span class="math inline">\(\omega_{k}^{x}=\omega_{k}^{y},\ell_{k-1}^{x}=\ell_{k-1}^{y}\)</span>，但是采样概率不同（出射方向不同）</li>
+</ul>
+<h3 id="restir-pt-细节">ReSTIR PT 细节</h3>
+<p><img src="/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/alg6-Reservoir-in-ReSTIR-PT.png"></p>
+<ul>
+<li>数据结构如上</li>
+<li>path sample 的内容
+<ul>
+<li>重连接顶点</li>
+<li>随机数生成器（RNG），序列生成</li>
+<li>辅助信息</li>
+</ul></li>
+<li>假定重连接顶点 <span class="math inline">\(\mathrm{y}_k\)</span>
+不是光源（只是为了表示方便，处理类似）</li>
+<li>重采样流程
+<ul>
+<li>RNG <span class="math inline">\(\xi_1\)</span> 生成子序列 <span class="math inline">\(\mathrm{y}_{2},\cdots,\mathrm{y}_{k-1}\)</span>，throughput
+为 <span class="math inline">\(\beta\)</span></li>
+<li>通过三角形 ID（<span class="math inline">\(\Delta\)</span>）、重心坐标 <span class="math inline">\(\lambda_1,\lambda_2\)</span>，计算 <span class="math inline">\(\mathrm{y}_{k}=\mathrm{x}_{k}\)</span>
+<ul>
+<li>动态场景需要其他处理，需要使用到 <span class="math inline">\(\xi_2\)</span></li>
+</ul></li>
+<li><span class="math inline">\(\omega=\omega_{k}^{x}\)</span>：入射方向，<span class="math inline">\(L\)</span>：入射辐射度估计</li>
+<li>贡献计算如下
+<ul>
+<li><span class="math inline">\(m_t\)</span>：考虑到 <span class="math inline">\(\mathbf{y}_{k+1}\)</span> 可能是光源的 MIS
+系数（不是光源，则为 1）</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+F(Y)=\hat{p}(Y)=
+\beta\cdot
+m_{t}(\omega_{k}^{y})f_{s,\omega_{k-1}^{y}}(\mathbf{y}_{k})/p_{\omega_{k-1}^{y}}(\mathbf{y}_{k})\cdot
+f_{s,\omega_{k}^{y}}(\mathbf{y}_{k+1})/p_{\omega_{k}^{y}}(\mathbf{y}_{k+1})\cdot
+L
+\]</span></p>
+<ul>
+<li>Jacobian 根据<a href="#6-jacobian-calc">式子</a>计算
+<ul>
+<li>可以预先计算一些和 <span class="math inline">\(\mathrm{y}_{k-1}\)</span>
+无关的部分保存下来，避免重复计算</li>
+</ul></li>
+<li>重采样整个算法流程如<a href="/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/#5-alg4-ris-between-domains">图</a>所示
+<ul>
+<li>蓝色 <span class="math inline">\(X_i\)</span>，红色 <span class="math inline">\(Y_i\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/shift-mapping-procedure.png"></p>
+<h2 id="volume-rendering">Volume rendering</h2>
+<ul>
+<li>体渲染的积分域：<span class="math inline">\(\mathcal{M}=\mathcal{A}\cup\mathcal{V}\)</span>
+<ul>
+<li>表面 + 体</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+I_{j}=&amp;\sum_{D=1}^\infty\int_{\mathcal{M}^{D+1}}W_e^{(j)}(\mathbf{x}_1\to\mathbf{x}_0)T(\mathbf{x}_0\leftrightarrow\mathbf{x}_1)\bar{G}(\mathbf{x}_0\leftrightarrow\mathbf{x}_1)\Big(\\
+&amp;\qquad\prod_{j=1}^{D-1}\bar{f}_s(\mathbf{x}_{j+1}\to\mathbf{x}_j
+\to\mathbf{x}_{j-1})\bar{G}(\mathbf{x}_j\leftrightarrow\mathbf{x}_{j+1})T(\mathbf{x}_j\leftrightarrow\mathbf{x}_{j+1})\\
+&amp;\quad\Big)\bar{L}_c(\mathbf{x}_D\to\mathbf{x}_{D-1})
+\;\mathrm{d}\mathbf{x}_0\mathrm{d}\mathbf{x}_1\mathrm{d}\mathbf{x}_2\ldots\mathrm{d}\mathbf{x}_D
+\end{aligned}
+\]</span></p>
+<ul>
+<li>针孔摄像机，没有相机响应函数
+<ul>
+<li>递归形式</li>
+<li><strong>所有点的自发光到 <span class="math inline">\(\mathrm{x}_0\)</span> 的贡献（长度为 <span class="math inline">\(1,2,\cdots\)</span>）</strong>
+<ul>
+<li><span style="color:red">疑问</span>：这里似乎没有考虑直线外的光源？</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}L(\omega_{0}\to
+\mathbf{x}_{0})&amp;=T(\mathbf{x}_{0}\leftrightarrow
+\mathbf{x}_{1}^{s})(L_{e}(\mathbf{x}_{1}^{s}\to
+\mathbf{x}_{0})+P(\mathbf{x}_{0},\mathbf{x}_{1}^{s}))+\\&amp;\int_{0}^{s}T(\mathbf{x}_{0}\leftrightarrow\mathbf{x}_{1})(\sigma_{a}(\mathbf{x}_{1})L_{e}^{m}(\mathbf{x}_{1}\to
+\mathbf{x}_{0})+P(\mathbf{x}_{0},\mathbf{x}_{1}))
+\mathrm{d}z_{1}\end{aligned}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(s=||\mathbf{x}_1^s-\mathbf{x}_0||\)</span>：最近的不透明点到像素的距离</li>
+<li><span class="math inline">\(\mathbf{x}_1=\mathbf{x}_0+z_1\omega_0\)</span>，<span class="math inline">\(\omega_0\)</span> 根据像素位置决定</li>
+<li><span class="math inline">\(P\)</span>："in-scattered" path
+contribution</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}P(\mathbf{x}_{0},\mathbf{x}_{1})&amp;=\sum_{D=2}^{\infty}\int_{\mathcal{M}^{D-1}}\Big(\prod_{j=1}^{D-1}\bar{f}_{s}(\mathbf{x}_{j+1}\to\mathbf{x}_{j}\to\mathbf{x}_{j-1})\\&amp;\bar{G}(\mathbf{x}_{j}\leftrightarrow\mathbf{x}_{j+1})T(\mathbf{x}_{j}\leftrightarrow\mathbf{x}_{j+1})\Big)\bar{L}_{e}(\mathbf{x}_{D}\to\mathbf{x}_{D-1})
+\mathrm{d}\mathbf{x}_{2}\ldots\mathrm{d}\mathbf{x}_{D}\end{aligned}
+\]</span></p>
+<ul>
+<li>体介质
+<ul>
+<li><span class="math inline">\(\bar{f}_s=f_s\)</span></li>
+<li><span class="math inline">\(\bar{G}=1/\Vert\mathbf{x}_{j}-\mathbf{x}_{j+1}\Vert^{2}\)</span></li>
+<li><span class="math inline">\(\bar{L}_{e}(\mathbf{x}_{D}\to\mathbf{x}_{D-1})=\sigma_{a}(\mathbf{x}_{D})L_{e}^{m}(\mathbf{x}_{D}\to\mathbf{x}_{D-1})\)</span></li>
+</ul></li>
+<li>表面：常规的含义</li>
+<li>transmission item <span class="math inline">\(T\)</span>
+<ul>
+<li>计算代价高，在某些 <span class="math inline">\(\sigma\)</span>
+分段常数情况下，计算快</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+T(\mathbf{x}\leftrightarrow\mathbf{y})=\exp\left(-\int_0^zy
+\sigma_t(\mathbf{x}-y\omega)\;\mathrm{d}y\right)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(T\)</span>：Volumetric ReSTIR
+使用一个简单的 <span class="math inline">\(\hat{p}\)</span>
+<ul>
+<li>ray marching 近似 <span class="math inline">\(T\)</span></li>
+<li>使用低分辨率的 volumes 计算（最小化内存开销）</li>
+<li>A piece-wise constant, low resolution volume</li>
+</ul></li>
+<li>Volumetric ReSTIR
+<ul>
+<li><span class="math inline">\(\mathrm{x}_1\)</span> 依赖于 <span class="math inline">\(z\)</span>，复用的时候复制 <span class="math inline">\(z_1\)</span> 去生成 shifted <span class="math inline">\(\mathrm{x}_1\)</span></li>
+<li>两个复用：vertex、direction
+<ul>
+<li>shifted path：<span class="math inline">\([z_1,\omega_1,z_2,\omega_2,\ldots,z_{D-1},x_D]\)</span></li>
+</ul></li>
+<li>vertex reuse 效果好，但是由于几何上的奇异性， direction reuse
+效果不佳（opted for the slower direction reuse by default）</li>
+<li>可以参考 hybrid shift（random replay、distance threshold 等）</li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/2-reuse-in-Volumetric-ReSTIR.png"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/" rel="prev" title="(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (2)">
+                  <i class="fa fa-chevron-left"></i> (论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (2)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/10/02/CG/Papers/2023/ReSTIR-Course/04/" rel="next" title="(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (4)">
+                  (论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (4) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

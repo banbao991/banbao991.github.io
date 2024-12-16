@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="提出了一个适应性采样+重建图片的框架并给出了一个算法；是一个迭代算法，分为初始化和适应性采样两个阶段；适应性采样节点，每次迭代，对于每一个像素，根据生成的样本从预定义的若干个（5-8）Gaussian Filter 中找到最优的 Filter，然后根据 Filter 的结果再去重新分配光线（可以理解为更新 sampling map），直到资源用尽迭代结束。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2011-SIG] Adaptive sampling and reconstruction using greedy error minimization">
+<meta property="og:url" content="http://example.com/2024/11/10/CG/Papers/2011/GEM-AS/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="提出了一个适应性采样+重建图片的框架并给出了一个算法；是一个迭代算法，分为初始化和适应性采样两个阶段；适应性采样节点，每次迭代，对于每一个像素，根据生成的样本从预定义的若干个（5-8）Gaussian Filter 中找到最优的 Filter，然后根据 Filter 的结果再去重新分配光线（可以理解为更新 sampling map），直到资源用尽迭代结束。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/11/10/CG/Papers/2011/GEM-AS/ex-high-d-as.png">
+<meta property="og:image" content="http://example.com/2024/11/10/CG/Papers/2011/GEM-AS/fig2-overview.png">
+<meta property="og:image" content="http://example.com/2024/11/10/CG/Papers/2011/GEM-AS/fig7-binary-stop.png">
+<meta property="article:published_time" content="2024-11-10T14:20:01.000Z">
+<meta property="article:modified_time" content="2024-11-26T06:50:22.668Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/11/10/CG/Papers/2011/GEM-AS/ex-high-d-as.png">
+
+
+<link rel="canonical" href="http://example.com/2024/11/10/CG/Papers/2011/GEM-AS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/11/10/CG/Papers/2011/GEM-AS/","path":"2024/11/10/CG/Papers/2011/GEM-AS/","title":"(论文)[2011-SIG] Adaptive sampling and reconstruction using greedy error minimization"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2011-SIG] Adaptive sampling and reconstruction using greedy error minimization | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#gem-as"><span class="nav-text">GEM-AS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#previous-work"><span class="nav-text">Previous Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#algorithm-overview"><span class="nav-text">Algorithm Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#filter-selection"><span class="nav-text">Filter Selection</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#incremental-mse-minimization"><span class="nav-text">Incremental MSE Minimization</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#quadratic-approximation"><span class="nav-text">Quadratic Approximation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#estimation-from-noisy-data"><span class="nav-text">Estimation from Noisy Data</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-text">实验</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#post-processing-the-filter-selection"><span class="nav-text">Post-Processing the Filter
+Selection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sample-distribution"><span class="nav-text">Sample Distribution</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#implementation"><span class="nav-text">Implementation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#result"><span class="nav-text">Result</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/10/CG/Papers/2011/GEM-AS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2011-SIG] Adaptive sampling and reconstruction using greedy error minimization | Banbao">
+      <meta itemprop="description" content="提出了一个适应性采样+重建图片的框架并给出了一个算法；是一个迭代算法，分为初始化和适应性采样两个阶段；适应性采样节点，每次迭代，对于每一个像素，根据生成的样本从预定义的若干个（5-8）Gaussian Filter 中找到最优的 Filter，然后根据 Filter 的结果再去重新分配光线（可以理解为更新 sampling map），直到资源用尽迭代结束。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2011-SIG] Adaptive sampling and reconstruction using greedy error minimization
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-11-10 22:20:01" itemprop="dateCreated datePublished" datetime="2024-11-10T22:20:01+08:00">2024-11-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-11-26 14:50:22" itemprop="dateModified" datetime="2024-11-26T14:50:22+08:00">2024-11-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">提出了一个适应性采样+重建图片的框架并给出了一个算法；是一个迭代算法，分为初始化和适应性采样两个阶段；适应性采样节点，每次迭代，对于每一个像素，根据生成的样本从预定义的若干个（5-8）Gaussian Filter 中找到最优的 Filter，然后根据 Filter 的结果再去重新分配光线（可以理解为更新 sampling map），直到资源用尽迭代结束。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="gem-as">GEM-AS</h1>
+<ul>
+<li>Adaptive sampling and reconstruction using greedy error
+minimization</li>
+<li>作者：Fabrice Rousselle、Claude Knaus、Matthias Zwicker
+<ul>
+<li>University of Bern</li>
+</ul></li>
+<li>任务：Adaptive Sampling + Construction</li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>问题形式化描述
+<ul>
+<li>given a <strong>certain budget</strong> of Monte Carlo samples,
+obtain an image that minimizes the relative mean squared error
+(<strong>MSE</strong>) by <strong>distributing samples</strong> in a
+suitable fashion in the image plane and by filtering the image with
+<strong>appropriate filters</strong>.</li>
+</ul></li>
+<li>在<strong>样本分布空间 + filter 空间</strong>的优化问题
+<ul>
+<li>filters 预定义，但是每个像素可以不一样</li>
+<li>不同尺度的 Gaussians</li>
+</ul></li>
+<li>贪心算法：<strong>2 steps 的迭代法</strong>
+<ul>
+<li>样本分布确定，从离散的 filters 中找到最小化 MSE 的一个</li>
+<li>在确定 filters 的情况下，找到更好的样本分布</li>
+</ul></li>
+<li>不保证无偏性</li>
+<li>与 MCPT 的各种优化正交</li>
+<li>贡献
+<ul>
+<li><strong>提供了 AS+Recon 的框架</strong></li>
+<li>提供了框架的一种实现</li>
+<li>从噪声中获取统计量</li>
+</ul></li>
+</ul>
+<h1 id="previous-work">Previous Work</h1>
+<ul>
+<li>Image Space Adaptive Sampling and Reconstruction
+<ul>
+<li>先驱：【1987-SIGC】Generating antialiased images at low sampling
+densities</li>
+<li>【2003】Bala：显式表示边，实现 interactive rendering</li>
+<li>【1998】Bolin and Meyer：通过 Haar
+wavelets，提出了基于感知的误差</li>
+<li><strong>sota</strong>【2009】Overbeck：Adaptive wavelet rendering
+(AWR)
+<ul>
+<li>和我们思想相似，但是局限于小波【<span style="color:red">ToBeRead</span>】</li>
+<li>启发式找到样本分布</li>
+</ul></li>
+</ul></li>
+<li>Multidimensional Adaptive Sampling and Reconstruction
+<ul>
+<li>【2008】Hachisuka：直接在高维空间中做 AS【curse of dimension】
+<ul>
+<li>这里的高维空间似乎指的是 distributed effects</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2024/11/10/CG/Papers/2011/GEM-AS/ex-high-d-as.png"></p>
+<ul>
+<li>Adaptive Filtering
+<ul>
+<li>不管
+AS，直接重建（类似现在的降噪工作等），会导致<strong>焦散等信息缺失</strong></li>
+<li>【2009】Ritschel：cross bilateral filtering</li>
+<li>【2010】Dammertz：an edge-avoiding a-trous wavelet transform</li>
+<li>【2011】Shieley：使用 depth buffer</li>
+</ul></li>
+<li>Image Denoising
+<ul>
+<li>【1994】Wavelet shrinkage：通过小波变化去除噪声（噪声是 small
+coefficient）</li>
+<li>假设一种噪声模型，然后对其降噪</li>
+</ul></li>
+</ul>
+<h1 id="algorithm-overview">Algorithm Overview</h1>
+<p><img src="/2024/11/10/CG/Papers/2011/GEM-AS/fig2-overview.png"></p>
+<h1 id="filter-selection">Filter Selection</h1>
+<h2 id="incremental-mse-minimization">Incremental MSE Minimization</h2>
+<ul>
+<li><span style="color:red;font-weight:bold">这一小节表示我们不需要 GT
+信息</span></li>
+</ul>
+<p><span class="math display">\[
+\text{MSE}[c]=\text{Bias}[c]^2+\text{Var}[c]
+\]</span></p>
+<p><span class="math display">\[
+\begin{array}{l}
+\text{MSE}[c]=\mathbb{E}\left[\left(c-\bar{c}\right)^2\right]\\
+\text{Bias}[c]^2=\left(\mathbb{E}\left[c\right]-\bar{c}\right)^2\\
+\text{Var}[c]=\mathbb{E}\left[\left(c-\mathbb{E}(c\right)^2\right]\\
+\end{array}
+\]</span></p>
+<ul>
+<li>直接估计 filter 的 bias 很难（需要 GT 信息），而 variance
+相对简单（不需要 GT 信息）</li>
+<li><strong>考虑我们的 filters 可以通过 uniform scale 相关联</strong>
+<ul>
+<li>排序：fine to coarse（sharp to smooth）</li>
+</ul></li>
+<li><strong>key observation</strong>
+<ul>
+<li>随着 filter（fine <span class="math inline">\(\to\)</span>
+coarse），bias 单增，variance 单减（<strong>单调性假设</strong>）</li>
+</ul></li>
+<li>定义变换：<span class="math inline">\(\Delta\)</span> 表示，在计算
+bias 的时候与不需要真值
+<ul>
+<li>scale selector <span class="math inline">\(\mathcal{S}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{array}{rl}
+\mathcal{S}=\Delta{\text{MSE}}\left[f\to
+c\right]&amp;=\text{MSE}\left[c\right]-\text{MSE}\left[f\right]\\
+&amp;=\text{Bias}\left[c\right]^2-\text{Bias}\left[f\right]^2+\text{Var}\left[c\right]-\text{Var}\left[f\right]\\
+\end{array}
+\]</span></p>
+<ul>
+<li>选取最好的 filter
+<ul>
+<li>five scales of Gaussian filters at dyadic in tervals</li>
+<li>根据单调性：<span class="math inline">\(\mathcal{S}\)</span>
+一旦为正，最优的就是当前的 <span class="math inline">\(f\)</span>，否则继续</li>
+</ul></li>
+<li>我们使用 Bias、Var 的真值进行验证，我们的假设对于 99.7%
+的像素成立</li>
+</ul>
+<h2 id="quadratic-approximation">Quadratic Approximation</h2>
+<ul>
+<li>假设 GT 是 filter 内像素的<strong>二次函数</strong>，filter
+的一阶中心距为 0，于是有
+<ul>
+<li><span class="math inline">\(r_c,r_f\)</span> 表示 coarse、fine 的
+filter 的 scale</li>
+<li>直观理解：filter scale 2x，Bias 变成 4x【<span style="color:red;font-weight:bold">具体为啥不太懂</span>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\text{Bias}[c]=\dfrac{r_c^2}{r_f^2}\text{Bias}[f]
+\]</span></p>
+<ul>
+<li>连立上式和 <span class="math inline">\(\text{Bias}[c]=c-\xi,\text{Bias}[f]=f-\xi\)</span></li>
+</ul>
+<p><span class="math display">\[
+\text{Bias}[c]^2-\text{Bias}[f]^2=\dfrac{r_c^2+r_f^2}{r_c^2-r_f^2}(f-c)^2
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathcal{S}\)</span> 的第一项解决</li>
+<li>我们的<strong>二次函数假设</strong>对于 82.8% 的像素成立
+<ul>
+<li>真值验证：从所有候选 filters 中选取最优的（exhausted）</li>
+</ul></li>
+<li>对比了 incremental 方法和我们方法和 exhausted 方法的一致程度
+<ul>
+<li>incremental 更好（不知道这是啥，论文也没写）</li>
+</ul></li>
+</ul>
+<h2 id="estimation-from-noisy-data">Estimation from Noisy Data</h2>
+<ul>
+<li><span class="math inline">\(f,\text{Var}[f]\)</span>
+都未知，需要估计</li>
+<li>样本 <span class="math inline">\(s_i\)</span></li>
+</ul>
+<p><span class="math display">\[
+f=\sum_{i\in\{1\ldots s\}}w_i^f\,s_i
+\]</span></p>
+<p><span class="math display">\[
+\text{Var}\left[f\right]=\sum_{i\in\{1\ldots
+k\}}\left(w_{i}^{f}\right)^{2}\text{Var}\left[s_{i}\right]
+\]</span></p>
+<ul>
+<li>每一个样本的方差估计如下，对像素内的样本计算</li>
+</ul>
+<p><span class="math display">\[
+\text{Var}\left[s_{i}\right]\approx\frac{1}{\left|P\right|-1}\sum_{j\in\{P\}}\left(s_{j}-\bar{s}\right)^{2}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathcal{S}\)</span> 的第二项解决</li>
+</ul>
+<h3 id="实验">实验</h3>
+<ul>
+<li>分析如果样本满足一定假设 <span class="math inline">\(\mathcal{S}\)</span> 的行为
+<ul>
+<li>很难，如下做数值分析</li>
+</ul></li>
+<li>实验
+<ul>
+<li>样本 <span class="math inline">\(s_i\)</span>：value zero and
+additive noise</li>
+<li>fine 是 coarse 的 2x</li>
+<li>输入：<span class="math inline">\(P\)</span>、fine 的半径 <span class="math inline">\(r\)</span>、样本 <span class="math inline">\(s_i\)</span> 噪声的方差</li>
+</ul></li>
+<li>理想决策：coarse（因为 bias=0）
+<ul>
+<li>error rate：<span class="math inline">\(\mathcal{S}\)</span>
+犯错的比例</li>
+</ul></li>
+<li>实验目的：理解 <span class="math inline">\(\mathcal{S}\)</span>
+随着输入的变化，从而找到一个好的参数</li>
+<li>bias term 和 variance term
+是独立的，于是可以分别计算【所有样本都是独立的，使用不同样本就是独立的】</li>
+<li>error rate 实验结果
+<ul>
+<li>Sample Variance
+<ul>
+<li>error rate 和噪声的方差无关：都是成正比（好的不会变差）</li>
+</ul></li>
+<li>Filter Radius
+<ul>
+<li>弱相关，large scale 较低</li>
+</ul></li>
+<li><span class="math inline">\(P\)</span>：少了不行，多了差不多
+<ul>
+<li>bias <span class="math inline">\(\propto 1/P\)</span></li>
+</ul></li>
+</ul></li>
+<li>参数选择：bias term 加上权重 <span class="math inline">\(\rho\cdot
+z(\gamma)\)</span>
+<ul>
+<li><span class="math inline">\(\rho=1-1/\vert{P}\vert\)</span>：修正
+low sample counts</li>
+<li><span class="math inline">\(z(\gamma)=-\log(1-(1.9\gamma)^{1/\sqrt{2}}),0&lt;\gamma&lt;0.4\)</span>
+<ul>
+<li><span class="math inline">\(\gamma\)</span> 表示 error
+rate，用户指定（Bias 和 Var 之间的 trade off）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="post-processing-the-filter-selection">Post-Processing the Filter
+Selection</h2>
+<ul>
+<li>non-zero error rate 都会导致 wrong filter selection
+decisions，在最终结果图上展现出 spikes 的 artifacts
+<ul>
+<li>效果就是更平滑</li>
+</ul></li>
+<li>实验场景：1D、250 pixels、8 Gaussian filters（<span class="math inline">\(\sqrt{2}\)</span> x）、输入为两个方形信号（uniform
+noise）</li>
+<li><strong>相当于给 filter size 做一个降噪</strong>
+<ul>
+<li>举例：如果一个像素周围都选第一个 filter，只有这个像素选择第 8
+个，则认为选择有问题</li>
+</ul></li>
+<li>outlier：孤立出现</li>
+<li>我们处理方式：Gaussian filter（coarse size）之后四舍五入
+<ul>
+<li>论文中说或许可以进一步研究</li>
+</ul></li>
+<li>实际 2D 例子如下
+<ul>
+<li>binary stop from scale 2 to 3：白色表示选择 2，黑色表示需要进一步
+coarse</li>
+</ul></li>
+</ul>
+<p><img src="/2024/11/10/CG/Papers/2011/GEM-AS/fig7-binary-stop.png"></p>
+<h2 id="sample-distribution">Sample Distribution</h2>
+<ul>
+<li>选中 m 个像素，使得 relMSE 能够降低的最多（每个像素分配 n
+条光线）</li>
+<li>先估计 MSE，relMSE 使用 <span class="math inline">\(\dfrac{\text{MSE}}{\epsilon+\text{ref}^2}\)</span>
+<ul>
+<li><span class="math inline">\(\epsilon=0.001\)</span>：prevent
+overemphasizing very dark image areas</li>
+</ul></li>
+<li>relMSE 反比于样本个数</li>
+<li><span class="math inline">\(n_s\)</span> 个样本，再来 <span class="math inline">\(n\)</span> 个样本，relMSE 降低了：relMSE<span class="math inline">\(\times \dfrac{n}{n+n_s}\)</span></li>
+<li>算法步骤
+<ul>
+<li>维护一个优先队列，每次选出能够让 relMSE 降低最多的 m 个像素
+<ul>
+<li>假设 filter 是没有 overlap 的，但是并不强求（相当于一个启发式）</li>
+</ul></li>
+<li>对每个像素，在他的 support 中根据 filter 的权重重要性采样 n
+个点，每个点采样一条光线</li>
+</ul></li>
+<li>为了计算降低的 relMSE，每个像素需要维护一个数（样本的个数）</li>
+</ul>
+<h1 id="implementation">Implementation</h1>
+<ul>
+<li>Computation of Scales and Their Statistics
+<ul>
+<li>计算 Var 的时候，不可能保存所有样本，因此每个像素保存 finest filter
+scale、样本方差的均值（每次迭代更新）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\text{Var}\left[p\right]\approx\frac{1}{\left|P\right|}\frac{1}{\left|P\right|-1}\sum_{j\in\{P\}}\left(s_{j}-\bar{s}\right)^{2}
+\]</span></p>
+<ul>
+<li>Filtering Non-Uniform Sample Distributions
+<ul>
+<li>我们的 sample density map 在 edge 的地方变化大，可能会得导致大的
+bias</li>
+<li>参考【1987-SIG】Generating antialiased images at low sampling
+densities</li>
+<li>使用 subpixel grid【4x4】，subpixel 的值使用 subpixel box filter
+得到，内部均匀采样
+<ul>
+<li>相当于分层采样了，省的边缘 density map 变化大</li>
+</ul></li>
+</ul></li>
+<li>Final Reconstruction
+<ul>
+<li>最后一次迭代，filter selection 有一些区别
+<ul>
+<li>使用 8 Gaussian（<span class="math inline">\(\sqrt{2}\)</span>x）,finest 标准差
+1.0，这样可以让最终的选择的 scale 更平滑</li>
+<li>binary stopping map，使用更大的 Gaussian，2x coarse【smoother】</li>
+<li>只有在需要继续 coarse 的时候，才使用 filtered binary
+map（能停就停了，除 spike 效果更好）</li>
+</ul></li>
+</ul></li>
+<li>在 PBRT 中实现
+<ul>
+<li>initialization state：4 spp uniform</li>
+<li>adaptive state：8 次迭代，用户指定需要渲染 <span class="math inline">\(n\)</span> spp
+<ul>
+<li>每次迭代分配样本：<span class="math inline">\(N=M(n-4)/8\)</span>，<span class="math inline">\(M\)</span> 表示像素个数</li>
+<li>每次选择分配给 <span class="math inline">\(m\)</span> 个像素 <span class="math inline">\(n\)</span> 个样本，<span class="math inline">\(m=N/n\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="result">Result</h1>
+<ul>
+<li><span class="math inline">\(\gamma=0.1\)</span></li>
+<li>dual 4-cores XEON system at 2.50GHz, with 8GB of RAM</li>
+<li><span class="math inline">\(\gamma\)</span>
+<ul>
+<li>小：smooth + blur edge</li>
+<li>大：keep edge + outlier</li>
+<li>0.2-0.3 之间，MSE 变化都不大（平衡）</li>
+</ul></li>
+<li>relMSE：<span class="math inline">\(\epsilon=0.01\)</span></li>
+<li>Discussion and Limitations
+<ul>
+<li>如果 PT 很难找到特殊光路，则会低估方差</li>
+<li>渲染器出来的结果并不是完全随机的，因此会高估方差</li>
+<li>边界处理不是很好（我们用的各向同性的高斯 filter）</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/11/10/CG/Papers/2012/SURE-AS/" rel="prev" title="(论文)[2012-SIG] SURE-based Optimization for Adaptive Sampling and Reconstruction">
+                  <i class="fa fa-chevron-left"></i> (论文)[2012-SIG] SURE-based Optimization for Adaptive Sampling and Reconstruction
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/11/15/CG/Papers/2022/DASR-AD/" rel="next" title="(论文)[2022-SIG] Deep Adaptive Sampling and Reconstruction using Analytic Distributions">
+                  (论文)[2022-SIG] Deep Adaptive Sampling and Reconstruction using Analytic Distributions <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

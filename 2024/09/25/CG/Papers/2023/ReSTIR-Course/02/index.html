@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="ReSTIR 流程，ReSTIR DI 实现，ReSTIR 如何在不同的定义域上复用样本">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (2)">
+<meta property="og:url" content="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="ReSTIR 流程，ReSTIR DI 实现，ReSTIR 如何在不同的定义域上复用样本">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/Reservoir-Resampling.png">
+<meta property="og:image" content="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/fig4.1-di.png">
+<meta property="og:image" content="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/alg3-RIS-with-Confidence-Weights.png">
+<meta property="og:image" content="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/5.2-RIS-with-shift-mapping.png">
+<meta property="og:image" content="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/alg4-ris-between-domains.png">
+<meta property="og:image" content="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/mis.png">
+<meta property="article:published_time" content="2024-09-25T15:38:09.000Z">
+<meta property="article:modified_time" content="2024-10-03T06:11:20.806Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/Reservoir-Resampling.png">
+
+
+<link rel="canonical" href="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/","path":"2024/09/25/CG/Papers/2023/ReSTIR-Course/02/","title":"(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (2)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (2) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#restir"><span class="nav-text">ReSTIR</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#restir-1"><span class="nav-text">04-ReSTIR</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#weighted-reservoir-sampling"><span class="nav-text">Weighted Reservoir Sampling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spatiotemporal-reuse"><span class="nav-text">Spatiotemporal reuse</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#initial-candidates"><span class="nav-text">Initial candidates</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spatial-reuse"><span class="nav-text">Spatial reuse</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#temporal-reuse"><span class="nav-text">Temporal reuse</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90restir-di"><span class="nav-text">例子：ReSTIR
+DI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#target-function"><span class="nav-text">Target function</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initial-candidates-1"><span class="nav-text">Initial candidates</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spatial-reuse-1"><span class="nav-text">Spatial reuse</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#temporal-reuse-1"><span class="nav-text">Temporal reuse</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#history-length"><span class="nav-text">History length</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#advanced-topics"><span class="nav-text">Advanced topics</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#reusing-between-domains"><span class="nav-text">05-Reusing Between
+Domains</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#preliminaries"><span class="nav-text">Preliminaries</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#shift-mappings"><span class="nav-text">Shift mappings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jacobian-determinants"><span class="nav-text">Jacobian determinants</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#reusing-samples-between-domains"><span class="nav-text">Reusing samples between
+domains</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mis-between-domains"><span class="nav-text">MIS between domains</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (2) | Banbao">
+      <meta itemprop="description" content="ReSTIR 流程，ReSTIR DI 实现，ReSTIR 如何在不同的定义域上复用样本">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-09-25 23:38:09" itemprop="dateCreated datePublished" datetime="2024-09-25T23:38:09+08:00">2024-09-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-10-03 14:11:20" itemprop="dateModified" datetime="2024-10-03T14:11:20+08:00">2024-10-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">ReSTIR 流程，ReSTIR DI 实现，ReSTIR 如何在不同的定义域上复用样本</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="restir">ReSTIR</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://intro-to-restir.cwyman.org/">主页</a></li>
+<li>update：March 4, 2024</li>
+</ul>
+<h1 id="restir-1">04-ReSTIR</h1>
+<h2 id="weighted-reservoir-sampling">Weighted Reservoir Sampling</h2>
+<ul>
+<li>Weighted reservoir sampling (WRS)，一个系列
+<ul>
+<li>sampling one (or more) elements from <strong>a (weighted) stream of
+samples</strong> in <strong>a single pass</strong> over the data without
+storing it</li>
+</ul></li>
+<li>Reservoir Resampling</li>
+</ul>
+<figure>
+<img src="/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/Reservoir-Resampling.png" alt="image-20240926154717126">
+<figcaption aria-hidden="true">image-20240926154717126</figcaption>
+</figure>
+<ul>
+<li>蓄水池重采样得到的结果，恰好是满足正比于 <span class="math inline">\(w_i\)</span> 的</li>
+<li>证明
+<ul>
+<li>记 <span class="math inline">\(s_k=\sum_{i=1}^{k}w_i\)</span>，于是有 <span class="math inline">\(s_k=s_{k-1}+w_k\)</span></li>
+<li>第 <span class="math inline">\(k\)</span> 个样本被采样的概率如下
+<ul>
+<li>第 <span class="math inline">\(k\)</span>
+次被选中，而且之后都没有被更新</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\Pr(Y=X_k)
+=&amp;\dfrac{w_k}{s_k}\cdot\prod_{i=k+1}^{M}\left(1-\dfrac{w_{i}}{s_{i}}\right)\\
+=&amp;\dfrac{w_k}{s_k}\cdot\prod_{i=k+1}^{M}\left(\dfrac{s_i-w_{i}}{s_{i}}\right)\\
+=&amp;\dfrac{w_k}{s_k}\cdot\prod_{i=k+1}^{M}\left(\dfrac{s_{i-1}}{s_{i}}\right)\\
+=&amp;\dfrac{w_k}{s_M}=\dfrac{w_k}{\sum_{i=1}^{M}w_i}
+\end{aligned}
+\]</span></p>
+<h2 id="spatiotemporal-reuse">Spatiotemporal reuse</h2>
+<ul>
+<li>每个像素我们只能保存 <span class="math inline">\(M\)</span>
+个样本，只用这 <span class="math inline">\(M\)</span>
+个样本限制了采样的质量</li>
+</ul>
+<h3 id="initial-candidates">Initial candidates</h3>
+<ul>
+<li>从 <span class="math inline">\(M\)</span> 个样本中 RIS
+采样得到一个样本</li>
+</ul>
+<h3 id="spatial-reuse">Spatial reuse</h3>
+<ul>
+<li>一个像素周围的样本比较接近，可以复用</li>
+<li>找到 spatial neighbors，然后继续 RIS
+<ul>
+<li>spatial neighbors：picked randomly from a disk</li>
+</ul></li>
+<li>RIS 的过程可以多次进行，但是代价就是相关性会增加</li>
+<li>样本的采样分布差别大，需要使用高级的 MIS（例如 generalized balance
+heuristic）</li>
+<li>Do not choose which spatial neighbors to reuse based on the random
+samples stored at these neighbors, as this causes bias!（<span style="color:red">这是为什么？</span>）</li>
+</ul>
+<h3 id="temporal-reuse">Temporal reuse</h3>
+<ul>
+<li>相邻帧比较相似，可以复用
+<ul>
+<li>通过 motion vectors 重投影</li>
+</ul></li>
+<li>也需要高级的 MIS</li>
+<li>access to previous frames’ target functions is required to remove
+all bias.</li>
+</ul>
+<h2 id="例子restir-di"><span id="4-restir-di">例子：ReSTIR
+DI</span></h2>
+<ul>
+<li>ReSTIR for direct illumination</li>
+<li>直接光照：3 个顶点的路径（只反弹一次）
+<ul>
+<li>相机 <span class="math inline">\(\to\)</span> 光源：<span class="math inline">\(\bar{x}=[\mathrm{x}_0,\mathrm{x}_1,\mathrm{x}_2]\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/fig4.1-di.png"></p>
+<ul>
+<li><span class="math inline">\(x_2\in A\)</span>，<span class="math inline">\(A\)</span>：光源表面的点的集合</li>
+<li>选定 <span class="math inline">\(\mathrm{x}_0,\mathrm{x}_1\)</span>，任务转化为如下</li>
+</ul>
+<p><span class="math display">\[
+L(\mathrm{x}_1\to \mathrm{x}_0)=\int_Af_s(\mathrm{x}_2\to
+\mathrm{x}_1\to \mathrm{x}_0)G(\mathrm{x}_1\leftrightarrow
+\mathrm{x}_2)V(\mathrm{x}_1\leftrightarrow
+\mathrm{x}_2)L_e(\mathrm{x}_2\to \mathrm{x}_1)\;\mathrm{d}\mathrm{x}_2
+\]</span></p>
+<ul>
+<li>反正就是一个 <span class="math inline">\(\mathrm{x}_2\)</span>
+的函数
+<ul>
+<li>pixel dependent <span class="math inline">\(f_i\)</span>：像素变了，<span class="math inline">\(\mathrm{x}_1,\mathrm{x}_2\)</span> 就会变了</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+L(x_1\to x_0)=\int_Af(\mathrm{x}_2)\;\mathrm{d}\mathrm{x}_2
+\]</span></p>
+<ul>
+<li>ReSTIR：不同像素间共享 <span class="math inline">\(\mathrm{x}_2\)</span>
+<ul>
+<li>we resample <span class="math inline">\(\mathrm{x}_2\)</span> from
+one or morei ndependent <strong>canonical samples covering the current
+pixel</strong>（保证无偏）, plus samples borrowed from other pixels and
+frames（复用）.</li>
+</ul></li>
+</ul>
+<h3 id="target-function">Target function</h3>
+<ul>
+<li><span class="math inline">\(x\)</span> 代替 <span class="math inline">\(\mathrm{x}_2\)</span>，<span class="math inline">\(f\)</span> 如下</li>
+</ul>
+<p><span class="math display">\[
+f(x)=f_{s}(x)G(x)V(x)L_{e}(x)
+\]</span></p>
+<ul>
+<li>target <span class="math inline">\(\hat{p}=f\)</span></li>
+</ul>
+<p><span class="math display">\[
+\hat{p}(x)=f_{s}(x)G(x)V(x)L_{e}(x)
+\]</span></p>
+<ul>
+<li>早期论文近似：去掉 <span class="math inline">\(V\)</span>
+项，方便计算，但是需要特殊处理保证正确性</li>
+</ul>
+<p><span class="math display">\[
+\hat{p}(x)=f_{s}(x)G(x)L_{e}(x)
+\]</span></p>
+<h3 id="initial-candidates-1">Initial candidates</h3>
+<ul>
+<li>为每个像素生成 canonical samples
+<ul>
+<li>对于 DI，可以在光源表面采样 <span class="math inline">\(M\)</span>
+个点，然后 RIS</li>
+</ul></li>
+<li>复用的时候，使用 generalized balance heuristic MIS weight
+<ul>
+<li><span class="math inline">\(i\)</span>：第 <span class="math inline">\(i\)</span> 个像素</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+m_i(x)=\frac{\hat{p}_i(x)}{\sum_{j=1}^M\hat{p}_j(x)}
+\]</span></p>
+<h3 id="spatial-reuse-1">Spatial reuse</h3>
+<ul>
+<li>找到相似的像素，复用它的样本
+<ul>
+<li>启发式：GBuffer 中观察相似性
+<ul>
+<li>不能基于样本本身，bias</li>
+</ul></li>
+</ul></li>
+<li>MIS 权重：<span class="math inline">\(1/M\)</span> 会导致 bias
+<ul>
+<li><span style="color:red">解决方案 <a href="/2024/10/02/CG/Papers/2023/ReSTIR-Course/04/">sec7</a></span>：contribution
+MIS weights</li>
+<li>或者 generalized balance heuristic？</li>
+</ul></li>
+</ul>
+<h3 id="temporal-reuse-1">Temporal reuse</h3>
+<ul>
+<li>motion vector 找到上一帧的样本，复用</li>
+<li>计算 mis 需要使用到上一帧的 <span class="math inline">\(\hat{p}\)</span>，因此需要求可见性（需要保留上一帧的加速结构）</li>
+</ul>
+<h2 id="history-length">History length</h2>
+<ul>
+<li>如果时间复用，上一帧和现在赋相同的权重，那么会丢失 ~50%
+的历史信息</li>
+<li>引入 confidence weights <span class="math inline">\(c_j\)</span></li>
+</ul>
+<p><span class="math display">\[
+m_i(x)=\frac{c_i\hat{p}_i(x)}{\sum_{j=1}^Mc_j\hat{p}_j(x)}
+\]</span></p>
+<ul>
+<li>越信任这个样本，<span class="math inline">\(c_i\)</span> 越高</li>
+<li>effective sample count：corresponding to <span class="math inline">\(N\)</span> samples
+<ul>
+<li>很难，因为 RIS 的样本来自不同分布，有效的数量难计算</li>
+<li>可以简单的使用这个样本集成的样本数来表示（直接加起来）
+<ul>
+<li>相当于给出了一个上界</li>
+<li>更有效的估计很难</li>
+</ul></li>
+</ul></li>
+<li>实际上会将这个值 cap 到 &lt;5~30（20 是个不错的选择）
+<ul>
+<li>否则会导致 <span class="math inline">\(c_i\)</span>
+指数增长，导致新样本权重太小了</li>
+</ul></li>
+<li>算法如下</li>
+</ul>
+<p><img src="/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/alg3-RIS-with-Confidence-Weights.png"></p>
+<ul>
+<li>新样本：<span class="math inline">\(c_i=1\)</span></li>
+<li>新进入屏幕的像素（没有 temporal precedessor），<span class="math inline">\(M=0\)</span></li>
+<li>检测到 occlusions or disocclusions，<span class="math inline">\(M=0\)</span></li>
+<li>reset <span class="math inline">\(M=0\)</span> 通过检测 GBuffer
+<ul>
+<li>不能基于样本本身，bias</li>
+</ul></li>
+</ul>
+<h2 id="advanced-topics">Advanced topics</h2>
+<ul>
+<li>light sampler 对于 glossy 的不友好
+<ul>
+<li>BSDF lobe 小</li>
+</ul></li>
+<li>Improved light sampling
+<ul>
+<li>光源采样的时候：power-based importance sampling
+<ul>
+<li>power：total emitted flux over the surface</li>
+<li>power 采光源，面积均匀采点</li>
+</ul></li>
+<li>“light tiles”（<span style="color:red"><a href="/2024/10/02/CG/Papers/2023/ReSTIR-Course/04/">sec7</a></span>）</li>
+<li>不考虑着色点信息</li>
+</ul></li>
+<li>Mixing BSDF and light sampling
+<ul>
+<li>initial candidate：容易实现，常规 MIS</li>
+<li>恰当地处理：shift mappings（<span style="color:red"><a href="#sec5">sec5</a></span>）</li>
+</ul></li>
+<li>RIS and domains
+<ul>
+<li>物体移动的话，采样空间变了；原始 RIS 不能处理</li>
+<li>shift mappings（<span style="color:red"><a href="#sec5">sec5</a></span>）</li>
+</ul></li>
+</ul>
+<h1 id="reusing-between-domains"><span id="sec5">05-Reusing Between
+Domains</span></h1>
+<ul>
+<li>Simply reusing vertices without modification does not allow reuse
+through mirrors or glass.
+<ul>
+<li>反射定律会被违反</li>
+</ul></li>
+<li>shift mappings</li>
+</ul>
+<h2 id="preliminaries">Preliminaries</h2>
+<ul>
+<li>不同的 domains 之间的样本复用
+<ul>
+<li>例如 path spaces seen by different pixels</li>
+</ul></li>
+</ul>
+<h3 id="shift-mappings">Shift mappings</h3>
+<ul>
+<li>shift mapping：最早是在 Gradient-Domain MLT
+中提出，用于像素间的复用</li>
+<li>路径变换 <span class="math inline">\(A\to B\)</span>，<span class="math inline">\(y=T(x)\)</span></li>
+<li>reconnection shift
+<ul>
+<li><span class="math inline">\(\mathrm{x}_2\)</span>
+之后的路径不变，开头直接和 <span class="math inline">\(\mathrm{x}_2\)</span> 相连</li>
+<li>diffuse and rough surfaces 效果不错，但是 glossy or specular
+surfaces 不行（连接的光路不成立）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+T_{i\to
+j}([{\color{red}\mathrm{x}_{i,0},\mathrm{x}_{i,1}},\mathrm{x}_{2},\mathrm{x}_{3},\cdots])
+=[{\color{red}\mathrm{x}_{j,0},\mathrm{x}_{j,1}},\mathrm{x}_{2},\mathrm{x}_{3},\cdots]
+\]</span></p>
+<ul>
+<li><p>其他：half-vector shift、random replay shift</p></li>
+<li><p>定义：Lin et al. (2022)</p>
+<ul>
+<li><p><strong>子集的双射</strong></p></li>
+<li><p>a shift mapping <span class="math inline">\(T\)</span> from <span class="math inline">\(A\)</span> to <span class="math inline">\(B\)</span> is a bĳective function from a subset
+<span class="math inline">\(\mathcal{D}(T)\subset A\)</span> to its
+image <span class="math inline">\(\mathcal{F}(T)\subset
+B\)</span></p></li>
+<li><p>undefined shifts 也要满足双射：如果 <span class="math inline">\(x\)</span> 不能被 <span class="math inline">\(T\)</span> 变换成 <span class="math inline">\(y\)</span>，那么不能存在 <span class="math inline">\(y\)</span> 能逆变换回 <span class="math inline">\(x\)</span></p></li>
+</ul></li>
+<li><p>实现上，在 <span class="math inline">\(T_{i\to j}\)</span>
+的过程中可能会设置 停止条件，返回 undefined</p></li>
+</ul>
+<h3 id="jacobian-determinants">Jacobian determinants</h3>
+<ul>
+<li>多变量的话称作 Jacobian matrix</li>
+<li>pdf 的变化
+<ul>
+<li><span class="math inline">\(W_Y=\dfrac{1}{p_Y(Y)}\)</span></li>
+<li><span class="math inline">\(Y=T(X)\)</span> 则有</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p_Y(Y)=\frac{p_X(X)}{\vert T&#39;(X)\vert},\quad W_Y={\vert
+T&#39;(X)\vert}W_X
+\]</span></p>
+<h2 id="reusing-samples-between-domains">Reusing samples between
+domains</h2>
+<ul>
+<li>和原来的区别，采样的时候可以在 <span class="math inline">\(\Omega_i\)</span> 上进行，复用的时候变换到 target
+domain <span class="math inline">\(\Omega\)</span>
+<ul>
+<li>shift failed：<span class="math inline">\(w_i=0\)</span></li>
+<li><span class="math inline">\(W_{X_i}\)</span>：定义在 <span class="math inline">\(\Omega_i\)</span> 上的
+<ul>
+<li><span class="math inline">\(W_{Y_i}={\vert
+T_i&#39;(X_i)\vert}W_{X_i}\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/5.2-RIS-with-shift-mapping.png"></p>
+<ul>
+<li>为了保证覆盖整个 <span class="math inline">\(\Omega\)</span>：加入
+canonical sample，使用 <span class="math inline">\(\hat{p}\)</span>
+采样（<span class="math inline">\(\Omega_i=\Omega\)</span>）
+<ul>
+<li><span class="math inline">\(T_i(x)=x,\vert{T_i&#39;(x)}\vert=1\)</span></li>
+</ul></li>
+<li><span id="5-alg4-ris-between-domains">算法流程</span></li>
+</ul>
+<p><img src="/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/alg4-ris-between-domains.png"></p>
+<h2 id="mis-between-domains">MIS between domains</h2>
+<ul>
+<li>如果我们知道 <span class="math inline">\(X_i\)</span> 生成的 <span class="math inline">\(\Omega_i\)</span> 上的 pdf
+<ul>
+<li><span class="math inline">\(y\in\Omega\)</span>，<span class="math inline">\(p_{Y_i}\)</span> 是 <span class="math inline">\(p_i\)</span> 映射到 <span class="math inline">\(\Omega\)</span> 上的 pdf</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+m_{i}(y)=\frac{p_{Y_{i}}(y)}{\sum_{j=1}^{M}p_{Y_{j}}(y)}
+\]</span></p>
+<ul>
+<li>根据
+<ul>
+<li><span class="math inline">\(y=T(x)\)</span></li>
+<li>变换规则：<span class="math inline">\(p_Y(y)=\dfrac{p_X(x)}{\vert
+T&#39;(x)\vert}\)</span></li>
+<li>双射</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p_{Y_i}(y)=p_{X_i}\left(T_i^{-1}(y)\right) \left|T_i^{-1&#39;}(y)\right|
+\]</span></p>
+<ul>
+<li>无法映射，则 <span class="math inline">\(p_{Y_i}(y)=0\)</span>
+<ul>
+<li>这一点允许我们使用 <span class="math inline">\(\hat{p}\)</span>
+作为代理（不需要特殊计算值）</li>
+<li>相当于都转化到 <span class="math inline">\(\Omega\)</span>
+上，然后使用 generalized balance heuristic</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\hat{p}_{\leftarrow i}(y)=
+\left\{
+\begin{array}{ll}\hat{p}_i\left(T_i^{-1}(y)\right)\left|T_i^{-1\prime}(y)\right|,&amp;\text{if}\;y\in
+T_i(\text{supp}\;X_i)\\
+0&amp;\text{otherwise}
+\end{array}
+\right.
+\]</span></p>
+<ul>
+<li>generalized balance heuristic</li>
+</ul>
+<p><span class="math display">\[
+m_i(y)=\frac{\hat{p}_{\leftarrow i}(y)}{\sum_{j=1}^M\hat{p}_{\leftarrow
+j}(y)}
+\]</span></p>
+<ul>
+<li>weighted 版本</li>
+</ul>
+<p><span class="math display">\[
+m_i(y)=\frac{c_i\hat{p}_{\leftarrow
+i}(y)}{\sum_{j=1}^Mc_j\hat{p}_{\leftarrow j}(y)}
+\]</span></p>
+<ul>
+<li>要求</li>
+</ul>
+<p><span class="math display">\[
+\mathop{\sum_{i=1}^M}_{y\in T_i(\operatorname{supp}X_i)}m_i(y)=1
+\]</span></p>
+<p><img src="/2024/09/25/CG/Papers/2023/ReSTIR-Course/02/mis.png"></p>
+<ul>
+<li>这样 MIS 的计算量还是太大了：<span class="math inline">\(O(M^2)\)</span>
+<ul>
+<li>之后有优化（<span style="color:red"> <a href="/2024/10/02/CG/Papers/2023/ReSTIR-Course/04/">sec7</a></span>）</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/08/13/CG/Papers/2024/RPT-ReRender/" rel="prev" title="(论文)[2024-EGSR] Residual path integrals for re-rendering">
+                  <i class="fa fa-chevron-left"></i> (论文)[2024-EGSR] Residual path integrals for re-rendering
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/10/02/CG/Papers/2023/ReSTIR-Course/03/" rel="next" title="(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (3)">
+                  (论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (3) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

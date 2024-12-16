@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="ReSTIR 的理论基础（蒙特卡洛积分、重要性采样、重采样）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (1)">
+<meta property="og:url" content="http://example.com/2024/03/01/CG/Papers/2023/ReSTIR-Course/01/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="ReSTIR 的理论基础（蒙特卡洛积分、重要性采样、重采样）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/03/01/CG/Papers/2023/ReSTIR-Course/01/3.1-ris-process.png">
+<meta property="article:published_time" content="2024-03-01T08:08:45.000Z">
+<meta property="article:modified_time" content="2024-10-03T06:39:30.736Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/03/01/CG/Papers/2023/ReSTIR-Course/01/3.1-ris-process.png">
+
+
+<link rel="canonical" href="http://example.com/2024/03/01/CG/Papers/2023/ReSTIR-Course/01/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/03/01/CG/Papers/2023/ReSTIR-Course/01/","path":"2024/03/01/CG/Papers/2023/ReSTIR-Course/01/","title":"(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (1)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (1) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#restir"><span class="nav-text">ReSTIR</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#abstract"><span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">1-Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#motivation-of-restir"><span class="nav-text">Motivation of ReSTIR</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#preliminaries"><span class="nav-text">2-Preliminaries</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#monte-carlo-integration"><span class="nav-text">Monte Carlo integration</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#supports"><span class="nav-text">Supports</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#multiple-importance-sampling"><span class="nav-text">Multiple Importance Sampling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#unbiased-contribution-weights"><span class="nav-text">Unbiased Contribution
+Weights</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#resampled-importance-sampling"><span class="nav-text">3-Resampled Importance
+Sampling</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#resampled-importance-sampling-1"><span class="nav-text">Resampled Importance
+Sampling</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90simple-integration"><span class="nav-text">例子：Simple integration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90bsdf-importance-sampling"><span class="nav-text">例子：BSDF importance
+sampling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mis-weights"><span class="nav-text">MIS weights</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90ris-between-bsdf-and-nee"><span class="nav-text">例子：RIS between BSDF and
+NEE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#inputs-with-unknown-pdfs"><span class="nav-text">Inputs with unknown PDFs</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/03/01/CG/Papers/2023/ReSTIR-Course/01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (1) | Banbao">
+      <meta itemprop="description" content="ReSTIR 的理论基础（蒙特卡洛积分、重要性采样、重采样）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2023-SIG-Course] A Gentle Introduction to ReSTIR: Path Reuse in Real-time (1)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-03-01 16:08:45" itemprop="dateCreated datePublished" datetime="2024-03-01T16:08:45+08:00">2024-03-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-10-03 14:39:30" itemprop="dateModified" datetime="2024-10-03T14:39:30+08:00">2024-10-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">ReSTIR 的理论基础（蒙特卡洛积分、重要性采样、重采样）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="restir">ReSTIR</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://intro-to-restir.cwyman.org/">主页</a></li>
+<li>update：March 4, 2024</li>
+</ul>
+<h1 id="abstract">Abstract</h1>
+<ul>
+<li>Reservoir-based Spatio-Temporal Importance Resampling</li>
+<li>内容
+<ul>
+<li>ReSTIR 的动机与应用、理论、局限、实现</li>
+<li>理论</li>
+<li>算法例子，实现可能的坑</li>
+<li>引擎集成，问题与挑战</li>
+</ul></li>
+</ul>
+<h1 id="introduction">1-Introduction</h1>
+<ul>
+<li>sample reuse 并不罕见，例如 denoiser、upsampler</li>
+<li>ReSTIR：<span style="color:red">unbiased</span></li>
+<li>直观：<strong>filters PDFs</strong>（例如 path guiding
+也能这么理解）
+<ul>
+<li>aggregating multiple samples into one with a better PDF</li>
+</ul></li>
+</ul>
+<h2 id="motivation-of-restir">Motivation of ReSTIR</h2>
+<ul>
+<li>path integral
+<ul>
+<li><span class="math inline">\(h_i\)</span>：image filter
+<ul>
+<li>例如 box-filter：per-pixel domain <span class="math inline">\(\Omega_i\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I_i=\int_\Omega h_i(x)f(x)\;\mathrm{d}x
+\]</span></p>
+<ul>
+<li>试图让 <span class="math inline">\(p\propto
+f\)</span>，但是很难</li>
+</ul>
+<p><span class="math display">\[
+\langle I_i\rangle=\frac{1}{N}\sum_{j=1}^N\frac{f(X_j)}{p(X_j)}
+\]</span></p>
+<ul>
+<li>ReSTIR 的前提
+<ul>
+<li><strong>a good path</strong> for pixel <span class="math inline">\(a\)</span>, when reused for pixel <span class="math inline">\(b\)</span> with <strong>minor
+modifications</strong>, tends to be useful for pixel <span class="math inline">\(b\)</span></li>
+<li>good：<span class="math inline">\(f\)</span> 值大</li>
+</ul></li>
+<li>不能直接使用 good path，会引入 bias
+<ul>
+<li>RIS：resampled importance sampling</li>
+</ul></li>
+<li>RIS：多个样本，分配权重，重新采样生成一个样本
+<ul>
+<li><strong>RIS is an aggregation machine</strong></li>
+</ul></li>
+<li><strong>使用 <span class="math inline">\(1\)</span> 个样本比不过使用
+<span class="math inline">\(M\)</span> 个样本</strong>
+<ul>
+<li>但是好处是，输出只有 <span class="math inline">\(1\)</span>
+个样本，后续处理代价小</li>
+</ul></li>
+</ul>
+<h1 id="preliminaries">2-Preliminaries</h1>
+<h2 id="monte-carlo-integration">Monte Carlo integration</h2>
+<p><span class="math display">\[
+I=\int_\Omega f(x) \mathrm{d}x
+\]</span></p>
+<ul>
+<li><span class="math inline">\(M\)</span> 个样本：<span class="math inline">\(X_1,\cdots,X_{M}\)</span></li>
+<li>uniform distribution：<span class="math inline">\(p=\dfrac{1}{\Omega}\)</span></li>
+</ul>
+<p><span class="math display">\[
+I\approx\langle I\rangle=|\Omega| \frac{1}{M}\sum_{i=1}^{M}f(X_{i})
+\]</span></p>
+<ul>
+<li>general</li>
+</ul>
+<p><span class="math display">\[
+\langle I\rangle=\sum_{i=1}^M\frac{1}{M}\frac{f(X_i)}{p_i(X_i)}
+\]</span></p>
+<ul>
+<li>单样本</li>
+</ul>
+<p><span class="math display">\[
+\langle I\rangle=\frac{f(X)}{p(X)}
+\]</span></p>
+<ul>
+<li>无偏：<span class="math inline">\(\mathbb{E}[\langle
+I\rangle]=I\)</span></li>
+<li>perfect PDF(zero variance)：<span class="math inline">\(f(X)/p(X),\forall X\in\Omega\)</span> 是常数</li>
+<li><strong>variance</strong>：评估 quality/accuracy of an MC
+estimator</li>
+<li>降低方差
+<ul>
+<li>更好的 <span class="math inline">\(p\)</span></li>
+<li>更多的 <span class="math inline">\(M\)</span></li>
+</ul></li>
+</ul>
+<h2 id="supports">Supports</h2>
+<ul>
+<li><span class="math inline">\(\text{supp}(f)\)</span>
+<ul>
+<li>function’s support：函数值非 0</li>
+</ul></li>
+<li><span class="math inline">\(\text{supp}(X)\)</span>
+<ul>
+<li>random variable’s：样本采样空间</li>
+</ul></li>
+<li>MC 估计的无偏性保证：<span class="math inline">\(\text{supp}(f)\subseteq
+\text{supp}(X)\)</span></li>
+<li><strong>ReSTIR 复用了周围的样本，需要额外注意无偏性</strong></li>
+</ul>
+<h2 id="multiple-importance-sampling">Multiple Importance Sampling</h2>
+<p><span class="math display">\[
+\langle I\rangle=\sum_{i=1}^Mm_i(X_i)\frac{f(X_i)}{p_i(X_i)}
+\]</span></p>
+<ul>
+<li>条件
+<ul>
+<li><span class="math inline">\(\sum_im_i(x)=1,\forall x\in
+\text{supp}(f)\)</span></li>
+<li><span class="math inline">\(m_i(x)=0,\forall x\notin
+\text{supp}(X_i)\)</span></li>
+</ul></li>
+<li>无偏条件：<span class="math inline">\(\text{supp}(f)\subseteq
+\bigcup \text{supp}(X_i)\)</span></li>
+<li>balance heuristic（平衡启发式）</li>
+</ul>
+<p><span class="math display">\[
+m_i(x)=\frac{p_i(x)}{\sum_jp_j(x)}
+\]</span></p>
+<h2 id="unbiased-contribution-weights">Unbiased Contribution
+Weights</h2>
+<ul>
+<li>不能显式计算出 <span class="math inline">\(p(x)\)</span>，如果可计算出 <span class="math inline">\(1/p(x)\)</span> 的期望也行
+<ul>
+<li><span class="math inline">\(\mathbb{E}[W_X|X]=1/p(X)\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\langle I\rangle=f(X)\cdot W_X\quad\text{with}\quad\mathbb{E}[f(X)\cdot
+W_X]=\mathbb{E}[f(X)/p(X)]=I.
+\]</span></p>
+<ul>
+<li><span class="math inline">\(W_X\)</span> 而不是 <span class="math inline">\(W(X)\)</span>
+<ul>
+<li>因为其不能在任意点求值，不能用在 MIS 参数中</li>
+<li>是估计，不是函数</li>
+</ul></li>
+</ul>
+<h1 id="resampled-importance-sampling">3-Resampled Importance
+Sampling</h1>
+<ul>
+<li>MC 难点：<strong>没有好的便于采样的 pdf</strong></li>
+<li>RIS 流程
+<ul>
+<li>输入一个候选样本序列 ：<span class="math inline">\(X_1,\cdots,X_M\)</span></li>
+<li>给每一个样本一个重采样权重 <span class="math inline">\(w_i\)</span></li>
+<li>根据权重重新生成一个样本</li>
+</ul></li>
+<li>需要 <span class="math inline">\(W_X\)</span>，但是不一定是 pdf
+<ul>
+<li>使用 <span class="math inline">\(W_X\)</span> 替换掉 <span class="math inline">\(f(x)/p(x)\)</span> 中的 <span class="math inline">\(1/p(x)\)</span></li>
+<li>Unbiased Contribution Weights</li>
+</ul></li>
+<li>上面这个式子就是 ReSTIR 早期论文用的重采样权重
+<ul>
+<li><span class="math inline">\(\hat{p}(x)\)</span> is the
+<strong>target function</strong> that the PDF of <span class="math inline">\(X\)</span> approximates better and better with
+more and more candidates.</li>
+<li><span class="math inline">\(\hat{p}(x)\)</span>
+虽然很难算，但是存在</li>
+<li>这里的 <span class="math inline">\(\dfrac{1}{M}\)</span>
+就是后面说的 MIS 权重</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+w_i=\frac{\hat{p}(X_i)}{p(X_i)}\quad\mathrm{and}\quad
+W_X=\frac{1}{\hat{p}(X)}\left(\frac{1}{M}\sum_{i=1}^{M}w_i\right)
+\]</span></p>
+<ul>
+<li>泛化版本：重采样时正比于 <span class="math inline">\(w_i\)</span>，因此都一样</li>
+</ul>
+<p><span class="math display">\[
+w_i=\frac{1}{M}\frac{\hat{p}(X_i)}{p(X_i)}\quad\mathrm{and}\quad
+W_X=\frac{1}{\hat{p}(X)}\left(\sum_{i=1}^{M}w_i\right)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\sum_{i=1}^Mw_i\)</span> 估计了 <span class="math inline">\(\hat{p}\)</span> 的归一化因子</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\Rightarrow &amp;\quad\sum_{i=1}^Mw_i=\hat{p}(X)W_X\\
+\Rightarrow
+&amp;\quad\mathbb{E}\left[\sum_{i=1}^Mw_i\right]=\mathbb{E}\left[\hat{p}(X)W_X\right]=\int_\Omega\hat{p}(x)
+\mathrm{d}x\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>当 <span class="math inline">\(\sum_{i=1}^{M}w_i\)</span>
+的方差趋近于 0 时（样本数足够多）
+<ul>
+<li>output PDF 趋近于 target PDF（<span class="math inline">\(\bar{p}=\hat{p}/\int\hat{p}\)</span>）</li>
+<li><span class="math inline">\(W_X\)</span> 趋近于 <span class="math inline">\(1/\bar{p}(X)\)</span></li>
+<li><strong>完全近似成 target function</strong></li>
+</ul></li>
+<li>选择 <span class="math inline">\(\hat{p}=f\)</span>
+可以实现零方差</li>
+</ul>
+<h2 id="resampled-importance-sampling-1">Resampled Importance
+Sampling</h2>
+<ul>
+<li>流程如下
+<ul>
+<li><span style="color:red">注意</span>：这里的 <span class="math inline">\(m_i(X_j)\)</span>
+也是存在的，外面和里面的下标含义不一样</li>
+</ul></li>
+</ul>
+<p><img src="/2024/03/01/CG/Papers/2023/ReSTIR-Course/01/3.1-ris-process.png"></p>
+<ul>
+<li>如果生成 <span class="math inline">\(X_i\)</span> 的 pdf 已知，都为
+<span class="math inline">\(p\)</span>，那么 <span class="math inline">\(W_{X_i}=\dfrac{1}{p(X_i)}\)</span></li>
+<li><strong><span id="3-ris-correct">正确性保证</span></strong>
+<ul>
+<li>这里 <span class="math inline">\(m_i\)</span> 的含义是假定样本来自于
+<span class="math inline">\(M\)</span> 个不同的分布（通用的假设）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}[W_X]
+=\dfrac{1}{\hat{p}(X)}\cdot\mathbb{E}\left[\sum_{i=1}^Mw_i\right]
+=\dfrac{1}{\hat{p}(X)}\cdot\mathbb{E}\left[\sum_{i=1}^Mm_i(X_i)\hat{p}(X_i)W_{X_i}\right]
+\]</span></p>
+<ul>
+<li>分析</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb{E}[f(X)W_X]
+&amp;=\mathbb{E}_{X_j}\left[\sum_{j=1}^{M}\left(f(X_j)\cdot\left(\dfrac{1}{\hat{p}(X_j)}\cdot\sum_{i=1}^Mw_i\right)\cdot\dfrac{w_j}{\sum_{i=1}^Mw_j}\right)\right]\\
+&amp;=\mathbb{E}_{X_j}\left[\sum_{j=1}^{M}\left(f(X_j)m_j(X_j)W_{X_j}\right)\right]
+\end{aligned}
+\]</span> { }</p>
+<ul>
+<li>还需要保证 <span class="math inline">\(X_i\)</span>
+能够覆盖到整个样本空间（<span class="math inline">\(f\)</span> 的
+support）（需要找到所有可能的样本）</li>
+<li>如果所有样本的 <span class="math inline">\(w_i\)</span> 都是
+0，那么没有样本生成，算法返回 a null sample <span class="math inline">\(\emptyset\)</span>（<span class="math inline">\(W_{\emptyset}=0\)</span>）
+<ul>
+<li><strong>特殊处理</strong>而不是直接替换，替换会导致 bias<span style="color:red">（为啥？）</span></li>
+</ul></li>
+<li>独立同分布：如果生成样本 <span class="math inline">\(X_i\)</span> 的
+pdf 已知为 <span class="math inline">\(p(x)\)</span>，MIS 权重可以设置为
+<span class="math inline">\(\dfrac{1}{M}\)</span>
+<ul>
+<li>期望含义上，<span class="math inline">\(\mathbb{E}[W_X]=\dfrac{\int\hat{p}(X)}{\hat{p}(X)}\)</span>，<span class="math inline">\(M\to\infty\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb{E}[W_X]
+&amp;=\dfrac{1}{\hat{p}(X)}\cdot\mathbb{E}\left[\sum_{i=1}^M\dfrac{1}{M}\dfrac{\hat{p}(X_i)}{p(X_i)}\right]\\
+&amp;=\dfrac{1}{\hat{p}(X)}\cdot\mathbb{E}\left[\dfrac{\hat{p}(X)}{p(X)}\right]\\
+&amp;=\dfrac{1}{\hat{p}(X)}\cdot\int\hat{p}(X)\;\mathrm{d}X\\
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb{E}[f(X)W_X]
+&amp;=\mathbb{E}_{X_j}\left[\sum_{j=1}^{M}\left(f(X_j)\cdot\dfrac{1}{M}\cdot
+\dfrac{1}{p(X_j)}\right)\right]\\
+&amp;=\mathbb{E}_{X_j}\left[\dfrac{1}{M}\cdot\sum_{j=1}^{M}\dfrac{f(X_j)}{p(X_j)}\right]\\
+&amp;=\mathbb{E}_{X_j}\left[\dfrac{f(X_j)}{p(X_j)}\right]\\
+\end{aligned}
+\]</span></p>
+<h3 id="例子simple-integration">例子：Simple integration</h3>
+<ul>
+<li>函数 <span class="math inline">\(f\)</span>，根据已知的 pdf <span class="math inline">\(p\)</span> 生成样本序列 <span class="math inline">\(X_1,\cdots,X_M\)</span></li>
+<li>使用方式
+<ul>
+<li>已知 <span class="math inline">\(p\)</span>，于是 <span class="math inline">\(W_{X_i}=\dfrac{1}{p(X_i)}\)</span></li>
+<li><span class="math inline">\(m_i(x)=\dfrac{1}{M}\)</span>
+<ul>
+<li>can only be used if all samples individually cover <span class="math inline">\(\text{supp}(f)\)</span></li>
+<li>如果一个样本有两种采样方式，而且他们并不是都完全覆盖 <span class="math inline">\(\text{supp}(f)\)</span>，<span class="math inline">\(1/M\)</span> 带来 bias
+<ul>
+<li>例如 BSDF + light</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>计算</li>
+</ul>
+<p><span class="math display">\[
+w_i=\dfrac{1}{M}\dfrac{\hat{p}(X_i)}{p(X_i)}
+\]</span></p>
+<ul>
+<li>根据 <span class="math inline">\(w_i\)</span> 生成新样本 <span class="math inline">\(Y\)</span></li>
+</ul>
+<p><span class="math display">\[
+W_Y=\dfrac{1}{\hat{p}(Y)}\sum_{j=1}^{M}w_j
+\]</span></p>
+<ul>
+<li>此时<a href="#3-ris-correct">正确性保证</a>容易证明
+<ul>
+<li>最后的结果就是我们常用的 MC 无偏估计</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb{E}\left[f(Y)W_Y\right]
+&amp;=\sum_{i=1}^{M}\left(\left(f(X_i)\cdot\dfrac{1}{\hat{p}(X_i)}\sum_{j=1}^{M}w_j\right)\cdot\left(\dfrac{w_i}{\sum_{j=1}^{M}w_j}\right)\right)\\
+&amp;=\dfrac{1}{M}\sum_{i=1}^{M}\dfrac{f(X_i)}{p(X_i)}\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>使用 <span class="math inline">\(\hat{p}=f\)</span>
+的时候效果最好，使用其它值也能保证正确，但是效果变差<span style="color:red">（方差分析？）</span>
+<ul>
+<li>计算 <span class="math inline">\(f\)</span>
+复杂度比较高的时候，使用其他近似</li>
+</ul></li>
+</ul>
+<h3 id="例子bsdf-importance-sampling">例子：BSDF importance
+sampling</h3>
+<ul>
+<li>我们不知道具体的 <span class="math inline">\(f\)</span>，使用简单的替代：<span class="math inline">\(\hat{p}=\text{BSDF}\cdot\cos\)</span>
+<ul>
+<li>证明和上面类似的，上面并没有用到 <span class="math inline">\(\hat{p}=f\)</span> 的条件</li>
+</ul></li>
+<li>效果并不一定好</li>
+</ul>
+<h2 id="mis-weights">MIS weights</h2>
+<ul>
+<li><span class="math inline">\(m_i(x)=\dfrac{1}{M}\)</span>
+只有在一种采样方式的时候无偏
+<ul>
+<li>或者说所有的采样方式都能完全覆盖整个定义域的时候，无偏</li>
+<li>否则则是有偏的
+<ul>
+<li><span class="math inline">\(\sum_{1}^{M}m_i(x)\)</span> 小于 1
+了（有些采样方式采样不到 <span class="math inline">\(x\)</span>）</li>
+</ul></li>
+</ul></li>
+<li>如果样本生成的 pdf 已知，则可以使用平衡启发式</li>
+</ul>
+<p><span class="math display">\[
+m_i(x)=\frac{p_i(x)}{\sum_{j=1}^Mp_j(x)}
+\]</span></p>
+<ul>
+<li><strong>MIS 权重如果考虑了其他样本 <span class="math inline">\(x_j\)</span> 的信息，多半是错误的</strong>
+<ul>
+<li>只考虑当前样本 <span class="math inline">\(x\)</span> 的信息</li>
+</ul></li>
+<li>在正确计算 MIS 之后，我们只需要满足所有方法的采样空间的并集包含
+<span class="math inline">\(f\)</span> 的定义域即可
+<ul>
+<li>不要求每一个都包含</li>
+<li>容易实现：只需要并上一个保守实现即可</li>
+</ul></li>
+<li>算 MIS 权重很慢，需要改进</li>
+</ul>
+<h2 id="例子ris-between-bsdf-and-nee">例子：RIS between BSDF and
+NEE</h2>
+<ul>
+<li>BSDF（<span class="math inline">\(p_1\)</span>）采样得到 <span class="math inline">\(M_1\)</span> 个样本，light（<span class="math inline">\(p_2\)</span>）采样得到 <span class="math inline">\(M_2\)</span> 个样本</li>
+<li>BSDF 为例
+<ul>
+<li>相当于这里看作有 <span class="math inline">\(M_1+M_2\)</span>
+种采样方案</li>
+<li><span class="math inline">\(i=1,\cdots,M_1\)</span> 时，<span class="math inline">\(m_i,w_i\)</span> 如下</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+m_i(x)=\frac{p_1(x)}{M_1p_1(x)+M_2p_2(x)}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+w_{i}(X_i)&amp; =m_{1}(X_{i}) \hat{p}(X_{i})W_{X_{i}} \\
+&amp;=
+\left(\frac{p_{1}(X_{i})}{M_{1}p_{1}(X_{i})+M_{2}p_{2}(X_{i})}\right)\hat{p}(X_{i})\frac{1}{p_{1}(X_{i})}
+\end{aligned}
+\]</span></p>
+<ul>
+<li>light 类似，<span class="math inline">\(i=M_1+1,\cdots,M_1+M_2\)</span> 时选 light</li>
+<li><span class="math inline">\(W_X\)</span></li>
+</ul>
+<p><span class="math display">\[
+W_X=\dfrac{1}{\hat{p}(X)}\sum_{j=1}^{M_1+M_2}w_j
+\]</span></p>
+<ul>
+<li>证明类似</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb{E}[f(X)W_X]
+&amp;=\mathbb{E}_{X_j}\left[\sum_{j=1}^{M}\left(f(X_j)m_j(X_j)W_{X_j}\right)\right]\\
+&amp;=\mathbb{E}_{X_j}\left[\sum_{j=1}^{M_1}\left(f(X_j)\cdot
+m_j(X_j)\cdot\dfrac{1}{p_1({X_j})}\right)+\cdots\right]\\
+&amp;=\mathbb{E}_{X_j}\left[\left(\dfrac{f(X_j)}{p_1({X_j})}\cdot  m_j(X_j)\right)+\cdots\right]\\
+&amp;=\mathbb{E}_{X_j}\left[\left(f(X_j)\cdot
+m_j(X_j)\right)\right]+\cdots\\
+独立随机变量
+&amp;=\int\left(f(X_j)\cdot m_j(X_j)\right)\cdot
+p_1(X_j)\;\mathrm{d}X_j+\cdots\\
+&amp;=\int\left(f(X_j)\cdot m_j(X_j)\right)\;\mathrm{d}X_j+\cdots\\
+&amp;=\int\left(f(X_j)\cdot\sum_j m_j(X_j)\right)\;\mathrm{d}X_j\\
+&amp;=\int f(X_j)\;\mathrm{d}X_j\\
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb{E}[f(X)W_X]
+&amp;=\mathbb{E}_{X_j}\left[\sum_{j=1}^{M}\left(f(X_j)m_j(X_j)W_{X_j}\right)\right]\\
+&amp;=\mathbb{E}_{X_j}\left[\sum_{j=1}^{M_1}\left(f(X_j)\cdot\frac{p_1(X_j)}{M_1p_1(X_j)+M_2p_2(X_j)}\cdot\dfrac{1}{p_1({X_j})}\right)+\cdots\right]\\
+&amp;=\mathbb{E}_{X_j}\left[\left(\dfrac{f(X_j)}{p_1({X_j})}\cdot\frac{M_1p_1(X_j)}{M_1p_1(X_j)+M_2p_2(X_j)}\right)+\cdots\right]\\
+&amp;=\mathbb{E}_{X_j}\left[\left(f(X_j)\cdot\frac{M_1}{M_1p_1(X_j)+M_2p_2(X_j)}\right)\right]+\cdots\\
+独立随机变量
+&amp;=\int\left(f(X_j)\cdot\frac{M_1}{M_1p_1(X_j)+M_2p_2(X_j)}\right)\cdot
+p_1(X_j)\;\mathrm{d}X_j+\cdots\\
+&amp;=\int\left(f(X_j)\cdot\frac{M_1
+p_1(X_j)}{M_1p_1(X_j)+M_2p_2(X_j)}\right)\;\mathrm{d}X_j+\cdots\\
+&amp;=\int\left(f(X_j)\cdot\frac{M_1
+p_1(X_j)+M_2p_2(X_j)}{M_1p_1(X_j)+M_2p_2(X_j)}\right)\;\mathrm{d}X_j\\
+&amp;=\int f(X_j)\;\mathrm{d}X_j\\
+也等价于使用\ p_{12}\ 进行采样
+&amp;=\dfrac{M_1}{M_1+M_2}\mathbb{E}_{X_j}\left[\left(\frac{(M_1+M_2)f(X_j)}{M_1p_1(X_j)+M_2p_2(X_j)}\right)\right]+\cdots\\
+&amp;=\dfrac{M_1}{M_1+M_2}\mathbb{E}_{X_j}\left[\left(\frac{f(X_j)}{p_{12}(X_j)}\right)\right]+\cdots\\
+&amp;=\mathbb{E}_{X_j}\left[\left(\frac{f(X_j)}{p_{12}(X_j)}\right)\right]
+\end{aligned}
+\]</span></p>
+<h2 id="inputs-with-unknown-pdfs">Inputs with unknown PDFs</h2>
+<ul>
+<li>不知道采样样本所使用的 pdf，但是知道 UCW（unbiased contribution
+weights）
+<ul>
+<li><span class="math inline">\(W_{X_1},\cdots,W_{X_M}\)</span></li>
+<li>并且假定输入是通过 RIS 得到的</li>
+<li>根据 UCW 定义：<span class="math inline">\(\mathbb{E}[W_{X_i}]=\dfrac{1}{p_i(X_i)}\)</span></li>
+</ul></li>
+<li>此时整体流程都一样，但是算不出来 MIS 权重</li>
+<li>因为 RIS 得到，使用 <span class="math inline">\(\hat{p}_i(x)\)</span> 作为代理</li>
+<li>generalized balance heuristic</li>
+</ul>
+<p><span class="math display">\[
+m_i(x)=\frac{\hat{p}_i(x)}{\sum_{j=1}^M\hat{p}_j(x)}
+\]</span></p>
+<ul>
+<li>迭代的时候，我们保证变量的定义域（原始的 <span class="math inline">\(p\)</span> 采样得到的）和 target function <span class="math inline">\(\hat{p}\)</span> 的定义域完全相同
+<ul>
+<li><span class="math inline">\(\hat{p}=0\)</span> exactly when <span class="math inline">\(p=0\)</span></li>
+<li>通过使用一个 canonical sample <span class="math inline">\(X_c\)</span> 保证（通过在一个覆盖 <span class="math inline">\(\text{supp}(\hat{p})\)</span> 的 pdf RIS
+实现）</li>
+</ul></li>
+<li>如此便能实现重用</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/01/08/software/vs/01/" rel="prev" title="vs 编码问题">
+                  <i class="fa fa-chevron-left"></i> vs 编码问题
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/03/05/CG/Papers/2020/NCV/" rel="next" title="(论文)[2020-SIG] Neural Control Variates">
+                  (论文)[2020-SIG] Neural Control Variates <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

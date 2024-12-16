@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Deep Adaptive Sampling and Reconstruction using Analytic Distributions">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2022-SIG] Deep Adaptive Sampling and Reconstruction using Analytic Distributions">
+<meta property="og:url" content="http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Deep Adaptive Sampling and Reconstruction using Analytic Distributions">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/fig2-pipeline.png">
+<meta property="og:image" content="http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/theorem-1.png">
+<meta property="og:image" content="http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/fig3-true-vs-gamma.png">
+<meta property="og:image" content="http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/fig4-qq-plot.png">
+<meta property="og:image" content="http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/fig6-UNet.png">
+<meta property="article:published_time" content="2024-11-15T05:43:50.000Z">
+<meta property="article:modified_time" content="2024-11-27T16:04:44.320Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/fig2-pipeline.png">
+
+
+<link rel="canonical" href="http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/","path":"2024/11/15/CG/Papers/2022/DASR-AD/","title":"(论文)[2022-SIG] Deep Adaptive Sampling and Reconstruction using Analytic Distributions"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2022-SIG] Deep Adaptive Sampling and Reconstruction using Analytic Distributions | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dasr-using-analytic-distributions"><span class="nav-text">DASR using Analytic
+Distributions</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#related-work"><span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#methodology"><span class="nav-text">Methodology</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#optimizing-the-sampling-map"><span class="nav-text">Optimizing the Sampling Map</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#analytic-noise-distribution-synthesis"><span class="nav-text">Analytic Noise
+Distribution Synthesis</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E7%90%861"><span class="nav-text">引理1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#choice-of-distribution"><span class="nav-text">Choice of Distribution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jointly-optimizing-sampling-and-denoising"><span class="nav-text">Jointly Optimizing
+Sampling and Denoising</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#implementation"><span class="nav-text">Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#denoiser-and-sampler-architectures"><span class="nav-text">Denoiser and Sampler
+Architectures</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#denoiser"><span class="nav-text">denoiser</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sampler"><span class="nav-text">sampler</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#global-summary-module"><span class="nav-text">Global Summary Module</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#analytic-noise-distributions"><span class="nav-text">Analytic Noise Distributions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dataset"><span class="nav-text">Dataset</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#training"><span class="nav-text">Training</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#denoiser-training"><span class="nav-text">Denoiser Training</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%94%E5%90%88%E4%BC%98%E5%8C%96"><span class="nav-text">联合优化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/15/CG/Papers/2022/DASR-AD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2022-SIG] Deep Adaptive Sampling and Reconstruction using Analytic Distributions | Banbao">
+      <meta itemprop="description" content="Deep Adaptive Sampling and Reconstruction using Analytic Distributions">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2022-SIG] Deep Adaptive Sampling and Reconstruction using Analytic Distributions
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-11-15 13:43:50" itemprop="dateCreated datePublished" datetime="2024-11-15T13:43:50+08:00">2024-11-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-11-28 00:04:44" itemprop="dateModified" datetime="2024-11-28T00:04:44+08:00">2024-11-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Deep Adaptive Sampling and Reconstruction using Analytic Distributions</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="dasr-using-analytic-distributions">DASR using Analytic
+Distributions</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://studios.disneyresearch.com/2022/11/30/deep-adaptive-sampling-and-reconstruction-using-analytic-distributions/">主页</a>：<strong>Disney
+Research</strong> | Studios, Switzerland
+<ul>
+<li>Farnood Salehi、Marco Manzi、Gerhard Röthlin、Christopher
+Schroers、Romann Weber、Marios Papas</li>
+</ul></li>
+<li>和之前的方法不同
+<ul>
+<li>之前训练的图片是预渲染的，我们是从解析噪声中采样的（噪声近似像素分布）</li>
+<li>能够从少量目标分布的样本中高效采样</li>
+<li>spp 增加，我们的解析近似越准</li>
+<li>另外还有 global summary
+module，用于获取感受野之外的信息（减缓局部最优问题）</li>
+<li>端到端训练：AS + Denoiser</li>
+</ul></li>
+<li>坚实的理论分析</li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>理想的 AS 策略需要考虑：<strong>增加的样本</strong>如何影响 denoised
+image
+<ul>
+<li>目前的 AS+ReCon 算法没有考虑这点【<a href="/2024/11/06/CG/Papers/2018/DASR/">DASR</a>】</li>
+</ul></li>
+<li>我们的算法比之前的效果更好：DEP、DASR（使用相同的训练数据集）
+<ul>
+<li>DEP：【2018-SIG】Denoising with Kernel Prediction and Asymmetric
+Loss Functions</li>
+</ul></li>
+<li>使用更少的训练数据，效果比 DASR 更好
+<ul>
+<li>针对高质量的渲染时，减少 26-37% 的训练数据</li>
+</ul></li>
+<li>目标：We designed our method for the specific use case of
+<strong>high quality offline rendering of single frames</strong>, where
+the sampling distribution is refined iteratively during rendering.</li>
+</ul>
+<h1 id="related-work">Related Work</h1>
+<ul>
+<li>我们的框架能使用任何可微的 denoiser，我们选用 KPCN
+<ul>
+<li>【SIG-2017】Kernel-predicting convolutional networks for denoising
+Monte Carlo renderings</li>
+</ul></li>
+<li>最接近的两个工作：DEP、DASR</li>
+<li>DEP：先估计降噪后图片的 remaining error，然后根据 error 获得
+sampling map
+<ul>
+<li>假设 error 的降低应该正比于目前的 denoising error（启发式）
+<ul>
+<li>没有考虑当前像素样本的增加对周围像素的影响</li>
+</ul></li>
+<li>denoiser 优化了 sampler，但是 denoiser 并没有从 sampler
+中获得的分布中优化</li>
+</ul></li>
+<li>DASR
+<ul>
+<li>需要很多预渲染的训练样本</li>
+<li>因为磁盘 IO/GPU 显存问题，训练时间也被拉长</li>
+<li>多 spp 训练，这个问题更严重</li>
+</ul></li>
+<li>我们的方法类似 DASR，但是不需要存储大量样本</li>
+</ul>
+<h1 id="methodology">Methodology</h1>
+<p><img src="/2024/11/15/CG/Papers/2022/DASR-AD/fig2-pipeline.png"></p>
+<ul>
+<li>迭代渲染：<span class="math inline">\(t\in[0,T]\)</span>
+<ul>
+<li>本轮迭代的样本数 <span class="math inline">\(B_t\)</span>（budget）
+<ul>
+<li><span class="math inline">\(B_t=\sum_{p\in P}s_p(t)\)</span></li>
+</ul></li>
+<li>sample map <span class="math inline">\(\mathcal{S}_t=\{s_p(t)\}\)</span></li>
+</ul></li>
+<li>第一轮迭代：均匀分布
+<ul>
+<li><span class="math inline">\(s_p(0)=B_0/|P|,\forall p\in
+P\)</span></li>
+</ul></li>
+<li>之后的 <span class="math inline">\(\mathcal{S}_t\)</span>
+计算如下</li>
+</ul>
+<h2 id="optimizing-the-sampling-map">Optimizing the Sampling Map</h2>
+<ul>
+<li><span id="eq1">定义最优化目标</span></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\quad\mathcal{S}_{t+1}(X_t, B_{t+1}) = \arg\min_{\mathcal{S}}
+\mathbb{E}_{Y \sim \mathcal{R}(Y | \mathcal{S}, \bar{ \mathcal{S}}_t,
+X_t)} \left[ \mathcal{L}(\mathcal{D}(Y), X_g) \right]&amp;\quad(1)\\
+\text{subject to}&amp;\quad \sum_{p \in P} s_p = B_{t+1} \text{ and }
+s_p \geq 0, \forall p \in P&amp;\quad(2)
+\end{aligned}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathcal{R}(Y | \mathcal{S}, \bar{
+\mathcal{S}}_t, X_t)\)</span>：根据 <span class="math inline">\(\mathcal{S}\)</span> 生成新样本，并将其累加到
+<span class="math inline">\(X_t\)</span> 上之后的渲染结果分布
+<ul>
+<li><span class="math inline">\(\bar{
+\mathcal{S}}_t=\{\sum_{j=0}^{t}s_p(t)\}\)</span>：累计 sample
+distribution</li>
+</ul></li>
+<li><span class="math inline">\(\mathcal{L}\)</span>：loss</li>
+<li><span class="math inline">\(\mathcal{D}\)</span>：denoiser</li>
+<li><span class="math inline">\(X_g\)</span>：GT reference image</li>
+<li><span class="math inline">\(Y = \dfrac{\bar{\mathcal{S}}_t X_t +
+\mathcal{S} \bar{Y}_{\mathcal{S}}}{\bar{\mathcal{S}}_t +
+\mathcal{S}}\)</span>（element-wise calculation）</li>
+<li>当前迭代轮 <span class="math inline">\(t\)</span> 不知道下一轮迭代
+<span class="math inline">\(t+1\)</span> 的样本的值，因此 <a href="#eq1">式子 1</a> 得通过下一轮的期望优化</li>
+<li>DASR 采样式子 1，<span class="math inline">\(Y\)</span>
+通过预渲染的图片组装
+<ul>
+<li>需要保存所有样本，开销大</li>
+</ul></li>
+</ul>
+<h2 id="analytic-noise-distribution-synthesis">Analytic Noise
+Distribution Synthesis</h2>
+<ul>
+<li>前提
+<ul>
+<li>知道每一个像素的 GT mean、variance</li>
+<li>renderer is using i.i.d. samples</li>
+</ul></li>
+<li>将（both） rendered and analytic distributions 建模为样本数的函数
+<ul>
+<li>这样能够就能生成任意多的样本</li>
+</ul></li>
+<li>先分析 <span class="math inline">\(\mathbb{E}_{Y \sim \mathcal{R}(Y
+| \mathcal{S}, \bar{ \mathcal{S}}_t, X_t)} \left[
+\mathcal{L}(\mathcal{D}(Y), X_g) \right]\)</span> 的特征</li>
+<li><span class="math inline">\(X_t=[I_t,F_t]\)</span>：noisy
+data（color、features）</li>
+</ul>
+<h3 id="引理1">引理1</h3>
+<p><img src="/2024/11/15/CG/Papers/2022/DASR-AD/theorem-1.png"></p>
+<ul>
+<li>其中 <span class="math inline">\(\Psi\)</span> 是任意和 <span class="math inline">\(\mathcal{R}\)</span> 期望、方差相同的分布</li>
+</ul>
+<p><span class="math display">\[
+\begin{array}{l}
+\mathbb{E}_{\Psi\left(Y\mid\mathcal{S},\bar{\mathcal{S}}_{t},
+X_{t}\right)}[Y]=\mathbb{E}_{\mathcal{R}\left(Y\mid\mathcal{S},\bar{\mathcal{S}}_{t},
+X_{t}\right)}[Y],\\
+\mathbb{V}_{\Psi\left(Y\mid\mathcal{S},\bar{\mathcal{S}}_{t},
+X_{t}\right)}[Y]=\mathbb{V}_{\mathcal{R}\left(Y\mid\mathcal{S},\bar{\mathcal{S}}_{t},
+X_{t}\right)}[Y].
+\end{array}
+\]</span></p>
+<ul>
+<li>推导见论文，简单的理解如下
+<ul>
+<li><span class="math inline">\(\text{MSE}=\text{Var}+\text{Bias}^2\)</span>，然后发现最终的结果只和
+<span class="math inline">\(\mathcal{R}\)</span> 的 var、mean 有关，和
+<span class="math inline">\(\mathcal{R}\)</span> 本身无关</li>
+<li>MRSE 可以写作 MSE 的表达式，剩余都是常量，因此也 OK</li>
+</ul></li>
+<li>引理1只是说，denoise kernel 不能依赖于 <span class="math inline">\(t+1\)</span> 的某个具体的数据
+<ul>
+<li>可以依赖于 <span class="math inline">\(t\)</span> 和 <span class="math inline">\(t\)</span> 之前已有的数据</li>
+<li>可以依赖于之后数据的一些统计信息</li>
+</ul></li>
+<li>在引理1的加持下，我们可以将 rendered samples 替换成任意的 mean、var
+相同的解析分布 <span class="math inline">\(\Psi\left(Y\mid\mathcal{S},\bar{\mathcal{S}}_{t},
+X_{t}\right)\)</span></li>
+<li>计算 future rendered mean、var
+<ul>
+<li><span class="math inline">\(\hat{\mathbb{V}}[X_t]\)</span>：numerical estimate
+of the variance of the current data</li>
+<li><span class="math inline">\(\mathbb{V}_{X_g}\)</span>：reference
+sample variance【把样本数乘掉了，所以少了一个 <span class="math inline">\(\mathcal{S}\)</span>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}_{\mathcal{R}}(Y \mid \mathcal{S}, \bar{\mathcal{S}}_t,
+X_t)[Y] = \frac{\bar{\mathcal{S}}_t X_t + \mathcal{S}
+X_g}{\bar{\mathcal{S}}_t + \mathcal{S}}
+\]</span></p>
+<p><span class="math display">\[
+\mathbb{V}_{\mathcal{R}}(Y \mid \mathcal{S}, \bar{\mathcal{S}}_t,
+X_t)[Y] = \frac{\bar{\mathcal{S}}_t^2 \hat{\mathbb{V}}[X_t] +
+\mathcal{S} \mathbb{V}_{X_g}}{(\bar{\mathcal{S}}_t + \mathcal{S})^2}
+\]</span></p>
+<h2 id="choice-of-distribution">Choice of Distribution</h2>
+<ul>
+<li>前人研究表明，PT 结果，像素值均值的分布近似于 gamma 分布
+<ul>
+<li>指像素 <span class="math inline">\(p\)</span> 在第 <span class="math inline">\(1\sim k\)</span> spp 下能够计算 <span class="math inline">\(k\)</span> 个均值 ，这 <span class="math inline">\(k\)</span> 个均值满足 gamma
+分布【中心极限定理，满足 Gaussian】</li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1906.00124">Learning Patterns in
+Sample Distributions for Monte Carlo Variance Reduction</a></li>
+</ul></li>
+<li>如下是示意图
+<ul>
+<li>左右图只是低 spp 和 高 spp 的区别
+<ul>
+<li>高 spp，gamma 分布近似的更好</li>
+<li>高 spp，分布更像是正态分布【中心极限定理】</li>
+</ul></li>
+<li>看左图
+<ul>
+<li>上图：每个像素根据前 64 spp 的结果可以计算出一个分布 <span class="math inline">\(\mathcal{R}\)</span>，然后根据 <span class="math inline">\(\mathcal{R}\)</span> 进行采样 64
+spp，得到的结果图</li>
+<li>下图：每个像素根据前 64 spp 的结果，使用分布 <span class="math inline">\(Y_{\gamma}\)</span> 去近似这组数据，然后根据 <span class="math inline">\(Y_{\gamma}\)</span> 进行采样 64
+spp，得到的结果图</li>
+<li>选定了红绿蓝三个区域，将其放大后展示
+<ul>
+<li>其中直方图对应被选中区域的中心像素，前 64 spp
+的直方图【单个像素的直方图】
+<ul>
+<li>展示其分布，红线表示近似的 gamma 分布</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2024/11/15/CG/Papers/2022/DASR-AD/fig3-true-vs-gamma.png"></p>
+<ul>
+<li>对角线是真实的 CDF，另外 3 条线是近似情况
+<ul>
+<li>可以看出 gamma、log-normal 在低 spp 也能不错近似</li>
+</ul></li>
+</ul>
+<p><img src="/2024/11/15/CG/Papers/2022/DASR-AD/fig4-qq-plot.png"></p>
+<ul>
+<li>gamma 分布的好处
+<ul>
+<li>期望：<span class="math inline">\(\alpha\beta\)</span>，方差：<span class="math inline">\(\alpha\beta^2\)</span></li>
+<li>gamma 分布的可加性
+<ul>
+<li>相互独立的随机变量 <span class="math inline">\(X,Y\)</span>，如果满足 <span class="math inline">\(X\sim \Gamma(\alpha_1,\beta);Y\sim
+\Gamma(\alpha_2,\beta)\)</span>，则有 <span class="math inline">\(X+Y\sim
+\Gamma(\alpha_1+\alpha_2,\beta)\)</span></li>
+<li><span class="math inline">\(X_i\sim
+\Gamma(\alpha,\beta)\Rightarrow\sum X_i\sim
+\Gamma(N\alpha,\dfrac{\beta}{N})\)</span></li>
+</ul></li>
+</ul></li>
+<li>于是我们可以直接通过采样 ”mean distribution“ 得到均值（1
+个样本就够了）
+<ul>
+<li><span style="color:red">不是本身就是 ”mean distribution“ 满足 gamma
+分布吗？</span>
+<ul>
+<li>因为还需要采样若干个样本【例如 sample map 指示 4 个样本】</li>
+</ul></li>
+</ul></li>
+<li>采样新样本：<span class="math inline">\(Y_{\gamma}\sim\text{gamma}(\alpha(\mathcal{S}),\beta(\mathcal{S}))\)</span></li>
+<li>和现有样本进行加和</li>
+</ul>
+<p><span class="math display">\[
+\dfrac{\bar{\mathcal{S}}_t X_t + \mathcal{S}
+\bar{Y}_{\gamma}(\mathcal{S})}{\bar{\mathcal{S}}_t +
+\mathcal{S}}\sim\Psi_{\gamma}(Y|\mathcal{S},\bar{\mathcal{S}}_t,X_t)
+\quad(8)
+\]</span></p>
+<ul>
+<li>上面的式子 (8) 和 rendered data 有相同的 mean 和 var
+<ul>
+<li>只需要 gamma 分布的均值为 <span class="math inline">\(X_g\)</span>，方差为 <span class="math inline">\(\mathbb{V}_{X_g}/\mathcal{S}\)</span>【根据方差、期望线性加和】</li>
+</ul></li>
+<li>计算 <span class="math inline">\(\alpha,\beta\)</span>
+<ul>
+<li><span class="math inline">\(\odot\)</span> 表示 element-wise
+的计算</li>
+<li><span style="color:red">这和论文中差了一个倒数，估计论文中是使用
+<span class="math inline">\(\gamma(\alpha,1\beta)\)</span> 的这种表示方法，一样的</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\alpha(\mathcal{S}) = \frac{X_{g}^2 \odot \mathcal{S}}{V_{X_{g}}}, \quad
+\beta(\mathcal{S}) = \left(\frac{X_{g} \odot
+\mathcal{S}}{V_{X_{g}}}\right)^{-1}
+\]</span></p>
+<ul>
+<li>此时对于 <a href="#eq1">式子 1</a>，可以使用 <span class="math inline">\(\Psi_{\gamma}(Y|\mathcal{S},\bar{\mathcal{S}}_t,X_t)\)</span>
+代替 <span class="math inline">\(\mathcal{R}(Y | \mathcal{S}, \bar{
+\mathcal{S}}_t, X_t)\)</span>，从而更快的生成样本</li>
+</ul>
+<h2 id="jointly-optimizing-sampling-and-denoising">Jointly Optimizing
+Sampling and Denoising</h2>
+<ul>
+<li>上面说的方法，认为 <span class="math inline">\(\mathcal{D}\)</span>
+是固定的（fixed pre-trained denoiser）</li>
+<li>联合优化 <span class="math inline">\(\mathcal{D},\mathcal{S}\)</span> 能够实现更低的
+loss，<span id="eq10">式子 10</span></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\arg\min_{\theta,\varphi} \sum_{\iota_t \in \mathcal{T}}
+\mathbb{E}_{Y \sim \Psi_Y \left( Y \mid
+\mathcal{S}_\theta(\bar{\mathcal{S}}_t, X_t, B_{t+1}),
+\bar{\mathcal{S}}_t, X_t \right)} \left[
+\mathcal{L}(\mathcal{D}_\varphi(Y), X_g) \right]\\
+\text{subject to}&amp;\quad \sum_{p \in P} s_p = B_{t+1} \text{ and }
+s_p \geq 0, \forall p \in P&amp;\quad(10)
+\end{aligned}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\iota_t=(X_t,\bar{\mathcal{S}}_t, X_g,
+B_{t+1})\)</span></li>
+</ul>
+<h1 id="implementation">Implementation</h1>
+<ul>
+<li>TensorFlow</li>
+</ul>
+<h2 id="denoiser-and-sampler-architectures">Denoiser and Sampler
+Architectures</h2>
+<h3 id="denoiser">denoiser</h3>
+<ul>
+<li>two-pass kernel-predicting denoiser with a <strong>U-net</strong>
+architecture</li>
+<li>two-pass：specular 和 diffuse 分开
+<ul>
+<li><strong>diffuse 没有做 albedo division</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2024/11/15/CG/Papers/2022/DASR-AD/fig6-UNet.png"></p>
+<ul>
+<li>UNet：5 scale
+<ul>
+<li>convolution bandwidths are 64, 128, 256, 256, 256</li>
+<li>输入图片：<span class="math inline">\(I\)</span>（<span class="math inline">\(I_d/I_s\)</span>，diffuse/specular）</li>
+<li>辅助信息：<span class="math inline">\(F_a\)</span>（albedo）、<span class="math inline">\(F_n\)</span>（normal）</li>
+<li>输入：<span class="math inline">\(X_t=\left[\log(1+I),\log(1+F_a),F_n\right]^\top\)</span></li>
+</ul></li>
+<li>输出 kernels</li>
+</ul>
+<h3 id="sampler">sampler</h3>
+<ul>
+<li>架构类似，输入输出不一样</li>
+<li>输出一个标量：过一个 softmax</li>
+</ul>
+<p><span class="math display">\[
+\mathcal{S}_\theta(X_t, \bar{S}_t, B_{t+1}) = B_{t+1} \,
+\text{softmax}(\Phi_\theta(X_t, \bar{\mathcal{S}}_t, \bar{B}_{t+1}))
+\]</span></p>
+<ul>
+<li>budget <span class="math inline">\(B_{t+1}\)</span>
+是一个重要的参数，对 sampling map 的影响是<strong>非线性的</strong></li>
+<li>输入</li>
+</ul>
+<p><span class="math display">\[
+\tilde{X}_t = \begin{bmatrix}
+\log(1 + I_s) \\
+\log(1 + I_d) \\
+\log(1 + F_a) \\
+F_n \\
+\log(1 + \bar{S}_t) \\
+\log(1 + \bar{B}_{t+1})
+\end{bmatrix}
+\]</span></p>
+<h2 id="global-summary-module">Global Summary Module</h2>
+<ul>
+<li>DASR 或者我们的简单实现，sampling maps 中存在
+halos（晕），因为感受野太小导致的</li>
+<li>我们的解决方案：加上 global summary (GS) 模块</li>
+<li>放在 encoder 和 decoder 之间
+<ul>
+<li>计算 encoder 的输出的统计量（相当于集成了所有像素的信息）</li>
+</ul></li>
+<li>流程
+<ul>
+<li>对每个通道计算均值、标准差</li>
+<li>concat</li>
+<li>1x1 conv 减小通道数</li>
+<li>nearest-neighbor upscale 到和 decoder 输出 shape 相同</li>
+<li>和 decoder 输出 concat</li>
+</ul></li>
+</ul>
+<h2 id="analytic-noise-distributions">Analytic Noise Distributions</h2>
+<ul>
+<li>需要计算梯度</li>
+<li>可以通过 implicit re-parameterization 计算，但是非常不稳定</li>
+<li>同样我们也是用 DASR 的有限差分方式</li>
+<li>依赖于 <span class="math inline">\(\mathbb{V}_{X_g}\)</span>
+的准确估计（在渲染 GT 的时候高质量计算）
+<ul>
+<li>最后再过一个 denoiser 去除 remaining
+noise【因为实际渲染的时候并得不到 GT】</li>
+<li>variance denoiser 和 color denoiser
+网络结构相似，也是在我们的训练集上训练，使用 SMAPE metric
+<ul>
+<li><span class="math inline">\(\bar{\mathcal{S}}_t\cdot\mathbb{V}(X_t)\)</span>：denoised
+sample variance estimate of <span class="math inline">\(X_t\)</span></li>
+<li><span class="math inline">\(\mathbb{V}_{X_g}\)</span>：GT</li>
+</ul></li>
+</ul></li>
+<li>网络输入：<span class="math inline">\(\left[\log\left(1+\bar{\mathcal{S}}_{t}\cdot\mathbb{V}(X_{t})\right),\log\left(1+F_{\mathrm{a}}\right),F_{\mathrm{n}}\right]\)</span></li>
+<li>采样
+<ul>
+<li>RGB 通常认为是有相关性的，<span class="math inline">\(Y_{\gamma}\)</span>
+的每个通道使用相同的随机数种子进行采样</li>
+<li><span class="math inline">\(F_{\text{n}}\)</span> 使用 Gaussian
+采样，clamp 到 [-1, 1]（gamma 不能生成负值）</li>
+</ul></li>
+<li>测试了不同的解析分布
+<ul>
+<li>发现 trunc.normal &lt; log-normal &lt; gamma（大于表示表现好）</li>
+<li>尤其在低 spp 下，gamma 表现更好</li>
+</ul></li>
+<li>实验性结论：减小噪声分布的方差，可以减小梯度反传的方差，但是会增大
+bias
+<ul>
+<li>trade off：将 model variance /= 5</li>
+</ul></li>
+</ul>
+<h2 id="dataset">Dataset</h2>
+<ul>
+<li>两个数据集
+<ul>
+<li>DASR：需要 cascaded spp 的图片</li>
+<li>DEP/我们：正常</li>
+</ul></li>
+<li>denoiser 都使用第二个数据集训练</li>
+<li>17 base scenes
+<ul>
+<li>随机修改生成 4000 图</li>
+</ul></li>
+<li>程序化生成 sample map 用于训练（不同频率的 Perlin 噪声）
+<ul>
+<li><strong>spatial variation in the sampling map
+对于训练非常重要</strong></li>
+</ul></li>
+<li>DASR 需要 4x 磁盘空间</li>
+<li>数据增强：对 patch 进行 scale、channel 扰动</li>
+<li>evaluation set
+<ul>
+<li>24 手工制作的场景</li>
+</ul></li>
+</ul>
+<h2 id="training">Training</h2>
+<ul>
+<li>2 phases：先训练 denoiser、然后一起训练
+<ul>
+<li>DEP 的 pretrained denoiser 不再训练</li>
+</ul></li>
+<li>patch size 128x128；mini-batch size 4</li>
+</ul>
+<h3 id="denoiser-training">Denoiser Training</h3>
+<ul>
+<li>color
+<ul>
+<li><strong>five-scale</strong> kernel-based denoiser
+<ul>
+<li>输出 kernel weights</li>
+<li><span style="color:red">5 scale 是指和 2018
+那篇上采样下采样拼出来一样的吧？</span></li>
+</ul></li>
+<li>loss 和 DASR 相同
+<ul>
+<li>L：Laplacian of Gaussian operator（边缘检测），可以认为是一种
+perceptual loss</li>
+<li><span class="math inline">\(x&#39;=\log(x+1)\)</span>：<strong>logLoss</strong></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\ell({x^{\prime}},{X_{g}}^{\prime})=0.5\left\Vert\frac{x^{\prime}-X_{g}^{\prime}}{X_{g}^{\prime}+\epsilon}\right\Vert_{1}+0.5\left\Vert\frac{L({x^{\prime}})-L(X_{g}^{\prime})}{X_{g}^{\prime}+\epsilon}\right\Vert_{1}
+\]</span></p>
+<ul>
+<li>variance denoiser：SMAPE loss</li>
+<li>训练：
+<ul>
+<li>2M iters，Adam，lr=2e-5</li>
+<li>fine-tune：250K iters，lr/=10 each phase</li>
+</ul></li>
+</ul>
+<h2 id="联合优化">联合优化</h2>
+<ul>
+<li>直接优化 <a href="#eq10">式子 10</a>，效果不太好
+<ul>
+<li>我们的训练是基于合成数据，推理是真实数据</li>
+<li><span class="math inline">\(\mathcal{L}\)</span>：logLoss</li>
+</ul></li>
+<li><span class="math inline">\(X_t\)</span> 是真实数据【<span style="color:red">？不是累加的结果吗？</span>】</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\arg\min_{\theta,\varphi} \sum_{\iota_t \in \mathcal{T}}
+\mathbb{E}_{Y \sim \Psi_Y \left( Y \mid
+\mathcal{S}_\theta(\bar{\mathcal{S}}_t, X_t, B_{t+1}),
+\bar{\mathcal{S}}_t, X_t \right)} \left[
+\mathcal{L}(\mathcal{D}_\varphi(Y), X_g)
+{\color{red}+\mathcal{L}(\mathcal{D}_\varphi(X_t), X_g)} \right]\\
+\text{subject to}&amp;\quad \sum_{p \in P} s_p = B_{t+1} \text{ and }
+s_p \geq 0, \forall p \in P&amp;\quad(10)
+\end{aligned}
+\]</span></p>
+<ul>
+<li>fine-tune 阶段：每次迭代同时更新 sample map estimator 和
+denoiser（DASR 交替更新）
+<ul>
+<li>效果不会变差，反而可以减少网络收敛的训练轮次</li>
+</ul></li>
+</ul>
+<h1 id="结果">结果</h1>
+<ul>
+<li></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/11/10/CG/Papers/2011/GEM-AS/" rel="prev" title="(论文)[2011-SIG] Adaptive sampling and reconstruction using greedy error minimization">
+                  <i class="fa fa-chevron-left"></i> (论文)[2011-SIG] Adaptive sampling and reconstruction using greedy error minimization
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/11/17/Kits/badminton/" rel="next" title="羽毛球训练">
+                  羽毛球训练 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

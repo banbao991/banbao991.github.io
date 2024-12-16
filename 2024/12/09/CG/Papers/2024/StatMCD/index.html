@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="统计学降噪方法，效果好于 NN，好于 sota，对于 GBuffer 中不存在的阴影、焦散等能比较好的保留；高 spp 效果才好；基于交叉双边滤波函数，在其基础上乘上一个权重系数（binary，membership function），权重系数通过最小化两点之间的 MSE 得到，计算之后通过一个阈值转化为二值函数（这个过程等价于 Welch’s t-test）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2024-SIGA-C] A Statistical Approach to Monte Carlo Denoising">
+<meta property="og:url" content="http://example.com/2024/12/09/CG/Papers/2024/StatMCD/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="统计学降噪方法，效果好于 NN，好于 sota，对于 GBuffer 中不存在的阴影、焦散等能比较好的保留；高 spp 效果才好；基于交叉双边滤波函数，在其基础上乘上一个权重系数（binary，membership function），权重系数通过最小化两点之间的 MSE 得到，计算之后通过一个阈值转化为二值函数（这个过程等价于 Welch’s t-test）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/12/09/CG/Papers/2024/StatMCD/right-skewed.svg">
+<meta property="og:image" content="http://example.com/2024/12/09/CG/Papers/2024/StatMCD/alg1.png">
+<meta property="og:image" content="http://example.com/2024/12/09/CG/Papers/2024/StatMCD/alg2.png">
+<meta property="og:image" content="http://example.com/2024/12/09/CG/Papers/2024/StatMCD/fig4-classroom-denoise.png">
+<meta property="og:image" content="http://example.com/2024/12/09/CG/Papers/2024/StatMCD/fig5-classroom-denoise-convergence-curve.png">
+<meta property="article:published_time" content="2024-12-09T01:41:02.000Z">
+<meta property="article:modified_time" content="2024-12-10T13:38:27.181Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/12/09/CG/Papers/2024/StatMCD/right-skewed.svg">
+
+
+<link rel="canonical" href="http://example.com/2024/12/09/CG/Papers/2024/StatMCD/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/12/09/CG/Papers/2024/StatMCD/","path":"2024/12/09/CG/Papers/2024/StatMCD/","title":"(论文)[2024-SIGA-C] A Statistical Approach to Monte Carlo Denoising"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2024-SIGA-C] A Statistical Approach to Monte Carlo Denoising | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#a-statistical-approach-to-mc-denoising"><span class="nav-text">A Statistical Approach
+to MC Denoising</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#related-work"><span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#background-and-notation"><span class="nav-text">Background and Notation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#denoising-estimators"><span class="nav-text">Denoising Estimators</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#statistical-filtering-framework"><span class="nav-text">Statistical Filtering
+Framework</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#problem-statement"><span class="nav-text">Problem Statement</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#our-approach"><span class="nav-text">Our Approach</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E5%8C%96-mse"><span class="nav-text">最小化 MSE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%9E%E5%AF%B9%E7%A7%B0-m"><span class="nav-text">非对称 m</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#application-to-image-space-denoising"><span class="nav-text">Application to Image-Space
+Denoising</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#results---image-denoising"><span class="nav-text">Results - Image Denoising</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#results---further-applications"><span class="nav-text">Results - Further
+Applications</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#approximate-contribution-rr"><span class="nav-text">Approximate-Contribution RR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#selective-mis"><span class="nav-text">Selective MIS</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#discussion-and-conclusion"><span class="nav-text">Discussion and Conclusion</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%AF%E5%BD%95"><span class="nav-text">副录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#t-test"><span class="nav-text">t-test</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A0%E9%80%9F"><span class="nav-text">加速</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/09/CG/Papers/2024/StatMCD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2024-SIGA-C] A Statistical Approach to Monte Carlo Denoising | Banbao">
+      <meta itemprop="description" content="统计学降噪方法，效果好于 NN，好于 sota，对于 GBuffer 中不存在的阴影、焦散等能比较好的保留；高 spp 效果才好；基于交叉双边滤波函数，在其基础上乘上一个权重系数（binary，membership function），权重系数通过最小化两点之间的 MSE 得到，计算之后通过一个阈值转化为二值函数（这个过程等价于 Welch’s t-test）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2024-SIGA-C] A Statistical Approach to Monte Carlo Denoising
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-12-09 09:41:02" itemprop="dateCreated datePublished" datetime="2024-12-09T09:41:02+08:00">2024-12-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-12-10 21:38:27" itemprop="dateModified" datetime="2024-12-10T21:38:27+08:00">2024-12-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">统计学降噪方法，效果好于 NN，好于 sota，对于 GBuffer 中不存在的阴影、焦散等能比较好的保留；高 spp 效果才好；基于交叉双边滤波函数，在其基础上乘上一个权重系数（binary，membership function），权重系数通过最小化两点之间的 MSE 得到，计算之后通过一个阈值转化为二值函数（这个过程等价于 Welch’s t-test）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="a-statistical-approach-to-mc-denoising">A Statistical Approach
+to MC Denoising</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://users.cg.tuwien.ac.at/~hiroyuki/StatMC/">项目主页</a></li>
+<li>作者
+<ul>
+<li>HIROYUKI SAKAI、CHRISTIAN FREUDE、THOMAS AUZINGER、DAVID
+HAHN、MICHAEL WIMMER
+<ul>
+<li>3：Institute of Science and Technology Austria, Austria</li>
+<li>其他：Technische Universität Wien (TU Wien), Austria</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="摘要">摘要</h1>
+<ul>
+<li>统计学方法，认为每一个像素是一个随机变量，预测其分布</li>
+<li>构建 filter 的时候，快速 pair-wise 测试，去除不合适的周围像素</li>
+<li>另外可以用在 RR、MIS</li>
+<li>teaser 用的 256 spp</li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>MC denoising：<strong>bias–variance tradeoff</strong>
+<ul>
+<li>traditional image filters
+<ul>
+<li>引入 bias（excessive blurring or color bleeding）</li>
+</ul></li>
+<li>neural networks</li>
+</ul></li>
+<li>论文
+<ul>
+<li>we establish a theoretical connection between <strong>minimizing MSE
+for pair-wise symmetric weights</strong> and <strong>Welch’s t-test for
+normally distributed samples</strong></li>
+<li>另外，应用 Box-Cox transformation 可以减小对于分布的假设</li>
+<li>在 joint bilateral filter 上实现</li>
+<li>我们可以有效避免一些模糊（例如 GBuffer 中不存在的阴影、焦散等）</li>
+<li>速度：GPU，~30 ms，720p（商用硬件）</li>
+<li>可以应用到 RR、MIS</li>
+<li>不需要训练、在线收集数据</li>
+</ul></li>
+</ul>
+<h1 id="related-work">Related Work</h1>
+<ul>
+<li>降噪：adaptive sampling or filtering</li>
+<li>Classical approaches：权衡 noise reduction、introduced
+bias【引入过度 blur】
+<ul>
+<li>image-filtering kernels
+<ul>
+<li>Gaussian、(joint) bilateral、non-local
+means（<strong>NLM</strong>）、wavelet、non-local Bayes</li>
+</ul></li>
+<li>diffusion、higher-order regression</li>
+<li>和我们最接近的：<strong>带有辅助输入的交叉双边滤波</strong></li>
+</ul></li>
+<li>statistics-based approach
+<ul>
+<li>【2012】random parameter filtering (RPF)
+<ul>
+<li>使用特征之间的互信息调整交叉双边滤波的权重【<strong>高样本时计算开销大</strong>】</li>
+</ul></li>
+<li>【2013】稀疏计算的互信息，然后插值；试图降低计算开销，但是有限【低
+spp，秒~分级别】</li>
+<li>【2014】【2017】：使用直方图表示分布；需要额外内存开销</li>
+<li>多个 filter 中挑选
+<ul>
+<li>【2012】SURE 提高 RPF 质量</li>
+<li>【2021】</li>
+<li>【2022】Firmino，只在有利于收敛时，引入降噪</li>
+</ul></li>
+<li>我们：开销与样本数无关、ms 级别；占用内存小；不需要计算多个
+denoiser</li>
+</ul></li>
+<li>real-time approach
+<ul>
+<li>【2017】需要特殊处理 DI、GI；我们更直观</li>
+</ul></li>
+<li>confidence intervals
+<ul>
+<li>之前的很复杂</li>
+</ul></li>
+<li>Neural-network-based approaches
+<ul>
+<li>需要大量训练</li>
+<li>如果特征不出现在 GBuffer 中，效果就不好（阴影、焦散）</li>
+<li>没有收敛性保证</li>
+<li>我们：不需要训练；收敛性保证；常数参数
+<ul>
+<li>未来：automatic parameter tuning，可能提高质量</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="background-and-notation">Background and Notation</h1>
+<ul>
+<li>没一个像素的样本作为随机变量，像素 <span class="math inline">\(i\)</span> 的 estimator 如下【GT <span class="math inline">\(\theta_i\)</span> 未知，就是像素真值】
+<ul>
+<li><span class="math inline">\(\hat{\theta}_i(X_1,\cdots,X_{n_i})\)</span></li>
+<li>假设无偏：<span class="math inline">\(\mathbb{E}[\hat{\theta}_i]=\theta_i\)</span></li>
+<li><strong>称 GT 为 estimands</strong></li>
+</ul></li>
+<li>statistical tests：使用 mean（<span class="math inline">\(\mu\)</span>）、中心矩（<span class="math inline">\(M_l,l\in[2,3,4]\)</span>）或其变种
+<ul>
+<li>variance（<span class="math inline">\(\sigma^2=M_2\)</span>）、skewness（<span class="math inline">\(M_3/M_2^{3/2}\)</span>）、kurtosis（<span class="math inline">\(M_4/M_2^2\)</span>）</li>
+<li><strong>都可以在线计算</strong></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+M_l=\dfrac{1}{n_i}\sum_k(X_k-\bar{X})^l
+\]</span></p>
+<h2 id="denoising-estimators">Denoising Estimators</h2>
+<ul>
+<li>convex 组合得到 denoised estimator
+<ul>
+<li>权重非负、和为1</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\tilde{\theta}_j=\sum_iw_{ij}\hat{\theta}_i
+\]</span></p>
+<ul>
+<li>我们将 <span class="math inline">\(w_{ij}\)</span> 分为两个部分
+<ul>
+<li>base filter</li>
+<li>membership function <span class="math inline">\(m_{ij}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+w_{ij}=\dfrac{\rho_{ij}m_{ij}}{\sum_{i} \rho_{ij}m_{ij}},\quad (10)
+\]</span></p>
+<ul>
+<li>MSE=Var+Bias
+<ul>
+<li>Bias 是使用周围像素的时候引入的</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\text{MSE}(\tilde{\theta}_{j},\theta_{j})=\mathbb{E}[(\tilde{\theta}_{j}-\theta_{j})^{2}]=\text{Var}(\tilde{\theta}_{j})+\text{Bias}(\tilde{\theta}_{j},\theta_{j})^{2}
+\]</span></p>
+<ul>
+<li>拆解</li>
+</ul>
+<p><span class="math display">\[
+\begin{array}{c}
+\text{Var}(\tilde{\theta}_{j})=\sum_{i}w_{i
+j}^{2}\text{Var}(\hat{\theta}_{i}(n_{i}))\\
+\mathrm{Bias}(\tilde{\theta}_{j},\theta_{j})=\sum_{i}w_{i
+j}\text{Bias}(\hat{\theta}_{i}(n_{i}),\theta_{j})
+\end{array}
+\]</span></p>
+<ul>
+<li><span id="eq8">target</span></li>
+</ul>
+<p><span class="math display">\[
+\{w_{i
+j}^{*}\}=\operatorname*{\arg\min}_{\{w_{ij}\}}\sum_{j}\text{MSE}(\tilde{\theta}_{j},\theta_{j}),\quad(8)
+\]</span></p>
+<h1 id="statistical-filtering-framework">Statistical Filtering
+Framework</h1>
+<ul>
+<li>引入 membership function（<span class="math inline">\(m\)</span>），如何组合 estimators</li>
+</ul>
+<h2 id="problem-statement">Problem Statement</h2>
+<ul>
+<li>判定什么如何组合能够提高图片质量，需求如下</li>
+<li><strong>Pair-wise evaluation</strong>
+<ul>
+<li>根据统计量评估</li>
+<li><span class="math inline">\(m_{ij}=m(\mathcal{S}(\hat{\theta}_i),\mathcal{S}(\hat{\theta}_j))\)</span></li>
+</ul></li>
+<li><strong>Online statistics</strong>
+<ul>
+<li>在线更新</li>
+</ul></li>
+<li><strong>Symmetry</strong>
+<ul>
+<li><span class="math inline">\(m_{ij}=m_{ji}\)</span>（energy
+preservation）</li>
+</ul></li>
+<li><strong>Convergence</strong>
+<ul>
+<li><span class="math inline">\(\text{Var}(\hat{\theta}_{i})\longrightarrow0\Longrightarrow
+m_{i j}=0\text{ if }||\theta_{i}-\theta_{j}||&gt;0\)</span></li>
+<li>var 为 0 时，拒绝有 bias 的估计</li>
+</ul></li>
+<li><strong>Identity</strong>
+<ul>
+<li><span class="math inline">\(m_{ii}=1\)</span></li>
+<li>自身不引入 bias</li>
+</ul></li>
+</ul>
+<h2 id="our-approach">Our Approach</h2>
+<p><span class="math display">\[
+\boxed{w_{ij}=\dfrac{\rho_{ij}m_{ij}}{\sum_{i} \rho_{ij}m_{ij}}}\quad
+(10)
+\]</span></p>
+<ul>
+<li>base filter <span class="math inline">\(\rho_i\)</span>（现有的就行）
+<ul>
+<li>限制 filter 大小，提高效率</li>
+<li>可以与现有技术结合</li>
+<li>可以使用 GBuffer 等信息
+<ul>
+<li>实现上，我们使用 joint bilateral filter</li>
+</ul></li>
+</ul></li>
+<li>目前技术在降低方差方面效果很好，<span class="math inline">\(m_{ij}\)</span> 的作用主要是用于限制 bias</li>
+<li>解决 <a href="#eq8">MSE 最小化问题</a></li>
+</ul>
+<h3 id="最小化-mse">最小化 MSE</h3>
+<ul>
+<li>考虑一对 <span class="math inline">\(\hat{\theta}_i,\hat{\theta}_j\)</span>
+<ul>
+<li>降噪可以认为是一个混合</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{array}{c}
+\tilde{\theta}_i=w\hat{\theta}_i+(1-w)\hat{\theta}_j\\
+\tilde{\theta}_j=w\hat{\theta}_j+(1-w)\hat{\theta}_i
+\end{array}
+\]</span></p>
+<ul>
+<li>为什么是这个形式，因为我们要求对称性
+<ul>
+<li><span class="math inline">\(w_{ij}=w_{ji}=1-w\)</span></li>
+<li>从下面推导上面</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{array}{c}
+\tilde{\theta}_i=(1-w_{ji})\hat{\theta}_i+w_{ji}\hat{\theta}_j\\
+\tilde{\theta}_j=(1-w_{ij})\hat{\theta}_j+w_{ij}\hat{\theta}_i
+\end{array}
+\]</span></p>
+<ul>
+<li>Bias 如下展开</li>
+</ul>
+<p><span class="math display">\[
+\text{Bias}(\tilde{\theta}_{i},\theta_{i})
+=\mathbb{E}[\tilde{\theta}_{i}-\theta_{i}]
+=(w-1)\theta_i+(1-w)\theta_j
+\]</span></p>
+<ul>
+<li><span id="eq11">最小化 MSE</span>（<span class="math inline">\(i,j\)</span> 的和）</li>
+</ul>
+<p><span class="math display">\[
+\begin{array}{rl}
+w^{\ast}&amp;=\arg\min_{w}\Big(\\
+&amp;w^2\text{Var}(\hat{\theta}_i)+(1-w)^2\text{Var}(\hat{\theta}_j)+((w-1)\theta_i+(1-w)\theta_j)^2\\
++&amp;w^2\text{Var}(\hat{\theta}_j)+(1-w)^2\text{Var}(\hat{\theta}_i)+((w-1)\theta_j+(1-w)\theta_i)^2\\
+&amp;\Big)
+\end{array}\qquad(11)
+\]</span></p>
+<ul>
+<li>求偏导等于 0，算出<span id="eq12">最优的</span> <span class="math inline">\(w^{\ast}\)</span>
+<ul>
+<li>假设存在不确定性，Var+Var 不为 0</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+w^{\ast}=\frac{2(\theta_{i}-\theta_{j})^{2}+\mathrm{Var}(\hat{\theta}_{i})+\mathrm{Var}(\hat{\theta}_{j})}{2\left((\theta_{i}-\theta_{j})^{2}+\mathrm{Var}(\hat{\theta}_{i})+\mathrm{Var}(\hat{\theta}_{j})\right)}\qquad(12)
+\]</span></p>
+<ul>
+<li>问题：我们不知道 GT 和 <span class="math inline">\(\text{Var}\)</span>
+<ul>
+<li>直接使用带噪声的值，<span class="math inline">\(m_{ij}=1-w^{\ast},\rho_{ij}=1\)</span>，效果不好</li>
+<li>我们的选择，使用 smoothing filter <span class="math inline">\(\rho_{ij}\)</span>，然后让 <span class="math inline">\(m_{ij}\)</span> 作为一个二值函数</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+m_{ij}=1 \text{ if }(1-w^{\ast})&gt;\gamma,0\text{ otherwise}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\gamma\)</span> 作为一个阈值，控制
+denoising strength
+<ul>
+<li>bias 相对方差更大 =&gt; <span class="math inline">\(w^{\ast}\)</span> 更大 =&gt; 被拒绝</li>
+<li><span class="math inline">\(1/2\Rightarrow m_{ij}=0\)</span></li>
+<li><span class="math inline">\(0\Rightarrow m_{ij}=1\)</span>：退化成
+base filter</li>
+</ul></li>
+<li>这个等价于 Welch’s t-test【<a href="#app1">副录</a>】
+<ul>
+<li><span class="math inline">\(t&lt;\gamma_w=\sqrt{1/(2\gamma)-1}\)</span></li>
+</ul></li>
+<li>我们使用 Student’s t-distribution【Welch–Satterthwaite
+equation】【<span style="color:red">不懂，还没看</span>】
+<ul>
+<li><span class="math inline">\(\gamma_w=t_{1-\alpha/2},v\)</span></li>
+<li><span class="math inline">\(\alpha=0.005\)</span></li>
+<li><span class="math inline">\(v=n_i+n_j-2\)</span></li>
+</ul></li>
+<li>Welch’s t-test
+和两个正态分布的均值的置信区间相关；可以使用其他检验，放宽对正态分布的假设</li>
+<li>有很多种，可以使用高阶的统计量
+<ul>
+<li>Curto [2023] + Boc-Cox 变换，之后效果挺好的</li>
+</ul></li>
+</ul>
+<h3 id="非对称-m">非对称 m</h3>
+<ul>
+<li>使用非对称的 <span class="math inline">\(m_{ij}\)</span>，<a href="#eq11">式子 11</a> 去除 <span class="math inline">\(\arg\min\)</span> 里面的第二项</li>
+<li>可能会导致 energy loss（过黑）</li>
+<li>其他操作和上面一样</li>
+</ul>
+<p><span class="math display">\[
+w^{\ast}_{\text{asym}}=\frac{(\theta_{i}-\theta_{j})^{2}+\mathrm{Var}(\hat{\theta}_{j})}{(\theta_{i}-\theta_{j})^{2}+\mathrm{Var}(\hat{\theta}_{i})+\mathrm{Var}(\hat{\theta}_{j})}
+\]</span></p>
+<h1 id="application-to-image-space-denoising">Application to Image-Space
+Denoising</h1>
+<ul>
+<li>实现：pbrt-v3，cuda GPU</li>
+<li>3 个步骤
+<ul>
+<li>在线计算统计量</li>
+<li>选择交叉双边滤波作为 <span class="math inline">\(\rho_{ij}\)</span></li>
+<li>实现降噪</li>
+</ul></li>
+<li>MCPT 中，有些样本贡献非常高，会导致结果：right-skewed（mean &gt;
+median &gt; mode）
+<ul>
+<li>标准正态：mean = median =mode（众数）</li>
+</ul></li>
+</ul>
+<p><img src="/2024/12/09/CG/Papers/2024/StatMCD/right-skewed.svg"></p>
+<ul>
+<li>使用 Box-Cox 变换</li>
+</ul>
+<p><span class="math display">\[
+x_{k}^{\prime}(\lambda)=
+\left\{\begin{array}{l l}
+\mathrm{log}(x_{k})&amp;\text{if }\lambda=0\\
+(x_{k}^{\lambda}-1)/\lambda&amp;\text{otherwise}
+\end{array}\right.
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\lambda=0\)</span>
+不可行，存在很多贡献为 0 的样本</li>
+<li>实验发现：<span class="math inline">\(\lambda=1/2\)</span> 效果不错
+<ul>
+<li>亮噪点压缩，同时暗处不会趋于过小（负）</li>
+</ul></li>
+<li>变换之后计算统计量</li>
+</ul>
+<p><img src="/2024/12/09/CG/Papers/2024/StatMCD/alg1.png"></p>
+<ul>
+<li><span class="math inline">\(\rho_{ij}\)</span>：交叉双边滤波
+<ul>
+<li><span class="math inline">\({\bf p}_i\)</span>：image space
+position, RGB albedo color, and surface normal【7D】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\rho_{i j}=\exp(-\frac{1}{2}({\bf p}_j-{\bf
+p}_i)^{\text{T}}\Sigma^{-1}({\bf p}_j-{\bf p}_i))
+\]</span></p>
+<ul>
+<li>协方差矩阵用于控制权重
+<ul>
+<li>默认：<span class="math inline">\(\Sigma=\text{diag}\big(10,10,0.02,0.02,0.02,0.1,0.1\big)\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2024/12/09/CG/Papers/2024/StatMCD/alg2.png"></p>
+<ul>
+<li>实现上，对每一个 RGB 通道都算 <span class="math inline">\(m_{ij}\)</span>，只有当 3
+个通道都通过测试之后，才将 <span class="math inline">\(w_{ij}\)</span>
+设置为非 0
+<ul>
+<li>避免 color shift 问题</li>
+</ul></li>
+</ul>
+<h1 id="results---image-denoising">Results - Image Denoising</h1>
+<ul>
+<li>测试场景输入都是高 spp 的【8192、512、256、32】</li>
+</ul>
+<p><img src="/2024/12/09/CG/Papers/2024/StatMCD/fig4-classroom-denoise.png"></p>
+<ul>
+<li>收敛曲线</li>
+</ul>
+<p><img src="/2024/12/09/CG/Papers/2024/StatMCD/fig5-classroom-denoise-convergence-curve.png"></p>
+<ul>
+<li>网络对阴影边界处理不好（GBuffer 中没有这个信息）</li>
+<li>desktop PC with an AMD Ryzen 9 5950X CPU and an NVIDIA RTX 3080 Ti
+GPU</li>
+<li>filter size：20 pixels</li>
+<li>720p</li>
+</ul>
+<h1 id="results---further-applications">Results - Further
+Applications</h1>
+<ul>
+<li>这两个应用都太抽象了，真的会好吗？不太信</li>
+</ul>
+<h2 id="approximate-contribution-rr">Approximate-Contribution RR</h2>
+<ul>
+<li>怎么感觉像 ADRRS 一样，那肯定会好啊
+<ul>
+<li>是简化版，只存储 2D 信息；像素 <span class="math inline">\(j\)</span> 存储深度 <span class="math inline">\(d\)</span> 的出射辐射度 <span class="math inline">\(L&#39;_{j,k}\)</span>【不是存储在世界空间中的，存储在
+2D 图片中】</li>
+</ul></li>
+<li>对 <span class="math inline">\(L&#39;_{j,k}\)</span> 降噪
+<ul>
+<li>相当于两条路径相差很大，但是他们会被平均，这样的话会非常不准，好就好在只需要保存
+2D 信息</li>
+<li>降噪再使用 2D 图片，感觉非常不准，不知道为啥会好</li>
+</ul></li>
+<li>迭代法，每次迭代结束降噪；第一次迭代不开 RR</li>
+</ul>
+<h2 id="selective-mis">Selective MIS</h2>
+<ul>
+<li>当有某种策略显著优于另一种策略时，MIS 可能会带来噪声</li>
+<li>我们框架：什么时候停止不好的策略？
+<ul>
+<li>要求每一种策略都是无偏的</li>
+<li><span style="color:red">那这个有问题啊，单独光源采样是有偏的啊（不能覆盖定义域）</span></li>
+</ul></li>
+<li>win rate：<span class="math inline">\(\eta_m=n_m^{\ast}/n_i\)</span>（采样策略 <span class="math inline">\(m\)</span>）
+<ul>
+<li><span class="math inline">\(n_m^{\ast}\)</span>：non-zero
+sample，而且策略 <span class="math inline">\(m\)</span> 的 pdf 最大</li>
+</ul></li>
+<li>对 win rate 降噪，per pixel per bounce（和上面的 RR 一样）
+<ul>
+<li>不进行 Box-Cox transform（因为不是 radiance 了，没有 radiance
+的问题）</li>
+</ul></li>
+<li>迭代法，每次迭代结束降噪
+<ul>
+<li>第一次迭代不开 Selective MIS</li>
+<li>之后 <span class="math inline">\(\eta_m&lt;10^{-3}\)</span>，则停止</li>
+</ul></li>
+</ul>
+<h1 id="discussion-and-conclusion">Discussion and Conclusion</h1>
+<ul>
+<li>不需要预训练，不会有网络乱加细节的问题</li>
+<li>Limitation
+<ul>
+<li>低 spp 问题</li>
+</ul></li>
+<li>Future
+<ul>
+<li>continuous membership functions</li>
+<li><strong>denoising variance estimates</strong>
+<ul>
+<li>我也在想这个问题，如何对空间进行降噪呢？</li>
+</ul></li>
+<li>temporal domain</li>
+</ul></li>
+</ul>
+<h1 id="副录">副录</h1>
+<h2 id="t-test"><span id="app1">t-test</span></h2>
+<ul>
+<li>Welch’s t-test，定义如下</li>
+</ul>
+<p><span class="math display">\[
+t=\frac{\left|\hat{\theta}_{i}-\hat{\theta}_{j}\right|}{\sqrt{\sigma_{i}^{2}/n_{i}+\sigma_{j}^{2}/n_{j}}}&lt;\gamma_{w}
+\]</span></p>
+<ul>
+<li>左边式子，可以得到</li>
+</ul>
+<p><span class="math display">\[
+\left(\sigma_{i}^{2}/n_{i}+\sigma_{j}^{2}/n_{j}\right)t^{2}=\left(\hat{\theta}_{i}-\hat{\theta}_{j}\right)^{2}
+\]</span></p>
+<ul>
+<li><a href="#eq12">式子 12</a> 变形，<span class="math inline">\(\text{Var}(\hat{\theta}_i)=\sigma^2_i/n_i\)</span></li>
+</ul>
+<p><span class="math display">\[
+s=1-w^{\ast}=1-\dfrac{t^2+1/2}{t^2+1}
+\]</span></p>
+<p><span class="math display">\[
+t=\sqrt{\dfrac{1}{2s}-1}=\sqrt{\dfrac{1}{2(1-w^{\ast}_{ij})}-1}
+\]</span></p>
+<ul>
+<li>于是</li>
+</ul>
+<p><span class="math display">\[
+t&lt;\gamma_w\Longleftrightarrow
+1-w^{\ast}_{ij}&gt;\gamma=\dfrac{1}{2(\gamma^2_w+1)}
+\]</span></p>
+<h2 id="加速">加速</h2>
+<ul>
+<li>加速点对点计算：2.5x【filter size 20 pixels】</li>
+</ul>
+<p><span class="math display">\[
+\begin{array}{c}
+(\hat{\theta}_{i}-\hat{\theta}_{j})^{2}&lt;y_{w}^{2}(\sigma_{i}^{2}/n_{i}+\sigma_{j}^{2}/n_{j})\\
+\hat{\theta}_{i}^{2}-\gamma_{w}^{2}\sigma_{i}^{2}/n_{i}+y_{w}^{2}\sigma_{j}^{2}/n_{j}\\
+\hat{\theta}_{i}^{2}-\gamma_{w}^{2}\sigma_{i}^{2}/n_{i}&lt;2\hat{\theta}_{i}\hat{\theta}_{j}-(\hat{\theta}_{j}^{2}-{y}_{w}^{2}\sigma_{j}^{2}/n_{j})
+\end{array}
+\]</span></p>
+<ul>
+<li>好处：左边项、右边第二项可以预计算</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/12/01/CG/Papers/2024/MARS/" rel="prev" title="(论文)[2024-SIGA-C] MARS: Multi-sample Allocation through Russian roulette and Splitting">
+                  <i class="fa fa-chevron-left"></i> (论文)[2024-SIGA-C] MARS: Multi-sample Allocation through Russian roulette and Splitting
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

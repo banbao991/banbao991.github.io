@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="联合优化适应性采样+降噪；第一次在适应性采样中引入神经网络（UNet 架构）；解决了两个训练问题（renderer 梯度传播、迭代过程中需要渲染很多适应性采样的图片）；开销约 10ms（GTX 1080Ti）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2018-EGSR] Deep Adaptive Sampling for Low Sample Count Rendering">
+<meta property="og:url" content="http://example.com/2024/11/06/CG/Papers/2018/DASR/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="联合优化适应性采样+降噪；第一次在适应性采样中引入神经网络（UNet 架构）；解决了两个训练问题（renderer 梯度传播、迭代过程中需要渲染很多适应性采样的图片）；开销约 10ms（GTX 1080Ti）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/11/06/CG/Papers/2018/DASR/fig2-overview.png">
+<meta property="og:image" content="http://example.com/2024/11/06/CG/Papers/2018/DASR/fig3-unet.png">
+<meta property="article:published_time" content="2024-11-06T07:24:30.000Z">
+<meta property="article:modified_time" content="2024-11-27T16:01:39.998Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="EGSR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/11/06/CG/Papers/2018/DASR/fig2-overview.png">
+
+
+<link rel="canonical" href="http://example.com/2024/11/06/CG/Papers/2018/DASR/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/11/06/CG/Papers/2018/DASR/","path":"2024/11/06/CG/Papers/2018/DASR/","title":"(论文)[2018-EGSR] Deep Adaptive Sampling for Low Sample Count Rendering"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2018-EGSR] Deep Adaptive Sampling for Low Sample Count Rendering | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dasr"><span class="nav-text">DASR</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#previous-work"><span class="nav-text">Previous work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#method"><span class="nav-text">Method</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sampling-map-estimator"><span class="nav-text">Sampling Map Estimator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#denoiser"><span class="nav-text">Denoiser</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#training"><span class="nav-text">Training</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#render-simulator"><span class="nav-text">Render Simulator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gradient-of-the-renderer"><span class="nav-text">Gradient of the Renderer</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#implementation-details"><span class="nav-text">Implementation Details</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#result"><span class="nav-text">Result</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/06/CG/Papers/2018/DASR/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2018-EGSR] Deep Adaptive Sampling for Low Sample Count Rendering | Banbao">
+      <meta itemprop="description" content="联合优化适应性采样+降噪；第一次在适应性采样中引入神经网络（UNet 架构）；解决了两个训练问题（renderer 梯度传播、迭代过程中需要渲染很多适应性采样的图片）；开销约 10ms（GTX 1080Ti）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2018-EGSR] Deep Adaptive Sampling for Low Sample Count Rendering
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-11-06 15:24:30" itemprop="dateCreated datePublished" datetime="2024-11-06T15:24:30+08:00">2024-11-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-11-28 00:01:39" itemprop="dateModified" datetime="2024-11-28T00:01:39+08:00">2024-11-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">联合优化适应性采样+降噪；第一次在适应性采样中引入神经网络（UNet 架构）；解决了两个训练问题（renderer 梯度传播、迭代过程中需要渲染很多适应性采样的图片）；开销约 10ms（GTX 1080Ti）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="dasr">DASR</h1>
+<ul>
+<li>Deep Adaptive Sampling for Low Sample Count Rendering</li>
+<li>University of California, San Diego
+<ul>
+<li>Alexandr Kuznetsov、Nima Khademi Kalantari、Ravi Ramamoorthi</li>
+<li><a target="_blank" rel="noopener" href="https://cseweb.ucsd.edu//~viscomp/projects/dasr/">主页</a></li>
+</ul></li>
+</ul>
+<h1 id="摘要">摘要</h1>
+<ul>
+<li>第一次训练了一个 sample map 用于 adaptive sampling（AS）【<span style="color:red"><strong>第一次在 AS 引入 NN</strong></span>】
+<ul>
+<li>1spp 正常分配（用于估计 sample map），3spp 用于 AS（根据 sample
+map）</li>
+<li>联合优化 sampling map estimator、denoiser</li>
+<li>end-to-end 训练，训练集上 denoised、GT 之间的 loss</li>
+</ul></li>
+</ul>
+<p><img src="/2024/11/06/CG/Papers/2018/DASR/fig2-overview.png"></p>
+<ul>
+<li>低样本下，传统 AS 失效（统计量不够）</li>
+<li><strong>提出了高效的传播 renderder 梯度的地方</strong></li>
+<li>效果：和 6spp + denoiser 效果差不多</li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>Monte Carlo (MC) path tracing
+<ul>
+<li>实时 PT：低 spp</li>
+</ul></li>
+<li>adaptive sampling
+<ul>
+<li>均匀采样大量光线，计算一些量，用于计算 sample map
+<ul>
+<li>variance、coherence maps、frequency content</li>
+</ul></li>
+<li>问题
+<ul>
+<li>需要大量样本</li>
+<li>将 adaptive sampling 和 reconstruction 视作独立阶段</li>
+</ul></li>
+<li><strong>低样本失效</strong>：<strong>因此现在后处理方法都是使用均匀采样的结果作为输入</strong></li>
+</ul></li>
+<li>贡献
+<ul>
+<li>第一次在 AS 引入 NN</li>
+<li>迭代训练，提出了一种 AS 放置样本的方式</li>
+<li>计算 renderer 的梯度</li>
+</ul></li>
+</ul>
+<h1 id="previous-work">Previous work</h1>
+<ul>
+<li>survey：[EG-2015] Recent advances in <strong>adaptive sampling and
+reconstruction</strong> for monte carlo rendering</li>
+<li>joint adaptive sampling and reconstruction
+<ul>
+<li>use <strong>no-reference</strong> error estimation metrics</li>
+<li>计算 the bias and variance of a Gaussian , nonlocal means, local
+linear regression, and polynomial filters，利用 error
+在多个阶段去分配样本</li>
+<li>低样本仍然不行</li>
+</ul></li>
+<li>学习方法
+<ul>
+<li><strong>distributes the samples based on the summation of filter
+weights</strong></li>
+<li>NN 估计参数：the parameters of a cross-bilateral or cross non-local
+means filter</li>
+</ul></li>
+</ul>
+<h1 id="method">Method</h1>
+<h2 id="sampling-map-estimator">Sampling Map Estimator</h2>
+<ul>
+<li>CNN</li>
+<li>11 通道 =&gt; 1 通道
+<ul>
+<li>RGB：noisy image、textures</li>
+<li>shading normal、depth、direct illumination visibility</li>
+</ul></li>
+<li>归一化：网络输出 <span class="math inline">\(x(p)\)</span>
+<ul>
+<li>我们的例子中：<span class="math inline">\(n=3\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+s(p)=\mathrm{round}\left(\frac{M}{\sum_{j=1}^{M}e^{x(j)}}\times
+e^{x(p)}\times n\right)
+\]</span></p>
+<ul>
+<li>Sampling Map Estimator 和 Denoiser 都使用相同的 UNet
+<ul>
+<li>max pooling：2x2</li>
+<li>针对单张图片：不需要 recurrent 模块</li>
+</ul></li>
+</ul>
+<p><img src="/2024/11/06/CG/Papers/2018/DASR/fig3-unet.png"></p>
+<h2 id="denoiser">Denoiser</h2>
+<ul>
+<li>11 =&gt; 3</li>
+<li>之前的工作（UNet 参考）
+<ul>
+<li>separate the texture from illumination：做不了 distributed
+effects（景深、动态模糊等）</li>
+<li>我们直接预测 =&gt; 可以做</li>
+</ul></li>
+</ul>
+<h1 id="training">Training</h1>
+<ul>
+<li>两个问题
+<ul>
+<li>需要迭代很多轮，每轮都需要渲染图片</li>
+<li>renderer 如何反传梯度</li>
+</ul></li>
+</ul>
+<h2 id="render-simulator">Render Simulator</h2>
+<ul>
+<li>预先渲染：<span class="math inline">\(I_{2^{0}},I_{2^{1}},\cdots,I_{2^{k}}\)</span> spp
+的图片（<span class="math inline">\(2^{k}=1024\)</span>）
+<ul>
+<li>这样可以拼出：<span class="math inline">\(1\sim2047\)</span> spp
+的图片</li>
+</ul></li>
+<li>naive 策略：渲染很多 1 spp 的图片</li>
+<li>我们的策略更好，更省内存</li>
+</ul>
+<h2 id="gradient-of-the-renderer">Gradient of the Renderer</h2>
+<ul>
+<li><span class="math inline">\(h\)</span>：增加的样本数</li>
+</ul>
+<p><span class="math display">\[
+\frac{\partial I_{s}}{\partial
+s}=\frac{I_{s+h}-I_{s}}{h},\quad\text{where}\quad
+I_{s+h}=\frac{sI_{s}+hI_{h}}{s+h}
+\]</span></p>
+<ul>
+<li>噪声很大，<span class="math inline">\(N\)</span>
+次平均（需要预计算）</li>
+</ul>
+<p><span class="math display">\[
+{\frac{\partial I_{s}}{\partial
+s}}=\sum_{i=1}^{N}{\frac{I_{s+h}^{i}-I_{s}}{h\,N}},\quad\text{where}
+\quad I_{s+h}^{i}={\frac{sI_{s}+hI_h^i}{s+h}}
+\]</span></p>
+<ul>
+<li>简化（想去掉预计算）
+<ul>
+<li>上面的式子，右边代入左边化简</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\frac{\partial I_{s}}{\partial
+s}=\frac{\sum_{i=1}^{N}\left(I_{h}^{i}/N\right)-I_{s}}{s+h}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(N\to\infty\)</span>：GT <span class="math inline">\(I_{\infty}\)</span></li>
+</ul>
+<p><span class="math display">\[
+\frac{\partial I_{s}}{\partial s}=\frac{I_{\infty}-I_{s}}{s+h}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(h\to0\)</span>：虽然不现实（对应不渲染图片，<span class="math inline">\(I_{\infty}\)</span>
+的推导不成立了），但是符合直觉（<span class="math inline">\(s\)</span>
+越大，边际效益越小）
+<ul>
+<li><span style="color:red;font-weight:bold">用于梯度计算及反传</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\frac{\partial I_{s}}{\partial s}=\frac{I_{\infty}-I_{s}}{s}
+\]</span></p>
+<h1 id="implementation-details">Implementation Details</h1>
+<ul>
+<li>https://cseweb.ucsd.edu/~viscomp/projects/dasr/</li>
+<li>数据集
+<ul>
+<li>训练：700 组数据（来自 50 个场景，渲染 2 - 30 个视角）
+<ul>
+<li>GT：&gt;1024spp</li>
+</ul></li>
+<li>有 distributed effect
+<ul>
+<li>depth of field, glossy reflections, motion blur, and global
+illumination</li>
+</ul></li>
+<li>测试：60 个测试场景【<span style="color:red;font-weight:bold">泛化性</span>】</li>
+</ul></li>
+<li>网络输入
+<ul>
+<li>color、depth：范围大，<span class="math inline">\(\log(1+x)\)</span></li>
+<li>其他：标准归一化</li>
+</ul></li>
+<li>训练细节：3 stage
+<ul>
+<li>stage 1：训练 denoiser network【前面部分直接不管了】
+<ul>
+<li>随机生成 sample map，为了保证 smooth，先低分辨率采样，然后 8x
+upscale</li>
+</ul></li>
+<li>stage 2：只训练 sampling map
+network【两个网络都要，但是只更新第一个】</li>
+<li>stage 3：一起 fine-tune（交替训练
+sample、denoiser，一次迭代只训一个）</li>
+</ul></li>
+<li>输入：break down to 512x512</li>
+<li>训练
+<ul>
+<li>Adam，lr=1e-4</li>
+<li>mini-batches of size 6</li>
+<li>epoch：25000, 5000, and 40000 iterations</li>
+</ul></li>
+<li>Loss：spatial and gradient
+<ul>
+<li><span class="math inline">\(\mathcal{L}=0.5\mathcal{L}_{s}+0.5\mathcal{L}_{g}\)</span></li>
+<li>spatial：rel L1，<span class="math inline">\(\epsilon=0.01\)</span></li>
+<li>gradient：保证边界锐利</li>
+<li>范围太大：<span class="math inline">\(c=\log(1+\tilde{c})\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathcal{L}_{s}(\hat{c},c)=\frac{\left\Vert\hat{c}-c\right\Vert_{1}}{\left|c\right|+\epsilon}
+\]</span></p>
+<p><span class="math display">\[
+\mathcal{L}_{g}(\hat{c},c)=\frac{\left\Vert
+g(\hat{c})-g(c)\right\Vert_{1}}{\left|g(c)\right|+\epsilon}
+\]</span></p>
+<h1 id="result">Result</h1>
+<ul>
+<li>PyTorch 实现</li>
+<li>对比算法：需要统计量，4x4 patch 计算
+<ul>
+<li>论文中说，其他 AS 算法效果很差（1spp 统计量太不准了）</li>
+</ul></li>
+<li>结果分析
+<ul>
+<li>容易降噪的地方，我们算法分配光线少；难算、难降噪的地方分配多</li>
+</ul></li>
+<li>时间开销：GTX 1080 Ti GPU
+<ul>
+<li>一共 10 ms（5+5）</li>
+</ul></li>
+<li>future work
+<ul>
+<li>低 spp 任务：investigate the possibility of performing joint
+sampling and denoising at <strong>multiple scales</strong> to be able to
+generate high quality results at the rates <strong>lower than 1
+spp</strong></li>
+<li>多 spp 任务</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/EGSR/" rel="tag"># EGSR</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/10/28/CG/Papers/2020/Neural-AS/" rel="prev" title="(论文)[2020-EG] Neural Temporal Adaptive Sampling and Denoising">
+                  <i class="fa fa-chevron-left"></i> (论文)[2020-EG] Neural Temporal Adaptive Sampling and Denoising
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/11/09/CG/Papers/2023/DAAS/" rel="next" title="(论文)[2022-SIGC] Denoising-Aware Adaptive Sampling for Monte Carlo Ray Tracing">
+                  (论文)[2022-SIGC] Denoising-Aware Adaptive Sampling for Monte Carlo Ray Tracing <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

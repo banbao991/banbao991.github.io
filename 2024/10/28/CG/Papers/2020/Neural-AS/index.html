@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="神经适应性采样；在之前工作 DASR（联合优化适应性采样和降噪）的基础上加上了层次核函数预测、循环模块，提高了照片质量和时间上的稳定性；可泛化；DASR 为了让渲染结果对采样图可微，做了一个近似">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2020-EG] Neural Temporal Adaptive Sampling and Denoising">
+<meta property="og:url" content="http://example.com/2024/10/28/CG/Papers/2020/Neural-AS/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="神经适应性采样；在之前工作 DASR（联合优化适应性采样和降噪）的基础上加上了层次核函数预测、循环模块，提高了照片质量和时间上的稳定性；可泛化；DASR 为了让渲染结果对采样图可微，做了一个近似">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/10/28/CG/Papers/2020/Neural-AS/fig2-overview.png">
+<meta property="og:image" content="http://example.com/2024/10/28/CG/Papers/2020/Neural-AS/fig3-unet.png">
+<meta property="og:image" content="http://example.com/2024/10/28/CG/Papers/2020/Neural-AS/fig3-unet.png">
+<meta property="og:image" content="http://example.com/2024/10/28/CG/Papers/2020/Neural-AS/fig7-result.png">
+<meta property="article:published_time" content="2024-10-28T09:02:20.000Z">
+<meta property="article:modified_time" content="2024-11-26T12:26:22.447Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="EG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/10/28/CG/Papers/2020/Neural-AS/fig2-overview.png">
+
+
+<link rel="canonical" href="http://example.com/2024/10/28/CG/Papers/2020/Neural-AS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/10/28/CG/Papers/2020/Neural-AS/","path":"2024/10/28/CG/Papers/2020/Neural-AS/","title":"(论文)[2020-EG] Neural Temporal Adaptive Sampling and Denoising"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2020-EG] Neural Temporal Adaptive Sampling and Denoising | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-temporal-adaptive-sampling-and-denoising"><span class="nav-text">Neural Temporal
+Adaptive Sampling and Denoising</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#intro"><span class="nav-text">Intro</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#our-approach"><span class="nav-text">Our Approach</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#networks"><span class="nav-text">Networks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#temporal-reprojection"><span class="nav-text">temporal reprojection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#adaptive-sampler"><span class="nav-text">Adaptive Sampler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#renderer-%E6%A2%AF%E5%BA%A6%E4%BC%A0%E6%92%AD"><span class="nav-text">renderer 梯度传播</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#denoiser"><span class="nav-text">Denoiser</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#training"><span class="nav-text">Training</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#results"><span class="nav-text">Results</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">329</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/10/28/CG/Papers/2020/Neural-AS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2020-EG] Neural Temporal Adaptive Sampling and Denoising | Banbao">
+      <meta itemprop="description" content="神经适应性采样；在之前工作 DASR（联合优化适应性采样和降噪）的基础上加上了层次核函数预测、循环模块，提高了照片质量和时间上的稳定性；可泛化；DASR 为了让渲染结果对采样图可微，做了一个近似">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2020-EG] Neural Temporal Adaptive Sampling and Denoising
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-10-28 17:02:20" itemprop="dateCreated datePublished" datetime="2024-10-28T17:02:20+08:00">2024-10-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-11-26 20:26:22" itemprop="dateModified" datetime="2024-11-26T20:26:22+08:00">2024-11-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">神经适应性采样；在之前工作 DASR（联合优化适应性采样和降噪）的基础上加上了层次核函数预测、循环模块，提高了照片质量和时间上的稳定性；可泛化；DASR 为了让渲染结果对采样图可微，做了一个近似</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="neural-temporal-adaptive-sampling-and-denoising">Neural Temporal
+Adaptive Sampling and Denoising</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://research.nvidia.com/labs/rtr/publication/hasselgren2020neuraltemp/">主页</a></li>
+<li>Jon Hasselgren, Jacob Munkberg, Marco Salvi, Anjul Patney, Aaron
+Lefohn
+<ul>
+<li>NVIDIA</li>
+</ul></li>
+<li>We propose a novel method for <strong>temporal adaptive
+sampling</strong> and denoising of <strong>sparse</strong> Monte Carlo
+path traced animations at <strong>interactive rate</strong></li>
+<li>降噪 + 适应性采样，学习 spatial-temporal
+联合分布，低样本下保持时间稳定性、提高出图质量</li>
+</ul>
+<h1 id="intro">Intro</h1>
+<ul>
+<li>离线降噪
+<ul>
+<li>CNN 为每个像素生成一个 filter kernel</li>
+<li>temporal：每一帧过一遍</li>
+</ul></li>
+<li>Adaptive sampling
+<ul>
+<li>【2018-ESGR】Deep Adaptive Sampling for Low Sample Count
+Rendering，记作 <span style="color:red;font-weight:bold">DASR</span>
+<ul>
+<li>CNNx2：预测 sample density map、降噪采样图片</li>
+<li>端到端联合优化，两个 CNN 相互辅助（eg.
+降噪较弱的地方，多采样光线）</li>
+<li><span style="color:red;font-weight:bold">我们的方法基于此，将其扩展到时域上，实现
+temporal stable</span></li>
+</ul></li>
+</ul></li>
+<li>interactive rates
+<ul>
+<li>U-Net + recurrent convolutional blocks at each encoder
+level（慢）</li>
+</ul></li>
+<li>Spatiotemporal variance-guided
+filtering：效果和学习方法差不多，但是很快【启发式】</li>
+<li>我们：interactive, temporally stable, adaptive sampling and
+denoising
+<ul>
+<li>时域稳定性：只在降噪输出上坐做分辨率的 recurrence（而不是每层
+encoder 都做）</li>
+<li>使用 motion vector（视频领域用 optical flow）【效率关键】
+<ul>
+<li>问题转换：learn to track the motion of noisy image features <span class="math inline">\(\Rightarrow\)</span> learn to detect where
+temporal reuse is appropriate</li>
+<li>更容易了：10x 小的网络效果就不错</li>
+</ul></li>
+<li>interactive rates at 1080P</li>
+</ul></li>
+<li>贡献：
+<ul>
+<li><strong>Temporally stable</strong> adaptive sampling at low sample
+counts.</li>
+<li>Adaptive sampling driven by <strong>warped temporal
+feedback</strong> instead of an initial sampling pass.</li>
+<li><strong>An interactive, temporally-stable denoiser network</strong>
+based on hierarchical kernel prediction and warped temporal feedback,
+which is substantially faster and generates higher image quality than
+previous hierarchical recurrent denoisers.</li>
+<li>A scalable architecture with high image quality for larger networks,
+that still outperforms previous work while scaled down to real-time
+performance.</li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/28/CG/Papers/2020/Neural-AS/fig2-overview.png"></p>
+<h1 id="our-approach">Our Approach</h1>
+<h2 id="networks">Networks</h2>
+<ul>
+<li>sample map estimator、denoiser networks 都是 <strong>U-Net</strong>
+<ul>
+<li><strong>绿色的 denoiser net 独有的</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/28/CG/Papers/2020/Neural-AS/fig3-unet.png"></p>
+<h3 id="temporal-reprojection">temporal reprojection</h3>
+<ul>
+<li>primary intersection point 的 motion
+vector，变换到上一帧之后，使用双线性插值（pytorch
+<code>grid_sample()</code> 方便实现）</li>
+</ul>
+<h3 id="adaptive-sampler">Adaptive Sampler</h3>
+<ul>
+<li>输入：feature buffers + 重投影的结果（重投影到上一帧降噪后的结果）
+<ul>
+<li>normals, depth, motion vectors and albedo at <strong>first
+hit</strong></li>
+</ul></li>
+<li>输出：softmax 归一化
+<ul>
+<li><span class="math inline">\(n\)</span>：spp，<span class="math inline">\(M\)</span>：像素数量</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\hat{s}(p)=\mathrm{round}\left(\frac{M\cdot
+e^{s(p)}}{\sum_{i=1}^{M}e^{s(i)}}\cdot n\right)
+\]</span></p>
+<h3 id="renderer-梯度传播">renderer 梯度传播</h3>
+<ul>
+<li>参考 DASR（数值计算）
+<ul>
+<li><a href="/2024/11/06/CG/Papers/2018/DASR/">笔记</a></li>
+</ul></li>
+</ul>
+<h3 id="denoiser">Denoiser</h3>
+<ul>
+<li>输入：adaptively sampled noisy image + <strong>all inputs of the
+sampler network</strong></li>
+<li>输出：multi-scale kernel predicting network
+<ul>
+<li>每一层输出一个 5x5 的 kernel（25 通道）以及混合权重（1
+通道）；最细的部分额外输出一个 5x5 kernel（temporal）</li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/28/CG/Papers/2020/Neural-AS/fig3-unet.png"></p>
+<ul>
+<li>kernel 用法：应用到对应分辨率的 noisy image 上，作用后得到 <span class="math inline">\(\mathbf{i}\)</span>
+<ul>
+<li><span class="math inline">\(\mathrm{\bf{i}}^c\)</span>：coarse
+粗粒度图片</li>
+<li><span class="math inline">\(\mathrm{\bf{i}}^f\)</span>：fine
+细粒度图片</li>
+<li><span class="math inline">\(\mathrm{\bf{D,U}}\)</span>：2x2-downsampling，nearest-neighbor
+upsampling</li>
+<li>从粗到细递归调用（上图中有描述，右下角黑色部分【原图没有，我补的】）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathrm{\bf{o}}_{p}={\bf{i}}_{p}^{f}-\alpha_{p}\left[\mathrm{\bf{UDi}}^{f}\right]_{p}+\alpha_{p}\left[\mathrm{\bf{Ui}}^{c}\right]_{p}
+\]</span></p>
+<ul>
+<li>temporal 5x5 应用到上一帧降噪后重投影的结果上</li>
+<li>预测 kernel 比直接预测更加准确</li>
+</ul>
+<h3 id="training">Training</h3>
+<ul>
+<li>端到端：loss 只在最后计算</li>
+<li>recurrent term：5 帧
+<ul>
+<li>第一帧初始化：noisy uniformly sampled image at our target sample
+count.</li>
+</ul></li>
+<li>Loss：空间 L1、时间 L1；等权重</li>
+<li><span class="math inline">\(x_i\)</span>：denoised；<span class="math inline">\(y_i\)</span>：ref
+<ul>
+<li><span class="math inline">\(\Delta y_{i}=y_i-y_{i-1}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+{\cal L}={\cal L}_{1}\,(x_{i},y_{i})+{\cal L}_{1}\,(\Delta x_{i},\Delta
+y_{i})
+\]</span></p>
+<h2 id="实现">实现</h2>
+<ul>
+<li>PyTorch + Falcor</li>
+<li>参数初始化：Xavier initialization</li>
+<li>Adam：0.001</li>
+<li>1000 epoch</li>
+<li>输入：clamp [0, 65535] <span class="math inline">\(\to\)</span>
+<span class="math inline">\(x&#39;=\log(x+1)^{1/2.2}\)</span></li>
+<li>adaptive sampling net：所有输入转成灰度（<span class="math inline">\(v=0.2989r+0.587g+0.114b\)</span>）
+<ul>
+<li>adaptive sampling
+应该与色度无关，只与噪声、几何、动画、遮挡等有关</li>
+</ul></li>
+<li>训练
+<ul>
+<li>预先独立渲染 <span class="math inline">\(2^n,n\in[0,5]\)</span> spp
+的图片，然后组合使用（参考 DASR）
+<ul>
+<li>13 = 1 + 4 + 8</li>
+</ul></li>
+<li>数据增强：裁剪、翻转、旋转90；随机打乱
+<ul>
+<li>直接预测的网络同时加上 hue permutations、grayscale augmentation</li>
+</ul></li>
+<li>数据集
+<ul>
+<li>9 个场景 x 16-25 个动画（8 帧）</li>
+<li>ref：1k spp</li>
+</ul></li>
+</ul></li>
+<li>测试：longer video clips and references with 4k spp</li>
+</ul>
+<h1 id="results">Results</h1>
+<ul>
+<li>最大贡献：temporal stable denoising</li>
+<li>metric：在 tonemap 之后计算 PSNR、tPSNR</li>
+<li>从差到好，依次加入
+<ul>
+<li>three-level hierarchical kernel prediction (KPN)</li>
+<li>temporal recurrence (Our uniform)</li>
+<li>adaptive sampling (Our adaptive)</li>
+</ul></li>
+</ul>
+<p><img src="/2024/10/28/CG/Papers/2020/Neural-AS/fig7-result.png"></p>
+<ul>
+<li>切换的过程中，存在不稳定（合理的）</li>
+<li>对比算法
+<ul>
+<li>recursive denoising autoencoders (RAE)</li>
+<li>deep adaptive sampling and reconstruction (DASR)
+<ul>
+<li>大光源、环境光泛化性问题，去掉了 visibility guide buffer</li>
+</ul></li>
+<li>spatiotemporal variance-guided filtering (SVGF)</li>
+</ul></li>
+<li>我们训练过程中加入了重投影，因此就不需要额外 TAA 了（RAE 需要）</li>
+<li>rMSE</li>
+<li>镜子问题：motion vector 失效，算的是镜子的而不是镜子中反射的</li>
+<li>泛化性好
+<ul>
+<li>测试：只针对某个场景训练 vs 训练集中去除这个场景</li>
+</ul></li>
+<li>Performance and Scaling
+<ul>
+<li>DASR 之外的负担：temporal recurrence loop and hierarchical kernel
+evaluation（&lt;1ms）、重投影快（GPU texture lookup）</li>
+</ul></li>
+<li>trade off：质量与效率，网络模块大小</li>
+<li>问题
+<ul>
+<li>ghosting and the network tends to error on the side of aggressive
+temporal reuse</li>
+<li><strong>View dependent shading effects</strong>, such as
+<strong>reflections</strong>, remain an open issue</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/EG/" rel="tag"># EG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/10/27/CG/Papers/2020/DeepPM/" rel="prev" title="(论文)[2020-EGSR] Deep Kernel Density Estimation for Photon Mapping">
+                  <i class="fa fa-chevron-left"></i> (论文)[2020-EGSR] Deep Kernel Density Estimation for Photon Mapping
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/11/06/CG/Papers/2018/DASR/" rel="next" title="(论文)[2018-EGSR] Deep Adaptive Sampling for Low Sample Count Rendering">
+                  (论文)[2018-EGSR] Deep Adaptive Sampling for Low Sample Count Rendering <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
