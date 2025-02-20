@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="简单来说就是降噪中，加入梯度信息作为指导；将梯度域渲染建模成 Kernel-Based 的方法；整体架构是一个金字塔架构，上下采样的权重通过 GLU【SIG-2023】的方式计算得到；在每一层内，进行梯度增强、Filtering 两个操作；梯度增强权重通过原始梯度图指导、GBuffer 监督得到；Filtering 的权重通过增强后的梯度、GBuffer、降噪后的图片、上采样的结果监督；实验显示比">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2024-SIGA-C] Filtering-Based Reconstruction for Gradient-Domain Rendering">
+<meta property="og:url" content="http://example.com/2024/12/17/CG/Papers/2024/FBR-GDR/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="简单来说就是降噪中，加入梯度信息作为指导；将梯度域渲染建模成 Kernel-Based 的方法；整体架构是一个金字塔架构，上下采样的权重通过 GLU【SIG-2023】的方式计算得到；在每一层内，进行梯度增强、Filtering 两个操作；梯度增强权重通过原始梯度图指导、GBuffer 监督得到；Filtering 的权重通过增强后的梯度、GBuffer、降噪后的图片、上采样的结果监督；实验显示比">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2024/12/17/CG/Papers/2024/FBR-GDR/gradient-guided-filtering.png">
+<meta property="og:image" content="http://example.com/2024/12/17/CG/Papers/2024/FBR-GDR/gradient-pt.png">
+<meta property="og:image" content="http://example.com/2024/12/17/CG/Papers/2024/FBR-GDR/gradient-guided-filtering-fig2.png">
+<meta property="article:published_time" content="2024-12-17T04:01:32.000Z">
+<meta property="article:modified_time" content="2024-12-17T06:28:03.454Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/12/17/CG/Papers/2024/FBR-GDR/gradient-guided-filtering.png">
+
+
+<link rel="canonical" href="http://example.com/2024/12/17/CG/Papers/2024/FBR-GDR/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/12/17/CG/Papers/2024/FBR-GDR/","path":"2024/12/17/CG/Papers/2024/FBR-GDR/","title":"(论文)[2024-SIGA-C] Filtering-Based Reconstruction for Gradient-Domain Rendering"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2024-SIGA-C] Filtering-Based Reconstruction for Gradient-Domain Rendering | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#filtering-based-reconstruction-for-gradient-domain-rendering"><span class="nav-text">Filtering-Based
+Reconstruction for Gradient-Domain Rendering</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-text">相关工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E5%A2%9E%E5%BC%BA"><span class="nav-text">梯度增强</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gradient-guided-filtering"><span class="nav-text">Gradient-Guided Filtering</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-text">实验</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">332</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/17/CG/Papers/2024/FBR-GDR/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2024-SIGA-C] Filtering-Based Reconstruction for Gradient-Domain Rendering | Banbao">
+      <meta itemprop="description" content="简单来说就是降噪中，加入梯度信息作为指导；将梯度域渲染建模成 Kernel-Based 的方法；整体架构是一个金字塔架构，上下采样的权重通过 GLU【SIG-2023】的方式计算得到；在每一层内，进行梯度增强、Filtering 两个操作；梯度增强权重通过原始梯度图指导、GBuffer 监督得到；Filtering 的权重通过增强后的梯度、GBuffer、降噪后的图片、上采样的结果监督；实验显示比之前的梯度域渲染好（收敛性好、同 spp 好），比降噪方法好（同时间好）；非学习方法；渐近无偏">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2024-SIGA-C] Filtering-Based Reconstruction for Gradient-Domain Rendering
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2024-12-17 12:01:32 / Modified: 14:28:03" itemprop="dateCreated datePublished" datetime="2024-12-17T12:01:32+08:00">2024-12-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">简单来说就是降噪中，加入梯度信息作为指导；将梯度域渲染建模成 Kernel-Based 的方法；整体架构是一个金字塔架构，上下采样的权重通过 GLU【SIG-2023】的方式计算得到；在每一层内，进行梯度增强、Filtering 两个操作；梯度增强权重通过原始梯度图指导、GBuffer 监督得到；Filtering 的权重通过增强后的梯度、GBuffer、降噪后的图片、上采样的结果监督；实验显示比之前的梯度域渲染好（收敛性好、同 spp 好），比降噪方法好（同时间好）；非学习方法；渐近无偏</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="filtering-based-reconstruction-for-gradient-domain-rendering">Filtering-Based
+Reconstruction for Gradient-Domain Rendering</h1>
+<ul>
+<li>作者
+<ul>
+<li>DIFEI YAN, SHAOKUN ZHENG, <strong>LING-QI YAN</strong>, KUN XU
+<ul>
+<li>1、2、4：Tsinghua University</li>
+<li>3：UC Santa Barbara</li>
+</ul></li>
+</ul></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/lastmc/FRGR">project</a></li>
+<li>简单来说就是降噪中，加入梯度信息作为指导
+<ul>
+<li><span style="color:red">怎么用，就是用于来算 <span class="math inline">\(\mu_p-\mu_q\)</span>？</span></li>
+</ul></li>
+<li>出发点
+<ul>
+<li>梯度存在噪声，不能直接用</li>
+<li>和降噪一样建模为 <strong>Kernel-Based
+方法</strong>，将梯度域信息作为 Guidance</li>
+<li>将 image domain 的信息（<strong>over blur 问题</strong>）和 gradient
+domain 的信息（<strong>噪声大</strong>）结合在一起</li>
+<li>策略：层级结构，梯度加强</li>
+<li>流程：<strong>如下图</strong></li>
+</ul></li>
+<li>优势：非学习方法；渐近无偏</li>
+</ul>
+<p><img src="/2024/12/17/CG/Papers/2024/FBR-GDR/gradient-guided-filtering.png"></p>
+<ul>
+<li>整体架构是一个金字塔架构，上下采样的权重通过
+GLU【SIG-2023】的方式计算得到</li>
+<li>在每一层内，进行梯度增强、Filtering 两个操作
+<ul>
+<li>梯度增强权重通过原始梯度图指导、GBuffer 监督得到
+<ul>
+<li>保留梯度较大、较小的值（sharp、smooth）</li>
+<li>GBuffer 变化小的地方梯度也要小</li>
+</ul></li>
+<li>Filtering
+的权重通过增强后的梯度、GBuffer、降噪后的图片、上采样的结果监督【优化权重系数
+<span class="math inline">\(w\)</span>】
+<ul>
+<li>MSE 小【<span style="color:red">降噪的流程，梯度只体现在这里的计算
+<span class="math inline">\(\mu\)</span> 真值？</span>】</li>
+<li><span class="math inline">\(w\)</span> 用于重建 GBuffer 也要好</li>
+<li><span class="math inline">\(w\)</span>
+重建上采样的图片应该和其本身差不多</li>
+<li><span class="math inline">\(w\)</span>
+重建后的图片更加接近降噪后的图片</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="相关工作">相关工作</h1>
+<ul>
+<li>梯度域渲染：解 Poisson equation
+<ul>
+<li>梯度：first-order information about an image</li>
+<li>问题：直接使用噪声很大的梯度信息，spiky artifacts</li>
+</ul></li>
+<li>Image-Space Reconstruction
+<ul>
+<li>一些 kernel-based 方法</li>
+<li>over-blurry 问题</li>
+</ul></li>
+<li>Image Upsampling</li>
+</ul>
+<h1 id="方法">方法</h1>
+<ul>
+<li>Gradient-PT：一条 base path，加上 deterministic shift mapping 之后的
+offset path</li>
+</ul>
+<p><img src="/2024/12/17/CG/Papers/2024/FBR-GDR/gradient-pt.png"></p>
+<ul>
+<li>流程：PT 输出 noisy color <span class="math inline">\(\mathrm{I}_\text{b}\)</span>、noisy gradient <span class="math inline">\(\mathrm{I}_\text{dx},\mathrm{I}_\text{dy}\)</span>（<span style="color:red">不是简单相加减，需要 shift mapping</span> ）、GBuffer
+<span class="math inline">\(\mathrm{F}\)</span>
+<ul>
+<li>我们的过程：<span class="math inline">\(\mathrm{I}=G(\mathrm{I}_\text{b},\mathrm{I}_\text{dx},\mathrm{I}_\text{dy},\mathrm{F})\)</span></li>
+<li><span class="math inline">\(\mathrm{G}\)</span> 层级化
+<ul>
+<li>每一层：Gradient enhancement 、Gradient guided filtering</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2024/12/17/CG/Papers/2024/FBR-GDR/gradient-guided-filtering-fig2.png"></p>
+<ul>
+<li>上下采样，输入图片 <span class="math inline">\(\mathrm{J}\)</span>，联合优化权重 <span class="math inline">\(W_d,W_u\)</span>
+<ul>
+<li>细节见论文 Guided Linear Upsampling 【2023-SIG】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\min_{W_{d},W_{u}}\Vert\mathrm{J}-\text{Up}(\text{Down}(\mathrm{J},W_d),W_u)\Vert
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathrm{J}\)</span>：9通道，降噪后的图片【只做一次，然后上下采样】、albedo、normal
+<ul>
+<li>color 降噪：bilateral weights + non-local means (NLM) weights
+<ul>
+<li>3 组超参，然后使用 SURE 选出最优的一组结果</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="梯度增强">梯度增强</h2>
+<ul>
+<li><span class="math inline">\(\mathrm{I}_{\text{dx}}\to\hat{\mathrm
+I}_{\text{dx}}\)</span></li>
+<li>梯度的两个问题：Invalid gradients、Spikes from outliers</li>
+<li>需求：Valid、Extreme value preserving、Feature-aware</li>
+<li><span id="valid-gpt">valid</span></li>
+</ul>
+<p><span class="math display">\[
+\begin{array}{rl}
+\hat{\mathrm
+I}(i+1,j+1)-\hat{\mathrm{I}}(i,j)&amp;=\hat{\mathrm{I}}_{\text{dx}}(i,j)+\hat{\mathrm{I}}_{\text{dy}}(i,j+1)\\
+&amp;=\hat{\mathrm{I}}_{\text{dy}}(i,j)+\hat{\mathrm{I}}_{\text{dx}}(i+1,j)
+\end{array}
+\]</span></p>
+<ul>
+<li>Color-guided regularization
+<ul>
+<li><span class="math inline">\(t=0.09\)</span>，控制最小权重
+<ul>
+<li>对勾，保留较小较大值（对应 smooth/sharp）</li>
+</ul></li>
+<li><span class="math inline">\(\epsilon=0.01\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathcal{L}_g=\sum_{\rho}\left(m_{x}(p)(\hat{\mathrm{I}}_{\mathrm{dx}}(p)-\mathrm{I}_{\mathrm{dx}}(p))^{2}+m_{y}(p)(\hat{\mathrm{I}}_{\mathrm{dy}}(p)-\mathrm{I}_{\mathrm{dy}}(p))^{2}\right)
+\]</span></p>
+<p><span class="math display">\[
+m_{x}(p)=\frac{|\mathrm{I}_{\mathrm{dx}}(p)|}{t}+\frac{1}{|\mathrm{I_{\mathrm{dx}}}(p)|+\epsilon},
+m_{y}(p)=\frac{|\mathrm{I}_{\mathrm{dy}}(p)|}{t}+\frac{1}{|\mathrm{I_{\mathrm{dy}}}(p)|+\epsilon},
+\]</span></p>
+<ul>
+<li>Feature-guided smoothing：希望 flat 的地方更加 smooth
+<ul>
+<li><span class="math inline">\(\mathrm{F}_{\mathrm{dx}}\)</span>：screen-space
+gradients of the feature maps，<span class="math inline">\(j\)</span>
+通道</li>
+<li>Gbuffer 梯度小的地方，希望实际梯度也小</li>
+<li><span class="math inline">\(\epsilon=0.01\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathcal{L}_{f}=\sum_{p}\left(a_{x}(p)|\hat{\mathrm
+I}_{\mathrm{dx}}(p)|^{2}+a_{y}(p)|\hat{\mathrm
+I}_{\mathrm{dy}}(p)|^{2}\right)\!
+\]</span></p>
+<p><span class="math display">\[
+a_{x}(p)=\frac{1}{\sum_{j}|\mathrm{F}_{\mathrm{dx}}^{(j)}(p)|+\epsilon},
+a_{y}(p)=\frac{1}{\sum_{j}|\mathrm{F}_{\mathrm{dy}}^{(j)}(p)|+\epsilon}
+\]</span></p>
+<ul>
+<li>最终 loss
+<ul>
+<li><span class="math inline">\(\lambda_f=8/\sqrt{N}\)</span>
+<ul>
+<li><span class="math inline">\(N\)</span> spp，因为只有 <span class="math inline">\(\mathcal{L}_f\)</span> 引入
+bias，这样的表示能够渐近无偏</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\min\mathcal{L}_{grad}=\mathcal{L}_g+\lambda_f\mathcal{L}_f
+\]</span></p>
+<ul>
+<li>求解：convex，可以梯度下降</li>
+</ul>
+<h2 id="gradient-guided-filtering">Gradient-Guided Filtering</h2>
+<ul>
+<li>建模为 kernel-based
+<ul>
+<li><span class="math inline">\(w_{q}\geq0,\sum_{q\in{\cal{N}}(p)}w_{q}=1\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathrm{I}(\rho)=\sum_{q\in{\cal{N}}(p)}w_{q}\mathrm{I}_{\mathrm{b}}(q)
+\]</span></p>
+<ul>
+<li>Gradient-guided loss：<span class="math inline">\(\text{MSE}=\text{Bias}^2+\text{Var}\)</span>
+<ul>
+<li>无偏：<span class="math inline">\(\mu,v\)</span>（但是实际上只能获取带噪声的估计）</li>
+<li><span class="math inline">\(\mu_q-\mu_p\)</span>
+可以使用增强后的梯度计算，根据<a href="#valid-gpt">式子</a></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\mathcal{L}_{\text{opt}}&amp;=\mathbb{E}\left[(\mathrm{I}(p)-\mu_p)^2\right]=\mathbb{E}\left[(\mathrm{I}(p)-\mu_p)\right]^2+\text{Var}\left[\mathrm{I}(p)-\mu_p\right]\\
+&amp;=\left(\sum_{q\in{\cal{N}}(p)}w_q(\mu_q-\mu_p)\right)^2+\sum_{q\in{\cal{N}}(p)}w_q^2v_q
+\end{aligned}
+\]</span></p>
+<ul>
+<li>Auxiliary self-regression loss： 减小噪声+保留边界，使用 GBuffer
+自监督 <span class="math inline">\(w_q\)</span></li>
+</ul>
+<p><span class="math display">\[
+{\mathcal{L}}_{x}=\Biggl(\mathrm{F}_{x}(p)-\sum_{q\in
+N(p)}w_{q}\mathrm{F}_{x}(q)\Biggr)^{2},\quad
+x\in\{\mathrm{albedo,normal}\}
+\]</span></p>
+<ul>
+<li>上采样自监督 <span class="math inline">\(w_q\)</span>（上采样得到的
+color 图片）</li>
+</ul>
+<p><span class="math display">\[
+\mathcal{L}_{\text{up}}=\Biggl(\mathrm{I}_{\text{up}}(p)-\sum_{q\in
+N(p)}w_{q}\mathrm{I}_{\text{up}}(q)\Biggr)^{2}
+\]</span></p>
+<ul>
+<li>降噪监督（把降噪作为真值）</li>
+</ul>
+<p><span class="math display">\[
+\mathcal{L}_{\text{d}}=\Biggl(\mathrm{I}_{\text{d}}(p)-\sum_{q\in
+N(p)}w_{q}\mathrm{I}_{\text{b}}(q)\Biggr)^{2}
+\]</span></p>
+<ul>
+<li>总 loss
+<ul>
+<li>二次凸函数，梯度下降求解</li>
+<li>收敛性：<span class="math inline">\(\lambda_{\text{a}}=16/\sqrt{N},\lambda_{\text{n}}=0.16/\sqrt{N},\lambda_{\text{u}}=\lambda_{\text{d}}=8/\sqrt{N}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathcal{L}=
+\lambda_{\text{a}}\mathcal{L}_{\text{opt}}
++\lambda_{\text{a}}\mathcal{L}_{\text{albedo}}
++\lambda_{\text{n}}\mathcal{L}_{\text{normal}}
++\lambda_{\text{u}}\mathcal{L}_{\text{up}}
++\lambda_{\text{d}}\mathcal{L}_{\text{d}}
+\]</span></p>
+<h1 id="实验">实验</h1>
+<ul>
+<li>AMD Ryzen 9 7950X CPU and an NVIDIA 3080Ti GPU</li>
+<li>【2015】Gradient-PT
+<ul>
+<li>LuisaRender 实现</li>
+</ul></li>
+<li>1280 × 720</li>
+<li>整个过程：5s</li>
+<li>消融实验
+<ul>
+<li>金字塔层级：不同场景最优层级不一样，复杂的需要更多（2 - 4）
+<ul>
+<li>对比的时候，都用 2</li>
+</ul></li>
+<li>Guided Linear Upsampling (GLU) 策略：学习 vs 简单插值</li>
+<li>Gradient-Guided Filtering 中的每一个 loss 的重要性</li>
+</ul></li>
+<li>收敛性：比 NN 好</li>
+<li>对比试验
+<ul>
+<li>梯度域：同 spp 效果好
+<ul>
+<li>GradNet（800ms），如果 color、gradient 同时存在
+outlier，那么除不掉</li>
+<li>NGPT （600ms），wave-like artifacts<br>
+</li>
+</ul></li>
+<li>降噪：同时间比较，因为输出梯度需要时间，对比算法获取的 spp 更多
+<ul>
+<li>NFOR（filter-based，400ms）、AFGSA
+（learning-based，5s）、NPPD（吃内存多）</li>
+</ul></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/12/16/CG/Papers/2024/SIGA-2024/" rel="prev" title="(论文)[2024-SIGA] siggraph-asia 论文简介">
+                  <i class="fa fa-chevron-left"></i> (论文)[2024-SIGA] siggraph-asia 论文简介
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/01/15/CG/mitsuba3/03/" rel="next" title="[M3] 学习日志">
+                  [M3] 学习日志 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
