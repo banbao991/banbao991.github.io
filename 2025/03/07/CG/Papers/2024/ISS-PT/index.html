@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="论文将 splatting 和 MCMC mutation 结合，提出了一种 $O(n)$ 的 path reuse 算法；为了加速，论文在 path reuse 的时候，使用 $O(\ln n)$ 的复杂度计算贡献值，实现了进一步加速">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2024-SIG-C] Efficient Image-Space Shape Splatting for Monte Carlo Rendering">
+<meta property="og:url" content="http://example.com/2025/03/07/CG/Papers/2024/ISS-PT/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="论文将 splatting 和 MCMC mutation 结合，提出了一种 $O(n)$ 的 path reuse 算法；为了加速，论文在 path reuse 的时候，使用 $O(\ln n)$ 的复杂度计算贡献值，实现了进一步加速">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/03/07/CG/Papers/2024/ISS-PT/listing1-algorithm.png">
+<meta property="og:image" content="http://example.com/2025/03/07/CG/Papers/2024/ISS-PT/pipeline.png">
+<meta property="og:image" content="http://example.com/2025/03/07/CG/Papers/2024/ISS-PT/fig2-2d-example.png">
+<meta property="article:published_time" content="2025-03-07T09:18:52.000Z">
+<meta property="article:modified_time" content="2025-03-20T15:25:42.644Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/03/07/CG/Papers/2024/ISS-PT/listing1-algorithm.png">
+
+
+<link rel="canonical" href="http://example.com/2025/03/07/CG/Papers/2024/ISS-PT/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/03/07/CG/Papers/2024/ISS-PT/","path":"2025/03/07/CG/Papers/2024/ISS-PT/","title":"(论文)[2024-SIG-C] Efficient Image-Space Shape Splatting for Monte Carlo Rendering"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2024-SIG-C] Efficient Image-Space Shape Splatting for Monte Carlo Rendering | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#efficient-image-space-shape-splatting"><span class="nav-text">Efficient Image-Space
+Shape Splatting</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-text">相关工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#motivation"><span class="nav-text">Motivation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#shape-splatting"><span class="nav-text">Shape Splatting</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#amortized-shape-splatting-via-mutations"><span class="nav-text">Amortized Shape
+Splatting via Mutations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mcmc-based-weighting-for-shape-splatting"><span class="nav-text">MCMC-based Weighting
+for Shape Splatting</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%92%8C-mcmc-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-text">和 MCMC 的区别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#efficient-shape-estimator-via-debiasing"><span class="nav-text">Efficient Shape
+Estimator via Debiasing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#efficient-interpolation-operator"><span class="nav-text">Efficient Interpolation
+Operator</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#generalization-to-2d-shapes"><span class="nav-text">Generalization to 2D Shapes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spatially-varying-shape"><span class="nav-text">Spatially Varying Shape</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#decorrelating-shape-splat"><span class="nav-text">Decorrelating Shape Splat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#optional-mixing-with-point-splats"><span class="nav-text">Optional Mixing with Point
+Splats</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#results"><span class="nav-text">Results</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C"><span class="nav-text">消融实验</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B1%80%E9%99%90"><span class="nav-text">局限</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">340</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">108</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/07/CG/Papers/2024/ISS-PT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2024-SIG-C] Efficient Image-Space Shape Splatting for Monte Carlo Rendering | Banbao">
+      <meta itemprop="description" content="论文将 splatting 和 MCMC mutation 结合，提出了一种 $O(n)$ 的 path reuse 算法；为了加速，论文在 path reuse 的时候，使用 $O(\ln n)$ 的复杂度计算贡献值，实现了进一步加速">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2024-SIG-C] Efficient Image-Space Shape Splatting for Monte Carlo Rendering
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-03-07 17:18:52" itemprop="dateCreated datePublished" datetime="2025-03-07T17:18:52+08:00">2025-03-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-03-20 23:25:42" itemprop="dateModified" datetime="2025-03-20T23:25:42+08:00">2025-03-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">论文将 splatting 和 MCMC mutation 结合，提出了一种 $O(n)$ 的 path reuse 算法；为了加速，论文在 path reuse 的时候，使用 $O(\ln n)$ 的复杂度计算贡献值，实现了进一步加速</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="efficient-image-space-shape-splatting">Efficient Image-Space
+Shape Splatting</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://cs.uwaterloo.ca/~xtong/">主页</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/LuisaGroup/Efficient-Image-Shape-Splatting/">code</a></li>
+<li>论文的创新点
+<ul>
+<li>提出了一种 path reuse 的算法，简单的复用计算 MIS 复杂度较高（balance
+heuristic 需要 <span class="math inline">\(O(n^2)\)</span>，pairwise
+需要 <span class="math inline">\(O(n)\)</span>
+但是效果不好），论文将splatting 和 MCMC mutation 结合，提出了一种 <span class="math inline">\(O(n)\)</span> 的 path reuse 算法（效果好于
+pairwise MIS）
+<ul>
+<li><span style="color:red;font-weight:bold">MLT
+保证了无偏性</span></li>
+</ul></li>
+<li>为了加速，论文在 path reuse 的时候，使用 <span class="math inline">\(O(\ln n)\)</span>
+的复杂度计算贡献值，实现了进一步加速
+<ul>
+<li>利用了 【2022-SIG】 的方式，构建 telescope
+sum，将有偏转化为无偏</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2025/03/07/CG/Papers/2024/ISS-PT/listing1-algorithm.png"></p>
+<h1 id="摘要">摘要</h1>
+<ul>
+<li>效果
+<ul>
+<li>屏幕空间，任意形状 shape，实现 sublinear cost 的复用</li>
+<li>能用到很多方法中（PT、PSSMLT、ReSTIR PT），单像素一致的好</li>
+</ul></li>
+<li>shift mapping 计算代价是 linear 的</li>
+<li>key idea：shape 内部稀疏计算随即像素的贡献，然后插值到其他像素</li>
+</ul>
+<p><img src="/2025/03/07/CG/Papers/2024/ISS-PT/pipeline.png"></p>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>扩展 PT 概念
+<ul>
+<li>原来是 a light path 对应 a single point</li>
+<li>扩展到 a light path 对应 multiple points，论文称为
+<strong>shape</strong></li>
+</ul></li>
+<li>自然的有 path reuse 的想法
+<ul>
+<li>之前的 path reuse，计算复杂度正比于 shape 中 point 的数量</li>
+</ul></li>
+<li>我们：sublinear
+<ul>
+<li>先使用 biased 快速计算 sample 对于 shape 的贡献，然后 debias</li>
+<li>结果：~60 pixel 的 shape 只需要 4 point sample</li>
+</ul></li>
+<li>使用 MCMC 来建模 shape sampling and splatting 的过程，免除平方量级的
+MIS 计算</li>
+</ul>
+<h1 id="相关工作">相关工作</h1>
+<ul>
+<li><strong>Line segment sampling</strong>：之前有人做 distributed
+effects、visibility</li>
+<li>我们是处理由很多 point 组成的 shape，之前无人提出</li>
+<li><strong>Path reuse</strong>：ReSTIR and Generalized RIS
+<ul>
+<li>计算代价正比于 shift mapping 的样本数</li>
+</ul></li>
+<li><strong>Gradient-domain rendering</strong>（GDR）</li>
+</ul>
+<h1 id="motivation">Motivation</h1>
+<ul>
+<li>2D 例子</li>
+<li>问题：使用给定的 <span class="math inline">\(p(x,y)\)</span> 去采样
+<span class="math inline">\((x,y)\)</span> 实现 拷贝图片 <span class="math inline">\(I(x,y)\)</span>
+<ul>
+<li>等价于估计 <span class="math inline">\(p(x,y)\)</span>
+生成样本的直方图（<span style="color:red;font-weight:bold">TODO？</span>)</li>
+</ul></li>
+<li>使用相同的 shape，61 个点（生成代价 ~4 points）
+<ul>
+<li>61 个点在代码中为：<span class="math inline">\(w^2+(w-1)^2,w=6\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2025/03/07/CG/Papers/2024/ISS-PT/fig2-2d-example.png"></p>
+<h1 id="shape-splatting">Shape Splatting</h1>
+<ul>
+<li>积分</li>
+</ul>
+<p><span class="math display">\[
+I_i = \int_{\mathcal{P}} g(i, \mathbf{x}) d\mathbf{x} =
+\int_{\mathcal{P}_i} \underbrace{h(i, \mathbf{x})
+f(\mathbf{x})}_{g(i,\mathbf{x})} d\mathbf{x}\tag{1}
+\]</span></p>
+<ul>
+<li>如果 pixel filter 为 <span class="math inline">\(h(i, \mathbf{x})=1,
+\mathbf{x}\in \text{pixel }i\)</span>，向量形式如下</li>
+</ul>
+<p><span class="math display">\[
+\boldsymbol{I} =
+\begin{bmatrix}
+\vdots \\
+I_i \\
+\vdots
+\end{bmatrix}
+=
+\begin{bmatrix}
+\vdots \\
+\int_{\mathcal{P}} g(i, \mathbf{x}) d\mathbf{x} \\
+\vdots
+\end{bmatrix}
+=
+\begin{bmatrix}
+\vdots \\
+\int_{\mathcal{P}_i} f(\mathbf{x}) d\mathbf{x} \\
+\vdots
+\end{bmatrix}. \tag{2}
+\]</span></p>
+<ul>
+<li>流程：先根据 <span class="math inline">\(p_i(\cdot)\)</span>
+采样像素 <span class="math inline">\(i\)</span>，然后根据 <span class="math inline">\(p(\mathbf{x}\mid i)\)</span> 采样路径 <span class="math inline">\(\mathbf{x}\)</span>
+<ul>
+<li>PT：等价于均匀采样 <span class="math inline">\(i\)</span></li>
+</ul></li>
+<li>Shape：像素下标的<strong>有序</strong>集合</li>
+</ul>
+<p><span class="math display">\[
+\mathcal{S} = \{i_1, \ldots, i_{|\mathcal{S}|}\} (i_1 &lt; \ldots &lt;
+i_{|\mathcal{S}|})
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathcal{S}^i\)</span>
+用于表示不同的像素可以有不同的形状
+<ul>
+<li><span class="math inline">\(i\)</span> 称为 <span class="math inline">\(\mathcal{S}^i\)</span> 的 center pixel</li>
+</ul></li>
+<li><span class="math inline">\(C(\mathcal{S}^i)_j\)</span> ：表示形状
+<span class="math inline">\(i\)</span> 对像素 <span class="math inline">\(j\)</span> 的贡献</li>
+<li>无偏性要求：下式是无偏估计</li>
+</ul>
+<p><span class="math display">\[
+I_j = \sum_{i = 1}^{N} C(\mathcal{S}^i)_j
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathcal{S}^i\)</span>，像素 <span class="math inline">\(i\)</span> 的 point sample 称为 <strong>primary
+sample</strong>，其他的称为 <strong>secondary sample</strong></li>
+<li>naive：采样 <span class="math inline">\(\mathcal{S}^i\)</span>
+中的所有点（需要采样 n 个点，采样 shape n
+次），然后将点的贡献累计到对应像素中
+<ul>
+<li>等价于直接采样所有点，效果没有提升</li>
+</ul></li>
+</ul>
+<h2 id="amortized-shape-splatting-via-mutations">Amortized Shape
+Splatting via Mutations</h2>
+<ul>
+<li>复用 primary sample，用其生成所有 secondary sample
+<ul>
+<li>splatting 等价于 gathering，但是 splatting 和 MCMC mutation
+更搭</li>
+</ul></li>
+<li>Mutation
+<ul>
+<li>给定 primary sample <span class="math inline">\(\mathbf{x}_i\)</span> 和 proposal distribution
+<span class="math inline">\(T_i(j)\)</span>（mutated sample
+的分布）</li>
+<li>生成 secondary sample <span class="math inline">\(\{\mathbf{x}_{i_1}, \ldots,
+\mathbf{x}_{i_{|\mathcal{S}|}}\}\)</span></li>
+</ul></li>
+<li>这里我们简单的使用均匀分布
+<ul>
+<li>因为是简单的二元分布，我们可以通过在 <span class="math inline">\(|\mathcal{S}^i|\)</span> 个提议中恰好选择 <span class="math inline">\(\mathcal{S}^i\)</span> 中的每个 <span class="math inline">\(j\)</span> 一次，确定性地将主样本 <span class="math inline">\(\mathbf{x}_i\)</span>
+变换为所有其他的次样本（<span style="color:red;font-weight:bold">不懂为啥，直观好像是这样</span>）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+T_i(j)=1/|\mathcal{S}^i|\cdot \mathbb{1}_{S^i}(j) \tag{4}
+\]</span></p>
+<ul>
+<li>mutate / path reuse 方式很多，这里使用 <strong>shift
+mapping</strong></li>
+<li>shift mapping 生成像素 <span class="math inline">\(j\)</span>
+的样本，直接在像素 <span class="math inline">\(j\)</span>
+中生成样本；二者分布不同（假定 <span class="math inline">\(\mathcal{S}\)</span> 都相同，那么如下）
+<ul>
+<li><span class="math inline">\(p(\mathbf{x}\mid i) /
+|\partial_{\mathbf{x}} T_{i \to j}|\)</span></li>
+<li><span class="math inline">\(p(\mathbf{x}\mid j)\)</span></li>
+</ul></li>
+<li>计算 balance heuristic MIS，计算代价 <span class="math inline">\(O(|\mathcal{S^i}|^2)\)</span>
+<ul>
+<li>pairwise MIS（<span class="math inline">\(O(|\mathcal{S^i}|)\)</span>）</li>
+<li>我们提出替代方法【效果比 pairwise 更好】</li>
+</ul></li>
+</ul>
+<h2 id="mcmc-based-weighting-for-shape-splatting">MCMC-based Weighting
+for Shape Splatting</h2>
+<ul>
+<li>Metropolis-Hastings 算法</li>
+<li>状态转移的接受概率 <span class="math inline">\(a(x\to
+y)\)</span>，细致平衡条件</li>
+</ul>
+<p><span class="math display">\[
+\pi(x)\mathcal{T}(x \to y)a(x \to y) = \pi(y)\mathcal{T}(y \to x)a(y \to
+x)
+\]</span></p>
+<p><span class="math display">\[
+\Longrightarrow
+\]</span></p>
+<p><span class="math display">\[
+a(x \to y) = \min\left(\frac{\pi(y)\mathcal{T}(y \to
+x)}{\pi(x)\mathcal{T}(x \to y)}, 1\right)\tag{5}
+\]</span></p>
+<ul>
+<li>proposal distribution：<span class="math inline">\(\mathcal{T}(x \to
+y)\)</span></li>
+<li>平稳分布：<span class="math inline">\(\pi(x)\)</span></li>
+<li>渲染一般将当前状态和转移状态都使用
+<ul>
+<li>weighted：proposed <span class="math inline">\(y\)</span> 权重 <span class="math inline">\(a(x\to y)\)</span>，当前状态权重 <span class="math inline">\(1-a(x\to y)\)</span></li>
+<li>不会引入 bias，期望都是对的</li>
+</ul></li>
+<li><span class="math inline">\(p(\mathbf{x})\)</span>
+为初始采样光路的概率，将其作为平稳分布，于是有</li>
+</ul>
+<p><span class="math display">\[
+a(\mathbf{x}_i \to \mathbf{x}_j) =
+\min\left(\frac{p(\mathbf{x}_j)|\mathcal{S}^i|}{p(\mathbf{x}_i)|\mathcal{S}^j|}|\partial_{\mathbf{x}}
+T_{i \to j}|, 1\right)\tag{6}
+\]</span></p>
+<ul>
+<li>推导：都定义到 <span class="math inline">\(\mathbf{x}_i\)</span>
+的定义域上，类比推导即得</li>
+</ul>
+<p><span class="math display">\[
+\pi(\mathbf{x}_i)\mathcal{T}(\mathbf{x}_i \to
+\mathbf{x}_j)a(\mathbf{x}_i \to \mathbf{x}_j)
+=
+\pi(\mathbf{x}_j)\mathcal{T}(\mathbf{x}_j \to
+\mathbf{x}_i)a(\mathbf{x}_j \to \mathbf{x}_i)
+\]</span></p>
+<p><span class="math display">\[
+p(\mathbf{x}_i)\frac{1}{|\mathcal{S}^i|}a(\mathbf{x}_i \to \mathbf{x}_j)
+=
+p(\mathbf{x}_j)|\partial_{\mathbf{x}} T_{i \to
+j}|\frac{1}{|\mathcal{S}^j|}a(\mathbf{x}_j \to \mathbf{x}_i)
+\]</span></p>
+<ul>
+<li>权重计算
+<ul>
+<li><span class="math inline">\(i=j\)</span>：自己 + 转移其他失败</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+w_{i \to j}=
+\begin{cases}
+\dfrac{1}{|\mathcal{S}^i|}a(\mathbf{x}_i \to \mathbf{x}_j) &amp; (i \neq
+j) \\
+\dfrac{1}{|\mathcal{S}^i|}\left(1 + \sum_{k \neq i} 1 - w_{i \to
+k}\right) &amp; (i = j)
+\end{cases} \tag{7}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(P(\mathcal{S}^i)\)</span> 的估计</li>
+</ul>
+<p><span class="math display">\[
+\langle C(\mathcal{S}^i)\rangle_j = P(\mathcal{S}^i)_j = w_{i \to j}
+\frac{f(\mathbf{x}_j)}{p(\mathbf{x}_j)}, \text{ where } \mathbf{x}_j =
+T_{i \to j}(\mathbf{x}_i) \tag{8}
+\]</span></p>
+<ul>
+<li><span style="color:red;font-weight:bold">无偏性保证</span>
+<ul>
+<li>我们希望 <span class="math inline">\(p(\cdot)\)</span>
+就是最终的平稳分布，代入我们的转移函数（本身就可以任意选，只会影响收敛速度），计算得到接受概率</li>
+<li>此时生成样本的概率就是 <span class="math inline">\(p(\cdot)\)</span>，算出
+pdf，除掉就行，是无偏估计</li>
+</ul></li>
+</ul>
+<h3 id="和-mcmc-的区别">和 MCMC 的区别</h3>
+<ul>
+<li>我们初始每个像素就有样本（根据 <span class="math inline">\(p(\cdot)\)</span> 产生）</li>
+<li>我们设置 <span class="math inline">\(\pi(\cdot)=p(\cdot)\)</span>，使得一开始就处于平稳分布</li>
+<li>每次多个样本（多个 secondary sample）</li>
+</ul>
+<h2 id="efficient-shape-estimator-via-debiasing">Efficient Shape
+Estimator via Debiasing</h2>
+<ul>
+<li>目前是无偏的，但是计算量是 <span class="math inline">\(O(|\mathcal{S}^i|)\)</span> 的
+<ul>
+<li>需要计算每一个 secondary sample 的贡献</li>
+</ul></li>
+<li>加速：使用 telescoping sum debiasing estimators【SIG2022】
+<ul>
+<li><span style="color:red;font-weight:bold">具体原理看那篇论文吧</span></li>
+</ul></li>
+<li><span style="color:red;font-weight:bold">这一小节：<span class="math inline">\(\mathcal{S}=\mathcal{S}^i\)</span>，只考虑 <span class="math inline">\(j\in\mathcal{S}\)</span></span></li>
+<li><span class="math inline">\(C(\mathcal{S})\)</span> 是一个向量</li>
+<li>biased 版本： secondary sample 的 <span class="math inline">\(C(\mathcal{S})_j\approx P(\mathcal{S})_i\)</span>
+<ul>
+<li>称为 <span class="math inline">\(D(1)\)</span>，因为只需要 1
+个样本</li>
+</ul></li>
+<li>定义一系列估计 <span class="math inline">\(D(m)\)</span>，使得 bias
+<span class="math inline">\(\mathbf{B}[D(m)]\to0\)</span>
+<ul>
+<li>在此，就是采样所有点，<span class="math inline">\(D(|\mathcal{S}|)=P(\mathcal{S})\)</span></li>
+</ul></li>
+<li><span class="math inline">\(1\le k\le
+|\mathcal{S}|-1\)</span>，随机数，概率 <span class="math inline">\(p_k\)</span></li>
+<li>采样有序子集 <span class="math inline">\(\mathcal{K}\subset\mathcal{S}\)</span>
+<ul>
+<li><span class="math inline">\(\mathcal{K}\)</span> 中有 <span class="math inline">\(k+1\)</span> 个像素【k secondar + 1 primary】</li>
+<li>定义：<span class="math inline">\(P(\mathcal{K})_j=P(\mathcal{S})_j,j\in\mathcal{K}\)</span>，其余为
+0</li>
+<li>计算代价 <span class="math inline">\(O(|\mathcal{K}|)\)</span></li>
+</ul></li>
+<li>插值 <span class="math inline">\(P(\mathcal{K})\)</span>，用于估计
+<span class="math inline">\(P(\mathcal{S})\)</span>
+<ul>
+<li>插值操作：<span class="math inline">\(A_{\mathcal{S}}\)</span></li>
+<li><span class="math inline">\(A_{\mathcal{S}}(P(\mathcal{K}))=P(\mathcal{S})\)</span></li>
+</ul></li>
+<li>telescoping sum 形式
+<ul>
+<li><span class="math inline">\(\Delta D(k)=D(k+1)-D(k)\)</span></li>
+<li><span class="math inline">\(D(k)=A_{\mathcal{S}}(P(\mathcal{K}))\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+P(\mathcal{S}) = D(1)+\sum_{k = 1}^{|\mathcal{S}|-1} \Delta D(k)\tag{9}
+\]</span></p>
+<ul>
+<li>debiasing 估计
+<ul>
+<li><strong>容易验证，期望是无偏的</strong></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\langle C(\mathcal{S})\rangle = D(1) + \frac{\Delta D(k)}{p_k} \tag{10}
+\]</span></p>
+<ul>
+<li>一起相关的估计 <span class="math inline">\(D(k+1),D(k)\)</span>
+<ul>
+<li>采样 <span class="math inline">\(k\)</span> 个 secondary point，构建
+<span class="math inline">\(\mathcal{K}\)</span>【对应 <span class="math inline">\(D(k+1)\)</span>】</li>
+<li>此时，遍历 <span class="math inline">\(k\)</span>
+种移除点的方式分别构建 <span class="math inline">\(D(k)\)</span>，取均值估计</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\langle D(k + 1) - D(k)\rangle = \frac{1}{k}\sum_{j \in \mathcal{K}, j
+\neq c} A_{\mathcal{S}}(P(\mathcal{K})) - A_{\mathcal{S}}(P(\mathcal{K}
+- \{j\})) \tag{11}
+\]</span></p>
+<ul>
+<li>遗留问题：合适的 <span class="math inline">\(p_k\)</span>
+<ul>
+<li>2022 论文有让 <span class="math inline">\(\mathbf{V}[\langle{C(\mathcal{S})}\rangle]\)</span>
+最小的方法</li>
+<li>我们：希望让 <span class="math inline">\(\mathbf{V}[\langle{C(\mathcal{S})}\rangle]\mathbf{C}[\langle{C(\mathcal{S})}\rangle]\)</span>
+最小
+<ul>
+<li>variance x cost</li>
+</ul></li>
+</ul></li>
+<li>实验发现：<span class="math inline">\(p_k\propto k^{-2}\)</span>
+效果好</li>
+<li>期望 cost：<span class="math inline">\(\sum k p_k\to\ln
+k\)</span>，实现 <span class="math inline">\(\log\)</span> 复杂度</li>
+</ul>
+<h3 id="efficient-interpolation-operator">Efficient Interpolation
+Operator</h3>
+<ul>
+<li><strong>线性插值</strong>效果就很好
+<ul>
+<li>超过端点的，使用最近的端点的值</li>
+</ul></li>
+<li><strong>高阶多项式</strong>效果不好，因为插值得到的 <span class="math inline">\(C\)</span> 可能不在 <span class="math inline">\(p(\mathcal{K})\)</span> 的最大最小值之间（not
+bounded），增大方差</li>
+<li>式子 11 的计算
+<ul>
+<li>直接计算复杂度：<span class="math inline">\(O(k|\mathcal{S}|)\)</span></li>
+<li>一个点的值只被两个邻居影响，加速到 <span class="math inline">\(O(|\mathcal{S}|)\)</span>
+<ul>
+<li>首先计算插值结果，然后根据移除的点，计算差值</li>
+<li>只需要记录每一个 <span class="math inline">\(j\)</span>
+<strong>左右各两个</strong>最近的邻居</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="generalization-to-2d-shapes">Generalization to 2D Shapes</h2>
+<ul>
+<li>大部分都一样，除了插值</li>
+<li>需要线性时间实现（支持 large shape）</li>
+<li>方案：1D 线性插值，沿着 space filling curve（例如 Hilbert curve）
+<ul>
+<li>2D 沿着 curve 压成 1D</li>
+</ul></li>
+</ul>
+<h2 id="spatially-varying-shape">Spatially Varying Shape</h2>
+<ul>
+<li>支持不同的像素选择不同的 shape，进一步减小式子 10 的方差</li>
+<li>debias estimator 在 <span class="math inline">\(D(1)\)</span> 和
+<span class="math inline">\(P(\mathcal{S})\)</span>
+区别小的时候，效果更好</li>
+<li>利用辅助的 buffer，来实现不同的 shape</li>
+<li>实现：先分配相同的 shape <span class="math inline">\(\mathcal{S}_B\)</span>，然后剔除其中不满足条件的像素得到
+<span class="math inline">\(\mathcal{S}^i\)</span>
+<ul>
+<li>spatially uniform base shape <span class="math inline">\(\mathcal{S}_B\)</span></li>
+<li>法线接近，albedo 接近
+<ul>
+<li>无穷范数，就是最大值</li>
+<li><span class="math inline">\(\tau_n=\sqrt{2}/2,\tau_c=0.1\)</span></li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+n_i \cdot n_j \geq \tau_n \land \|c_i - c_j\|_{\infty} \leq \tau_c
+\tag{12}
+\]</span></p>
+<ul>
+<li>对称性保证了 secondary samples 的权重不为 0（形式化为 MCMC mutation
+需要这一点）</li>
+</ul>
+<h2 id="decorrelating-shape-splat">Decorrelating Shape Splat</h2>
+<ul>
+<li>path reuse 的固有问题：inter-pixel correlation 导致的低频噪声</li>
+<li>两种方式
+<ul>
+<li>inserts strides between pixels in the shape</li>
+<li>randomly rotate the shapes in each sample</li>
+</ul></li>
+<li>shift mapping 导致的 error 变大，但是相关性减弱，容易被降噪（e.g.
+Intel OIDN）</li>
+</ul>
+<h2 id="optional-mixing-with-point-splats">Optional Mixing with Point
+Splats</h2>
+<ul>
+<li>debiasing estimator 问题
+<ul>
+<li>occasional artifacts（outlier 很难通过 auxiliary buffer 检测）</li>
+<li>negative-valued pixels（差别过大）</li>
+</ul></li>
+<li>主要是在应用到 vanilla PT 中时问题明显</li>
+<li>mix 3 个 estimator
+<ul>
+<li>already-available point samples at <strong>each center
+pixel</strong> and <strong>secondary samples</strong>（shift
+mapping）</li>
+<li>debiasing estimator</li>
+</ul></li>
+<li>因为来自相同的样本，不能用 mis，使用 inverse variance 进行 mix</li>
+<li>可能会有些微 bias，因为方差估计依赖于样本</li>
+<li><strong>unbiased mix：future work</strong></li>
+</ul>
+<h1 id="results">Results</h1>
+<ul>
+<li>实验：MegaKernel PT、PSSMLT、ReSTIR PT
+<ul>
+<li>GPU：高效实现，解决不同 shape 导致的 divergence
+<ul>
+<li>PT 追完之后，分解小任务？</li>
+<li>sample primary paths【50%开销】，dispatch resolutionSize</li>
+<li>sample secondary paths【40%】，dispatch resolutionSize x
+nShiftedPixels</li>
+<li>compute telescoping sum and splatting contribution 【10%】，dispatch
+resolutionSize</li>
+</ul></li>
+</ul></li>
+<li>实现了 hybrid shift mapping</li>
+<li>shape size 20 ~ 80，我们算法都不错</li>
+</ul>
+<h1 id="消融实验">消融实验</h1>
+<ul>
+<li>Mixing with point samples，inverse variance mix 的好处</li>
+<li>Effect of debiasing，构建 telescope sum</li>
+<li><strong>Comparison between pairwise MIS and MCMC weights</strong>
+<ul>
+<li>方差更低，outlier 更少</li>
+</ul></li>
+<li>Comparison of PMFs for Debiasing
+<ul>
+<li><span class="math inline">\(p_k=k^{-m}\)</span>：<span class="math inline">\(1\)</span> 方差低，但是 <span class="math inline">\(2\)</span> 效率高</li>
+</ul></li>
+<li>Debiased and naive shape splatting
+<ul>
+<li>构建 telescope sum，引入了额外噪声；但是值得</li>
+</ul></li>
+</ul>
+<h1 id="局限">局限</h1>
+<ul>
+<li>如果底层渲染算法方差很大，那么效果不好，需要好的 mix 算法</li>
+<li>更好的插值算法</li>
+<li>其他应用场景，例如 PDE</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/03/software/net/clash/" rel="prev" title="科学上网">
+                  <i class="fa fa-chevron-left"></i> 科学上网
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/" rel="next" title="(论文)[2023-PG] World-Space Spatiotemporal Path Resampling for Path Tracing">
+                  (论文)[2023-PG] World-Space Spatiotemporal Path Resampling for Path Tracing <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

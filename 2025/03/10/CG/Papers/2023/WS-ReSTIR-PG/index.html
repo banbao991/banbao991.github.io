@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="世界空间的时空间复用 ReSTIR；从开源代码来看和 2021-SIG-Communication 的区别就是 hash 的时候加了 normal">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2023-PG] World-Space Spatiotemporal Path Resampling for Path Tracing">
+<meta property="og:url" content="http://example.com/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="世界空间的时空间复用 ReSTIR；从开源代码来看和 2021-SIG-Communication 的区别就是 hash 的时候加了 normal">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/pipeline.png">
+<meta property="og:image" content="http://example.com/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/fig4--gi-compare.png">
+<meta property="og:image" content="http://example.com/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/alg1-initial-sampling.png">
+<meta property="og:image" content="http://example.com/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/alg2-ris.png">
+<meta property="article:published_time" content="2025-03-10T02:08:24.000Z">
+<meta property="article:modified_time" content="2025-03-13T06:42:29.190Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="ReSTIR">
+<meta property="article:tag" content="PG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/pipeline.png">
+
+
+<link rel="canonical" href="http://example.com/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/","path":"2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/","title":"(论文)[2023-PG] World-Space Spatiotemporal Path Resampling for Path Tracing"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2023-PG] World-Space Spatiotemporal Path Resampling for Path Tracing | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#world-space-spatiotemporal-path-resampling-for-pt"><span class="nav-text">World-Space
+Spatiotemporal Path Resampling for PT</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B9%8B%E5%89%8D%E5%B7%A5%E4%BD%9C"><span class="nav-text">之前工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#background-and-motivation"><span class="nav-text">Background and motivation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#background"><span class="nav-text">Background</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#restir-gi"><span class="nav-text">ReSTIR GI</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#motivation"><span class="nav-text">Motivation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#world-space-restir-gi"><span class="nav-text">World-Space ReSTIR GI</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sample-generation"><span class="nav-text">Sample Generation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hash-grid-construction"><span class="nav-text">Hash Grid Construction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%93%88%E5%B8%8C%E5%87%BD%E6%95%B0"><span class="nav-text">哈希函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cascaded-hash-grid"><span class="nav-text">Cascaded hash grid</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spatiotemporal-path-resampling"><span class="nav-text">Spatiotemporal Path
+Resampling</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sample-generation-1"><span class="nav-text">Sample Generation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hash-grid-construction-1"><span class="nav-text">Hash Grid Construction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#resampling"><span class="nav-text">Resampling</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94"><span class="nav-text">对比</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA"><span class="nav-text">讨论</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%84%E4%BB%B7"><span class="nav-text">评价</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">340</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">108</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2023-PG] World-Space Spatiotemporal Path Resampling for Path Tracing | Banbao">
+      <meta itemprop="description" content="世界空间的时空间复用 ReSTIR；从开源代码来看和 2021-SIG-Communication 的区别就是 hash 的时候加了 normal">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2023-PG] World-Space Spatiotemporal Path Resampling for Path Tracing
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-03-10 10:08:24" itemprop="dateCreated datePublished" datetime="2025-03-10T10:08:24+08:00">2025-03-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-03-13 14:42:29" itemprop="dateModified" datetime="2025-03-13T14:42:29+08:00">2025-03-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">世界空间的时空间复用 ReSTIR；从开源代码来看和 2021-SIG-Communication 的区别就是 hash 的时候加了 normal</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="world-space-spatiotemporal-path-resampling-for-pt">World-Space
+Spatiotemporal Path Resampling for PT</h1>
+<ul>
+<li>作者：Hangyu Zhang、Beibei Wang</li>
+<li><a target="_blank" rel="noopener" href="https://wangningbei.github.io/2023/ReSTIR.html">主页</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Otaku-hy/WorldSpaceReSTIRGI">代码</a>，Falcor
+实现</li>
+</ul>
+<h1 id="摘要">摘要</h1>
+<ul>
+<li>屏幕空间复用样本少，只能复用 first bounce
+的样本，复杂场景效果不好</li>
+<li>我们将样本保存到 world-space grid
+中，这样能够复用更多的样本（non-primary path vertices）</li>
+</ul>
+<h1 id="之前工作">之前工作</h1>
+<ul>
+<li>Resampling methods
+<ul>
+<li>ReSTIR：<strong>屏幕空间</strong>
+<ul>
+<li>【2020-SIG】ReSTIR DI：时间、相邻像素复用</li>
+<li>【2021-HPG】ReSTIR GI：重采样 path【<span style="color:red">本文对比算法</span>】</li>
+<li>【2022-SIG】ReSTIR PT：泛化 ReSTIR GI 理论，引入高效 shift mapping
+<ul>
+<li>overhead 较大</li>
+</ul></li>
+</ul></li>
+<li>【2021-SIGA-Communication】World-space ReSTIR
+<ul>
+<li>世界空间中缓存 light sample reservoirs，只做了light sampler，只做了
+one-bounce diffuse GI</li>
+</ul></li>
+<li>我们：<strong>lightweight GI</strong></li>
+<li>DDGI + ReSTIR</li>
+</ul></li>
+<li>World-space reuse methods：对应屏幕空间
+<ul>
+<li>Path Filtering</li>
+</ul></li>
+</ul>
+<h1 id="background-and-motivation">Background and motivation</h1>
+<h2 id="background">Background</h2>
+<ul>
+<li>Resampled Importance Sampling</li>
+<li>Weighted Reservoir Sampling</li>
+<li>ReSTIR GI</li>
+</ul>
+<h3 id="restir-gi">ReSTIR GI</h3>
+<ul>
+<li>定义：<span class="math inline">\(\bar{x}=\mathrm{x}_0,\mathrm{x}_1,\cdots,\mathrm{x}_n\)</span>
+<ul>
+<li><span class="math inline">\(\mathrm{x}_0\)</span>：camera</li>
+<li><span class="math inline">\(\mathrm{x}_n\)</span>：light</li>
+<li><span class="math inline">\(\mathrm{x}_1\)</span>：visible
+point</li>
+<li><span class="math inline">\(\mathrm{x}_2\)</span>：sample point</li>
+<li><span class="math inline">\(\mathrm{x}_2,\cdots,\mathrm{x}_n\)</span>：path
+sample</li>
+</ul></li>
+<li>ReSTIR GI 核心：为 visible point 采样 path sample + Reuse</li>
+<li>蓄水池记录
+<ul>
+<li>visible point、sample point 的位置与法向 <span class="math inline">\(\mathrm{x}_1,\mathrm{x}_2,\mathrm{n}_1,\mathrm{n}_2\)</span></li>
+<li>出射 radiance <span class="math inline">\(L_2\)</span>，采样 pdf
+<span class="math inline">\(p\)</span></li>
+</ul></li>
+<li>渲染的时候，采样蓄水池，然后重连 visible point + path sample
+<ul>
+<li>reconnection shift mapping：<span class="math inline">\(p\)</span>
+表示变换后的 pdf</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p_i^\prime(y) = p(T_i(y)) \left| \frac{\partial T_i}{\partial y} \right|
+\]</span></p>
+<h2 id="motivation">Motivation</h2>
+<ul>
+<li>ReSTIR GI 的限制
+<ul>
+<li>path sample 只能起始于 sample point <span class="math inline">\(\mathrm{x}_2\)</span></li>
+<li>屏幕空间蓄水池：在不连续区域，空间一致性被破坏</li>
+<li>glossy 表面，reconnection shift mapping 失效
+<ul>
+<li>ReSTIR PT 提供了其他方案，但是开销大</li>
+<li>简单替代：使用 glossy 之后的后续顶点重连【ReSTIR GI
+框架下不允许】</li>
+</ul></li>
+</ul></li>
+<li>我们提出了 world-space ReSTIR GI
+<ul>
+<li>所有从 non-primary vertice 出发的 path 都能被作为蓄水池样本</li>
+<li>空间一致性保证</li>
+</ul></li>
+</ul>
+<h1 id="world-space-restir-gi">World-Space ReSTIR GI</h1>
+<p><img src="/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/pipeline.png"></p>
+<h2 id="sample-generation">Sample Generation</h2>
+<ul>
+<li>一些区别</li>
+<li>光线走完 PT（no NEE）
+<ul>
+<li>将 roughness &lt; 0.2 的点称为 <strong>specular point</strong></li>
+<li>第一个 no-specular point 称为 <strong>visible point</strong> <span class="math inline">\(\mathrm{x}_1\)</span></li>
+<li>visible point 之后的所有点都称为 <strong>generalized sample
+point</strong></li>
+<li><strong>generalized path sample</strong>：generalized sample point
+和 light 上的一个点相连形成的路径
+<ul>
+<li>记录一些路径相关信息（具体查看<a href="#impl">实现部分</a>）</li>
+<li>暂存到 screen-space buffer 中，之后存到世界空间 hash grid 中</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="hash-grid-construction">Hash Grid Construction</h2>
+<ul>
+<li>目的：efficient query and compact storage</li>
+<li>和 <a href="/2025/03/10/CG/Papers/2021/WS-ReSTIR/">World-Space
+ReSTIR</a> 差不多
+<ul>
+<li>简称为 WSR</li>
+<li>就是加了法线</li>
+<li>存储也是一样，存储数据索引（index），实际数据保存到 image
+buffer</li>
+</ul></li>
+</ul>
+<h3 id="哈希函数">哈希函数</h3>
+<ul>
+<li>同时考虑位置和法线（法线变化大破坏空间一致性）</li>
+<li>在其基础上引入了法线
+<ul>
+<li>在 WSR 外面套了一个法线 hash
+<ul>
+<li>pcg、jenkinsHash（32bit 版本）都加</li>
+</ul></li>
+<li>BinaryNorm 是论文中的 quantized ，对法线的量化
+<ul>
+<li>球面映射到量化块，论文中是下面 BinaryNorm 中注释掉的代码</li>
+</ul></li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">FindOrInsertCell</span><span class="params">(float3 pos, float3 norm, <span class="type">float</span> cellSize, GIParameter params, RWByteAddressBuffer checkSumBuffer)</span> </span>&#123;</span><br><span class="line">    uint3 p = <span class="built_in">uint3</span>(<span class="built_in">floor</span>((pos - params.sceneBBMin) / cellSize));</span><br><span class="line">    <span class="comment">// uint normprint = params._pad &gt; 0 ? BinaryNorm(norm) : 0u;</span></span><br><span class="line">    uint normprint = <span class="built_in">BinaryNorm</span>(norm);</span><br><span class="line"></span><br><span class="line">    uint cellIndex = <span class="built_in">pcg32</span>(normprint + </span><br><span class="line">                           <span class="built_in">pcg32</span>(cellSize + <span class="built_in">pcg32</span>(p.z + <span class="built_in">pcg32</span>(p.y + <span class="built_in">pcg32</span>(p.x)))) <span class="comment">// 这个就是 World-Space ReSTIR 中用的</span></span><br><span class="line">                          ) % <span class="number">100000</span>;</span><br><span class="line">    uint checkSum = <span class="built_in">max</span>(<span class="built_in">jenkinsHash</span>(normprint + <span class="built_in">jenkinsHash</span>(cellSize + <span class="built_in">jenkinsHash</span>(p.z + <span class="built_in">jenkinsHash</span>(p.y + <span class="built_in">jenkinsHash</span>(p.x))))), <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (uint i = <span class="number">0</span>; i &lt; <span class="number">32</span>; i++) &#123;</span><br><span class="line">        uint idx = cellIndex * <span class="number">32</span> + i;</span><br><span class="line">        uint checkSumPre;</span><br><span class="line">        <span class="comment">// 如果 checkSumBuffer[idx] == 0,</span></span><br><span class="line">        <span class="comment">//    那么设置 checkSumBuffer[idx] = checkSum，checkSumPre = checkSumBuffer[idx]（返回原始值 0）</span></span><br><span class="line">        <span class="comment">// 否则，返回原始值 checkSumBuffer[idx]</span></span><br><span class="line">        checkSumBuffer.<span class="built_in">InterlockedCompareExchange</span>(idx, <span class="number">0</span>, checkSum, checkSumPre);</span><br><span class="line">        <span class="keyword">if</span> (checkSumPre == <span class="number">0</span> || checkSumPre == checkSum)</span><br><span class="line">            <span class="keyword">return</span> idx;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">uint <span class="title">BinaryNorm</span><span class="params">(float3 norm)</span> </span>&#123;</span><br><span class="line">    uint a = norm.x &gt; <span class="number">0.f</span> ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line">    uint b = norm.y &gt; <span class="number">0.f</span> ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line">    uint c = norm.z &gt; <span class="number">0.f</span> ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">return</span> a * <span class="number">100</span> + b * <span class="number">10</span> + c;</span><br><span class="line">    <span class="comment">// uint3 biNorm = floor((norm + 1.f) * 1.5f);</span></span><br><span class="line">    <span class="comment">// return biNorm.x &lt;&lt; 4 | biNorm.y &lt;&lt; 2 | biNorm.z;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="cascaded-hash-grid">Cascaded hash grid</h3>
+<ul>
+<li>近密远疏</li>
+<li>和 WRS 一样</li>
+</ul>
+<h2 id="spatiotemporal-path-resampling">Spatiotemporal Path
+Resampling</h2>
+<ul>
+<li>世界空间空间复用（grid 不是配这个功能），屏幕空间时间复用</li>
+<li>temporal：重投影到上一帧，根据保存的 generalized path samples
+重采样，更新 temporal reservoir</li>
+<li>spatial
+<ul>
+<li>根据 visible point 的位置+法线</li>
+<li>找到对应的 hash cell 中保存的 index</li>
+<li>screen space buffers 中获取generalized path samples</li>
+<li>重采样，丢弃判定如下
+<ul>
+<li>法线相似性：visible point'normal 和 path sample'normal <span class="math inline">\(\mathrm{n}_{i}\)</span>的夹角 &lt;
+threshold（15）；不满足直接丢弃</li>
+<li>可见性：visible point 和 sample 之间的可见性；不满足权重设置为
+0</li>
+</ul></li>
+<li>shift mapping</li>
+<li>更新 reservoir</li>
+<li>bias correction，因为使用 <span class="math inline">\(1/M\)</span>
+作为 MIS，但是实际贡献到采样方向的 pdf 个数的可能小于 <span class="math inline">\(M\)</span>
+<ul>
+<li>说是和 ReSTIR GI 差不多，所以应该是吧 MIS 改成了 balance
+heuristic</li>
+</ul></li>
+<li>根据获取到的结果，重采样结束</li>
+</ul></li>
+<li>比 ReSTIR GI 更合理的复用范围</li>
+</ul>
+<p><img src="/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/fig4--gi-compare.png"></p>
+<h1 id="实现"><span id="impl">实现</span></h1>
+<ul>
+<li>每一帧流程
+<ul>
+<li>PT 生成样本</li>
+<li>从头开始生成 Hash Grid【BeginFrame 中清空了 buffer】
+<ul>
+<li>存入【max entry in cell = 32】</li>
+<li>前缀和、compact</li>
+</ul></li>
+<li>RIS：temporal + 3 x spatial</li>
+</ul></li>
+<li>按照开源的代码，实际上的重采样只发生在 visible point
+<ul>
+<li>PT 生成的样本也就是不同的 visible point 对应的样本</li>
+<li>RIS 也是在 visible point 进行</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 6，相当于是 6 spp</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">uint32_t</span> i = <span class="number">0</span>; i &lt; reSTIRInstances.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">    params.currentGIInstance = i;</span><br><span class="line">    <span class="built_in">UpdateResource</span>();</span><br><span class="line">    <span class="built_in">UpdateProgram</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化，包括清空 hash grid 等</span></span><br><span class="line">    reSTIRInstances[i]-&gt;<span class="built_in">BeginFrame</span>(...);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 光追生成样本</span></span><br><span class="line">    <span class="built_in">PrepareGIData</span>(...);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 包括好几个 pass，[1][2][3] 实现 compact 二次哈希</span></span><br><span class="line">    <span class="comment">// [1] InitialReservoirs.cs.slang</span></span><br><span class="line">    <span class="comment">//     保存蓄水池样本，把索引保存到 hash grid1 中（固定步长 32 的），此时 hash grid1 中保存的是 checkSum</span></span><br><span class="line">    <span class="comment">// [2] PrefixSum（内置）</span></span><br><span class="line">    <span class="comment">//     求前缀和</span></span><br><span class="line">    <span class="comment">// [3] BuildHashGrid.cs.slang</span></span><br><span class="line">    <span class="comment">//     将索引真正保存到 hash grid2（cellStorage）中</span></span><br><span class="line">    <span class="comment">// [4] SpatiotemporalResampling.cs.slang</span></span><br><span class="line">    <span class="comment">//     RIS 重采样</span></span><br><span class="line">    <span class="comment">// [5] FinalSample.cs.slang</span></span><br><span class="line">    <span class="comment">//     计算重采样得到的样本的若干信息</span></span><br><span class="line">    reSTIRInstances[i]-&gt;<span class="built_in">UpdateReSTIRGI</span>(...);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 根据重采样得到的样本着色</span></span><br><span class="line">    <span class="built_in">FinalShading</span>(pRenderContext, renderData, i);</span><br><span class="line">    reSTIRInstances[i]-&gt;<span class="built_in">EndFrame</span>(pRenderContext);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="sample-generation-1">Sample Generation</h2>
+<ul>
+<li>3 image-sized buffers，保存不同 bounce 数的样本（实验 bounce 数为
+2）
+<ul>
+<li>Initial sample buffer：初始样本的蓄水池</li>
+<li>Temporal reservoir buffer：接受上一帧的蓄水池更新</li>
+<li>Spatial reservoir buffer</li>
+</ul></li>
+<li>另外一个screen-space buffer，保存 glossy 信息（累计 BSDF、path
+radiance、到达 visible point 之前的 path length）</li>
+<li>初始蓄水池样本生成
+<ul>
+<li>找到第一个 non-specular 的点 <span class="math inline">\(\mathrm{x}_1\)</span>，然后继续光追</li>
+<li>保存一些信息，用于重采样
+<ul>
+<li><span class="math inline">\(\mathrm{x}_i\)</span> 有一个样本 <span class="math inline">\(\mathrm{x}_{i+1}\)</span>，其中 BSDF pdf 为 <span class="math inline">\(p_i\)</span>，radiance 估计为 <span class="math inline">\(L_{i+1}\)</span>（NEE+MIS 的结果）</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/alg1-initial-sampling.png"></p>
+<ul>
+<li>我看他开源的代码似乎只保存了 <span class="math inline">\(i=1\)</span> 的样本到蓄水池里面</li>
+</ul>
+<h2 id="hash-grid-construction-1">Hash Grid Construction</h2>
+<ul>
+<li>和 <a href="/2025/03/10/CG/Papers/2021/WS-ReSTIR/">World-Space
+ReSTIR</a> 差不多，就是加了法线</li>
+<li>将上面生成的样本保存到 hash grid 中</li>
+<li>配置
+<ul>
+<li>minimum cell size：场景 BVH 最小边的 <span class="math inline">\(1\%\)</span>
+<ul>
+<li>大了无效样本多，小了样本不够</li>
+</ul></li>
+<li>projected cell size：<span class="math inline">\(10\%\)</span>
+的分辨率（ReSTIR GI 一样）</li>
+<li>maximum cell count：3.2M</li>
+</ul></li>
+</ul>
+<h2 id="resampling">Resampling</h2>
+<ul>
+<li>temporal：重投影到上一帧，然后使用其样本【重投影失败则不用
+temporal】</li>
+<li>spatial：3 轮</li>
+</ul>
+<p><img src="/2025/03/10/CG/Papers/2023/WS-ReSTIR-PG/alg2-ris.png"></p>
+<ul>
+<li><p>代码实现上，reservoir 长度为 2x分辨率，用于保存【temporal |
+spatial】</p>
+<ul>
+<li><p>reservoir 使用 initialReservoirs 进行初始化【原始样本】，记作
+A</p></li>
+<li><p>重投影，根据像素位置，获取<span style="color:red;font-weight:bold">上一帧</span> temporal
+reservoir，记作 B【merge 到 A】</p>
+<ul>
+<li>保存 A 到当前帧 temporal reservoir【给下一帧用】</li>
+</ul></li>
+<li><p>获取<span style="color:red;font-weight:bold">上一帧</span>
+temporal reservoir，记作 C【和 B 的区别，读取后将 <span class="math inline">\(\mathrm{x}_i,\mathrm{n}_i\)</span> 修改为 A
+的位置与法线】</p>
+<ul>
+<li>读取<span style="color:red;font-weight:bold">上一帧</span>的 grid
+cell 中的 reservoir，进行重采样【此时轮流获取上一帧的 temporal 和
+spatial reservoir】
+<ul>
+<li>重采样 merge 到 C</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Reservoir neighborReservoir = <span class="built_in">GetReservoirs</span>(</span><br><span class="line">    preReservoirs,</span><br><span class="line">    neighborPixelIndex, </span><br><span class="line">    (count + <span class="number">1</span>) % <span class="number">2</span>, <span class="comment">// 0 temporal, 1 spatial</span></span><br><span class="line">    stride</span><br><span class="line">);</span><br></pre></td></tr></table></figure></li>
+<li><p>保存 C 作为最终结果，保存到当前帧的 spatial reservoir</p></li>
+</ul></li>
+<li><p>为什么使用上一帧：论文中说是为了减小相关性带来的 bias</p></li>
+<li><p><strong>论文还说了压缩，但是开源代码没有看到压缩的部分</strong></p>
+<ul>
+<li>还是说只开源了 1 个 bounce 的版本，multi-bounce 才压缩？</li>
+</ul></li>
+</ul>
+<h1 id="对比">对比</h1>
+<ul>
+<li>论文说对比的是 ReSTIR PT，真的假的？
+<ul>
+<li><strong>We use the implementation of the unbiased version provided
+by Lin et al. [LKB∗22] for ReSTIR GI and ReSTIR PT</strong><br>
+</li>
+</ul></li>
+<li>可能称简单 shift mapping 为 ReSTIR GI，复杂的为 ReSTIR PT？
+<ul>
+<li>效果比 ReSTIR GI 好，比 ReSTIR PT 差</li>
+<li>但是开销比 ReSTIR PT 小（ReSTIR PT 3x 开销）</li>
+</ul></li>
+</ul>
+<h1 id="讨论">讨论</h1>
+<ul>
+<li>不每帧重建 hash grid</li>
+<li>使用 multi-resolution hash；精细的 spatial，粗糙的 temporal；取代
+screen space buffer</li>
+<li>复杂光路：glossy</li>
+<li>动态光源</li>
+</ul>
+<h1 id="评价">评价</h1>
+<ul>
+<li>至少从<span style="color:red;font-weight:bold">开源代码</span>看，好多论文说的内容都没实现，下面的分析也是基于<span style="color:red;font-weight:bold">开源代码</span></li>
+<li>和 2021-SIG-Communication 的文章对比
+<ul>
+<li>Hash Grid 里面加上了 normal aware</li>
+<li>论文声称能做更多 bounce 的 ReSTIR，但是实际上只做了第一个
+non-specular 的 WS ReSTIR</li>
+<li>WS ReSTIR 重采样 light，本文重采样 path
+<ul>
+<li>但是实际上他只做了最简单的 shift mapping，用不上 <span class="math inline">\(L_i\)</span> 就不用了，也没有 random
+replay；实现上和 light 差不多</li>
+</ul></li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/ReSTIR/" rel="tag"># ReSTIR</a>
+              <a href="/tags/PG/" rel="tag"># PG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/07/CG/Papers/2024/ISS-PT/" rel="prev" title="(论文)[2024-SIG-C] Efficient Image-Space Shape Splatting for Monte Carlo Rendering">
+                  <i class="fa fa-chevron-left"></i> (论文)[2024-SIG-C] Efficient Image-Space Shape Splatting for Monte Carlo Rendering
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/10/CG/Papers/2021/WS-ReSTIR/" rel="next" title="(论文)[2021-SIG-Comm] World-Space Spatiotemporal Reservoir Reuse for Ray-traced Global Illumination">
+                  (论文)[2021-SIG-Comm] World-Space Spatiotemporal Reservoir Reuse for Ray-traced Global Illumination <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
