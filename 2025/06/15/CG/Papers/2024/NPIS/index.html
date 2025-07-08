@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="可以理解为环境光源 DI 的 path guiding；product importance sampling；近似分子（product）（不考虑阴影），通过两步变换完成，head warp + tail warp；warp 通过 normalizing flow 实现；head 是小的条件 NF，tail 是大的无条件 NF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2024-SIG-C] Neural Product Importance Sampling via Warp Composition">
+<meta property="og:url" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="可以理解为环境光源 DI 的 path guiding；product importance sampling；近似分子（product）（不考虑阴影），通过两步变换完成，head warp + tail warp；warp 通过 normalizing flow 实现；head 是小的条件 NF，tail 是大的无条件 NF">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/teaser.png">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/fig3-pipeline.png">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/fig2-example.png">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/fig3-pipeline.png">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/fig4-head-warp.png">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/fig3-pipeline.png">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/fig6-lightweight.png">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/fig11-shadow-catcher-compositing.png">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/fig11-shadow-catcher-compositing.png">
+<meta property="og:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/tab1-ablation.png">
+<meta property="article:published_time" content="2025-06-15T07:54:49.000Z">
+<meta property="article:modified_time" content="2025-06-17T12:49:56.089Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/06/15/CG/Papers/2024/NPIS/teaser.png">
+
+
+<link rel="canonical" href="http://example.com/2025/06/15/CG/Papers/2024/NPIS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/06/15/CG/Papers/2024/NPIS/","path":"2025/06/15/CG/Papers/2024/NPIS/","title":"(论文)[2024-SIG-C] Neural Product Importance Sampling via Warp Composition"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2024-SIG-C] Neural Product Importance Sampling via Warp Composition | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-product-importance-sampling-via-warp-composition"><span class="nav-text">Neural
+Product Importance Sampling via Warp Composition</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#background-and-related-work"><span class="nav-text">Background and Related Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-warp-composition"><span class="nav-text">Neural Warp Composition</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#neural-flow-head-warp"><span class="nav-text">Neural-flow head warp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tail-warp"><span class="nav-text">Tail warp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#head-warp-training"><span class="nav-text">Head-warp training</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#entropic-regularization"><span class="nav-text">Entropic regularization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA"><span class="nav-text">讨论</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0"><span class="nav-text">应用与实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0"><span class="nav-text">模型参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#training"><span class="nav-text">Training</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#evaluation"><span class="nav-text">Evaluation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cosine-weighted-emitter-sampling"><span class="nav-text">Cosine-weighted emitter
+sampling</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#lightweight-baked-head-warp"><span class="nav-text">Lightweight, baked head warp</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#microfacet-materials"><span class="nav-text">Microfacet materials</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#neural-materials"><span class="nav-text">Neural materials</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shadow-catcher-compositing"><span class="nav-text">Shadow-catcher compositing</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#discussion"><span class="nav-text">Discussion</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/06/15/CG/Papers/2024/NPIS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2024-SIG-C] Neural Product Importance Sampling via Warp Composition | Banbao">
+      <meta itemprop="description" content="可以理解为环境光源 DI 的 path guiding；product importance sampling；近似分子（product）（不考虑阴影），通过两步变换完成，head warp + tail warp；warp 通过 normalizing flow 实现；head 是小的条件 NF，tail 是大的无条件 NF">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2024-SIG-C] Neural Product Importance Sampling via Warp Composition
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-06-15 15:54:49" itemprop="dateCreated datePublished" datetime="2025-06-15T15:54:49+08:00">2025-06-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-06-17 20:49:56" itemprop="dateModified" datetime="2025-06-17T20:49:56+08:00">2025-06-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">可以理解为环境光源 DI 的 path guiding；product importance sampling；近似分子（product）（不考虑阴影），通过两步变换完成，head warp + tail warp；warp 通过 normalizing flow 实现；head 是小的条件 NF，tail 是大的无条件 NF</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="neural-product-importance-sampling-via-warp-composition">Neural
+Product Importance Sampling via Warp Composition</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://joeylitalien.github.io/publications/warp">主页</a></li>
+<li>作者：Joey Litalien, Miloš Hašan、Fujun Luan、Krishna Mullia、Iliyan
+Georgiev
+<ul>
+<li>McGill University，Adobe Research</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/teaser.png"></p>
+<ul>
+<li>摘要：如何结合材质采样、光源采样；我们的方法比 MIS 更好
+<ul>
+<li>small conditional head warp：neural spline flow
+<ul>
+<li>低维也能离散化</li>
+</ul></li>
+<li>large unconditional tail warp：discretized【离散】</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/fig3-pipeline.png"></p>
+<ul>
+<li><strong>环境光源 DI 的 path
+guiding</strong>：期望最终的采样分布近似于分子【单材质训练】
+<ul>
+<li>分布通过两步变换完成【head warp + tail warp】
+<ul>
+<li>都是通过 normalizing flow 实现</li>
+<li>head 是小的条件 NF，tail 是大的无条件 NF</li>
+</ul></li>
+<li>先训练 tail warp 将 unifrom 分布转化为环境光分布</li>
+<li>然后固定 tail warp，针对场景的每个材质进行训练 head
+warp，使得最终的分布和分子相近
+<ul>
+<li><strong>不考虑阴影</strong></li>
+<li>【我感觉应该是每个物体每个材质】不过环境光似乎不需要单物体，只和
+view direction 有关了</li>
+</ul></li>
+</ul></li>
+<li>为了加速，tail warp 的变换/逆变换离散化</li>
+</ul>
+<h1 id="background-and-related-work">Background and Related Work</h1>
+<ul>
+<li>Monte Carlo integration
+<ul>
+<li><span class="math inline">\(\perp\)</span>：cosine-weighted
+BSDF</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+L_o(\mathbf{x}, \omega_o) = \int_{\Omega} f_r^{\perp}(\mathbf{x},
+\omega_o, \omega) \, L(\omega) \, V(\mathbf{x}, \omega)
+\,\mathrm{d}\omega \tag{1}
+\]</span></p>
+<p><span class="math display">\[
+\langle L_o \rangle_N = \frac{1}{N} \sum_{i=1}^{N}
+\frac{f_r^{\perp}(\mathbf{x}, \omega_o, \omega_i) \, L(\omega_i) \,
+V(\mathbf{x}, \omega_i)}{p(\omega_i \vert \mathbf{x}, \omega_o)},
+\omega_i \sim p \tag{2}
+\]</span></p>
+<ul>
+<li>MIS 比估计乘积效果差，而且可能会过于保守</li>
+<li>Product importance sampling
+<ul>
+<li>我们方法样本少的时候，效果也好</li>
+</ul></li>
+<li>Resampled importance sampling
+<ul>
+<li>RIS 可以叠在我们方法上，进一步提高效果</li>
+</ul></li>
+<li>变换分布
+<ul>
+<li>【EGSR-2020】Practical Product Sampling by Fitting and Composing
+Warps</li>
+<li>和我们很像，但是他们求解的是<strong>面光源</strong>、<strong>解析变换</strong></li>
+</ul></li>
+<li>Normalizing flows【NFs】
+<ul>
+<li>分布变换：简单的基本分布 <span class="math inline">\(p_{\mathcal{Z}}\)</span>；复杂的目标分布 <span class="math inline">\(p_{\mathcal{X}}\)</span></li>
+<li>变换使用网络拟合，可微可逆双射 <span class="math inline">\(f:\mathcal{Z}\to\mathcal{X}\)</span>
+<ul>
+<li><span class="math inline">\(\theta\)</span> 表示 <span class="math inline">\(f\)</span> 的参数</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p_{\mathcal{X}}(x; \theta) = p_{\mathcal{Z}}(z) \, \lvert J_f(z; \theta)
+\rvert^{-1} \tag{3}
+\]</span></p>
+<p><span class="math display">\[
+J_f(z;\theta) \triangleq \det\left( \frac{\partial f(z;
+\theta)}{\partial z^T} \right) ,z \sim p_{\mathcal{Z}}
+\]</span></p>
+<p><span class="math display">\[
+z=f^{-1}(x;\theta)
+\]</span></p>
+<ul>
+<li>优化 <span class="math inline">\(\theta\)</span>
+一般使用分布差异度量（例如 KL 散度）
+<ul>
+<li>训练的时候能获取 <span class="math inline">\(x\sim
+p_{\mathcal{X}}^{\ast}\)</span> 的话，等价于最大似然估计</li>
+</ul></li>
+<li>neural spline flows：换了一种变换形式【更鲁棒】</li>
+<li>Neural sampling for rendering</li>
+<li><strong>环境光源的获取只需要一个方向</strong></li>
+</ul>
+<h1 id="neural-warp-composition">Neural Warp Composition</h1>
+<ul>
+<li>目的：<span class="math inline">\(p^{*}(x \vert c) \propto p_1(x)
+\cdot p_2(x \vert c)\)</span></li>
+<li>假定
+<ul>
+<li><span class="math inline">\(p_1\)</span> 复杂（例如 an unshadowed
+environment map ）</li>
+<li><span class="math inline">\(p_2\)</span> 简单（例如 BSDF）</li>
+</ul></li>
+<li>不去近似可见性【这是 scene-specific】</li>
+<li>实时性能要求模型较小，这导致直接近似效果差
+<ul>
+<li>image intensity x Gaussian 例子</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/fig2-example.png"></p>
+<ul>
+<li>拆分，使用变换
+<ul>
+<li><span class="math inline">\(h,t\)</span> 及其逆都是连续的</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+f(z \vert c; \theta) \triangleq (t \circ h)(z \vert c; \theta) = t(h(z
+\vert c; \theta)) \tag{4}
+\]</span></p>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/fig3-pipeline.png"></p>
+<ul>
+<li>记号
+<ul>
+<li><strong>target 分布：<span class="math inline">\(p^{\ast}\)</span></strong></li>
+<li><strong>学习的分布：<span class="math inline">\(p\)</span></strong></li>
+</ul></li>
+<li>Application to rendering
+<ul>
+<li><span class="math inline">\(p_1\)</span>：unshadowed environment
+light</li>
+<li><span class="math inline">\(p_2\)</span>：cosine-weighted BRDF</li>
+<li><span class="math inline">\(c\triangleq(\omega_o,n,\rho)\)</span></li>
+<li><span class="math inline">\(\mathcal{X}=\mathcal{Y}=\mathcal{Z}=[0,1]^2\)</span></li>
+<li>最后 lat-long warp 转化为 <span class="math inline">\(\omega\)</span></li>
+</ul></li>
+</ul>
+<h2 id="neural-flow-head-warp">Neural-flow head warp</h2>
+<ul>
+<li>使用 neural spline flows 构建 <span class="math inline">\(h\)</span>，使用其
+<ul>
+<li>utilize <strong>monotonic piecewise rational-quadratic
+splines</strong> as quantile functions（inverse CDFs） to warp
+samples</li>
+<li>单调分段有理二次样条</li>
+</ul></li>
+<li>和标准的 NF 不同，<span class="math inline">\(p_{\mathcal{Z}}=\mathcal{U}[0,1]^2\)</span>【标准
+NF 不支持】</li>
+<li>流程如下，两个 coupling layer
+结构相同【只是结构相同，是参数独立的两个网络】
+<ul>
+<li>网络 1 输入为 <span class="math inline">\((c,\xi,z_0,z_1)\)</span>，网络 2 输入为 <span class="math inline">\((c,\xi,z_1,y_0)\)</span></li>
+<li>输入为 <span class="math inline">\(y=h(z)\)</span>，喂给 Tail
+Warp</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/fig4-head-warp.png"></p>
+<ul>
+<li>和 NeuSample 的区别
+<ul>
+<li>架构不同</li>
+<li>参数化
+<ul>
+<li>global（cylindrical）equi-rectangular parameterization</li>
+<li>NeuSample：local shading-point hemisphere（projected onto a
+square）</li>
+</ul></li>
+<li>我们保证 <span class="math inline">\(y,z\)</span> 双射，但是
+NeuSample 学一个圆盘边界丢弃越界样本</li>
+</ul></li>
+</ul>
+<h2 id="tail-warp">Tail warp</h2>
+<ul>
+<li><span class="math inline">\(y\)</span> 先映射到 unit-square points
+<span class="math inline">\(x\in\mathcal{X}\)</span>【根据 HDR
+环境光】，然后 lat-long 投影到球面
+<ul>
+<li>传统的方式虽然快，但是是离散的，不利于优化
+<ul>
+<li><strong>marginal row column scheme</strong></li>
+<li><strong>hierarchical</strong></li>
+</ul></li>
+</ul></li>
+<li>对环境光使用大的 NF 进行近似
+<ul>
+<li>spline-based flow【保证平滑】</li>
+<li>可以使用上面两种任意一种进行训练，增加 bins 可以减小误差</li>
+<li>考虑过 optimal-transport（OT）map ，但是效果不好【regularization
+计算需要 env 平滑，但是这不实际】</li>
+</ul></li>
+<li>我们训完 tail NF 之后，将其离散化（包括 forward and inverse
+warps）（at high resolution）
+<ul>
+<li>这样采样和 pdf evaluation 就变成了查表+线性插值【快】</li>
+<li>这也离散化，为啥比之前离散化好</li>
+</ul></li>
+<li>tail warp 的作用：transform <strong>uniform density</strong> to
+<strong>the emitter-image density</strong></li>
+<li><strong>训练</strong>
+<ul>
+<li>先训练 tail warp，将均匀分布转化为环境光分布</li>
+<li>再训练 head warp，优化其使得 tail warp 的输出满足 product 分布【此时
+tail 不变】</li>
+</ul></li>
+</ul>
+<h2 id="head-warp-training">Head-warp training</h2>
+<ul>
+<li>使用 KL 散度训练
+<ul>
+<li><span class="math inline">\(p(z)\)</span> 是 uniform 分布</li>
+<li>省略了条件 <span class="math inline">\(c\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\mathcal{L}_{\text{KL}}(\theta) &amp;= D_{\text{KL}} \left[
+p_{\mathcal{X}}^{*}(x) \,\big\|\, p_{\mathcal{X}}(x; \theta) \right]
+\tag{5} \\
+&amp;= -\mathbb{E}_{x \sim p_{\mathcal{X}}^{*}} \left[ \log
+p_{\mathcal{X}}(x; \theta) \right] + \text{const} \tag{6} \\
+&amp;= -\mathbb{E}_{x \sim p_{\mathcal{X}}^{*}} \left[ \log \lvert
+J_f(z; \theta) \rvert^{-1} \right] + \text{const} \tag{7}
+\end{align}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(f=t\circ h\)</span>，逆变换 <span class="math inline">\(f^{-1}=h^{-1}\circ t^{-1}\)</span></li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\log \lvert J_f(z; \theta) \rvert^{-1} &amp;= \log \lvert J_t(h(z;
+\theta)) J_h(z; \theta) \rvert^{-1} \tag{8} \\
+&amp;= \log \lvert J_t(h(z; \theta)) \rvert^{-1} + \log \lvert J_h(z;
+\theta) \rvert^{-1} \tag{9} \\
+&amp;= \log \lvert J_{t^{-1}}(x) \rvert + \log \lvert
+J_{h^{-1}}(t^{-1}(x); \theta) \rvert \tag{10}
+\end{align}
+\]</span></p>
+<h3 id="entropic-regularization">Entropic regularization</h3>
+<ul>
+<li>KL 散度容易让分布在 high density 部分过度拟合，导致 low density
+部分拟合效果差
+<ul>
+<li>MC 噪声大，对 fireflies 敏感</li>
+</ul></li>
+<li><span class="math inline">\(\chi^2\)</span> 更好，对 fireflies
+不太敏感；但是过于保守</li>
+<li>我们为 KL 加上正则项【这里 arxiv 上修正了，acm 上甚至写错了，离谱】
+<ul>
+<li><span class="math inline">\(p\)</span>
+特别大的时候，加上一个反向梯度</li>
+<li><span class="math inline">\(\lambda=0.0001\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\mathcal{L}(\theta) &amp;= \mathcal{L}_{\text{KL}}(\theta) + \lambda
+\mathcal{L}_{\text{H}}(\theta)\tag{11} \\
+\\
+\text{where }\mathcal{L}_{\text{H}}(\theta) &amp;= \mathbb{E}_{x \sim
+p_{\mathcal{X}}^*} \left[ p_{\mathcal{X}}(x; \theta) \log
+p_{\mathcal{X}}(x; \theta) \right]  \tag{12}
+\end{align}
+\]</span></p>
+<h3 id="讨论">讨论</h3>
+<ul>
+<li>我们的训练，需要样本满足 <span class="math inline">\(x\)</span>
+满足于目标分布 <span class="math inline">\(p^{\ast}\)</span>【<span style="color:red">咋实现？下面有说，离散打表求解</span>】</li>
+<li>可以用 reverse KL 散度，那么样本服从于 <span class="math inline">\(p\)</span> 就行，但是训练非常不稳定
+<ul>
+<li>推测更好的初始化效果可能会好</li>
+</ul></li>
+</ul>
+<h1 id="应用与实现">应用与实现</h1>
+<ul>
+<li>PyTorch + Mitsuba 3【wavefront】+ TCNN</li>
+</ul>
+<h2 id="模型参数">模型参数</h2>
+<ul>
+<li>head warp
+<ul>
+<li>2 coupling layers
+<ul>
+<li><strong>coupling layers 都相同</strong>：2 层 64 neurons，leaky
+ReLU</li>
+</ul></li>
+<li>32 spline bins</li>
+</ul></li>
+<li>emitter tail warp
+<ul>
+<li>128 bins, 16 coupling layers with 256 hidden neurons, and two
+residual blocks</li>
+<li>最终离散化成 1k 分辨率</li>
+</ul></li>
+</ul>
+<h2 id="training">Training</h2>
+<ul>
+<li>AdamW，lr=0.001，<span class="math inline">\(\beta=(0.9,0.999)\)</span></li>
+<li>10k batch
+<ul>
+<li>每个 batch 256k samples</li>
+<li>1024 samples <span class="math inline">\(x\sim
+p^{\ast}_{\mathcal{X}}(\cdot\mid c)\)</span>，256 conditions</li>
+</ul></li>
+<li>A100 GPU</li>
+<li>训练开销：head
+<ul>
+<li>neural materials：~30 min</li>
+<li>the cosineweighted / microface：~20 min</li>
+</ul></li>
+<li>训练开销：tail【只训一次】
+<ul>
+<li>~25 min</li>
+</ul></li>
+<li>球面采样，考虑不透明物体，逆转 <span class="math inline">\(\omega_o\cdot n&lt;0\)</span></li>
+<li><span class="math inline">\(\rho\)</span>：roughness 或 NeuMIP 的
+feature vector</li>
+<li><span style="color:red">采样如何满足目标分布 <span class="math inline">\(p^{\ast}\)</span></span>
+<ul>
+<li>式子 (1) 的积分【unshadowed】，打表求解，然后根据 luminance 算
+CDF</li>
+</ul></li>
+</ul>
+<h1 id="evaluation">Evaluation</h1>
+<ul>
+<li>MSE
+<ul>
+<li>MSE 对暗处的 outlier 更不敏感，更适合 DI</li>
+</ul></li>
+<li>同时间，同 spp</li>
+<li><strong>好像是做 DI</strong>（直接光）</li>
+</ul>
+<h2 id="cosine-weighted-emitter-sampling">Cosine-weighted emitter
+sampling</h2>
+<ul>
+<li>hierarchical and row-column
+不考虑面的朝向，可能会生成法向半球以下的零贡献样本，这不是最优的</li>
+<li>方法
+<ul>
+<li>Ours / Baked：Lightweight, baked head warp【teaser】</li>
+</ul></li>
+</ul>
+<h3 id="lightweight-baked-head-warp">Lightweight, baked head warp</h3>
+<ul>
+<li>轻量级
+<ul>
+<li><strong>head 输入只有法向</strong>，不要 conditional encoder
+<ul>
+<li>4 spline bins</li>
+</ul></li>
+<li>tail：使用 hierarchical tail warp</li>
+</ul></li>
+<li>这样 head optimization + tail-warp baking 只需要 ~ 5min</li>
+<li>还不够，开销还大，MIS 得跑两遍网络
+<ul>
+<li><strong>把模型 bake 进小的 histogram</strong></li>
+</ul></li>
+<li>只需要为一组 normal 烘焙 intermediate distribution
+<ul>
+<li>16 x 32 histogram for 8 x 8 resolution each【132KB】</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/fig3-pipeline.png"></p>
+<ul>
+<li>这样的简化，效果还是不错</li>
+</ul>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/fig6-lightweight.png"></p>
+<ul>
+<li>和 MIS、steaming RIS【ReSTIR DI】 相比，效果都不错【同时间】
+<ul>
+<li>MSE：0.111（MIS 0.224，RIS 0.148）</li>
+</ul></li>
+</ul>
+<h2 id="microfacet-materials">Microfacet materials</h2>
+<ul>
+<li><strong>distant emitter</strong> with a microfacet-based BRDF with a
+Trowbridge–Reitz (<strong>GGX</strong>) distribution</li>
+<li>5D condition：surface normal、view direction、roughness</li>
+<li>两种设置
+<ul>
+<li>rougness 为常数【0.2】：我们都是最优</li>
+<li>roughness 从 【0.2-0.8】均匀采样：等时间比不过 RIS</li>
+</ul></li>
+</ul>
+<h2 id="neural-materials">Neural materials</h2>
+<ul>
+<li>和 NeuSample 类似，使用 NeuMIP 的特征向量表示</li>
+<li>测试场景：three fabric materials with different glossiness</li>
+<li>我们等时间最好</li>
+</ul>
+<h2 id="shadow-catcher-compositing">Shadow-catcher compositing</h2>
+<ul>
+<li>可以使用 shadow catcher method，往真实照片中插入虚拟物体</li>
+<li>两个 pass
+<ul>
+<li>p1：inserted object + shadow catcher</li>
+<li>p2：shadow catcher</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/fig11-shadow-catcher-compositing.png"></p>
+<ul>
+<li>计算 p1/p2，shadow catcher 上 luminance 的比值，作为 visibility mask
+<ul>
+<li>用于物体和真实照片的 alpha blending</li>
+</ul></li>
+<li>Lambertian shadow catcher：期望透明度
+<ul>
+<li><span class="math inline">\(L\)</span>：环境光源的 DI</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\tau = \frac{\int_{\Omega} V(\mathbf{x}, \omega) L(\omega) \langle
+\mathbf{n}, \omega \rangle \,\mathrm{d}\omega}{\int_{\Omega} L(\omega)
+\langle \mathbf{n}, \omega \rangle \,\mathrm{d}\omega}\tag{13}
+\]</span></p>
+<ul>
+<li><strong>如何一次 pass 估计？</strong></li>
+<li>等价于 <span class="math inline">\(V(\mathbf{x}, \omega)\)</span>
+的期望，分布为 <span class="math inline">\(L(\omega) \langle \mathbf{n},
+\omega \rangle \Big/\int_{\Omega} L(\omega) \langle \mathbf{n}, \omega
+\rangle \,\mathrm{d}\omega\)</span></li>
+</ul>
+<p><span class="math display">\[
+\langle \tau \rangle_N = \frac{1}{N} \sum_{i=1}^{N} V(\mathbf{x},
+\omega_i),\quad \omega_i \sim p_{\mathcal{X}}(\omega \vert \mathbf{x};
+\theta) \tag{14}
+\]</span></p>
+<ul>
+<li>加入物体：使用 visibility mask 做 alpha-blending</li>
+<li>实验：真实图片是从环境光中提取出来的，同时获取相机位置【使用 <a target="_blank" rel="noopener" href="https://fspy.io/">fSpy</a>】</li>
+</ul>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/fig11-shadow-catcher-compositing.png"></p>
+<h1 id="discussion">Discussion</h1>
+<ul>
+<li>我们方法比直接使用 NF 近似分布好【大小相似】</li>
+<li>Ablation</li>
+</ul>
+<p><img src="/2025/06/15/CG/Papers/2024/NPIS/tab1-ablation.png"></p>
+<ul>
+<li>Limitations
+<ul>
+<li>我们的模型需要 <strong>training per material model</strong>【<span style="color:red">单材质训练+光源是环境光，所以不需要考虑位置</span>】</li>
+<li>材质粗糙度很小的时候【大头在 BSDF 支配】，head warp 效果不好</li>
+<li>sun env 效果很差，tail 退化为点，不利于 head 优化</li>
+<li>MIS 会引入额外 1 pass 网络推理开销</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/06/13/CG/Papers/2025/NPG-DF/" rel="prev" title="(论文)[2025-EGSR] Neural Path Guiding with Distribution Factorization">
+                  <i class="fa fa-chevron-left"></i> (论文)[2025-EGSR] Neural Path Guiding with Distribution Factorization
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/06/18/CG/Papers/2025/Seg-LTS/" rel="next" title="(论文)[2025-SIG] Segment-based Light Transport Simulation">
+                  (论文)[2025-SIG] Segment-based Light Transport Simulation <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

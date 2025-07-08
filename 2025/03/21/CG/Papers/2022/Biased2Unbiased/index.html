@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="论文提出了两种使用有偏估计构建无偏（或一致）估计的方法，分别是通过泰勒展开和伸缩和实现，给了一个通用框架；并根据这个理论实现了 3 个应用：可微渲染中的有限差分、体渲染中的 transmittance 估计、无偏光子映射">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2022-SIG] Unbiased and consistent rendering using biased estimators">
+<meta property="og:url" content="http://example.com/2025/03/21/CG/Papers/2022/Biased2Unbiased/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="论文提出了两种使用有偏估计构建无偏（或一致）估计的方法，分别是通过泰勒展开和伸缩和实现，给了一个通用框架；并根据这个理论实现了 3 个应用：可微渲染中的有限差分、体渲染中的 transmittance 估计、无偏光子映射">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2022/Biased2Unbiased/fig1-Taylor-example.png">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2022/Biased2Unbiased/recipe1-estimation.png">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2022/Biased2Unbiased/convergence.png">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2022/Biased2Unbiased/fig12-PM.png">
+<meta property="article:published_time" content="2025-03-21T12:18:38.000Z">
+<meta property="article:modified_time" content="2025-04-21T07:36:55.158Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/03/21/CG/Papers/2022/Biased2Unbiased/fig1-Taylor-example.png">
+
+
+<link rel="canonical" href="http://example.com/2025/03/21/CG/Papers/2022/Biased2Unbiased/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/03/21/CG/Papers/2022/Biased2Unbiased/","path":"2025/03/21/CG/Papers/2022/Biased2Unbiased/","title":"(论文)[2022-SIG] Unbiased and consistent rendering using biased estimators"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2022-SIG] Unbiased and consistent rendering using biased estimators | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#unbiased-and-consistent-rendering-using-biased-estimators"><span class="nav-text">Unbiased
+and consistent rendering using biased estimators</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#taylor-series-debiasing"><span class="nav-text">Taylor-Series Debiasing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%8B%E5%89%8D%E5%B7%A5%E4%BD%9C"><span class="nav-text">之前工作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%80%92%E6%95%B0%E4%BC%B0%E8%AE%A1"><span class="nav-text">倒数估计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E6%95%B0%E9%80%8F%E5%B0%84%E7%8E%87%E4%BC%B0%E8%AE%A1"><span class="nav-text">指数透射率估计</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#inital-value-telescoping-series-debiasing"><span class="nav-text">Inital Value &amp;
+Telescoping-Series Debiasing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9E%E7%BB%AD%E5%BD%A2%E5%BC%8F"><span class="nav-text">连续形式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A6%BB%E6%95%A3%E5%BD%A2%E5%BC%8F"><span class="nav-text">离散形式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%8B%E5%89%8D%E5%B7%A5%E4%BD%9C-1"><span class="nav-text">之前工作</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#estimation-and-convergence"><span class="nav-text">Estimation and Convergence</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#primary-estimators"><span class="nav-text">Primary estimators</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#secondary-estimator"><span class="nav-text">Secondary Estimator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#estimation-under-finite-variance"><span class="nav-text">Estimation under Finite
+Variance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#estimation-under-infinite-variance"><span class="nav-text">Estimation under Infinite
+Variance</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%81%E7%A7%AF%E5%88%86%E4%BE%8B%E5%AD%90"><span class="nav-text">证积分例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E5%81%8F%E4%BC%B0%E8%AE%A1"><span class="nav-text">无偏估计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E4%BC%B0%E8%AE%A1"><span class="nav-text">一致估计</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%94%E7%94%A8"><span class="nav-text">应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#finite-differences"><span class="nav-text">Finite differences</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E5%81%8F%E4%BC%B0%E8%AE%A1-1"><span class="nav-text">无偏估计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E4%BC%B0%E8%AE%A1-1"><span class="nav-text">一致估计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#non-exponential-transmittance"><span class="nav-text">Non-exponential
+transmittance</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%B8%E7%BC%A9%E5%92%8C"><span class="nav-text">伸缩和</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%B0%E5%8B%92%E7%BA%A7%E6%95%B0"><span class="nav-text">泰勒级数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#photon-mapping"><span class="nav-text">Photon mapping</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#future-work"><span class="nav-text">Future Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%AF%E5%BD%95"><span class="nav-text">副录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#appendix-a"><span class="nav-text">Appendix A</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E7%BB%AD%E6%83%85%E5%86%B5"><span class="nav-text">连续情况</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A6%BB%E6%95%A3%E5%BD%A2%E5%BC%8F-1"><span class="nav-text">离散形式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#appendix-b"><span class="nav-text">Appendix B</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#appendix-c"><span class="nav-text">Appendix C</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#appendix-e"><span class="nav-text">Appendix E</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/21/CG/Papers/2022/Biased2Unbiased/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2022-SIG] Unbiased and consistent rendering using biased estimators | Banbao">
+      <meta itemprop="description" content="论文提出了两种使用有偏估计构建无偏（或一致）估计的方法，分别是通过泰勒展开和伸缩和实现，给了一个通用框架；并根据这个理论实现了 3 个应用：可微渲染中的有限差分、体渲染中的 transmittance 估计、无偏光子映射">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2022-SIG] Unbiased and consistent rendering using biased estimators
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-03-21 20:18:38" itemprop="dateCreated datePublished" datetime="2025-03-21T20:18:38+08:00">2025-03-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-04-21 15:36:55" itemprop="dateModified" datetime="2025-04-21T15:36:55+08:00">2025-04-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">论文提出了两种使用有偏估计构建无偏（或一致）估计的方法，分别是通过泰勒展开和伸缩和实现，给了一个通用框架；并根据这个理论实现了 3 个应用：可微渲染中的有限差分、体渲染中的 transmittance 估计、无偏光子映射</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="unbiased-and-consistent-rendering-using-biased-estimators">Unbiased
+and consistent rendering using biased estimators</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/ZackMisso/DebiasingSIGGRAPH2022">代码</a></li>
+<li>论文提出了两种使用有偏估计构建无偏（或一致）估计的方法，分别是通过<a href="#eq4">泰勒展开</a>和<a href="#eq12">伸缩和</a>实现
+<ul>
+<li><span style="color:red">其实重要的就是上面两个思想</span></li>
+</ul></li>
+<li>并根据这个理论实现了 3 个应用：可微渲染中的有限差分、体渲染中的
+transmittance 估计、无偏光子映射</li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>渲染中有很多情况都需要估计积分值
+<ul>
+<li>虽然有很多无偏估计，但是很多时候还是得用到有偏估计</li>
+</ul></li>
+<li>假定我们有 <span class="math inline">\(I\)</span>
+的<strong>可控的</strong>有偏估计 <span class="math inline">\(\langle{I(k)}\rangle\)</span>
+<ul>
+<li><span class="math inline">\(k\)</span> 可以是离散的、连续的</li>
+<li><span class="math inline">\(I(\infty)\)</span>
+不能被直接计算（复杂度太高），智能计算有限值</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\lim_{k\to\infty}I(k)=I\tag{1}
+\]</span></p>
+<ul>
+<li>将误差表示为<span id="eq2">无限和的形式</span>
+<ul>
+<li><span class="math inline">\(B(k):=I-I(k)\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I = I(k) + \underbrace{\sum_{j = k}^{\infty} \Delta_j}_{B(k)} \tag{2}
+\]</span></p>
+<ul>
+<li>接下来两章说明如何转化为上面的形式：<a href="#eq4">泰勒展开</a>、<a href="#eq12">伸缩和</a></li>
+</ul>
+<h1 id="taylor-series-debiasing">Taylor-Series Debiasing</h1>
+<ul>
+<li>需要估计的积分可能在一个非线性函数中
+<ul>
+<li>例如倒数，用于估计归一化因子：<span class="math inline">\(g(x)=\dfrac{1}{x}\)</span></li>
+<li>直接使用 MC 进行估计导致有偏</li>
+<li>在数学上这类问题被称为：期望的函数（functions of expectations）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I := g(F) = g\left(\int_{\Omega} f(x) \, \mathrm{d}x\right). \tag{3}
+\]</span></p>
+<ul>
+<li>假定 <span class="math inline">\(f\)</span> 有限，在 <span class="math inline">\(\alpha\)</span> 处有收敛的<span id="eq4">泰勒展开</span>
+<ul>
+<li><span class="math inline">\(g^{(j)}\)</span> 表示 <span class="math inline">\(j\)</span> 阶微分</li>
+<li>这里使用 Taylor 的前 <span class="math inline">\(k\)</span>
+项作为有偏估计，剩余项作为偏差</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I := g(F) = \underbrace{\sum_{j = 0}^{k - 1}
+\Delta_j^{\mathrm{tay}}}_{I(k)} + \underbrace{\sum_{j = k}^{\infty}
+\Delta_j^{\mathrm{tay}}}_{B(k)}, \text{ with } \Delta_j^{\mathrm{tay}} =
+g^{(j)}(\alpha) \frac{(F - \alpha)^j}{j!}, \quad (4)
+\]</span></p>
+<ul>
+<li>示例如下：<span class="math inline">\(g(x)=\dfrac{1}{x}\)</span></li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2022/Biased2Unbiased/fig1-Taylor-example.png"></p>
+<ul>
+<li>泰勒展开去除了复杂的非线性项，将 <span class="math inline">\(g\)</span> 和 <span class="math inline">\(f\)</span> 的计算分开了
+<ul>
+<li><span class="math inline">\((F-\alpha)^j\)</span> 的计算可以作为
+<span class="math inline">\(j\)</span> 个独立的 <span class="math inline">\(F-\alpha\)</span> 的乘积</li>
+</ul></li>
+</ul>
+<h2 id="之前工作">之前工作</h2>
+<ul>
+<li>形式上已经有人在图形学中用过了，但是是从其他数学形式推导过来的
+<ul>
+<li>接下来这里讲如何转化为 Taylor 的推导形式</li>
+</ul></li>
+</ul>
+<h3 id="倒数估计">倒数估计</h3>
+<p><span class="math display">\[
+g(F) := \dfrac{1}{F}\tag{5}
+\]</span></p>
+<ul>
+<li>令 <span class="math inline">\(k=1\)</span>，于是有</li>
+</ul>
+<p><span class="math display">\[
+g(F) = \frac{1}{\alpha} + \sum_{j = 1}^{\infty}
+\Delta_j^{\mathrm{recip}}, \quad \text{where} \quad
+\Delta_j^{\mathrm{recip}} = \alpha^{-j - 1} (\alpha - F)^j, \tag{6}
+\]</span></p>
+<ul>
+<li><span style="color:red">这里说了一些之前的应用</span>
+<ul>
+<li>[2007] Unbiased Monte Carlo Estimation of the Reciprocal of an
+Integral
+<ul>
+<li>Booth</li>
+<li>最早，但不是图形学</li>
+<li>分析方式：Control Variates + Maclaurin 级数</li>
+</ul></li>
+<li>[2015-TOG] Unbiased Photon Gathering for Light Transport
+Simulation</li>
+<li>[2019-TOG] Integral Formulations of Volumetric Transmittance</li>
+<li>[2020-TOG] Specular Manifold Sampling for Rendering High-Frequency
+Caustics and Glints</li>
+<li>[2020-TOG] Path Tracing Estimators for Refractive Radiative
+Transfer</li>
+</ul></li>
+</ul>
+<h3 id="指数透射率估计">指数透射率估计</h3>
+<ul>
+<li>Exponential-transmittance estimation
+<ul>
+<li>体渲染中的核心</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+g(F) := e^{-F}\tag{7}
+\]</span></p>
+<p><span class="math display">\[
+F=\tau := \int_{a}^{b}\mu(x)
+\]</span></p>
+<ul>
+<li>令 <span class="math inline">\(k=1\)</span></li>
+</ul>
+<p><span class="math display">\[
+g(F) = \mathrm{e}^{-\alpha} + \sum_{j = 1}^{\infty}
+\Delta_j^{\mathrm{exp}}, \quad \text{where} \quad
+\Delta_j^{\mathrm{exp}} = \mathrm{e}^{-\alpha} \frac{(\alpha -
+F)^j}{j!}, \tag{8}
+\]</span></p>
+<ul>
+<li>如下论文都提出了等价形式，但是他们都是参考 Booth2007
+的方式分析得到的
+<ul>
+<li>[2019-TOG] Integral Formulations of Volumetric Transmittance</li>
+<li>[2020-TVCG] Direct Transmittance Estimation in Heterogeneous
+Participating Media Using Approximated Taylor Expansions</li>
+</ul></li>
+<li><span id="Kettunen2021">[2021-ARXIV] An Unbiased Ray-Marching
+Transmittance Estimator</span>
+<ul>
+<li>类似形式</li>
+</ul></li>
+</ul>
+<h1 id="inital-value-telescoping-series-debiasing">Inital Value &amp;
+Telescoping-Series Debiasing</h1>
+<ul>
+<li>Taylor 展开的问题（下面情况不适用）
+<ul>
+<li>不够平滑不好展开</li>
+<li>没有收敛的泰勒展开的形式</li>
+</ul></li>
+<li>需要新的解决方案</li>
+</ul>
+<h2 id="连续形式">连续形式</h2>
+<ul>
+<li><p><span class="math inline">\(k\)</span> 是连续的</p></li>
+<li><p>对 <a href="#eq2">式子2</a> 进行变形</p></li>
+</ul>
+<p><span class="math display">\[
+I = I(k) + B(k) = I(k) + I(\infty) - I(k)\tag{9}
+\]</span></p>
+<ul>
+<li>假定函数 <span class="math inline">\(I\)</span>
+的微分存在，此时转化为<span id="eq10">初值问题</span></li>
+</ul>
+<p><span class="math display">\[
+I = I(k) + \int_{k}^{\infty} \frac{\mathrm{d}}{\mathrm{d}x} I(x) \,
+\mathrm{d}x\tag{10}
+\]</span></p>
+<h2 id="离散形式">离散形式</h2>
+<ul>
+<li>将微分转化为单位长度积分，然后使用不定积分替代，得到<span id="eq12">式子 12</span></li>
+</ul>
+<p><span class="math display">\[
+I = I(k) + \sum_{j=k}^{\infty}\int_{j}^{j+1}
+\frac{\mathrm{d}}{\mathrm{d}x} I(x) \, \mathrm{d}x\tag{11}
+\]</span></p>
+<p><span class="math display">\[
+I = I(k) + \sum_{j = k}^{\infty} \Delta_j^{\mathrm{tele}}, \quad
+\text{where} \quad \Delta_j^{\mathrm{tele}} = I(j + 1) - I(j)\tag{12}
+\]</span></p>
+<ul>
+<li>此时得到伸缩和（telescoping sum）</li>
+</ul>
+<h2 id="之前工作-1">之前工作</h2>
+<ul>
+<li><p>Path Tracing：将 <span class="math inline">\(k\)</span>
+看成路径长度</p></li>
+<li><p>Volterra transmittance：体渲染 transmittance 计算</p>
+<ul>
+<li>代入 <a href="#eq10">式子10</a></li>
+<li>我们这里通过伸缩和推导得到，原始论文通过 radiative transfer equation
+推导得到（不容易扩展到 non-exponetial transmittance）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I=\text{Tr}(k,b) := \exp{(-\int_{k}^{b}\mu(y)\;\mathrm{d}y)}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+\mathrm{Tr}(k, b) &amp;= \mathrm{Tr}(k, k) + \int_{k}^{b}
+\frac{\mathrm{d}}{\mathrm{d}x} \mathrm{Tr}(x, b) \, \mathrm{d}x \\
+&amp;= 1 - \int_{k}^{b} \mu(x) \mathrm{Tr}(x, b) \, \mathrm{d}x
+\end{align}\tag{13}
+\]</span></p>
+<ul>
+<li><p>倒数估计</p></li>
+<li><p>图形学之外</p>
+<ul>
+<li>2013 Rhee 给出了<a href="#eq12">式子12</a> 的最优估计</li>
+<li>2015 Blanchet 给出了<a href="#eq4">式子4</a> 的最优估计</li>
+</ul></li>
+</ul>
+<h1 id="estimation-and-convergence">Estimation and Convergence</h1>
+<ul>
+<li>构建 debiased and consistent 的估计，流程如下</li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2022/Biased2Unbiased/recipe1-estimation.png"></p>
+<h2 id="primary-estimators">Primary estimators</h2>
+<ul>
+<li><p>这里说的都是离散形式，连续形式类似 <a href="#eq10">式子10</a></p></li>
+<li><p><span id="eq14">Single-term estimator</span></p>
+<ul>
+<li>通过 <span class="math inline">\(p(j)\)</span> 采样 <span class="math inline">\(j\)</span></li>
+<li><span class="math inline">\(p(j)\)</span> 表示的是 PMF（probability
+mass function）</li>
+<li>证明根据定义即可</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\langle I \rangle_1^k = \langle I(k) \rangle + \langle B(k) \rangle =
+\langle I(k) \rangle + \frac{\langle \Delta_j \rangle}{p(j)}\tag{14}
+\]</span></p>
+<ul>
+<li>Prefix-sum estimator
+<ul>
+<li><span class="math inline">\(P(j\ge i)\)</span> 表示的是
+CMF（cumulative mass function）</li>
+<li>通过 <span class="math inline">\(p(j)\)</span> 采样 <span class="math inline">\(j\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\langle I \rangle_1^k = \langle I(k) \rangle + \langle B(k) \rangle =
+\langle I(k) \rangle + \sum_{i = k}^{j} \frac{\langle \Delta_i
+\rangle}{P(j \geq i)}\tag{15}
+\]</span></p>
+<ul>
+<li>证明：考虑 <span class="math inline">\(\dfrac{\langle \Delta_i
+\rangle}{P(j \geq i)}\)</span> 出现的概率
+<ul>
+<li><span class="math inline">\(p(i)+p(i+1)\cdots\)</span></li>
+<li>消去分母，得证</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}[\langle I \rangle_1^k ]=\langle I(k) \rangle
++\sum_{j=k}^{\infty}p(j)\sum_{i = k}^{j} \frac{\langle \Delta_i
+\rangle}{P(j \geq i)}
+\]</span></p>
+<h2 id="secondary-estimator">Secondary Estimator</h2>
+<p><span class="math display">\[
+\langle I \rangle_N = \frac{1}{N} \sum_{i=1}^N \langle I
+\rangle_1^{k_i}\tag{16}
+\]</span></p>
+<ul>
+<li><p>一般来说，设置 <span class="math inline">\(k_i=k\)</span>
+为常数就够了</p></li>
+<li><p>因为 primary estimator 是无偏的的，因此不管 <span class="math inline">\(k_i\)</span> 为多少，结果都是无偏的</p>
+<ul>
+<li>例如设置为 progressive（<span class="math inline">\(k=i\)</span>）</li>
+</ul></li>
+<li><p>Step 1 ok</p></li>
+</ul>
+<h2 id="estimation-under-finite-variance">Estimation under Finite
+Variance</h2>
+<ul>
+<li>primary estimator 是无偏的，于是只要他的方差是有限的，那么 secondary
+estimator 的方差就是 <span class="math inline">\(O(1/N)\)</span>
+的（中心极限定理保证）
+<ul>
+<li>常数项依赖于 <span class="math inline">\(\langle{\Delta_j}\rangle\)</span> 和 <span class="math inline">\(p(j)\)</span> 的选择</li>
+</ul></li>
+<li>试图让效率最大，等价于</li>
+</ul>
+<p><span class="math display">\[
+\underset{p(j)}{\arg \min} \, \text{Var}[\langle I \rangle_1] \,
+\text{C}[\langle I \rangle_1]\tag{17}
+\]</span></p>
+<ul>
+<li><p>但是这很难，更加实际的做法是最小化方差，然后再去判断是否满足
+finite work-normalized variance</p></li>
+<li><p>如下<span id="eq18">选择</span>满足方差最小，证明见<a href="#appendix-A">附录A</a></p>
+<ul>
+<li>2013 Rhee 证明了这在离散伸缩和成立；2015 Blanchet
+证明了对泰勒展开也试用</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p(j)\propto
+\sqrt{V[\langle{\Delta_j}\rangle]+\left(\Delta_j\right)^2}\tag{18}
+\]</span></p>
+<ul>
+<li><a href="#eq18">式子 18</a> 更加适用，即便我们不能确切知道 <span class="math inline">\(V\left[\langle{\Delta_j}\rangle\right]\)</span> 和
+<span class="math inline">\(\Delta_(j)\)</span>，但是我们通常可以获取到他们的渐进率（asympotric
+rate）
+<ul>
+<li>然后构建 PMF</li>
+<li>接着判断 <span class="math inline">\(p(j)\)</span> 能否归一化，能则
+ok</li>
+<li>不能，判断 <span class="math inline">\(C\left[\langle{I}\rangle_1\right]\)</span>
+是否有限，有限则 ok</li>
+</ul></li>
+<li>如果上面处理都不行，则还是会导致无限方差</li>
+</ul>
+<h2 id="estimation-under-infinite-variance">Estimation under Infinite
+Variance</h2>
+<ul>
+<li>primary 是无偏的，弱大数定律保证 secondary 依概率收敛到 <span class="math inline">\(I\)</span>
+<ul>
+<li>注意这里不要求 primary 的方差是有限的，但是渐进收敛率会慢于 <span class="math inline">\(O(1/N)\)</span></li>
+</ul></li>
+<li>此时我们可以选择构建无偏（但是方差大）的估计，或者构建一致（但是有偏）的估计</li>
+</ul>
+<h3 id="证积分例子">证积分例子</h3>
+<p><span class="math display">\[
+\int_{0}^{1}\dfrac{1}{x^{\alpha}\;\mathrm{d}x}
+\]</span></p>
+<ul>
+<li>对于任意的 <span class="math inline">\(\alpha\in(0,1)\)</span>，结果都是 <span class="math inline">\(\dfrac{1}{1-\alpha}\)</span></li>
+<li>使用均匀采样
+<ul>
+<li><span class="math inline">\(\alpha\in(0,\dfrac{1}{2})\)</span>：有限方差</li>
+<li><span class="math inline">\(\alpha\in[\dfrac{1}{2},1)\)</span>：无穷方差</li>
+</ul></li>
+<li>方差分析：<span class="math inline">\(p(x)=1\)</span>
+<ul>
+<li>于是当前 <span class="math inline">\(\alpha\in[\dfrac{1}{2},1)\)</span>
+的时候，方差是无穷的</li>
+<li>secondary 误差是 <span class="math inline">\(\text{Var}[\langle
+I\rangle_1]/N\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\text{Var}[\langle
+I\rangle_1]=\int_0^1\dfrac{1}{x^{2\alpha}}\;\mathrm{d}x-\dfrac{1}{(1-\alpha)^2}
+\]</span></p>
+<ul>
+<li><a href="/utils/show_code/?CG/Paper/2022/Biased2Unbiased/convergence.py">代码分析</a></li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2022/Biased2Unbiased/convergence.png"></p>
+<h3 id="无偏估计">无偏估计</h3>
+<ul>
+<li>找 <span class="math inline">\(p_j\)</span> 让 <span class="math inline">\(\mathrm{V}\)</span> 增长到无穷的速度尽可能慢
+<ul>
+<li>很难找到好的策略</li>
+</ul></li>
+<li>替代方法：很多应用中 <span class="math inline">\(\mathrm{V}\)</span>
+和 <span class="math inline">\(\mathrm{C}\)</span> 是反相关的，牺牲
+<span class="math inline">\(\mathrm{C}\)</span> 来降低 <span class="math inline">\(\mathrm{V}\)</span></li>
+</ul>
+<h3 id="一致估计">一致估计</h3>
+<ul>
+<li><span style="color:red"><a href="#appendix-E">副录
+E</a> 说明，不需要考虑 <span class="math inline">\(B(k)\)</span> 细节，结果都是一致的</span></li>
+<li>思路和 PPM（progressive photon mapping）很像</li>
+<li>先构建无偏的估计，然后根据信息重参数化 <span class="math inline">\(k\)</span>
+<ul>
+<li>让 <span class="math inline">\(V(k_i)=\mathrm{V}[\langle
+I(k_i)\rangle]\)</span> 的增长速度慢于 <span class="math inline">\(i\)</span>（让 secondary 的方差消失）</li>
+</ul></li>
+<li>让 error 收敛率最大的 <span class="math inline">\(k\)</span>
+满足：<span class="math inline">\(O(V(k_i))=k\cdot
+O(B^2(k_i))\)</span>【<span style="color:red">具体分析看<a href="#appendix-B">副录 B</a></span>】</li>
+</ul>
+<h1 id="应用">应用</h1>
+<h2 id="finite-differences">Finite differences</h2>
+<p><span class="math display">\[
+I := \frac{\partial F(x)}{\partial x} = \frac{\partial}{\partial x}
+\int_{\Omega} f(x, y) \, \mathrm{d}y\tag{19}
+\]</span></p>
+<ul>
+<li>例如 <span class="math inline">\(f(x,y)\)</span> 是参数 <span class="math inline">\(x\)</span> 下路径 <span class="math inline">\(y\)</span> 贡献【可微】
+<ul>
+<li><span class="math inline">\(\Omega\)</span> 可能和 <span class="math inline">\(x\)</span> 相关</li>
+</ul></li>
+<li>有限差分在可微渲染中不实用，一般作为一个 baseline
+<ul>
+<li>有限差分是有偏的，将其作为 GT 不太好</li>
+</ul></li>
+<li>于是我们方法有用了</li>
+<li>根据上面的方法</li>
+<li>先构建有偏估计
+<ul>
+<li>是一致的，当 <span class="math inline">\(k\to\infty\Rightarrow
+h_k\to0\)</span></li>
+<li>我们取 <span class="math inline">\(h_k\propto2^{-k}\)</span></li>
+<li>定义域不同是因为可能依赖于 <span class="math inline">\(x\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\frac{\partial F(x)}{\partial x} \approx I(k) := \frac{1}{h_k} \left(
+\int_{\Omega_1} f(x + h_k, y_1) \, \mathrm{d}y_1 - \int_{\Omega_2} f(x,
+y_2) \, \mathrm{d}y_2 \right) \tag{20}
+\]</span></p>
+<ul>
+<li>伸缩和</li>
+</ul>
+<p><span class="math display">\[
+I = I(k) + \underbrace{\sum_{j = k}^{\infty}
+\Delta_j^{\mathrm{FD}}}_{B(k)}, \quad \text{where} \quad
+\Delta_j^{\mathrm{FD}} = I(j + 1) - I(j) \tag{21}
+\]</span></p>
+<ul>
+<li>使用 single-term 估计（完成 Step 1）</li>
+</ul>
+<h3 id="无偏估计-1">无偏估计</h3>
+<ul>
+<li><span class="math inline">\(f(x,y)\)</span> 有限，对 <span class="math inline">\(x\)</span> 连续可微，<span class="math inline">\(\Omega\)</span> 和 <span class="math inline">\(x\)</span> 无关的情况下</li>
+<li>此时，理想情况下能用一个样本 <span class="math inline">\(y\)</span>
+进行估计（如下省略 <span class="math inline">\(y\)</span>）</li>
+</ul>
+<p><span class="math display">\[
+\langle \Delta_j^{\mathrm{FD}} \rangle = \frac{\langle f(x + h_{j + 1})
+\rangle - \langle f(x) \rangle}{h_{j + 1}} - \frac{\langle f(x + h_{j})
+\rangle - \langle f(x) \rangle}{h_{j}}\tag{47}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(f(x+h)\)</span>
+3阶泰勒展开，代入上式</li>
+</ul>
+<p><span class="math display">\[
+\langle \Delta_j^{\mathrm{FD}} \rangle = (h_{j + 1} - h_{j})
+\left\langle \frac{\partial^2}{\partial x^2} f(x) \right\rangle + O(h_{j
++ 1}^2) - O(h_{j}^2) \tag{49}
+\]</span></p>
+<ul>
+<li>忽略高阶项，于是有</li>
+</ul>
+<p><span class="math display">\[
+\Delta_j^{\mathrm{FD}} \propto (h_{j + 1} - h_{j}), \quad \text{and}
+\quad \mathrm{V}[\langle \Delta_j^{\mathrm{FD}} \rangle] \propto (h_{j +
+1} - h_{j})^2 \tag{50}
+\]</span></p>
+<ul>
+<li>用<a href="#eq18">式子 18</a> 的结论，我们得到 <span class="math inline">\(p(j)\propto 2^{-j}\)</span></li>
+<li>因为 cost 是常数，于是 Step 4，得到有限方差的无偏估计</li>
+<li>例子：对 roughness 的梯度估计</li>
+</ul>
+<h3 id="一致估计-1">一致估计</h3>
+<ul>
+<li><span class="math inline">\(f(x,y)\)</span> 对 <span class="math inline">\(x\)</span> 不是连续可导【例如可见性】，此时
+primary 可能存在无限方差</li>
+<li>Step 5 构建无偏估计，但是方差太大导致高噪声无法使用</li>
+<li>Step 6 构建一致估计</li>
+<li>如果 <span class="math inline">\(\Omega\)</span> 不依赖于 <span class="math inline">\(x\)</span>，构造如下
+<ul>
+<li>此时能用一个样本 <span class="math inline">\(y\)</span>
+进行估计（如下省略 <span class="math inline">\(y\)</span>）</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\langle I(k) \rangle &amp;= \frac{\langle f(x + h_k) - f(x)
+\rangle}{h_k} = \frac{1}{h_k} \int_{x}^{x + h_k} \left\langle
+\frac{\partial}{\partial x} f(t) \right\rangle \, \mathrm{d}t \tag{51}
+\\
+&amp;= \int_{-\infty}^{\infty} K(x - t) \left\langle
+\frac{\partial}{\partial x} f(t) \right\rangle \, \mathrm{d}t, \quad
+\text{where} \tag{52} \\
+K(\tau) &amp;=
+\begin{cases}
+\frac{1}{h_k} &amp; 0 &lt; \tau &lt; h_k \\
+0 &amp; \text{otherwise}
+\end{cases}
+\quad \text{is a normalized box kernel.} \tag{53}
+\end{align}
+\]</span></p>
+<ul>
+<li>效果上是 blur 了</li>
+<li>收敛慢，需要 <span class="math inline">\(h_k\to0\)</span></li>
+</ul>
+<h2 id="non-exponential-transmittance">Non-exponential
+transmittance</h2>
+<ul>
+<li>非指数形式计算很难，目前 raymarching（有偏）、regular
+tracking（慢）</li>
+<li>期望的形式，我们可以使用<a href="#eq4">式子4</a> 或者<a href="#eq12">式子12</a> 进行降噪</li>
+</ul>
+<h3 id="伸缩和">伸缩和</h3>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;I := g(F) = \underbrace{I(k)}_{\text{biased transmittance
+estimate}} + \underbrace{\sum_{j = k}^{\infty}
+\Delta_j^{\mathrm{RM}}}_{\text{bias } B(k)},\\
+&amp;\text{with} \quad \Delta_j^{\mathrm{RM}} = I(j + 1) - I(j)
+\end{aligned}
+\tag{22}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(I(k)\)</span> 通过 raymarching
+估计，使用单调递减序列
+<ul>
+<li>数值方法也 ok，主要满足一致性条件</li>
+</ul></li>
+<li>PMF：<span class="math inline">\(p(j)=r(1-r)^j\)</span>【<span class="math inline">\(r=0.65\)</span>】</li>
+<li>ray marching step size <span class="math inline">\(s_j\propto
+2^{-j}\)</span>
+<ul>
+<li>可以同时评估 <span class="math inline">\(\langle
+I(j+1)\rangle,\langle I(j)\rangle\)</span></li>
+</ul></li>
+<li>进一步减小方差
+<ul>
+<li><span class="math inline">\(N\)</span>个样本估计 <span class="math inline">\(\langle I(j+1)\rangle\)</span></li>
+<li><strong>替换为</strong>两组 <span class="math inline">\(N/2\)</span>个样本估计 <span class="math inline">\(\langle I(j)\rangle\)</span> 然后平均</li>
+</ul></li>
+<li>实验测试，我们的算法和 regular tracking 相比是无偏的，渐近收敛率
+<span class="math inline">\(O(1/N)\)</span>
+<ul>
+<li>测试了指数模型和 <span id="eq23">Davis and Mineev-Weinstein
+模型</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+g(F) := \left(1 + F^{\beta} C^{1 + \beta}\right)^{-\dfrac{F^{1 -
+\beta}}{C^{1 + \beta}}} \tag{23}
+\]</span></p>
+<h3 id="泰勒级数">泰勒级数</h3>
+<ul>
+<li>Taylor series for pink-noise transmittance</li>
+<li>pink noise，<a href="#eq23">式子23</a> <span class="math inline">\(\beta=1\)</span></li>
+</ul>
+<p><span class="math display">\[
+g(F) := \left(1 + FC^{2}\right)^{-\dfrac{1}{C^{2}}} \tag{24}
+\]</span></p>
+<ul>
+<li>泰勒级数</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+I := g(F) &amp;= \underbrace{\sum_{j = 0}^{k - 1}
+\Delta_j^{\mathrm{pink}}}_{I(k)} + \underbrace{\sum_{j = k}^{\infty}
+\Delta_j^{\mathrm{pink}}}_{B(k)}, \quad \text{where} \tag{25} \\
+\Delta_j^{\mathrm{pink}} &amp;= \frac{(\alpha - F)^j}{j!} \left(1 +
+\alpha C^2\right)^{\frac{-1}{C^2} - j} \prod_{i = 1}^{j - 1} \left(1 + i
+C^2\right).
+\end{align}
+\]</span></p>
+<ul>
+<li>使用 RR 间接定义 <span class="math inline">\(p(j)\)</span></li>
+</ul>
+<p><span class="math display">\[
+P_{\mathrm{acc}}(j) = \frac{1 + (j - 1)C^2}{j}, \quad p(j) = (1 -
+P_{\mathrm{acc}}(j)) \prod_{i = 0}^{j - 1} P_{\mathrm{acc}}(i). \tag{26}
+\]</span></p>
+<ul>
+<li>可以使用 <a href="#Kettunen2021">2021 论文</a>中的减小方差方式
+<ul>
+<li>fixed step-size (0.2) to estimate <span class="math inline">\(\langle{F}\rangle\)</span></li>
+<li><span class="math inline">\(k=3\)</span></li>
+<li>只用 <span class="math inline">\(P=0.1\)</span> 比例的时间估计
+bias</li>
+</ul></li>
+<li>实验对比了 pink-noise，指数的 transmittance
+<ul>
+<li>比之前方法一致的好</li>
+</ul></li>
+</ul>
+<h2 id="photon-mapping">Photon mapping</h2>
+<ul>
+<li>一致的：半径 <span class="math inline">\(r\to0\)</span>
+<ul>
+<li>存在无偏的 PM，不能处理 purely specular caustics</li>
+</ul></li>
+<li><span class="math inline">\(k\)</span> 映射到单调递减的 <span class="math inline">\(r_k\)</span></li>
+</ul>
+<p><span class="math display">\[
+I = I(k) + \underbrace{\sum_{j = k}^{\infty}
+\Delta_j^{\mathrm{PM}}}_{B(k)}, \quad \text{where} \quad
+\Delta_j^{\mathrm{PM}} = I(j + 1) - I(j) \tag{27}
+\]</span></p>
+<ul>
+<li>已知的 PPM 理论，我们无法同时实现 Step 3&amp;4【不能 sublinear
+无偏】
+<ul>
+<li><span style="color:red">具体看<a href="#appendix-C">副录
+C</a></span></li>
+</ul></li>
+<li>Unbiased PM：和传统 PM 相比，噪声代替了糊
+<ul>
+<li><span class="math inline">\(k_i=k\)</span></li>
+<li>cone kernel</li>
+<li>correlate all kernel evaluations：估计 <span class="math inline">\(\langle I(j+1)-I(j)\rangle\)</span>，代替估计
+<span class="math inline">\(\langle I(j+1)\rangle-\langle
+I(j)\rangle\)</span>
+<ul>
+<li>使用相同的样本</li>
+</ul></li>
+<li><span class="math inline">\(p(j)\propto
+O(j^{\alpha-2})\)</span>，全局样本数 <span class="math inline">\(O(j^{1-c\alpha})\)</span>【<span class="math inline">\(c=1.001,\alpha=2/3\)</span>】</li>
+<li>半径设置【代码看的】：<span class="math inline">\(r_i=r_0\times\sqrt{(i+1)^{\alpha-1}}\)</span></li>
+</ul></li>
+<li>Unbiased PPM
+<ul>
+<li><span class="math inline">\(k_i=i\)</span></li>
+<li>和之前的 PPM 相比，多估计了 bias 这个部分</li>
+</ul></li>
+<li>收敛率分析：好像也没好，只能说 Unbiased PM 和之前的差不多</li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2022/Biased2Unbiased/fig12-PM.png"></p>
+<h1 id="future-work">Future Work</h1>
+<ul>
+<li>当泰勒展开和伸缩和都能用的时候，该用哪个？
+<ul>
+<li>得看问题</li>
+</ul></li>
+<li>我们的方法能搞出更高效的倒数评估算法</li>
+<li>Russian Roulette 和<a href="#eq12">式子 12</a> 是等价的</li>
+<li><strong>我们的算法和 ADRRS 结合可能有搞头</strong></li>
+</ul>
+<h1 id="副录">副录</h1>
+<h2 id="appendix-a"><span id="appendix-A">Appendix A</span></h2>
+<h3 id="连续情况">连续情况</h3>
+<ul>
+<li>无偏，因此方差最小等价于二阶矩最小</li>
+</ul>
+<p><span class="math display">\[
+\mathrm{E}\left[ \left( \frac{\langle \Delta_j \rangle}{p(j)} \right)^2
+\right] = \int_{k}^{\infty} \frac{\mathrm{E}\left[ \langle \Delta_x
+\rangle^2 \right]}{p(x)^2} p(x) \, \mathrm{d}x = \int_{k}^{\infty}
+\frac{\mathrm{E}\left[ \langle \Delta_x \rangle^2 \right]}{p(x)} \,
+\mathrm{d}x \tag{28}
+\]</span></p>
+<ul>
+<li>求解带约束的变分问题：Euler-Lagrange equation from the calculus of
+variations
+<ul>
+<li><span class="math inline">\(\int_k^{\infty}p(x)\;\mathrm{d}x=1\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathcal{L}(x, \lambda, p) = \frac{\mathrm{E}\left[ \langle \Delta_x
+\rangle^2 \right]}{p(x)} + \lambda p(x) \tag{29}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathcal{L}\)</span> 中不包含 <span class="math inline">\(p&#39;\)</span></li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\frac{\mathrm{d} \mathcal{L}}{\mathrm{d} p} -
+\frac{\mathrm{d}}{\mathrm{d} x} \underbrace{\left( \frac{\mathrm{d}
+\mathcal{L}}{\mathrm{d} p^\prime} \right)}_{=0} = 0\quad
+&amp;\Leftrightarrow \quad -\frac{\mathrm{E}\left[ \langle \Delta_x
+\rangle^2 \right]}{p^2(x)} + \lambda = 0 \tag{30} \\
+&amp; \Leftrightarrow \quad p(x) = \sqrt{\frac{\mathrm{E}\left[ \langle
+\Delta_x \rangle^2 \right]}{\lambda}} \tag{31}
+\end{align}
+\]</span></p>
+<ul>
+<li>于是得到结论，<a href="#eq18">式子 18</a></li>
+</ul>
+<h3 id="离散形式-1">离散形式</h3>
+<ul>
+<li>直接使用拉格朗日乘子即可</li>
+</ul>
+<p><span class="math display">\[
+\mathrm{E}\left[ \left( \frac{\langle \Delta_j \rangle}{p(j)} \right)^2
+\right] = \sum_{j = k}^{\infty} \frac{\mathrm{E}\left[ \langle \Delta_j
+\rangle^2 \right]}{p(j)} \tag{33}
+\]</span></p>
+<p><span class="math display">\[
+\mathcal{L}(\lambda, p) = \sum_{j = k}^{\infty} \frac{\mathrm{E}\left[
+\langle \Delta_j \rangle^2 \right]}{p(j)} - \lambda \left( 1 - \sum_{j =
+k}^{\infty} p(j) \right) \tag{34}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+\frac{\partial \mathcal{L}}{\partial p(j)} = 0 \quad
+&amp;\Leftrightarrow \quad -\frac{\mathrm{E}\left[ \langle \Delta_j
+\rangle^2 \right]}{p(j)^2} + \lambda = 0 \tag{35} \\
+&amp;\Leftrightarrow \quad p(j) = \sqrt{\frac{\mathrm{E}\left[ \langle
+\Delta_j \rangle^2 \right]}{\lambda}} \tag{36}
+\end{align}
+\]</span></p>
+<h2 id="appendix-b"><span id="appendix-B">Appendix B</span></h2>
+<ul>
+<li>secondary 一致性条件</li>
+</ul>
+<p><span class="math display">\[
+\lim_{N \to \infty} \text{MSE}[\langle I \rangle_N] = \lim_{N \to
+\infty} \left( V[\langle I \rangle_N] + B[\langle I \rangle_N]^2 \right)
+= 0. \tag{37}
+\]</span></p>
+<ul>
+<li>于是收敛条件为下面同时满足</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\lim_{N \to \infty} V[\langle I \rangle_N] &amp;= \lim_{N \to \infty}
+\frac{1}{N^2} \sum_{i = 1}^{N} \underbrace{V[\langle I(k_i)
+\rangle]}_{V(k_i)} = \frac{O(V(k_N))}{N} = 0, \tag{38} \\
+\lim_{N \to \infty} B[\langle I \rangle_N] &amp;= \lim_{N \to \infty}
+\frac{1}{N} \sum_{i = 1}^{N} \underbrace{B[\langle I(k_i)
+\rangle]}_{B(k_N)} = O(B(k_N)) = 0, \tag{39}
+\end{align}
+\]</span></p>
+<ul>
+<li>一致性条件：需要 <span class="math inline">\(B(k)\)</span>
+消失，<span class="math inline">\(V(k)\)</span> 的增长小于 <span class="math inline">\(O(N)\)</span></li>
+<li>满足上面两个条件的，MSE 收敛最快的条件为两项同阶</li>
+</ul>
+<p><span class="math display">\[
+O(V[\langle I \rangle_N]) = O(B[\langle I \rangle_N]^2)\Longrightarrow
+O(V(k_N)) = N\cdot O(B^2(k_N))
+\]</span></p>
+<h2 id="appendix-c"><span id="appendix-C">Appendix C</span></h2>
+<ul>
+<li><span style="color:red">没太看懂</span></li>
+<li>条件
+<ul>
+<li><span class="math inline">\(M_k\)</span> 光子数，收集半径 <span class="math inline">\(r_k\)</span></li>
+<li>使用 <a href="#eq14">single-term 伸缩和</a></li>
+<li>相关性的估计 <span class="math inline">\(\langle
+\Delta_j\rangle=\langle I(j+1)-I(j)\rangle\)</span>【复用样本】</li>
+<li><span class="math inline">\(M_{j+1}\ne M_j\)</span> 的话，忽略
+unshared 光子</li>
+</ul></li>
+<li>这样能用 PPM 的理论
+<ul>
+<li>【<span style="color:red">没看 PPM 的理论分析</span>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+V[\langle \Delta_j \rangle] &amp;\propto \frac{1}{M_j} \int \left(
+k(r_{j + 1}, x) - k(r_j, x) \right)^2 \mathrm{d}x, \tag{40} \\
+\Delta_j &amp;\propto r_j^2, \tag{41}
+\end{align}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(r_j=\sqrt{j^{\alpha-1}},\alpha\in(0,1)\)</span>
+都能实现一致估计</li>
+<li>此时</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\Delta_j &amp;= O(j^{\alpha - 2}) \tag{42} \\
+V[\langle \Delta_j \rangle] &amp;= M_j^{-1} O(j^{-\alpha}), \quad
+\text{(constant kernel)} \tag{43} \\
+V[\langle \Delta_j \rangle] &amp;= M_j^{-1} O(j^{-\alpha - 1}). \quad
+\text{(cone kernel)} \tag{44}
+\end{align}
+\]</span></p>
+<ul>
+<li>然后最优 PMF 如下</li>
+</ul>
+<p><span class="math display">\[
+p(j) \propto \sqrt{V[\langle \Delta_j \rangle] + (\Delta_j)^2} =
+\sqrt{M_j^{-1} O(j^{-\alpha - 1}) + O(j^{2\alpha - 4})} \tag{45}
+\]</span></p>
+<ul>
+<li>代价无限：找不到合适的 <span class="math inline">\(\alpha,M_j\)</span> 满足有限</li>
+</ul>
+<p><span class="math display">\[
+C[\langle I \rangle_1] \propto \sum_{j = 1}^{\infty} M_j \cdot p(j)
+\propto \sum_{j = 1}^{\infty} \sqrt{M_j O(j^{-\alpha - 1}) + M_j^2
+O(j^{2\alpha - 4})} \tag{46}
+\]</span></p>
+<h2 id="appendix-e"><span id="appendix-E">Appendix E</span></h2>
+<ul>
+<li><span class="math inline">\(k_i=i\)</span>，于是有</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+I &amp;= \frac{1}{N} \sum_{k = 0}^{N} \left( I(k) + \sum_{j =
+k}^{\infty} \Delta_j \right) \tag{55} \\
+&amp;= \frac{1}{N} \sum_{k = 0}^{N} I(k) + \sum_{k = 0}^{N} \sum_{j =
+k}^{\infty} \frac{\Delta_j}{N}. \tag{56}
+\end{align}
+\]</span></p>
+<ul>
+<li>只需要满足 <span class="math inline">\(\Delta_{\infty}=0\)</span>，那么就一致【(56)
+的右边式子表示 bias，<span class="math inline">\(N\to\infty\)</span>
+的时候，趋向于 0】</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/21/CG/Papers/2002/PSSMLT/" rel="prev" title="(论文)[2002-EG] A Simple and Robust Mutation Strategy for the Metropolis Light Transport Algorithm">
+                  <i class="fa fa-chevron-left"></i> (论文)[2002-EG] A Simple and Robust Mutation Strategy for the Metropolis Light Transport Algorithm
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/04/06/CG/Papers/1997/MLT/03/" rel="next" title="(论文)[1997-SIG] Metropolis Light Transport(3)">
+                  (论文)[1997-SIG] Metropolis Light Transport(3) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

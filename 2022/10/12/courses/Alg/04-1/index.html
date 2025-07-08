@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="贪心算法，单源最短路（Dijkstra），最小生成树（4 种算法），单链聚类算法，最小有根树，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="算法设计与分析.04.贪心算法 (2)">
+<meta property="og:url" content="http://example.com/2022/10/12/courses/Alg/04-1/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="贪心算法，单源最短路（Dijkstra），最小生成树（4 种算法），单链聚类算法，最小有根树，">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/dijkstra-s-algorithm.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/dijkstra-s-algorithm-implementation.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/pq.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/cycle.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/cutset.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/MST-contraction.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/planar.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/MST.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/distance-function.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/Min-cost-arborescence-not-connected.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/edmonds-branching-algorithm.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/edmonds-branching-algorithm-more-constraints.png">
+<meta property="og:image" content="http://example.com/2022/10/12/courses/Alg/04-1/edmonds-branching-algorithm-lemma-1.png">
+<meta property="article:published_time" content="2022-10-11T16:32:43.000Z">
+<meta property="article:modified_time" content="2025-06-18T05:57:03.420Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="Algrithom">
+<meta property="article:tag" content="WXL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/10/12/courses/Alg/04-1/dijkstra-s-algorithm.png">
+
+
+<link rel="canonical" href="http://example.com/2022/10/12/courses/Alg/04-1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2022/10/12/courses/Alg/04-1/","path":"2022/10/12/courses/Alg/04-1/","title":"算法设计与分析.04.贪心算法 (2)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>算法设计与分析.04.贪心算法 (2) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95-2"><span class="nav-text">贪心算法 (2)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#dijkstras-algorithm"><span class="nav-text">Dijkstra′s algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%94%E7%94%A8"><span class="nav-text">应用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B9%A6%E7%B1%8D"><span class="nav-text">书籍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95"><span class="nav-text">算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%81%E6%98%8E"><span class="nav-text">证明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8C%96"><span class="nav-text">优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%AA%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">伪代码实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%85%88%E9%98%9F%E5%88%97%E9%80%89%E6%8B%A9"><span class="nav-text">优先队列选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E5%90%91%E5%9B%BE"><span class="nav-text">无向图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98"><span class="nav-text">相关问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91"><span class="nav-text">最小生成树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-text">定义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%8E%AF%E5%92%8C%E5%89%B2%E9%9B%86"><span class="nav-text">环和割集</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9A%E7%90%86"><span class="nav-text">定理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E6%A0%91"><span class="nav-text">生成树</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91-1"><span class="nav-text">最小生成树</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8-1"><span class="nav-text">应用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%8E%AF"><span class="nav-text">基本环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%89%B2%E9%9B%86"><span class="nav-text">基本割集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95"><span class="nav-text">贪心算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%81%E6%98%8E-1"><span class="nav-text">证明</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#prim-kruskal-boruvka"><span class="nav-text">Prim, Kruskal, Boruvka</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#prim"><span class="nav-text">Prim</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kruskal"><span class="nav-text">Kruskal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reverse-delete-algorithm"><span class="nav-text">Reverse-delete algorithm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#boruvka-algorithm"><span class="nav-text">Boruvka algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B3%E9%9D%A2%E5%9B%BE"><span class="nav-text">平面图</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#a-hybrid-algorithm"><span class="nav-text">A hybrid algorithm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E5%B1%95"><span class="nav-text">进展</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E7%93%B6%E9%A2%88%E7%94%9F%E6%88%90%E6%A0%91"><span class="nav-text">最小瓶颈生成树</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#single-link-clustering"><span class="nav-text">single-link clustering</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%94%E7%94%A8-2"><span class="nav-text">应用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89-1"><span class="nav-text">定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95-1"><span class="nav-text">算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90"><span class="nav-text">分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#min-cost-arborescences"><span class="nav-text">min-cost arborescences</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%A7%E8%B4%A8"><span class="nav-text">性质</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E6%9C%89%E6%A0%B9%E6%A0%91"><span class="nav-text">最小有根树</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%85%E5%88%86%E6%9C%80%E4%BC%98%E6%9D%A1%E4%BB%B6"><span class="nav-text">充分最优条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reduced-costs"><span class="nav-text">Reduced costs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#edmonds-branching-algorithm"><span class="nav-text">Edmonds branching algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9A%E7%90%86-1"><span class="nav-text">定理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%81%E6%98%8E-2"><span class="nav-text">证明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E6%9E%90-1"><span class="nav-text">分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%AE%97%E6%B3%95"><span class="nav-text">其他算法</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/10/12/courses/Alg/04-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="算法设计与分析.04.贪心算法 (2) | Banbao">
+      <meta itemprop="description" content="贪心算法，单源最短路（Dijkstra），最小生成树（4 种算法），单链聚类算法，最小有根树，">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          算法设计与分析.04.贪心算法 (2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-10-12 00:32:43" itemprop="dateCreated datePublished" datetime="2022-10-12T00:32:43+08:00">2022-10-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-06-18 13:57:03" itemprop="dateModified" datetime="2025-06-18T13:57:03+08:00">2025-06-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Algrithom-wxl/" itemprop="url" rel="index"><span itemprop="name">Algrithom.wxl</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">贪心算法，单源最短路（Dijkstra），最小生成树（4 种算法），单链聚类算法，最小有根树，</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="贪心算法-2">贪心算法 (2)</h1>
+<ul>
+<li>Dijkstra′s algorithm</li>
+<li>minimum spanning trees</li>
+<li>Prim, Kruskal, Boruvka</li>
+<li>single-link clustering</li>
+<li>min-cost arborescences</li>
+</ul>
+<h2 id="dijkstras-algorithm">Dijkstra′s algorithm</h2>
+<ul>
+<li>单源最短路问题
+<ul>
+<li>Single-source shortest paths problem</li>
+</ul></li>
+<li>输入为边权不为负的有向图，给定起始节点，求这个节点到所有其他节点的最短路</li>
+</ul>
+<h3 id="应用">应用</h3>
+<ul>
+<li>PERT/CPM</li>
+<li>Map routing</li>
+<li>Seam carving
+<ul>
+<li>图像放缩，蛮有趣的</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/85136353">Seam Carving --
+基于内容的图像缩放算法</a></li>
+</ul></li>
+<li>Robot navigation</li>
+<li>Texture mapping</li>
+<li>Typesetting in LaTeX</li>
+<li>Urban traffic planning</li>
+<li>Telemarketer operator scheduling</li>
+<li>Routing of telecommunications messages</li>
+<li>Network routing protocols (OSPF, BGP, RIP)</li>
+<li>Optimal truck routing through given traffic congestion patter</li>
+</ul>
+<h3 id="书籍">书籍</h3>
+<ul>
+<li>Network Flows: Theory, Algorithms, and Applications, by Ahuja,
+Magnanti, and Orlin, Prentice Hall, 1993.</li>
+</ul>
+<h3 id="算法">算法</h3>
+<p><img src="/2022/10/12/courses/Alg/04-1/dijkstra-s-algorithm.png"></p>
+<h3 id="证明">证明</h3>
+<ul>
+<li>不变量：对于任意集合 <span class="math inline">\(S\)</span> 中的结点
+<span class="math inline">\(u\)</span>，<span class="math inline">\(d[u]\)</span> 都表示最短路径的长度
+<ul>
+<li>对 <span class="math inline">\(\vert{S}\vert\)</span> 进行归纳</li>
+</ul></li>
+</ul>
+<h3 id="优化">优化</h3>
+<ul>
+<li>直接保存 <span class="math inline">\(\pi(v)\)</span>，而不是通过上面的方式计算
+<ul>
+<li>当某一个点 <span class="math inline">\(u\)</span> 加入到 <span class="math inline">\(S\)</span> 中时，才使用 <span class="math inline">\(u\)</span> 的出边 <span class="math inline">\(edge(u,v)\)</span> 去更新 <span class="math inline">\(\pi(v)\)</span></li>
+</ul></li>
+<li>使用最小值优先的优先队列去保存 <span class="math inline">\(\pi(v)\)</span>
+<ul>
+<li><span class="math inline">\(\pi(v)\)</span> 只会越来越小</li>
+</ul></li>
+</ul>
+<h3 id="伪代码实现">伪代码实现</h3>
+<p><img src="/2022/10/12/courses/Alg/04-1/dijkstra-s-algorithm-implementation.png"></p>
+<h3 id="优先队列选择">优先队列选择</h3>
+<p><img src="/2022/10/12/courses/Alg/04-1/pq.png"></p>
+<h3 id="无向图">无向图</h3>
+<ul>
+<li>[Thorup 1999]</li>
+<li>Can solve single-source shortest paths problem in undirected graphs
+with <strong>positive integer edge lengths</strong> in <span class="math inline">\(O(m)\)</span> time</li>
+<li>Does not explore nodes in increasing order of distance from <span class="math inline">\(s\)</span></li>
+</ul>
+<h3 id="相关问题">相关问题</h3>
+<ul>
+<li>Shortest paths in undirected graphs: <span class="math inline">\(\pi[v]\le \pi[u]+l(u, v)\)</span></li>
+<li>Maximum capacity paths: <span class="math inline">\(\pi[v]\ge
+\min\{\pi[u], c(u, v)\}\)</span></li>
+<li>Maximum reliability paths: <span class="math inline">\(\pi[v]\ge\pi[u]\times\gamma(u, v)\)</span></li>
+<li>迷宫问题：允许打破 <span class="math inline">\(k\)</span>
+道墙的最短路
+<ul>
+<li>BFS，需要记录状态还剩打破几道墙的机会</li>
+</ul></li>
+</ul>
+<h2 id="最小生成树">最小生成树</h2>
+<ul>
+<li>minimum spanning trees</li>
+</ul>
+<h3 id="定义">定义</h3>
+<h4 id="环和割集">环和割集</h4>
+<ul>
+<li>Path（路径）</li>
+<li>Cycle（环）：首尾结点相同，其余节点两两不同的路径</li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/cycle.png"></p>
+<ul>
+<li>Cut（割）：顶点划分的两个集合</li>
+<li>Cutset（割集）：连接顶点划分的两个集合之间的边</li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/cutset.png"></p>
+<h4 id="定理">定理</h4>
+<ul>
+<li>任意一个环和割集之间的公共边数量一定为偶数（包括0）
+<ul>
+<li>画图证明</li>
+</ul></li>
+</ul>
+<h3 id="生成树">生成树</h3>
+<ul>
+<li>无向连通图 <span class="math inline">\(G(V,E)\)</span> 的生成树
+<span class="math inline">\(H(V,T)\)</span>
+<ul>
+<li>包含所有顶点 + 连通 + 无环</li>
+</ul></li>
+<li>如果 <span class="math inline">\(H\)</span> 是无向连通图 <span class="math inline">\(G\)</span> 的子图，如下是一些等价说法
+<ul>
+<li><span class="math inline">\(H\)</span> is a spanning tree of <span class="math inline">\(G\)</span></li>
+<li><span class="math inline">\(H\)</span> is acyclic and connected</li>
+<li><span class="math inline">\(H\)</span> is connected and has <span class="math inline">\(\vert{V}\vert – 1\)</span> edges</li>
+<li><span class="math inline">\(H\)</span> is acyclic and has <span class="math inline">\(\vert{V}\vert – 1\)</span> edges</li>
+<li><span class="math inline">\(H\)</span> is minimally
+connected：removal of any edge disconnects it</li>
+<li><span class="math inline">\(H\)</span> is maximally
+acyclic：addition of any edge creates a cycle</li>
+</ul></li>
+</ul>
+<h3 id="最小生成树-1">最小生成树</h3>
+<ul>
+<li>MST：Minimum spanning trees</li>
+<li>边权之和最小的生成树</li>
+<li>Cayley’s theorem
+<ul>
+<li>The complete graph on n nodes has <span class="math inline">\(n^{n–2}\)</span> spanning trees</li>
+</ul></li>
+</ul>
+<h4 id="应用-1">应用</h4>
+<ul>
+<li>Dithering.</li>
+<li>Cluster analysis.</li>
+<li>Max bottleneck paths.</li>
+<li>Real-time face verification.</li>
+<li>LDPC codes for error correction.</li>
+<li>Image registration with Renyi entropy.</li>
+<li>Find road networks in satellite and aerial imagery.</li>
+<li>Model locality of particle interactions in turbulent fluid
+flows.</li>
+<li>Reducing data storage in sequencing amino acids in a protein.</li>
+<li>Autoconfig protocol for Ethernet bridging to avoid cycles in a
+network.</li>
+<li>Approximation algorithms for NP-hard problems (e.g., TSP, Steiner
+tree).</li>
+<li>Network design (communication, electrical, hydraulic, computer,
+road).</li>
+</ul>
+<h3 id="基本环">基本环</h3>
+<ul>
+<li>Fundamental cycle</li>
+<li>任意一条非树边 <span class="math inline">\(e\in E\)</span> 都能和树
+<span class="math inline">\(H\)</span> 上的边 <span class="math inline">\(T\)</span> 组成一个唯一的环 <span class="math inline">\(C_e\)</span>
+<ul>
+<li>对于任何一条环 <span class="math inline">\(C_e\)</span> 上的边 <span class="math inline">\(f\in C_e\)</span>，<span class="math inline">\((V,T\cup\{e\}-f)\)</span> 还是生成树</li>
+</ul></li>
+<li>如果 <span class="math inline">\(c(e)&lt;c(f)\)</span>，则 <span class="math inline">\(H\)</span> 不是 MST</li>
+</ul>
+<h3 id="基本割集">基本割集</h3>
+<ul>
+<li>Fundamental cut</li>
+<li>任意一条树边 <span class="math inline">\(e\in T\)</span> 都能将树
+<span class="math inline">\(H\)</span> 划分为两个不连通的子集，形成割集
+<span class="math inline">\(D_e\)</span>
+<ul>
+<li>对于任何一条割集 <span class="math inline">\(D_e\)</span> 上的边
+<span class="math inline">\(f\in D_e\)</span>，<span class="math inline">\((V,T\cup\{e\}-f)\)</span> 还是生成树</li>
+</ul></li>
+<li>如果 <span class="math inline">\(c(e)&lt;c(f)\)</span>，则 <span class="math inline">\(H\)</span> 不是 MST</li>
+</ul>
+<h3 id="贪心算法">贪心算法</h3>
+<ul>
+<li><span style="color:#8d3124"><strong>Red
+rule（红规则）</strong></span>：找到没有红边的环，将权值最大的边染成红色</li>
+<li><span style="color:#0048aa"><strong>Blue
+rule（蓝规则）</strong></span>：找到没有蓝边的割集，将权值最小的边染成蓝色</li>
+<li>贪心算法
+<ul>
+<li>反复应用红规则和蓝规则，直到所有边都着色，此时所有的蓝色边形成
+MST</li>
+<li>（存在 <span class="math inline">\(\vert{V}\vert-1\)</span>
+条蓝色边是就可以停止）</li>
+</ul></li>
+</ul>
+<h4 id="证明-1">证明</h4>
+<ul>
+<li>不变量：存在一棵最小生成树，它包含所有的蓝色边，不包含任何的红色边
+<ul>
+<li>利用<strong>基本树变换</strong>实施归纳法</li>
+</ul></li>
+<li>证明算法终止的时候，蓝色边形成 MST
+<ul>
+<li>根据上面的不变量，只需要证明最终所有的边都着色了即可</li>
+<li>如果存在 <span class="math inline">\(e\)</span> 未着色
+<ul>
+<li>如果 <span class="math inline">\(e\)</span> 的两端都属于同一分支
+<span class="math inline">\(\Rightarrow\)</span> 树 + <span class="math inline">\(e\)</span> 形成环 <span class="math inline">\(\Rightarrow\)</span> 红规则</li>
+<li>如果 <span class="math inline">\(e\)</span> 的两端不属于同一分支
+<span class="math inline">\(\Rightarrow\)</span> <span class="math inline">\(e\)</span> 形成割集 <span class="math inline">\(\Rightarrow\)</span> 蓝规则</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="prim-kruskal-boruvka">Prim, Kruskal, Boruvka</h2>
+<ul>
+<li>最小生成树算法</li>
+</ul>
+<h3 id="prim">Prim</h3>
+<ul>
+<li>Prim：一直使用蓝规则</li>
+<li>从一个点出发，找割集中最小边</li>
+<li><span class="math inline">\(O(m\log n)\)</span>
+<ul>
+<li>类似于 Dijkstra 算法实现</li>
+</ul></li>
+</ul>
+<h3 id="kruskal">Kruskal</h3>
+<ul>
+<li>Kruskal：贪心算法</li>
+<li>找最小边
+<ul>
+<li>如果和已选择的边成环，舍去（红规则）</li>
+<li>如果未和已选择的边成环，选择它（蓝规则）</li>
+</ul></li>
+<li><span class="math inline">\(O(m\log m)\)</span>
+<ul>
+<li>判定是否成环使用<strong>并查集</strong>，<span class="math inline">\(O(1)\)</span> 判断</li>
+</ul></li>
+</ul>
+<h3 id="reverse-delete-algorithm">Reverse-delete algorithm</h3>
+<ul>
+<li>Reverse-delete algorithm：贪心算法</li>
+<li>所有边降序排列，过一遍所有边，如果不会让图不连通，则删除它</li>
+<li>[Thorup 2000]：<span class="math inline">\(O(m\log n(\log\log
+n)^3)\)</span></li>
+</ul>
+<h3 id="boruvka-algorithm">Boruvka algorithm</h3>
+<ul>
+<li>Boruvka algorithm：一直使用蓝规则</li>
+<li>对所有的树分支应用蓝规则</li>
+<li><span class="math inline">\(O(m\log n)\)</span>
+<ul>
+<li>每一轮：<span class="math inline">\(O(m)\)</span>
+<ul>
+<li>计算所有连通分支</li>
+<li>过一遍所有边，记录所有连通分支之间的最小边</li>
+<li>选中最小边</li>
+</ul></li>
+<li>最多 <span class="math inline">\(\log_2 n\)</span> 轮</li>
+</ul></li>
+</ul>
+<h4 id="实现">实现</h4>
+<ul>
+<li>Contraction version（收缩边实现）
+<ul>
+<li>收缩每一个树分支，删除重边和自环</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/MST-contraction.png"></p>
+<ul>
+<li>收缩边的步骤：<span class="math inline">\(O(m+n)\)</span>，结果：<span class="math inline">\(G(V,E)\Rightarrow G&#39;(n&#39;,E&#39;)\)</span>
+<ul>
+<li>计算 <span class="math inline">\(n&#39;\)</span> 个连通分支</li>
+<li>对于每一个点，使用 <span class="math inline">\(id[u]=i\)</span>
+记录结点 <span class="math inline">\(u\)</span> 属于第 <span class="math inline">\(i\)</span> 个连通分支</li>
+<li><span class="math inline">\(G\)</span> 中的边 <span class="math inline">\(e(u,v)\)</span> <span class="math inline">\(\Rightarrow\)</span> <span class="math inline">\(G&#39;\)</span> 中的边 <span class="math inline">\((id[u],id[v])\)</span></li>
+</ul></li>
+<li>细节：
+<ul>
+<li>去除自环：判断下即可（<span class="math inline">\(id[u]\ne
+id[v]\)</span>）</li>
+<li>去除重边
+<ul>
+<li>对所有的边 <span class="math inline">\(e(i,j)\)</span> 构造 <span class="math inline">\(i-j(i&lt;j)\)</span></li>
+<li>按照字母序排序（基数排序 <span class="math inline">\(O(n)\)</span>
+）</li>
+<li>去除重边即可</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="平面图">平面图</h4>
+<ul>
+<li>如果图 <span class="math inline">\(G\)</span> 是平面，则算法能在
+<span class="math inline">\(O(n)\)</span> 内实现</li>
+<li>平面图（planar）
+<ul>
+<li>能够在平面画成没有相交边的图</li>
+<li><span class="math inline">\(\Leftrightarrow\)</span> 没有同构于
+<span class="math inline">\(K_{3,3}\)</span> 或 <span class="math inline">\(K_5\)</span> 的子图</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/planar.png"></p>
+<ul>
+<li>平面图收缩点、删除边之后还是平面图</li>
+<li>对于简单平面图：<span class="math inline">\(m\le 3n\)</span></li>
+<li>算法时间：</li>
+</ul>
+<p><span class="math display">\[
+O(cn)+O(c\dfrac{n}{2})+O(c\dfrac{n}{4})+\cdots=O(n)
+\]</span></p>
+<h3 id="a-hybrid-algorithm">A hybrid algorithm</h3>
+<ul>
+<li>Boruvka–Prim algorithm
+<ul>
+<li>先运行 Boruvka <span class="math inline">\(\log\log n\)</span>
+次，然后再运行 Prim</li>
+<li>贪心算法的特例</li>
+</ul></li>
+<li>Boruvka：<span class="math inline">\(O(m\log\log n)\)</span>
+<ul>
+<li>结果图：<span class="math inline">\(\vert{V}\vert\le n\log_2
+n,\vert{E}\vert\le m\)</span></li>
+</ul></li>
+<li>Prim（Fibonacci heaps 实现）</li>
+</ul>
+<p><span class="math display">\[
+O(m+\dfrac{n}{\log n}\log(\dfrac{n}{\log n}))=O(m+n)
+\]</span></p>
+<h3 id="进展">进展</h3>
+<ul>
+<li>确定性算法</li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/MST.png"></p>
+<ul>
+<li><p>随机算法</p>
+<ul>
+<li><p>[Fredman–Willard 1990]：<span class="math inline">\(O(m)\)</span>
+in word RAM model.</p></li>
+<li><p>[Dixon–Rauch–Tarjan 1992]：<span class="math inline">\(O(m)\)</span> MST verification algorithm.</p></li>
+<li><p>[Karger–Klein–Tarjan 1995]：<span class="math inline">\(O(m)\)</span> randomized MST algorithm.</p></li>
+</ul></li>
+</ul>
+<h3 id="最小瓶颈生成树">最小瓶颈生成树</h3>
+<ul>
+<li>Minimum Bottleneck Spanning Tree</li>
+<li>最大边最小的生成树
+<ul>
+<li>minimizes the most expensive edge</li>
+</ul></li>
+<li>结论（无向图）
+<ul>
+<li>MST 一定是 MBST</li>
+<li>MBST 不一定是 MST</li>
+</ul></li>
+</ul>
+<h2 id="single-link-clustering">single-link clustering</h2>
+<ul>
+<li>把一些点分成 <span class="math inline">\(k\)</span>
+堆，让堆与堆之间的距离最大</li>
+</ul>
+<h3 id="应用-2">应用</h3>
+<ul>
+<li>Routing in mobile ad-hoc networks.</li>
+<li>Document categorization for web search.</li>
+<li>Similarity searching in medical image databases</li>
+<li>Cluster celestial objects into stars, quasars, galaxies.</li>
+</ul>
+<h3 id="定义-1">定义</h3>
+<ul>
+<li>距离函数（distance function）</li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/distance-function.png"></p>
+<h3 id="算法-1">算法</h3>
+<ul>
+<li>Kruscal 的算法步骤，剩下 <span class="math inline">\(k\)</span>
+个连通分支就结束</li>
+<li>先找最小生成树，然后删除最长的 <span class="math inline">\(k-1\)</span> 条边</li>
+</ul>
+<h3 id="分析">分析</h3>
+<ul>
+<li>算法可行（MST 删除最长的 <span class="math inline">\(k-1\)</span>
+条边的结果满足条件）</li>
+<li>证明如下（反证法）</li>
+<li>MST 删边之后形成的边集为 <span class="math inline">\(C\)</span>，包括连通分支 <span class="math inline">\(C_1,\cdots,C_k\)</span></li>
+<li>假设存在一个边集 <span class="math inline">\(C^{\ast}\)</span>，满足
+<span class="math inline">\(p,q\)</span> 在 <span class="math inline">\(C\)</span> 中都属于连通分支 <span class="math inline">\(C_i\)</span>，但是在 <span class="math inline">\(C^{\ast}\)</span> 中属于两个连通分支 <span class="math inline">\(C^{\ast}_i,C^{\ast}_j\)</span></li>
+<li>那么有 <span class="math inline">\(\text{distance}(C^{\ast}_i,C^{\ast}_j)\le\text{distance}(p,q)=d_{p,q}\)</span></li>
+<li>但是根据删边算法规则，<span class="math inline">\(C\)</span>
+中任意两个子集之间的距离都大于等于 <span class="math inline">\(d_{p,q}\)</span>，也就是说 <span class="math inline">\(\text{distance}(C^{\ast}_i,C^{\ast}_j)\)</span>
+小于等于 <span class="math inline">\(C\)</span>
+中任意两个子集之间的距离</li>
+<li>根据 <span class="math inline">\(p,q\)</span>
+任意性，如果有不同，则距离就更小</li>
+<li>得证</li>
+</ul>
+<h2 id="min-cost-arborescences">min-cost arborescences</h2>
+<ul>
+<li>arborescence：有根树</li>
+<li>有向图 <span class="math inline">\(G(V,E)\)</span> 的根节点为 <span class="math inline">\(r\)</span> 的有根树 <span class="math inline">\(T(V,F)\)</span>
+<ul>
+<li><span class="math inline">\(T\)</span> 去除方向之后是 <span class="math inline">\(G\)</span> 的一棵生成树</li>
+<li>对于任意一点 <span class="math inline">\(v\in V-\{r\}\)</span>
+，都存在从 <span class="math inline">\(r\)</span>
+到这个节点的唯一路径</li>
+</ul></li>
+</ul>
+<h3 id="性质">性质</h3>
+<ul>
+<li><span class="math inline">\(G(V,E)\)</span> 的子图 <span class="math inline">\(T(V,F)\)</span> 是根节点为 <span class="math inline">\(r\)</span> 的有根树
+<ul>
+<li><span class="math inline">\(\Leftrightarrow\)</span>
+没有有向环，除了 <span class="math inline">\(r\)</span>
+之外，所有节点入度为 <span class="math inline">\(1\)</span>（<span class="math inline">\(r\)</span> 入度为 <span class="math inline">\(0\)</span>）</li>
+</ul></li>
+<li><span class="math inline">\(\Rightarrow\)</span>：定义即证</li>
+<li><span class="math inline">\(\Leftarrow\)</span>：沿着入边一定能找到
+<span class="math inline">\(r\)</span></li>
+</ul>
+<h3 id="最小有根树">最小有根树</h3>
+<ul>
+<li>Min-cost arborescence problem</li>
+<li>Goal：给定有向图 <span class="math inline">\(G\)</span>，所有边权大于等于 <span class="math inline">\(0\)</span>，指定根节点 <span class="math inline">\(r\)</span>，找到边权和最小的有根树</li>
+</ul>
+<h3 id="充分最优条件">充分最优条件</h3>
+<ul>
+<li>对于除了 <span class="math inline">\(r\)</span>
+之外的结点，选择权值最小的入边，如果此时选择的边形成了有根树，那么这一定是最小有根树</li>
+<li><strong>证明显然</strong></li>
+</ul>
+<p><span class="math display">\[
+\text{cost}(T)=\sum_{j}e_{i,j}\ge\sum_{j}\min_{i,\text{edge}(i,j)\in
+E}\{e_{i,j}\}
+\]</span></p>
+<ul>
+<li>可能不是有根树</li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/Min-cost-arborescence-not-connected.png"></p>
+<h3 id="reduced-costs">Reduced costs</h3>
+<ul>
+<li>对于所有的边权值做一个变换
+<ul>
+<li>对于点 <span class="math inline">\(\forall v\in
+V-\{r\}\)</span>，对他的入边做如下操作：所有的入边的权值减去最小入边的权值</li>
+<li>此时得到的边权值称为 reduced cost</li>
+</ul></li>
+<li>在 reduced cost
+上面做最小有根树，得到的结果也是原权值上形成的最小有根树
+<ul>
+<li>根据上面的不等式，显然正确</li>
+</ul></li>
+</ul>
+<h3 id="edmonds-branching-algorithm">Edmonds branching algorithm</h3>
+<ul>
+<li>算法思路
+<ul>
+<li>reduced cost <span class="math inline">\(\to\)</span> 遇到环则收缩环
+<span class="math inline">\(\to\)</span> reduced cost <span class="math inline">\(\to\)</span> 收缩环 <span class="math inline">\(\to\cdots\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/edmonds-branching-algorithm.png"></p>
+<ul>
+<li>算法给有根树加了更强的限制，对于收缩过程中的环，只允许有一条入边
+<ul>
+<li>实际有根树没有这个限制，如下图</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/edmonds-branching-algorithm-more-constraints.png"></p>
+<ul>
+<li>能被证明，这个限制条件没问题</li>
+</ul>
+<h4 id="定理-1">定理</h4>
+<ul>
+<li><span class="math inline">\(C\)</span> 不包含点 <span class="math inline">\(r\)</span>（算法一开始便可以去除 <span class="math inline">\(r\)</span> 的所有入边）</li>
+</ul>
+<p><img src="/2022/10/12/courses/Alg/04-1/edmonds-branching-algorithm-lemma-1.png"></p>
+<ul>
+<li>如果没有边进入 <span class="math inline">\(C\)</span>，因为是有根树
+<span class="math inline">\(\Rightarrow\)</span>
+至少有一条边（假设不成立）</li>
+<li>如果恰好有一条边进入 <span class="math inline">\(C\)</span> <span class="math inline">\(\Rightarrow\)</span> <span class="math inline">\({\color{red}\checkmark}\)</span></li>
+<li>如果两条或者两条以上的边进入 <span class="math inline">\(C\)</span>
+<span class="math inline">\(\Rightarrow\)</span>
+可以转化为一条边，得到的还是最小有根树
+<ul>
+<li>假设 <span class="math inline">\(r\)</span> 到 <span class="math inline">\(C\)</span> 最近路径为 <span class="math inline">\(r\sim\cdots\sim a\sim b\)</span>，入边为 <span class="math inline">\((a,b)\)</span></li>
+<li>除了 <span class="math inline">\((a,b)\)</span>，删除 <span class="math inline">\(C\)</span> 上所有点的入边
+<ul>
+<li>包括除了 <span class="math inline">\((a,b)\)</span> 之外的： <span class="math inline">\(C\)</span> 的入边、<span class="math inline">\(C\)</span> 内部连接各个结点的边</li>
+</ul></li>
+<li>除了进入 <span class="math inline">\(b\)</span> 的边，加上环 <span class="math inline">\(C\)</span> 上的所有边</li>
+<li>根据 <span class="math inline">\(\text{cost}(e)=0,\forall e\in
+C\)</span>，得到的还是最小有根树
+<ul>
+<li>权不增</li>
+<li>任意一点都只有一条入边</li>
+<li>无有向环</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="证明-2">证明</h4>
+<ul>
+<li>[Chu–Liu 1965, Edmonds 1967]</li>
+<li>The greedy algorithm finds a <strong>min-cost
+arborescence</strong></li>
+<li>根据上面的引理已经很显然了</li>
+</ul>
+<h4 id="分析-1">分析</h4>
+<ul>
+<li><span class="math inline">\(O(mn)\)</span>
+<ul>
+<li>最多 <span class="math inline">\(n\)</span> 次收缩点
+<ul>
+<li>找一个环开销 <span class="math inline">\(O(m)\)</span></li>
+</ul></li>
+<li>将结果转换回去开销 <span class="math inline">\(O(m)\)</span></li>
+</ul></li>
+</ul>
+<h3 id="其他算法">其他算法</h3>
+<ul>
+<li>[Gabow–Galil–Spencer–Tarjan 1985]</li>
+<li>There exists an <span class="math inline">\(O(m + n \log n)\)</span>
+time algorithm to compute a min-cost arborescence.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Algrithom/" rel="tag"># Algrithom</a>
+              <a href="/tags/WXL/" rel="tag"># WXL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/10/11/courses/Alg/04/" rel="prev" title="算法设计与分析.04.贪心算法 (1)">
+                  <i class="fa fa-chevron-left"></i> 算法设计与分析.04.贪心算法 (1)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/10/21/Kits/win/win-RomoteConnection/" rel="next" title="windows 远程连接">
+                  windows 远程连接 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

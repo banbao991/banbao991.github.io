@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="MLT 在求解光传输方程的应用，转化到 Metropolis 框架，路径变异策略">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[1997-SIG] Metropolis Light Transport(2)">
+<meta property="og:url" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/02/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="MLT 在求解光传输方程的应用，转化到 Metropolis 框架，路径变异策略">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/02/fig2-example.png">
+<meta property="og:image" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/02/fig3-2-perturbations.png">
+<meta property="og:image" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/02/fig4-multi-chain-perturbation.png">
+<meta property="og:image" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/02/tab-result.png">
+<meta property="article:published_time" content="2021-07-08T14:00:00.000Z">
+<meta property="article:modified_time" content="2025-04-07T06:33:06.240Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="MLT">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/02/fig2-example.png">
+
+
+<link rel="canonical" href="http://example.com/2021/07/08/CG/Papers/1997/MLT/02/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2021/07/08/CG/Papers/1997/MLT/02/","path":"2021/07/08/CG/Papers/1997/MLT/02/","title":"(论文)[1997-SIG] Metropolis Light Transport(2)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[1997-SIG] Metropolis Light Transport(2) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#metropolis-light-transport"><span class="nav-text">Metropolis Light Transport</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mlt"><span class="nav-text">MLT</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#reduction-to-the-metropolis-framework"><span class="nav-text">Reduction to the
+Metropolis framework</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B6%88%E9%99%A4-start-up-bias"><span class="nav-text">消除 start-up bias</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E5%81%8F%E6%80%A7%E8%AF%81%E6%98%8E"><span class="nav-text">无偏性证明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initialization"><span class="nav-text">Initialization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#convergence-tests"><span class="nav-text">Convergence tests</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spectral-sampling"><span class="nav-text">Spectral sampling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E5%8F%98%E5%BC%82%E7%AD%96%E7%95%A5"><span class="nav-text">设计变异策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A5%BD%E7%9A%84%E5%8F%98%E5%BC%82%E7%AD%96%E7%95%A5"><span class="nav-text">好的变异策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bidirectional-mutations"><span class="nav-text">Bidirectional mutations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90-1"><span class="nav-text">例子 1</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#perturbations"><span class="nav-text">Perturbations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#lens-perturbations"><span class="nav-text">Lens perturbations</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#caustic-perturbations"><span class="nav-text">Caustic perturbations</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#multi-chain-perturbations"><span class="nav-text">Multi-chain perturbations</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E8%AE%BE%E7%BD%AE"><span class="nav-text">参数设置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lens-subpath-mutations"><span class="nav-text">Lens subpath mutations</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E7%AA%81%E5%8F%98%E7%B1%BB%E5%88%AB"><span class="nav-text">选择突变类别</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#refinements"><span class="nav-text">Refinements</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#results"><span class="nav-text">Results</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/08/CG/Papers/1997/MLT/02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[1997-SIG] Metropolis Light Transport(2) | Banbao">
+      <meta itemprop="description" content="MLT 在求解光传输方程的应用，转化到 Metropolis 框架，路径变异策略">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[1997-SIG] Metropolis Light Transport(2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-07-08 22:00:00" itemprop="dateCreated datePublished" datetime="2021-07-08T22:00:00+08:00">2021-07-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-04-07 14:33:06" itemprop="dateModified" datetime="2025-04-07T14:33:06+08:00">2025-04-07</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">MLT 在求解光传输方程的应用，转化到 Metropolis 框架，路径变异策略</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li><a href="/2021/07/08/CG/Papers/1997/MLT/00/">目录</a></li>
+</ul>
+<h1 id="metropolis-light-transport">Metropolis Light Transport</h1>
+<h1 id="mlt">MLT</h1>
+<ul>
+<li>一些准备工作
+<ul>
+<li>将问题转化到 Metropolis 框架下</li>
+<li>如何避免 <strong>start-up bias</strong></li>
+<li>设计高效的路径变异策略</li>
+</ul></li>
+</ul>
+<h2 id="reduction-to-the-metropolis-framework">Reduction to the
+Metropolis framework</h2>
+<ul>
+<li><span class="math inline">\(f_j(\bar{x})=w_j(\bar{x})f(\bar{x})\)</span>
+<ul>
+<li><span class="math inline">\(w_j\)</span>：filter function，路径
+<span class="math inline">\(\bar{x}\)</span> 对像素 <span class="math inline">\(j\)</span> 的贡献</li>
+<li><span class="math inline">\(f\)</span>
+表示路径的贡献【和像素无关】</li>
+</ul></li>
+<li><span class="math inline">\(w_j\)</span> 只依赖于最后一条边 <span class="math inline">\(\mathrm{x}_{k-1}\mathrm{x}_k\)</span>，称为
+<strong>lens edge</strong></li>
+<li>MC 采样</li>
+</ul>
+<p><span class="math display">\[
+m_j=E\Big[\dfrac{1}{N}\sum_{i=1}^{N}\dfrac{w_j(\bar{X}_i)f(\bar{X}_i)}{p(\bar{X}_i)}\Big]
+\]</span></p>
+<ul>
+<li>如果 <span class="math inline">\(p=\dfrac{1}{b}f\)</span>，那么
+<ul>
+<li><span class="math inline">\(b=\int_\Omega
+f(\bar{x})\;d\mu(\bar{x})\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+m_j=E\Big[\dfrac{1}{N}\sum_{i=1}^{N}b\;w_j(\bar{X}_i)\Big]
+\]</span></p>
+<ul>
+<li>此时 <span class="math inline">\(m_j\)</span>
+能被快速计算，因为一条光路一般只贡献给少量像素</li>
+<li>问题：计算 <span class="math inline">\(b\)</span>，采样 <span class="math inline">\(p\propto f\)</span></li>
+<li>采样问题可以使用 MLT 解决
+<ul>
+<li>但是 MLT 达到平衡，条件是 <span class="math inline">\(i\to\infty\)</span></li>
+<li>实现上丢弃前 <span class="math inline">\(k\)</span> 个样本（如何选取
+<span class="math inline">\(k\)</span> 很重要）
+<ul>
+<li><strong>start-up bias</strong>：如果选取的 <span class="math inline">\(k\)</span> 太小，结果将很大程度上受到 <span class="math inline">\(\bar{X}_0\)</span> 的影响</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="消除-start-up-bias">消除 start-up bias</h3>
+<ul>
+<li><strong>思路上就是重采样，重采样后的分布更加接近 <span class="math inline">\(f(x)\)</span> 本身</strong>
+<ul>
+<li>实现上就是重采样，然后求期望的时候自然就有一个 <span class="math inline">\(w\)</span> 在采样概率中【加权】</li>
+</ul></li>
+<li>初始路径 <span class="math inline">\(\bar{X}_0\)</span>
+通过容易的采样方式 <span class="math inline">\(p_0\)</span>
+采样得到【<span class="math inline">\(p_0\)</span> 本身得是无偏的】
+<ul>
+<li>权重 <span class="math inline">\(W_0=\dfrac{f(\bar{X}_0)}{p_0(\bar{X}_0)}\)</span></li>
+<li>此时 <span class="math inline">\(m_j\approx
+W_0w_j(\bar{X}_0)\)</span></li>
+</ul></li>
+<li>接下来通过变异，依次得到 <span class="math inline">\(\bar{X}_1,\cdots,\bar{X}_N\)</span>
+<ul>
+<li><span class="math inline">\(\bar{X}_i\)</span> 有不同的分布 <span class="math inline">\(p_i\)</span>，只有当 <span class="math inline">\(i\to\infty\)</span> 的时候，分布 <span class="math inline">\(p_i\propto\dfrac{1}{b}f\)</span></li>
+</ul></li>
+<li>估计如下</li>
+</ul>
+<p><span class="math display">\[
+m_j=E\Big[\dfrac{1}{N}\sum_{i=1}^{N}w_j(\bar{X}_i){W_i}\Big]\tag{12}
+\]</span></p>
+<ul>
+<li>我们将权重都设置为初始样本的权重 <span class="math inline">\(W_i=W_0\)</span>，此时结果是无偏的
+<ul>
+<li>下面讨论为什么这么设置是无偏的</li>
+</ul></li>
+</ul>
+<h4 id="无偏性证明">无偏性证明</h4>
+<ul>
+<li>考虑 <span class="math inline">\(\bar{X}_0\)</span>
+是一组样本【无偏性基于此讨论】</li>
+<li>如果 <span class="math inline">\(p_0=\dfrac{1}{b}f,W_0=b\)</span>，那么已经达到平衡，之后的分布
+<span class="math inline">\(p_i=p_0\)</span>
+<ul>
+<li><span class="math inline">\(W_i=\dfrac{f(\bar{X}_i)}{p_i(\bar{X}_i)}=b=W_0=\dfrac{f(\bar{X}_0)}{p_0(\bar{X}_0)}\)</span></li>
+<li>于是 <span class="math inline">\(W_i=W_0=b\)</span>
+这样的设置是无偏的</li>
+</ul></li>
+<li>对于一般的 <span class="math inline">\(p_0\)</span>，证明如下</li>
+<li>weighted equilibrium condition
+<ul>
+<li><span class="math inline">\(q_i\)</span> 是第 <span class="math inline">\(i\)</span> 个加权样本 <span class="math inline">\((W_i,\bar{X}_i)\)</span> 的联合分布</li>
+<li>表示重采样得到的第 <span class="math inline">\(i\)</span> 个样本为
+<span class="math inline">\(\bar{X}_i\)</span>，权重为 <span class="math inline">\(W_i\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\int_{\mathbf{R}}w\;q_i(w,\bar{x})\;\mathrm{d}w=f(\bar{x})\tag{16}
+\]</span></p>
+<ul>
+<li>如果上面式子 <span class="math inline">\((16)\)</span>
+成立，那么无偏
+<ul>
+<li><span class="math inline">\(w_j(\cdot)\)</span> 是 filter
+function，表示当前样本对像素 <span class="math inline">\(j\)</span>
+的贡献</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+E\Big[w_j(\bar{X}_i){W_i}\Big]&amp;=\int_{\Omega}\int_{\mathbf{R}}w\;w_j(\bar{x})\;q_i(w,\bar{x})\;\mathrm{d}w\;\mathrm{d}\mu(\bar{x})\\
+&amp;=\int_{\Omega}\;w_j(\bar{x})\;f(\bar{x})\;\mathrm{d}\mu(\bar{x})\\
+&amp;=m_j\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>式子 <span class="math inline">\((16)\)</span> 对 <span class="math inline">\(q_0\)</span> 是成立的
+<ul>
+<li><span class="math inline">\(q_0(w,\bar{x})=\delta(w-\dfrac{f(\bar{x})}{p_0(\bar{x})})p_0(\bar{x})\)</span>
+<ul>
+<li><span class="math inline">\(\delta\)</span>：Dirac delta
+distribution</li>
+</ul></li>
+<li>代入即得</li>
+<li>而 <span class="math inline">\(W_0=\dfrac{f(\bar{X}_0)}{p_0(\bar{X}_0)}\)</span>
+就是设定</li>
+</ul></li>
+<li>递推：因为设置了 <span class="math inline">\(W_i=W_{i-1}\)</span>【也就是后续转移和 <span class="math inline">\(w\)</span> 无关，<span class="math inline">\(w\)</span> 只和初始样本有关】</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+q_{i}(w,\bar{x})=&amp;\Big[1-\int_{\Omega}T(\bar{y}|\bar{x})\;a(\bar{y}|\bar{x})\;\mathrm{d}\mu(\bar{y})\Big]q_{i-1}(w,\bar{x})
++\int_{\Omega}q_{i-1}(w,\bar{y})T(\bar{x}|\bar{y})\;a(\bar{x}|\bar{y})\;\mathrm{d}\mu(\bar{y})\\
+&amp;=q_{i-1}(w,\bar{x})+\int_{\Omega}\Big(-T(\bar{y}|\bar{x})\;a(\bar{y}|\bar{x})q_{i-1}(w,\bar{x})
++q_{i-1}(w,\bar{y})T(\bar{x}|\bar{y})\;a(\bar{x}|\bar{y})\Big)\;\mathrm{d}\mu(\bar{y})\\
+\end{aligned}\
+\]</span></p>
+<ul>
+<li>于是乘上 <span class="math inline">\(w\)</span>，再积分；交换积分顺序【<span class="math inline">\(w\)</span> 与后续样本无关】</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\int wq_{i}(w,\bar{x})\;\mathrm{d}w
+&amp;=\int wq_{i-1}(w,\bar{x})\;\mathrm{d}w
+-\int\int_{\Omega}w\Big(T(\bar{y}|\bar{x})\;a(\bar{y}|\bar{x})q_{i-1}(w,\bar{x})
++q_{i-1}(w,\bar{y})T(\bar{x}|\bar{y})\;a(\bar{x}|\bar{y})\Big)\;\mathrm{d}\mu(\bar{y})\;\mathrm{d}w\\
+&amp;=f(\bar{x})
+\int_{\Omega}\Big(-T(\bar{y}|\bar{x})\;a(\bar{y}|\bar{x})\left(\int
+wq_{i-1}(w,\bar{x})\;\mathrm{d}w\right)
++\left(\int
+wq_{i-1}(w,\bar{y})\;\mathrm{d}w\right)T(\bar{x}|\bar{y})\;a(\bar{x}|\bar{y})\Big)\;\mathrm{d}\mu(\bar{y})\\
+&amp;=f(\bar{x})
++\int_{\Omega}\Big(-T(\bar{y}|\bar{x})\;a(\bar{y}|\bar{x}) f(\bar{x})
++
+f(\bar{x})T(\bar{x}|\bar{y})\;a(\bar{x}|\bar{y})\Big)\;\mathrm{d}\mu(\bar{y})\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>根据细致平衡条件，于是成立
+<ul>
+<li>注意这里是 <span class="math inline">\(f\)</span>，所以一直满足</li>
+</ul></li>
+</ul>
+<h3 id="initialization">Initialization</h3>
+<ul>
+<li>初始化 <span class="math inline">\(X_0\)</span> 为一个样本效果不好
+<ul>
+<li><span class="math inline">\(W_0\)</span> 很可能为
+0，导致初始阶段值都为 0</li>
+</ul></li>
+<li>跑 <span class="math inline">\(n\)</span> 个并行算法</li>
+<li>我们实现
+<ul>
+<li>采样大量路径 <span class="math inline">\(\bar{X}^{(i)}_0\)</span>，记录他们的权重 <span class="math inline">\(W_0^{(1)}\)</span></li>
+<li>重采样获取 <span class="math inline">\(n&#39;\)</span> 个
+equal-weighted paths
+<ul>
+<li>chosen with equal spacing in the cumulative weight distribution of
+the <span class="math inline">\(\bar{X}_0^{(i)}\)</span></li>
+</ul></li>
+<li>作为 MLT 的独立的随机种子</li>
+</ul></li>
+<li>通常我们选择 <span class="math inline">\(n&#39;=1\)</span>
+<ul>
+<li>初始化的目的是算一个 <span class="math inline">\(W_0\)</span>
+的均值</li>
+</ul></li>
+<li>实际测试中，初始化这一步的开销很小</li>
+<li>two phase
+<ul>
+<li>初始化估计平均亮度</li>
+<li>之后估计每个像素的相对亮度</li>
+</ul></li>
+</ul>
+<h3 id="convergence-tests">Convergence tests</h3>
+<ul>
+<li>需要跑多个种子 <span class="math inline">\(n&#39;&gt;1\)</span>，因为一次生成的样本相关性高</li>
+</ul>
+<h3 id="spectral-sampling">Spectral sampling</h3>
+<ul>
+<li>光谱采样，就能将 color 转化为 scalar</li>
+<li>image contribution function <span class="math inline">\(f\)</span>
+对选定波长计算</li>
+<li>波长重要性采样：<span class="math inline">\(h/p\)</span>，<span class="math inline">\(p\)</span> 正比于 luminance</li>
+</ul>
+<h2 id="设计变异策略">设计变异策略</h2>
+<ul>
+<li><p>MLT 的问题：样本存在相关性，引入高方差</p>
+<ul>
+<li>原因：拒绝太多；变异太小</li>
+</ul></li>
+<li><p>一些 mutation 需要具备的特征</p>
+<ul>
+<li><strong>High acceptance probability</strong>
+<ul>
+<li>低接受率导致有很多样本都一样，全在一个像素上，显示为噪声</li>
+</ul></li>
+<li><strong>Large changes to the path</strong>
+<ul>
+<li>小的变化还是会导致高相关性</li>
+</ul></li>
+<li><strong>Ergodicity</strong>【遍历】
+<ul>
+<li>陷入一个局部的路径子空间出不来，导致积分值小于 <span class="math inline">\(b\)</span>（相当于不能覆盖整个定义域，有偏了）</li>
+<li>要求任意两个<strong>有贡献的路径</strong>互相可达
+<ul>
+<li>例如下图，如果只允许增删点，那么不能变换到右边可行路径【变异策略不行】</li>
+</ul></li>
+</ul></li>
+<li><strong>Changes to the image location</strong>
+<ul>
+<li>希望修改 lens edge <span class="math inline">\(\mathrm{x}_{k-1}\mathrm{x}_{k}\)</span>，我们希望估计
+<span class="math inline">\(f\)</span></li>
+<li>也就是希望估计 <span class="math inline">\(f\)</span>
+在像素平面的分布，所以希望改位置</li>
+</ul></li>
+<li><strong>Stratification</strong>
+<ul>
+<li>不够平均</li>
+<li>"balls in bins" effect：<span class="math inline">\(n\)</span> 球选
+<span class="math inline">\(n\)</span> 桶，很难恰好平均分配</li>
+</ul></li>
+<li><strong>Low cost</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2021/07/08/CG/Papers/1997/MLT/02/fig2-example.png"></p>
+<h2 id="好的变异策略">好的变异策略</h2>
+<ul>
+<li>3 种策略
+<ul>
+<li>bidirectional mutations</li>
+<li>perturbations</li>
+<li>lens subpath mutations<br>
+</li>
+</ul></li>
+<li>有些细节结合<a href="/2025/03/20/CG/Papers/2005/MLT-impl/">这个教程</a>看</li>
+</ul>
+<h3 id="bidirectional-mutations">Bidirectional mutations</h3>
+<ul>
+<li><p>思路：替换当前路径 <span class="math inline">\(\bar{x}=\mathrm{x}_0\cdots\mathrm{x}_k\)</span>
+中的部分子路径</p></li>
+<li><p><span class="math inline">\(p_{\text{d}}[s,t]\)</span>
+概率删除子路径 <span class="math inline">\(\mathrm{x}_s\cdots\mathrm{x}_t\)</span>【不包括端点】</p>
+<ul>
+<li><span class="math inline">\(-1\le s&lt;t\le k+1\)</span></li>
+</ul></li>
+<li><p>两个因子相乘</p>
+<ul>
+<li><span class="math inline">\(p_{\text{d},1}\)</span>：倾向于删除短路径【成本低，接受度高】</li>
+<li><span class="math inline">\(p_{\text{d},2}\)</span>：接受度高【见章节 <a href="#Refinements">refinemnents</a>】</li>
+</ul></li>
+<li><p>新路径：希望和旧路径相似【接受度高】</p></li>
+<li><p>两步：<span class="math inline">\(p_{\text{a}}[s&#39;,t&#39;]=p_{\text{a},1}p_{\text{a},2}\)</span></p>
+<ul>
+<li>先选长度 <span class="math inline">\(l_{\text{a}}=s&#39;+t+1\)</span>，倾向于保持不变【离散分布
+<span class="math inline">\(p_{\text{a},1}\)</span>】</li>
+<li>选择 <span class="math inline">\(s&#39;,t&#39;\)</span>【离散分布
+<span class="math inline">\(p_{\text{a},2}\)</span>，均匀选 <span class="math inline">\(s&#39;\)</span>】</li>
+</ul></li>
+<li><p>选取节点：BSDF 采样【如果是空路径则在光源/相机上均匀选点】</p>
+<ul>
+<li>找到之后连起来</li>
+<li>拒绝：不可见；打空</li>
+</ul></li>
+<li><p>有概率删除整条路径【为了保证遍历性】</p></li>
+<li><p>参数设定</p></li>
+</ul>
+<p><span class="math display">\[
+p_{\text{d},1}[l_{\text{d}}]=
+\left\{
+\begin{array}{ll}
+0.25,&amp;l_{\text{d}}=1\\
+0.5,&amp;l_{\text{d}}=2\\
+2^{-l_{\text{d}}},&amp;l_{\text{d}}\ge3\\
+\end{array}
+\right.
+\]</span></p>
+<p><span class="math display">\[
+p_{\text{a},1}[l_{\text{a}}]=
+\left\{
+\begin{array}{ll}
+0.5,&amp;l_{\text{a}}=l_{\text{d}}\\
+0.15,&amp;l_{\text{a}}=l_{\text{d}}-1\\
+0.15,&amp;l_{\text{a}}=l_{\text{d}}+1\\
+&amp;\text{other possible lengths}\\
+\end{array}
+\right.
+\]</span></p>
+<ul>
+<li>接收率：<span class="math inline">\(a(\bar{y}|\bar{x})=\dfrac{f(\bar{y})T(\bar{x}|\bar{y})}{f(\bar{x})T(\bar{y}|\bar{x})}=\dfrac{R(\bar{y}|\bar{x})}{R(\bar{x}|\bar{y})}\)</span>
+<ul>
+<li><span class="math inline">\(R(\bar{y}|\bar{x})=\dfrac{f(\bar{x})}{T(\bar{y}|\bar{x})}\)</span></li>
+<li>需要考虑多种可能的生成方式，<strong>一条路径可能有多种生成方式</strong></li>
+</ul></li>
+</ul>
+<h4 id="例子-1">例子 1</h4>
+<ul>
+<li><span class="math inline">\(\mathbf{x}_0\mathbf{x}_1\mathbf{x}_2\mathbf{x}_3\)</span>
+变成 <span class="math inline">\(\mathbf{x}_0\mathbf{x}_1\mathbf{z}_0\mathbf{x}_2\mathbf{x}_3\)</span>，对应选择为
+<span class="math inline">\((s,t,s&#39;,t&#39;)=(1,2,1,0)\)</span></li>
+<li>忽略 <span class="math inline">\(f\)</span> 分子分母相同项</li>
+</ul>
+<p><span class="math display">\[
+f(\bar{y})=f_{\text{s}}(\mathbf{x}_0,\mathbf{x}_1,\mathbf{z}_0)G(\mathbf{x}_1,\mathbf{z}_0)f_{\text{s}}(\mathbf{x}_1,\mathbf{z}_0,\mathbf{x}_2)G(\mathbf{z}_0,\mathbf{x}_2)f_{\text{s}}(\mathbf{z}_0,\mathbf{x}_2,\mathbf{x}_3)
+\]</span></p>
+<p><span class="math display">\[
+T(\bar{y}|\bar{x})=p_{\text{d}}[1,2]\Bigg[ p_{\text{a}}[1,0]
+p_{\text{s}}(\mathbf{x}_0,\mathbf{x}_1,\mathbf{z}_0)
+G(\mathbf{x}_1,\mathbf{z}_0) + p_{\text{a}}[0,1]
+p_{\text{s}}(\mathbf{x}_3,\mathbf{x}_2,\mathbf{z}_0)
+G(\mathbf{x}_2,\mathbf{z}_0)\Bigg]
+\]</span></p>
+<ul>
+<li>另外 <span class="math inline">\(R(\bar{x}|\bar{y})\)</span> 如下
+<ul>
+<li>这里的 <span class="math inline">\(p\)</span> 是基于路径 <span class="math inline">\(\bar{y}\)</span> 计算的</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\left\{f_{\text{s}}(\mathbf{x}_0,\mathbf{x}_1,\mathbf{x}_2)G(\mathbf{x}_1,\mathbf{x}_2)f_{\text{s}}(\mathbf{x}_1,\mathbf{x}_2,\mathbf{x}_3)\right\}\Bigg/\left\{p_{\text{d}}[1,3]p_{\text{a}}[0,0]\right\}
+\]</span></p>
+<ul>
+<li>预计算</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+C(\mathbf{x}_0,\mathbf{x}_1,\mathbf{x}_2,\mathbf{x}_3) &amp;=
+f_{\text{s}}(\mathbf{x}_0,\mathbf{x}_1,\mathbf{x}_2)G(\mathbf{x}_1,\mathbf{x}_2)f_{\text{s}}(\mathbf{x}_1,\mathbf{x}_2,\mathbf{x}_3)\\
+S(\mathbf{x}_0,\mathbf{x}_1,\mathbf{x}_2) &amp;=
+f_{\text{s}}(\mathbf{x}_0,\mathbf{x}_1,\mathbf{x}_2)/p_{\text{s}}(\mathbf{x}_0,\mathbf{x}_1,\mathbf{x}_2)
+\end{aligned}\tag{14}
+\]</span></p>
+<ul>
+<li>这里需要考虑 <span class="math inline">\(\mathbf{x}_0\mathbf{x}_1\mathbf{x}_2\mathbf{x}_3\to\mathbf{x}_0\mathbf{x}_3\to\mathbf{x}_0\mathbf{x}_1\mathbf{z}_0\mathbf{x}_2\mathbf{x}_3\)</span>
+这样的情况吗？
+<ul>
+<li>【<span style="color:red;font-weight:bold">论文是不考虑的，算的话太复杂了，不太懂</span>】</li>
+</ul></li>
+</ul>
+<h3 id="perturbations">Perturbations</h3>
+<ul>
+<li>处理这样的情况：局部贡献值很大
+<ul>
+<li>焦散，穿过小孔，concave corners where two surfaces meet</li>
+</ul></li>
+</ul>
+<p><img src="/2021/07/08/CG/Papers/1997/MLT/02/fig3-2-perturbations.png"></p>
+<h4 id="lens-perturbations">Lens perturbations</h4>
+<ul>
+<li>删除 <span class="math inline">\((L|D)DS^{\ast}E\)</span>
+形式的路径</li>
+<li>lens subpath做扰动</li>
+<li>随机距离 <span class="math inline">\(R\)</span>，随机角度 <span class="math inline">\(\phi\)</span>（均匀）
+<ul>
+<li><span class="math inline">\(\xi\sim \mathcal{U}[0,1]\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+R=r_2\exp(-\ln(r_2/r_1)\xi),r_1&lt;r_2
+\]</span></p>
+<ul>
+<li>经过相同的 specular 次数（保留反射/折射模式），然后连原始路径</li>
+</ul>
+<h4 id="caustic-perturbations">Caustic perturbations</h4>
+<ul>
+<li><span class="math inline">\(LS^{+}DE\)</span> 路径
+<ul>
+<li>删除 <span class="math inline">\((D|L)S^{\ast}DE\)</span>
+形式路径</li>
+</ul></li>
+<li>扰动 diffuse 表面
+<ul>
+<li><span class="math inline">\(\theta\)</span> 指数分布，<span class="math inline">\(\phi\)</span> 均匀分布</li>
+</ul></li>
+</ul>
+<h4 id="multi-chain-perturbations">Multi-chain perturbations</h4>
+<ul>
+<li><span class="math inline">\((D|L)DS^{\ast}DS^{\ast}DE\)</span>
+<ul>
+<li>水中焦散，<span style="color:red;font-weight:bold">是这个光路吗？</span></li>
+</ul></li>
+<li>在每一个 non-specular 的点，做出射方向的扰动</li>
+</ul>
+<p><img src="/2021/07/08/CG/Papers/1997/MLT/02/fig4-multi-chain-perturbation.png"></p>
+<h4 id="参数设置">参数设置</h4>
+<ul>
+<li><span class="math inline">\(r_1=0.1 \text{ pixels}\)</span>。<span class="math inline">\(r_2\)</span> 使得扰动区域占图片的 5%</li>
+<li><span class="math inline">\(\theta_1=0.0001\text{
+radian}\)</span>，<span class="math inline">\(\theta_2=0.1\text{
+radian}\)</span></li>
+</ul>
+<h3 id="lens-subpath-mutations">Lens subpath mutations</h3>
+<ul>
+<li>lens subpath 光路类型 <span class="math inline">\((L|D)S^{\ast}E\)</span></li>
+<li>初始化构建 <span class="math inline">\(n&#39;\)</span>
+条独立的种子路径
+<ul>
+<li>which are mutated in a rotating sequence</li>
+</ul></li>
+<li>任意时刻我们保存 current lens subpath <span class="math inline">\(\bar{x}_{\text{e}}\)</span></li>
+<li>eye subpath mutation 包括删除 lens subpath 然后替换成 <span class="math inline">\(\bar{x}_{\text{e}}\)</span></li>
+<li><span class="math inline">\(\bar{x}_{\text{e}}\)</span> 被重用 <span class="math inline">\(n_{\text{e}}\)</span> 次之后，生成新的（<span class="math inline">\(n&#39;\gg
+n_{\text{e}}\)</span>），避免在同样路径上多次重复使用相同的 lens
+subpath</li>
+<li>生成 <span class="math inline">\(\bar{x}_{\text{e}}\)</span>：图像平面选择一个点，发射光线，弹弹弹，知道遇到
+non-specular 顶点
+<ul>
+<li>通过记录像素已经生成了多少条 subpath，使得新生成的 subpath
+在全局比较平均
+<ul>
+<li>We use a rover to make the search for a non-full pixel
+efficient【优化查找还有空余配额的像素】</li>
+</ul></li>
+<li>像素内部样本分布
+<ul>
+<li>Poisson minimum-disc pattern</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="选择突变类别">选择突变类别</h3>
+<ul>
+<li>平衡选择 3 种策略</li>
+<li>因为不同策略对应不同光路，我们很难提前知道哪种策略好</li>
+</ul>
+<h1 id="refinements">Refinements</h1>
+<ul>
+<li>提高效率</li>
+<li>Direct lighting：直接做就很高效
+<ul>
+<li>直接光不用 MLT</li>
+</ul></li>
+<li>Using the expected sample value
+<ul>
+<li>原来是 <span class="math inline">\(a(\bar{y}|\bar{x})\)</span>
+概率累计 <span class="math inline">\(\bar{x}\)</span>，<span class="math inline">\(1-a(\bar{y}|\bar{x})\)</span> 概率累计 <span class="math inline">\(\bar{y}\)</span></li>
+<li>改成直接都累计，累积量：<span class="math inline">\(a(\bar{y}|\bar{x})\bar{x}+(1-a(\bar{y}|\bar{x}))\bar{y}\)</span></li>
+<li><a href="/2025/03/21/CG/Papers/2002/PSSMLT/#impl-understanding">理解推导</a></li>
+</ul></li>
+<li>突变概率的重要性采样
+<ul>
+<li>给定删除的 subpath <span class="math inline">\(\mathrm{x}_s\cdots\mathrm{x}_t\)</span></li>
+<li>可以计算接收率的一些因子
+<ul>
+<li><span class="math inline">\(a(\bar{y}|\bar{x})\propto
+1/R(\bar{x}|\bar{y})\)</span>，<span class="math inline">\(R\)</span>
+的分子可以计算，将其作为 <span class="math inline">\(p_{\text{d},2}\)</span></li>
+</ul></li>
+<li><span class="math inline">\(p_{\text{d},2}[1,2]=1/C(\mathbf{x}_0,\mathbf{x}_1,\mathbf{x}_2,\mathbf{x}_3)\)</span></li>
+<li>根据这个权重，选择变异策略</li>
+</ul></li>
+</ul>
+<h1 id="results">Results</h1>
+<ul>
+<li>MLT、PT、BDPT</li>
+<li>MLT 效果显著好，焦散处理好</li>
+<li>一般场景下：MLT 亮处好，BDPT 暗处好</li>
+<li>同时间对比，计算 <span class="math inline">\(e_j=(\tilde{m}_j-m_j)/m_j\)</span>，然后计算他们的范数
+<ul>
+<li>表格里面是除以 MLT 的结果</li>
+</ul></li>
+</ul>
+<p><img src="/2021/07/08/CG/Papers/1997/MLT/02/tab-result.png"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/MLT/" rel="tag"># MLT</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/08/CG/Papers/1997/MLT/01/" rel="prev" title="(论文)[1997-SIG] Metropolis Light Transport(1)">
+                  <i class="fa fa-chevron-left"></i> (论文)[1997-SIG] Metropolis Light Transport(1)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/17/DSA/SGJ/00/" rel="next" title="数据结构与算法.宋国杰.00.说明">
+                  数据结构与算法.宋国杰.00.说明 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

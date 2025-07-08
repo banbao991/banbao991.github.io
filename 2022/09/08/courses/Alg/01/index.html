@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Stable Matching，稳定匹配算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="算法设计与分析.01.稳定匹配算法">
+<meta property="og:url" content="http://example.com/2022/09/08/courses/Alg/01/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="Stable Matching，稳定匹配算法">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/09/08/courses/Alg/01/matching.png">
+<meta property="og:image" content="http://example.com/2022/09/08/courses/Alg/01/unstable-pair.png">
+<meta property="og:image" content="http://example.com/2022/09/08/courses/Alg/01/stable-roommate-problem-no-answer.png">
+<meta property="og:image" content="http://example.com/2022/09/08/courses/Alg/01/gale-shapley.png">
+<meta property="og:image" content="http://example.com/2022/09/08/courses/Alg/01/prove-all-hospitals-get-matched.png">
+<meta property="og:image" content="http://example.com/2022/09/08/courses/Alg/01/GS-hospital-optimal.png">
+<meta property="og:image" content="http://example.com/2022/09/08/courses/Alg/01/student-pessimality.png">
+<meta property="og:image" content="http://example.com/2022/09/08/courses/Alg/01/pref2rank-for-student.png">
+<meta property="article:published_time" content="2022-09-08T08:44:00.000Z">
+<meta property="article:modified_time" content="2025-06-18T05:43:57.021Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="Algrithom">
+<meta property="article:tag" content="WXL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/09/08/courses/Alg/01/matching.png">
+
+
+<link rel="canonical" href="http://example.com/2022/09/08/courses/Alg/01/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2022/09/08/courses/Alg/01/","path":"2022/09/08/courses/Alg/01/","title":"算法设计与分析.01.稳定匹配算法"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>算法设计与分析.01.稳定匹配算法 | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#stable-matching"><span class="nav-text">Stable Matching</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-text">概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#matching"><span class="nav-text">Matching</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#perfect-matching"><span class="nav-text">Perfect matching</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unstable-pair"><span class="nav-text">Unstable pair</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stable-assignment"><span class="nav-text">Stable assignment</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stable-matching-1"><span class="nav-text">Stable matching</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stable-matching-problem"><span class="nav-text">Stable matching problem</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#stable-roommate-problem"><span class="nav-text">Stable roommate problem</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#galeshapley-algorithm"><span class="nav-text">Gale–Shapley algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E8%BE%93%E5%85%A5"><span class="nav-text">算法输入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B"><span class="nav-text">算法流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E7%A1%AE%E6%80%A7%E4%BC%9A%E7%BB%88%E6%AD%A2"><span class="nav-text">正确性：会终止</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E7%A1%AE%E6%80%A7perfect-matching"><span class="nav-text">正确性：perfect matching</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E7%A1%AE%E6%80%A7stability"><span class="nav-text">正确性：stability</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-text">结论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hospital-optimality"><span class="nav-text">Hospital optimality</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#valid-partner"><span class="nav-text">valid partner</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%81%E6%98%8E"><span class="nav-text">证明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#student-pessimality"><span class="nav-text">Student pessimality</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A9%E5%B1%95"><span class="nav-text">扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gs-%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="nav-text">GS 算法实现</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/09/08/courses/Alg/01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="算法设计与分析.01.稳定匹配算法 | Banbao">
+      <meta itemprop="description" content="Stable Matching，稳定匹配算法">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          算法设计与分析.01.稳定匹配算法
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-09-08 16:44:00" itemprop="dateCreated datePublished" datetime="2022-09-08T16:44:00+08:00">2022-09-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-06-18 13:43:57" itemprop="dateModified" datetime="2025-06-18T13:43:57+08:00">2025-06-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Algrithom-wxl/" itemprop="url" rel="index"><span itemprop="name">Algrithom.wxl</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">Stable Matching，稳定匹配算法</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="stable-matching">Stable Matching</h1>
+<h2 id="问题描述">问题描述</h2>
+<ul>
+<li>给定一组医院 <em>hospitals</em> 和学生
+<em>students</em>，每个医院对学生都有一个偏好列表，每个学生对医院也都有一个偏好列表，求一个稳定匹配
+<em>stable matching</em></li>
+</ul>
+<h2 id="概念">概念</h2>
+<h3 id="matching">Matching</h3>
+<ul>
+<li>一个 <em>h</em> 最多只能和一个 <em>s</em> 匹配，一个 <em>s</em>
+最多只能和一个 <em>h</em> 匹配</li>
+</ul>
+<p><img src="/2022/09/08/courses/Alg/01/matching.png"></p>
+<h3 id="perfect-matching">Perfect matching</h3>
+<ul>
+<li><span class="math inline">\(\vert{M}\vert=\vert{H}\vert=\vert{S}\vert=n\)</span></li>
+</ul>
+<h3 id="unstable-pair">Unstable pair</h3>
+<ul>
+<li>当 <em>h - s</em> 满足如下条件的时候，被称为 <em>unstable pair</em>
+<ul>
+<li><em>h</em> 相较于现在的匹配学生，更喜欢 <em>s</em></li>
+<li><em>s</em> 相较于现在的匹配医院，更喜欢 <em>h</em></li>
+</ul></li>
+<li>例子：<em>A - Y</em></li>
+</ul>
+<p><img src="/2022/09/08/courses/Alg/01/unstable-pair.png"></p>
+<h3 id="stable-assignment">Stable assignment</h3>
+<ul>
+<li>不存在 <em>unstable pair</em></li>
+</ul>
+<h3 id="stable-matching-1">Stable matching</h3>
+<ul>
+<li><em>perfect matching</em> with <em>no unstable pairs</em></li>
+</ul>
+<h3 id="stable-matching-problem">Stable matching problem</h3>
+<ul>
+<li>给定一组医院和学生（数目都为
+<em>n</em>），每个医院对所有学生都有一个偏好列表，每个学生对所有医院也都有一个偏好列表，求一个稳定匹配</li>
+</ul>
+<h2 id="stable-roommate-problem">Stable roommate problem</h2>
+<ul>
+<li><em>2n</em> 个人，每个人对剩下的 <em>2n-1</em> 个人进行偏好排序</li>
+<li>根据这个偏好列表，找出一个稳定匹配</li>
+<li><span style="color:red"><strong>不一定存在</strong></span></li>
+</ul>
+<p><img src="/2022/09/08/courses/Alg/01/stable-roommate-problem-no-answer.png"></p>
+<h2 id="galeshapley-algorithm">Gale–Shapley algorithm</h2>
+<h3 id="算法输入">算法输入</h3>
+<ul>
+<li><em>n</em> 个医院，<em>n</em> 个学生</li>
+<li>每一个医院对于 <em>n</em> 个学生的一个偏好列表，每一个学生对于
+<em>n</em> 个医院的一个偏好列表</li>
+</ul>
+<h3 id="算法流程">算法流程</h3>
+<p><img src="/2022/09/08/courses/Alg/01/gale-shapley.png"></p>
+<h3 id="正确性会终止">正确性：会终止</h3>
+<ul>
+<li>医院按照偏好列表<strong>降序</strong>选择学生</li>
+<li>学生一旦被选中之后，会一直处于匹配状态
+<ul>
+<li>只会 <em>trades up</em></li>
+</ul></li>
+<li>最外层的 <em>WHILE</em> 循环最多执行 <span class="math inline">\(n^2\)</span> 次</li>
+</ul>
+<h3 id="正确性perfect-matching">正确性：perfect matching</h3>
+<ul>
+<li>算法输出是一个匹配
+<ul>
+<li>每个医院只会选择一个学生，每个学生只会选择一个医院</li>
+</ul></li>
+<li>所有医院都被匹配上了
+<ul>
+<li>反证法：如果没有被匹配上，算法不会结束</li>
+</ul></li>
+</ul>
+<p><img src="/2022/09/08/courses/Alg/01/prove-all-hospitals-get-matched.png"></p>
+<ul>
+<li>所有学生都被匹配上了
+<ul>
+<li>计数：匹配 + 所有医院都被匹配上了</li>
+</ul></li>
+</ul>
+<h3 id="正确性stability">正确性：stability</h3>
+<ul>
+<li>不存在 <em>unstable pair</em>
+<ul>
+<li>假设存在一个不在匹配 <em>M</em> 中的 <em>pair</em>
+<em>h-s</em>，然后证明这不是非稳定对</li>
+</ul></li>
+<li>分类
+<ul>
+<li><em>h</em> 已经选择过 <em>s</em>：根据 <em>trade
+up</em>，<em>h-s</em> 不是非稳定对</li>
+<li><em>h</em> 没有选择过 <em>s</em>：根据优先级，当前匹配 <em>h-s1</em>
+优先级更高，<em>h-s</em> 不是非稳定对</li>
+</ul></li>
+</ul>
+<h3 id="结论">结论</h3>
+<ul>
+<li>[Gale–Shapley 1962]</li>
+<li>The Gale–Shapley algorithm guarantees to find a stable matching for
+<span style="color:red">any</span> problem instance.</li>
+</ul>
+<h2 id="hospital-optimality">Hospital optimality</h2>
+<ul>
+<li>GS 算法是 <span style="color:red"><em>hospital
+optimality</em></span> 的</li>
+<li>对于下面的这个例子，存在两个稳定匹配，GS
+算法会选择对于医院来说的最优解</li>
+</ul>
+<p><img src="/2022/09/08/courses/Alg/01/GS-hospital-optimal.png"></p>
+<ul>
+<li>All executions of Gale–Shapley yield <span style="color:red"><em>hospital-optimality</em></span> assignment</li>
+</ul>
+<h3 id="valid-partner">valid partner</h3>
+<ul>
+<li>如果在某一个稳定匹配中存在匹配对 <em>h-s</em>，那么称 <em>s</em> 是
+<em>h</em> 的 <em>valid partner</em>（可行伙伴）</li>
+</ul>
+<h3 id="证明">证明</h3>
+<ul>
+<li>反证法</li>
+<li>假设存在一个医院匹配上了一个不是最佳可行伙伴的学生（ <em>GS</em>
+算法的过程中被最佳可性伙伴拒绝了）</li>
+<li>因为对于医院来说，是降序选取学生，此时也就是说存在某个医院在
+<em>GS</em> 算法的过程中被他的某个可行伙伴拒绝了</li>
+<li>假设 <em>h</em> 是<span style="color:red">第一个</span>满足上面条件的医院，假设 <em>s</em>
+是第一个拒绝 <em>h</em> 的可行伙伴</li>
+<li>假设稳定匹配 <em>M</em> 中包含 <em>h-s</em>（接下证明 <em>M</em>
+中存在不稳定对）</li>
+<li>当 <em>GS</em> 算法的过程中 <em>s</em> 拒绝 <em>h</em>
+之后，匹配上的医院称为 <em>h'</em>，在 <em>M</em> 中 <em>h'</em>
+的匹配对称为 <em>s'</em>
+<ul>
+<li>于是有：<em>s</em> prefers <em>hʹ</em> to <em>h</em></li>
+</ul></li>
+<li>根据上面的<span style="color:red">第一个</span>的性质，算法执行到
+<em>s</em> 拒绝 <em>h</em> 时，<em>h'</em> 没有被他的可行伙伴拒绝过</li>
+<li>也就是说，<em>h'</em> 先选择了 <em>s</em>，再选择了 <em>s'</em>
+<ul>
+<li>于是有：<em>h'</em> prefers <em>s</em> to <em>s'</em></li>
+</ul></li>
+<li>存在不稳定对 <em>h'-s</em>，与稳定匹配 <em>M</em> 矛盾</li>
+</ul>
+<h3 id="student-pessimality">Student pessimality</h3>
+<ul>
+<li>相应而言，<em>GS</em> 算法是 student pessimality 的</li>
+<li>类似的证明如下</li>
+</ul>
+<p><img src="/2022/09/08/courses/Alg/01/student-pessimality.png"></p>
+<h2 id="扩展">扩展</h2>
+<ul>
+<li>Extension 1：Some agents declare others as unacceptable.</li>
+<li>Extension 2：Some hospitals have more than one position.</li>
+<li>Extension 3：Unequal number of positions and students.</li>
+</ul>
+<h2 id="gs-算法实现">GS 算法实现</h2>
+<ul>
+<li><span class="math inline">\(\Theta(n^2)\)</span></li>
+<li>医院/学生索引：<span class="math inline">\(1\sim n\)</span></li>
+<li>维护结果数组 <span class="math inline">\(\text{hospital}[n],\text{student}[n]\)</span>
+<ul>
+<li>匹配：<em>h - s</em> 则 <span class="math inline">\(\text{hospital}[h]=s,\text{student}[s]=h\)</span></li>
+<li>未匹配：<span class="math inline">\(-1\)</span></li>
+</ul></li>
+<li>对每个医院维护一个 <em>proposal list</em>（链表或者数组）</li>
+<li>对每一个学生维护一个数组 <span class="math inline">\(\text{rank}[n]\)</span>
+<ul>
+<li><span class="math inline">\(\text{rank}[h]=k\)</span> 表示医院 <span class="math inline">\(h\)</span> 是该学生的第 <span class="math inline">\(k\)</span> 个选择（优先级为 <span class="math inline">\(k\)</span> ）</li>
+<li>预处理：<span class="math inline">\(\Omega(n^2)\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2022/09/08/courses/Alg/01/pref2rank-for-student.png"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Algrithom/" rel="tag"># Algrithom</a>
+              <a href="/tags/WXL/" rel="tag"># WXL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/09/08/courses/Alg/00/" rel="prev" title="算法设计与分析.00.说明与课程介绍">
+                  <i class="fa fa-chevron-left"></i> 算法设计与分析.00.说明与课程介绍
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/09/26/courses/Alg/02/" rel="next" title="算法设计与分析.02.算法分析">
+                  算法设计与分析.02.算法分析 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

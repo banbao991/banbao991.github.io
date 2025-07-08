@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="序列匹配问题（同时恢复最优解），最长公共序列，最短路问题（负权边，负权环）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="算法设计与分析.06.动态规划 (2)">
+<meta property="og:url" content="http://example.com/2022/12/17/courses/Alg/06-1/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="序列匹配问题（同时恢复最优解），最长公共序列，最短路问题（负权边，负权环）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/sequence-alignment.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/Edit-distance-and-SAT.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/edit-diatance-graph.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/fij-given-j.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/gij.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/edit-diatance-diveide-and-conquer.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/Hirschberg-s-algorithm-running-time-analysis.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/lcs.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/lcs-dp1.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/Dijkstra-negative-edge.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/Dijkstra-negative-edge-reweighting.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/BF.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/shortest-path.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/BF-implement.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/BF-update-1.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/BF-update-2.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/BF-update-neg-cycle-1.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/BF-update-neg-cycle-2.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/BF-restore.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/single-source-shortest-paths-with-negative-weights.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/BFM-fail-when-edge-was-removed.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/router2.png">
+<meta property="og:image" content="http://example.com/2022/12/17/courses/Alg/06-1/neg-cycle.png">
+<meta property="article:published_time" content="2022-12-17T06:18:09.000Z">
+<meta property="article:modified_time" content="2025-06-18T05:56:50.812Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="Algrithom">
+<meta property="article:tag" content="WXL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/12/17/courses/Alg/06-1/sequence-alignment.png">
+
+
+<link rel="canonical" href="http://example.com/2022/12/17/courses/Alg/06-1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2022/12/17/courses/Alg/06-1/","path":"2022/12/17/courses/Alg/06-1/","title":"算法设计与分析.06.动态规划 (2)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>算法设计与分析.06.动态规划 (2) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92-2"><span class="nav-text">动态规划 (2)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sequence-alignment"><span class="nav-text">sequence alignment</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dp"><span class="nav-text">DP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E7%90%86"><span class="nav-text">定理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%B9%E8%BF%9B"><span class="nav-text">改进</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hirschbergs-algorithm"><span class="nav-text">Hirschberg′s algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#edit-distance-graph"><span class="nav-text">Edit distance graph</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%91%E7%8E%B0"><span class="nav-text">发现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="nav-text">复杂度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%88%86%E6%9E%90"><span class="nav-text">简单分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%A5%E6%A0%BC%E5%88%86%E6%9E%90"><span class="nav-text">严格分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#longest-common-subsequence"><span class="nav-text">longest common subsequence</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#dp1"><span class="nav-text">DP1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dp2"><span class="nav-text">DP2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%90%86%E8%AE%BA%E4%B8%8B%E7%95%8C"><span class="nav-text">理论下界</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bellmanfordmoore-algorithm"><span class="nav-text">Bellman–Ford–Moore algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dijkstra"><span class="nav-text">Dijkstra</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%9F%E7%8E%AF"><span class="nav-text">负环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E7%9F%AD%E8%B7%AF"><span class="nav-text">最短路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8C%96"><span class="nav-text">优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E7%A1%AE%E6%80%A7%E9%95%BF%E5%BA%A6"><span class="nav-text">正确性(长度)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E5%BA%A6-1"><span class="nav-text">复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#q1"><span class="nav-text">Q1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#q2"><span class="nav-text">Q2</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E7%A1%AE%E6%80%A7%E8%B7%AF%E5%BE%84"><span class="nav-text">正确性(路径)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%95%E7%90%86"><span class="nav-text">引理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%81%E6%98%8E"><span class="nav-text">证明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%A6%E8%B4%9F%E6%9D%83%E7%9A%84%E5%8D%95%E6%BA%90%E6%9C%80%E7%9F%AD%E8%B7%AF"><span class="nav-text">带负权的单源最短路</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#distance-vector-protocols"><span class="nav-text">distance-vector protocols</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95"><span class="nav-text">算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98-1"><span class="nav-text">问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%952"><span class="nav-text">算法2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#negative-cycles"><span class="nav-text">negative cycles</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95-1"><span class="nav-text">算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8C%96-1"><span class="nav-text">优化</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/12/17/courses/Alg/06-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="算法设计与分析.06.动态规划 (2) | Banbao">
+      <meta itemprop="description" content="序列匹配问题（同时恢复最优解），最长公共序列，最短路问题（负权边，负权环）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          算法设计与分析.06.动态规划 (2)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-12-17 14:18:09" itemprop="dateCreated datePublished" datetime="2022-12-17T14:18:09+08:00">2022-12-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-06-18 13:56:50" itemprop="dateModified" datetime="2025-06-18T13:56:50+08:00">2025-06-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Algrithom-wxl/" itemprop="url" rel="index"><span itemprop="name">Algrithom.wxl</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">序列匹配问题（同时恢复最优解），最长公共序列，最短路问题（负权边，负权环）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="动态规划-2">动态规划 (2)</h1>
+<ul>
+<li>DP：Dynamic Programming</li>
+</ul>
+<h2 id="sequence-alignment">sequence alignment</h2>
+<ul>
+<li>Edit Distance
+<ul>
+<li>Gap penalty <span class="math inline">\(\delta\)</span>（空配）</li>
+<li>mismatch penalty <span class="math inline">\(\alpha_{pq}\)</span>（误配）</li>
+<li>编辑距离 = 空配 + 误配</li>
+</ul></li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/sequence-alignment.png"></p>
+<ul>
+<li>给定两个字符串 <span class="math inline">\(x_1\cdots x_m\)</span> 和
+<span class="math inline">\(y_1\cdots y_n\)</span> ，求最小编辑距离</li>
+</ul>
+<h3 id="dp">DP</h3>
+<ul>
+<li><span class="math inline">\(OPT(i, j)\)</span> ：子问题，<span class="math inline">\(x_1\cdots x_i\)</span> 和 <span class="math inline">\(y_1\cdots y_j\)</span> 的最小代价</li>
+<li>原始问题：<span class="math inline">\(OPT(m,n)\)</span></li>
+<li>转移方程
+<ul>
+<li>最后面两个字符匹配还是不匹配</li>
+<li><span class="math inline">\(i=0\lor j=0\Rightarrow
+OPT(i,j)=(i+j)\delta\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+OPT(i,j)=\min\{&amp;\\
+&amp;OPT(i-1,j-1)+\alpha_{x_iy_j},\\
+&amp;OPT(i-1,j)+\delta,\\
+&amp;OPT(i,j-1)+\delta,\\
+\}&amp;\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>恢复：traceback，判断进入的是哪一个分支（和谁相等）</li>
+<li>时间复杂度：<span class="math inline">\(O(nm)\)</span></li>
+<li>空间复杂度：<span class="math inline">\(O(nm)\)</span></li>
+</ul>
+<h3 id="定理">定理</h3>
+<p><img src="/2022/12/17/courses/Alg/06-1/Edit-distance-and-SAT.png"></p>
+<h3 id="改进">改进</h3>
+<ul>
+<li>空间复杂度：<span class="math inline">\(O(m+n)\)</span></li>
+<li>状态转移只依赖于前一行的值，只需要记录前一行和当前行的值
+<ul>
+<li><span class="math inline">\(O(m+n)\)</span></li>
+</ul></li>
+<li>此时无法恢复最优解</li>
+<li>如何在空间复杂度：<span class="math inline">\(O(m+n)\)</span>
+恢复最优解？
+<ul>
+<li>Hirschberg′s algorithm</li>
+</ul></li>
+</ul>
+<h2 id="hirschbergs-algorithm">Hirschberg′s algorithm</h2>
+<ul>
+<li>能够恢复最优解
+<ul>
+<li>时间复杂度：<span class="math inline">\(O(nm)\)</span></li>
+<li>空间复杂度：<span class="math inline">\(O(n+m)\)</span></li>
+</ul></li>
+<li><strong>分治+动归</strong></li>
+</ul>
+<h3 id="edit-distance-graph">Edit distance graph</h3>
+<ul>
+<li><span class="math inline">\(f(i,j)\)</span>：<span class="math inline">\((0,0)\)</span> 到 <span class="math inline">\((i,j)\)</span> 的最短路</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/edit-diatance-graph.png"></p>
+<ul>
+<li><span class="math inline">\(f(i,j)=OPT(i,j)\)</span>
+<ul>
+<li>归纳法可证</li>
+</ul></li>
+<li>对于给定的一列，可以 <span class="math inline">\(O(mn)\)</span>
+时间复杂度，<span class="math inline">\(O(m+n)\)</span> 空间复杂度计算出
+<span class="math inline">\((0,0)\)</span> 到这一列任意点的最短距离
+<span class="math inline">\(f(i,j)\)</span></li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/fij-given-j.png"></p>
+<ul>
+<li><span class="math inline">\(g(i,j)\)</span>：<span class="math inline">\((i,j)\)</span> 到 <span class="math inline">\((m,n)\)</span> 的最短路
+<ul>
+<li>将边反向，此时 <span class="math inline">\((m,n)\)</span>
+等价于上面的 <span class="math inline">\((0,0)\)</span></li>
+<li>计算 <span class="math inline">\(g(i,j)\)</span> 此时等价于上面的
+<span class="math inline">\(f(i,j)\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/gij.png"></p>
+<h3 id="发现">发现</h3>
+<ul>
+<li><span class="math inline">\((0,0)\)</span> 到 <span class="math inline">\((m,n)\)</span> 的最短路就是 <span class="math inline">\(f(i,j)+g(i,j)\)</span></li>
+<li>如果 <span class="math inline">\(q\)</span> 是使得 <span class="math inline">\(f(q,\dfrac{n}{2})+g(q,\dfrac{n}{2})\)</span>
+最小的值，则存在一条<span class="math inline">\((0,0)\)</span> 到 <span class="math inline">\((m,n)\)</span> 的最短路经过 <span class="math inline">\((q,\dfrac{n}{2})\)</span></li>
+<li>分治思想</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/edit-diatance-diveide-and-conquer.png"></p>
+<h3 id="复杂度">复杂度</h3>
+<ul>
+<li>空间复杂度：<span class="math inline">\(O(m+n)\)</span>
+<ul>
+<li>计算 <span class="math inline">\(f,g\)</span>：<span class="math inline">\(O(m)\)</span></li>
+<li>递归时候记录结果，递归次数小于 <span class="math inline">\(n\)</span>：<span class="math inline">\(O(n)\)</span></li>
+</ul></li>
+<li>时间复杂度
+<ul>
+<li><span class="math inline">\(T(m,n)=O(mn\log n)\)</span></li>
+<li><span class="math inline">\(T\)</span> 对于 <span class="math inline">\(m,n\)</span> 而言都是非降的</li>
+</ul></li>
+</ul>
+<h4 id="简单分析">简单分析</h4>
+<p><span class="math display">\[
+T(m,n)\le 2T(m,\dfrac{n}{2})+O(mn)
+\]</span></p>
+<ul>
+<li>根据递推</li>
+</ul>
+<p><span class="math display">\[
+T(m,n)=O(mn\log n)
+\]</span></p>
+<ul>
+<li>分析不紧致，划分的两个子问题实际上更小
+<ul>
+<li><span class="math inline">\(T(q,\dfrac{n}{2}),T(m-q,\dfrac{n}{2})\)</span></li>
+</ul></li>
+</ul>
+<h4 id="严格分析">严格分析</h4>
+<ul>
+<li><span class="math inline">\(T(m,n)=O(mn)\)</span></li>
+<li>对 <span class="math inline">\(m+n\)</span> 进行归纳</li>
+<li>选择一个常数 <span class="math inline">\(c\)</span>，使其满足</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/Hirschberg-s-algorithm-running-time-analysis.png"></p>
+<ul>
+<li>对 <span class="math inline">\(m+n\)</span> 进行归纳 <span class="math inline">\(T(m,n)\le 2cmn\)</span>
+<ul>
+<li>代入即可</li>
+</ul></li>
+</ul>
+<h3 id="longest-common-subsequence">longest common subsequence</h3>
+<ul>
+<li>最长公共序列</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/lcs.png"></p>
+<h4 id="dp1">DP1</h4>
+<ul>
+<li>看最后一个字符是否匹配上</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/lcs-dp1.png"></p>
+<h4 id="dp2">DP2</h4>
+<ul>
+<li>规约为对齐问题
+<ul>
+<li>Gap penalty <span class="math inline">\(\delta=1\)</span>（空配）</li>
+<li>mismatch penalty <span class="math inline">\(\alpha_{pq}=\infty\)</span>（误配）</li>
+</ul></li>
+<li>结果：<span class="math inline">\(\dfrac{m+n-\text{edit
+distance}}{2}\)</span></li>
+</ul>
+<h4 id="理论下界">理论下界</h4>
+<ul>
+<li>No <span class="math inline">\(O(n^{2−\epsilon})\)</span> algorithm
+unless SETH is false
+<ul>
+<li>Tight Hardness Results for LCS and other Sequence Similarity
+Measures</li>
+</ul></li>
+</ul>
+<h2 id="bellmanfordmoore-algorithm">Bellman–Ford–Moore algorithm</h2>
+<ul>
+<li>最短路问题
+<ul>
+<li>有向图 <span class="math inline">\(G(V,E)\)</span>，找到从点 <span class="math inline">\(s\)</span> 到 <span class="math inline">\(t\)</span> 的最短路</li>
+</ul></li>
+</ul>
+<h3 id="dijkstra">Dijkstra</h3>
+<ul>
+<li>单源最短路
+<ul>
+<li>不能解决负权边的问题</li>
+</ul></li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/Dijkstra-negative-edge.png"></p>
+<ul>
+<li>调整边权让结果可能出错
+<ul>
+<li>每条边都加上相同的权重，消除负边</li>
+</ul></li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/Dijkstra-negative-edge-reweighting.png"></p>
+<h3 id="负环">负环</h3>
+<ul>
+<li>负环：环的权重和为负数</li>
+<li>有负环，则不存在最短路
+<ul>
+<li>疯狂绕圈圈</li>
+</ul></li>
+<li>如果不存在负环，那么最短路一定是简单路径（无环）
+<ul>
+<li>反证法</li>
+</ul></li>
+<li>Single-destination shortest-paths problem
+<ul>
+<li>没有负环的有向图，给定点 <span class="math inline">\(t\)</span>，计算所有其他点到 <span class="math inline">\(t\)</span> 的最短路</li>
+</ul></li>
+<li>Negative-cycle problem
+<ul>
+<li>判定是否存在负环</li>
+</ul></li>
+</ul>
+<h3 id="最短路">最短路</h3>
+<ul>
+<li><span class="math inline">\(OPT(i, v)\)</span>：<span class="math inline">\(v\to t\)</span> 的最多使用 <span class="math inline">\(i\)</span> 条边的最短路</li>
+<li>原始问题：<span class="math inline">\(OPT(n-1,v)\)</span>
+<ul>
+<li>简单路径最多 <span class="math inline">\(n-1\)</span> 条边</li>
+</ul></li>
+<li>转移方程</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/BF.png"></p>
+<ul>
+<li>算法
+<ul>
+<li>使用当前点的后继节点开更新当前点</li>
+<li>记录出边</li>
+</ul></li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/shortest-path.png"></p>
+<ul>
+<li>时间复杂度：<span class="math inline">\(O(nm)\)</span></li>
+<li>空间复杂度：<span class="math inline">\(O(n^2)\)</span>
+<ul>
+<li>记录矩阵 <span class="math inline">\(M\)</span></li>
+</ul></li>
+<li>恢复路径
+<ul>
+<li>每次更新 <span class="math inline">\(M\)</span> 的时候记录前驱
+<ul>
+<li><span class="math inline">\(O(n)\)</span> 空间复杂度</li>
+</ul></li>
+<li>traceback，看看进入了哪一个分支
+<ul>
+<li><span class="math inline">\(O(m)\)</span> 时间复杂度</li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="优化">优化</h3>
+<ul>
+<li><span class="math inline">\(d[v]\)</span>：目前为止找到的 <span class="math inline">\(v\to t\)</span> 的最短路的长度</li>
+<li><span class="math inline">\(\text{successor}[v]\)</span>：目前为止找到的 <span class="math inline">\(v\to t\)</span> 的最短路的下一个顶点</li>
+<li>算法
+<ul>
+<li>使用当前点的前驱节点开更新前驱节点</li>
+<li>记录入边</li>
+<li>（这样能够实现第1个优化）</li>
+</ul></li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/BF-implement.png"></p>
+<ul>
+<li>优化细节
+<ul>
+<li>optm1：如果上一轮迭代中，所有的 <span class="math inline">\(d[\cdot]\)</span> 都没有更新，则算法结束</li>
+<li>optm2：如果上一轮迭代中 <span class="math inline">\(d[w]\)</span>
+没有更新，则不需要用它去更新其他点</li>
+</ul></li>
+</ul>
+<h3 id="正确性长度">正确性(长度)</h3>
+<ul>
+<li><span class="math inline">\(d[v]\)</span> 一直都代表这某条 <span class="math inline">\(v\to t\)</span> 的路径的长度</li>
+<li>迭代过程中，<span class="math inline">\(d[v]\)</span> 是非降的</li>
+<li>第 <span class="math inline">\(i\)</span> 轮迭代结束后，<span class="math inline">\(d[v]\)</span> 比使用 <span class="math inline">\(j(j\le i)\)</span> 条边的路径要短
+<ul>
+<li>对 <span class="math inline">\(i\)</span> 做归纳法</li>
+</ul></li>
+</ul>
+<h3 id="复杂度-1">复杂度</h3>
+<ul>
+<li><strong>前提是不存在负环</strong></li>
+<li>时间复杂度：<span class="math inline">\(O(nm)\)</span></li>
+<li>空间复杂度：<span class="math inline">\(O(n)\)</span></li>
+</ul>
+<h3 id="问题">问题</h3>
+<h4 id="q1">Q1</h4>
+<ul>
+<li>在中间的某一轮迭代结束后，<span class="math inline">\(d[w]+e(v,w)\)</span> 可能比 <span class="math inline">\(d[v]\)</span> 小
+<ul>
+<li><span class="math inline">\(w=\text{successor}[v]\)</span></li>
+</ul></li>
+<li>在 <span class="math inline">\(w\)</span> 更新 <span class="math inline">\(v\)</span> 之后，可能有其他点更新了 <span class="math inline">\(w\)</span>，此时 <span class="math inline">\(v\)</span> 并没有跟着更新</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/BF-update-1.png"></p>
+<p><img src="/2022/12/17/courses/Alg/06-1/BF-update-2.png"></p>
+<h4 id="q2">Q2</h4>
+<ul>
+<li>如果存在负环，则后继图可能存在环（互相更新）</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/BF-update-neg-cycle-1.png"></p>
+<p><img src="/2022/12/17/courses/Alg/06-1/BF-update-neg-cycle-2.png"></p>
+<h3 id="正确性路径">正确性(路径)</h3>
+<ul>
+<li>如果没有负权环，则能够 BF
+算法能够找到结果，而且<strong>能恢复原始路径</strong></li>
+</ul>
+<h4 id="引理">引理</h4>
+<ul>
+<li>后继图中如果有环，则一定是负权环</li>
+<li>对环上所有边，求和如下不等式
+<ul>
+<li>当用 <span class="math inline">\(w\)</span> 更新 <span class="math inline">\(v\)</span> 时，左右相等</li>
+<li>但是之后 <span class="math inline">\(w\)</span>
+可能被其他点更新，此时右边更小</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+w=\text{successor}[v]\Rightarrow d[v]\ge d[w]+l_{vw}
+\]</span></p>
+<h4 id="证明">证明</h4>
+<ul>
+<li>根据上面引理，后继途中没有环，此时必然存在路径 <span class="math inline">\(v\to t\)</span></li>
+<li>因为算法结束，此时 <span class="math inline">\(d\)</span>
+都没有再更新过了，因此不等式全都取到等号</li>
+</ul>
+<p><span class="math display">\[
+w=\text{successor}[v]\Rightarrow d[v]= d[w]+l_{vw}
+\]</span></p>
+<ul>
+<li>此时，对路径上的所边求和，可以得到</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/BF-restore.png"></p>
+<ul>
+<li>左边是最短路径长度，右边是恢复出来的路径</li>
+<li>右边和左边相等，因此是最短路</li>
+</ul>
+<h3 id="带负权的单源最短路">带负权的单源最短路</h3>
+<p><img src="/2022/12/17/courses/Alg/06-1/single-source-shortest-paths-with-negative-weights.png"></p>
+<h2 id="distance-vector-protocols">distance-vector protocols</h2>
+<ul>
+<li>通信网络
+<ul>
+<li>节点：路由器</li>
+<li>边：线缆</li>
+<li>边的长度：延时</li>
+</ul></li>
+<li>BFM 算法的应用</li>
+</ul>
+<h3 id="算法">算法</h3>
+<ul>
+<li>Dijkstra’s algorithm：需要网络的全局信息</li>
+<li>Bellman–Ford–Moore：只需要局部信息
+<ul>
+<li>哪条边先更新无所谓，异步更新也能收敛</li>
+</ul></li>
+<li>算法
+<ul>
+<li>每个路由器保持它到其他节点的最短路，和每一个最短路的下一跳节点</li>
+<li>每个路由器执行多次计算，每次计算得到到一个终点的最短路</li>
+</ul></li>
+</ul>
+<h4 id="问题-1">问题</h4>
+<ul>
+<li>边被断开，此时陷入无限循环</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/BFM-fail-when-edge-was-removed.png"></p>
+<h3 id="算法2">算法2</h3>
+<ul>
+<li>Path-vector routing protocols</li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/router2.png"></p>
+<ul>
+<li>基于 Dijkstra 算法，保存整个网络拓扑结构</li>
+</ul>
+<h2 id="negative-cycles">negative cycles</h2>
+<ul>
+<li>负权环</li>
+<li>负权环：货币交换，换了一圈，赚了</li>
+<li>BFM 算法能够检测负权环</li>
+<li>如果满足如下式子，则没有负权环</li>
+</ul>
+<p><span class="math display">\[
+OPT(n,v)=OPT(n-1,v),\forall v
+\]</span></p>
+<ul>
+<li>如果对于某些节点 v，<span class="math inline">\(OPT(n,v)&lt;OPT(n-1,v)\)</span>，则路径上存在负权环
+<ul>
+<li><span class="math inline">\(n\)</span> 条边 <span class="math inline">\(\Rightarrow\)</span> 有环 <span class="math inline">\(\Rightarrow\)</span>
+删除环之后的路径权值变大（因为现在和更新了） <span class="math inline">\(\Rightarrow\)</span> 环是负权环</li>
+</ul></li>
+</ul>
+<h3 id="算法-1">算法</h3>
+<ul>
+<li>时间复杂度：<span class="math inline">\(O(nm)\)</span></li>
+<li>空间复杂度：<span class="math inline">\(O(n^2)\)</span></li>
+<li>算法：加一个顶点和 0 权重的边，跑 BFM 算法 <span class="math inline">\(n\)</span> 次，看是否收敛
+<ul>
+<li>检查是否满足 <span class="math inline">\(OPT(n,v) =
+OPT(n–1,v)\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2022/12/17/courses/Alg/06-1/neg-cycle.png"></p>
+<h3 id="优化-1">优化</h3>
+<ul>
+<li>时间复杂度：<span class="math inline">\(O(nm)\)</span></li>
+<li>空间复杂度：<span class="math inline">\(O(n)\)</span></li>
+<li>BFM 的优化，看第 <span class="math inline">\(n\)</span>
+次迭代有无更新</li>
+<li>负环，则沿着后继图一直找，找到环就是负环</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Algrithom/" rel="tag"># Algrithom</a>
+              <a href="/tags/WXL/" rel="tag"># WXL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/12/16/courses/Alg/06/" rel="prev" title="算法设计与分析.06.动态规划 (1)">
+                  <i class="fa fa-chevron-left"></i> 算法设计与分析.06.动态规划 (1)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/12/18/courses/Alg/07/" rel="next" title="算法设计与分析.07.网络流 (1)">
+                  算法设计与分析.07.网络流 (1) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

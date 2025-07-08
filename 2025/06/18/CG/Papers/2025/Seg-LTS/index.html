@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="论文你提出了一套新的渲染框架，基于线段（而不是传统的基于顶点）；基于这套框架，作者给出了一些采样方案和估计方案；大部分方法这样表示没啥优势，优势在于他可以实现双向的 path filtering；作者给出了实验，表明这样实现的双向 path filtering 鲁棒高效；细节不是特别明白">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2025-SIG] Segment-based Light Transport Simulation">
+<meta property="og:url" content="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="论文你提出了一套新的渲染框架，基于线段（而不是传统的基于顶点）；基于这套框架，作者给出了一些采样方案和估计方案；大部分方法这样表示没啥优势，优势在于他可以实现双向的 path filtering；作者给出了实验，表明这样实现的双向 path filtering 鲁棒高效；细节不是特别明白">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/fig-mcpt.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/fig-pm.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/fig-path-filtering.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/fig-seg.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/fig2-samplers.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/fig3-bidirectional-filtering.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/alg1.png">
+<meta property="article:published_time" content="2025-06-18T05:04:14.000Z">
+<meta property="article:modified_time" content="2025-07-08T07:56:24.393Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta property="article:tag" content="sampling">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/fig-mcpt.png">
+
+
+<link rel="canonical" href="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/","path":"2025/06/18/CG/Papers/2025/Seg-LTS/","title":"(论文)[2025-SIG] Segment-based Light Transport Simulation"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2025-SIG] Segment-based Light Transport Simulation | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#segment-based-light-transport-simulation"><span class="nav-text">Segment-based Light
+Transport Simulation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#background"><span class="nav-text">Background</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#disconnected-subpaths"><span class="nav-text">Disconnected Subpaths</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#paths-to-segments"><span class="nav-text">Paths to Segments</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#segment-based-light-transport"><span class="nav-text">Segment-Based Light
+Transport</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#formulation"><span class="nav-text">Formulation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#kernel-%E5%87%BD%E6%95%B0"><span class="nav-text">kernel 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#throughput-function"><span class="nav-text">Throughput function</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#segment-samplers-and-estimators"><span class="nav-text">Segment Samplers and
+Estimators</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#samplers"><span class="nav-text">Samplers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#uniform-segment-sampler"><span class="nav-text">Uniform segment sampler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ray-tracing-segment-sampler"><span class="nav-text">Ray tracing segment sampler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sequential-segment-sampler"><span class="nav-text">Sequential segment sampler</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#estimators"><span class="nav-text">Estimators</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sequential"><span class="nav-text">Sequential</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#multiple-sampling-techniques"><span class="nav-text">Multiple sampling techniques</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#recursive-estimation"><span class="nav-text">Recursive estimation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#marginal-segment-path-sampling"><span class="nav-text">Marginal segment path
+sampling</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#practical-algorithm"><span class="nav-text">Practical Algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#segment-based-path-tracing"><span class="nav-text">Segment-based path tracing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#segment-based-multi-vertex-path-filtering"><span class="nav-text">Segment-based
+multi-vertex path filtering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bidirectional-path-filtering"><span class="nav-text">Bidirectional path filtering</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%8E%E8%AE%A8%E8%AE%BA"><span class="nav-text">实验与讨论</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#bidirectional-filtering"><span class="nav-text">Bidirectional Filtering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E5%AE%9E%E9%AA%8C"><span class="nav-text">其他实验</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%AA%E6%9D%A5%E5%B7%A5%E4%BD%9C"><span class="nav-text">未来工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A1%A5%E5%85%85%E6%9D%90%E6%96%99"><span class="nav-text">补充材料</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#bridge-segment-sampler"><span class="nav-text">Bridge Segment Sampler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mmis"><span class="nav-text">MMIS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82"><span class="nav-text">实现细节</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/06/18/CG/Papers/2025/Seg-LTS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2025-SIG] Segment-based Light Transport Simulation | Banbao">
+      <meta itemprop="description" content="论文你提出了一套新的渲染框架，基于线段（而不是传统的基于顶点）；基于这套框架，作者给出了一些采样方案和估计方案；大部分方法这样表示没啥优势，优势在于他可以实现双向的 path filtering；作者给出了实验，表明这样实现的双向 path filtering 鲁棒高效；细节不是特别明白">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2025-SIG] Segment-based Light Transport Simulation
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-06-18 13:04:14" itemprop="dateCreated datePublished" datetime="2025-06-18T13:04:14+08:00">2025-06-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-07-08 15:56:24" itemprop="dateModified" datetime="2025-07-08T15:56:24+08:00">2025-07-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">论文你提出了一套新的渲染框架，基于线段（而不是传统的基于顶点）；基于这套框架，作者给出了一些采样方案和估计方案；大部分方法这样表示没啥优势，优势在于他可以实现双向的 path filtering；作者给出了实验，表明这样实现的双向 path filtering 鲁棒高效；细节不是特别明白</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="segment-based-light-transport-simulation">Segment-based Light
+Transport Simulation</h1>
+<ul>
+<li><p>Wenyou Wang、Rex West、Toshiya Hachisuka</p>
+<ul>
+<li>1、3：University of Waterloo, Canada</li>
+<li>2：Aoyama Gakuin University, Japan</li>
+</ul></li>
+<li><p><a target="_blank" rel="noopener" href="https://wenyouwang.cn/publication/sblts/">主页</a></p></li>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/wwy1515/Segment-Based-Light-Transport-Framework">代码</a>：好像只有空仓</p></li>
+<li><p>贡献</p>
+<ul>
+<li><p>新渲染框架：以 segment 作为基本元素，而不是 vertex</p></li>
+<li><p>采样框架基于 <a href="/2025/06/18/CG/Papers/2022/MMIS/">MMIS</a></p></li>
+<li><p>验证：实现了 robust bidirectional path filtering method</p></li>
+</ul></li>
+</ul>
+<h1 id="background">Background</h1>
+<ul>
+<li>渲染方程
+<ul>
+<li><span class="math inline">\(\bar{\mathrm{x}} = \{ \mathrm{x}_1,
+\ldots, \mathrm{x}_k \}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2025/Seg-LTS/fig-mcpt.png"> <span class="math display">\[
+I_{\rho} = \int_{\mathcal{P}} f_{\rho}(\mathrm{\bar{x}})
+\,\mathrm{d}\mathrm{\bar{x}} = \sum_{k=1}^{\infty}
+\underbrace{\int_{\mathcal{P}_k} f_{\rho}(\mathrm{\bar{x}})
+\,\mathrm{d}\mathrm{\bar{x}}}_{= I_k} \tag{1}
+\]</span></p>
+<p><span class="math display">\[
+f_{\rho}(\bar{\mathrm{x}}) = W_{\rho}(\mathrm{x}_1, \mathrm{x}_2)
+\prod_{i=1}^{k} G(\mathrm{x}_i, \mathrm{x}_{i+1}) \prod_{i=2}^{k-1}
+f_r(\mathrm{x}_{i-1}, \mathrm{x}_i, \mathrm{x}_{i+1})
+L_e(\mathrm{x}_{k-1}, \mathrm{x}_k) \tag{2}
+\]</span></p>
+<h2 id="disconnected-subpaths">Disconnected Subpaths</h2>
+<ul>
+<li>BDPT</li>
+<li>PM：收集周围光子 <span class="math inline">\(\mathrm{x}_2\)</span>
+收集 <span class="math inline">\(\mathrm{x}_2&#39;\)</span>，构建新光路</li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2025/Seg-LTS/fig-pm.png"></p>
+<ul>
+<li>Path filtering
+<ul>
+<li>UPT 框架中，收集 kernel
+内的前缀路径，连接他们的后缀路径形成新路径</li>
+<li>SMIS 将 path filtering 看成一个采样过程：前缀是 technique，新路径是
+sample</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2025/Seg-LTS/fig-path-filtering.png"></p>
+<h2 id="paths-to-segments">Paths to Segments</h2>
+<ul>
+<li>之前的做法都是让其归约到传统 PT，采样后<strong>移除</strong>多余节点
+<ul>
+<li>VCM：kernel 内部采样【rejection sampling process】</li>
+<li>SMIS：对前缀路径（technique）采样</li>
+</ul></li>
+<li>UPS：连接 disconnected subpaths
+<ul>
+<li>以 segment（节点对）为单位，light transport（根据连接概率）</li>
+<li>后续发展少（segment sampling，segment path construction）</li>
+</ul></li>
+</ul>
+<h1 id="segment-based-light-transport">Segment-Based Light
+Transport</h1>
+<ul>
+<li>基于<strong>线段</strong>【segment】积分的框架【第一个】</li>
+</ul>
+<h2 id="formulation">Formulation</h2>
+<ul>
+<li>积分形式</li>
+</ul>
+<p><span class="math display">\[
+J_{\rho} = \int_{\mathcal{S}} g_{\rho}(\bar{\text{s}}) \,
+\mathrm{d}\bar{\text{s}} = \sum_{k=1}^{\infty}
+\underbrace{\int_{\mathcal{S}_k} g_{\rho}(\bar{\text{s}}) \,
+\mathrm{d}\bar{\text{s}}}_{= J_{\rho,k}}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\rho\)</span>：像素</li>
+<li><span class="math inline">\(\mathcal{S}_k=\mathcal{M}^{2k}\)</span>：长度为
+<span class="math inline">\(k\)</span> 的线段 <span class="math inline">\(\bar{\text{s}} = \{ \text{s}_1 \ldots \text{s}_k
+\}\)</span> 的集合
+<ul>
+<li><span class="math inline">\(\text{s}_i=(\mathrm{x}_i,\mathrm{y}_i)\)</span></li>
+</ul></li>
+<li><span class="math inline">\(g_{\rho}(\bar{\text{s}})\)</span>
+是对像素的贡献</li>
+</ul>
+<p><span class="math display">\[
+g_{\rho}(\bar{\text{s}}) = W_{\rho}(\text{s}_1) \prod_{i=1}^{k}
+G(\text{s}_i) \prod_{i=1}^{k-1} K(\text{s}_i, \text{s}_{i+1})
+f_r(\text{s}_i, \text{s}_{i+1}) L_e(\text{s}_k)
+\]</span></p>
+<ul>
+<li>相机敏感度函数 <span class="math inline">\(W_{\rho}(s) =
+W_{\rho}(x_1, y_1)\)</span></li>
+<li>kernel 函数 <span class="math inline">\(K(\text{s}_i,
+\text{s}_{i+1})\)</span></li>
+<li>几何项 <span class="math inline">\(G(\text{s}_i)\)</span></li>
+</ul>
+<p><span class="math display">\[
+G(\text{s}_i)=\frac{|\mathrm{n}_{\text{x}_i} \cdot \bar{\text{s}}_i| \,
+|\mathrm{n}_{\text{y}_i} \cdot \bar{\text{s}}_i|}{|\text{x}_i -
+\text{y}_i|^2} V(\text{x}_i, \text{y}_i)
+\]</span></p>
+<ul>
+<li>自发光项 <span class="math inline">\(L_e(\text{s}_k) =
+L_e(\text{x}_k, \text{y}_k)\)</span></li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2025/Seg-LTS/fig-seg.png"></p>
+<ul>
+<li><strong>注意</strong>
+<ul>
+<li><span class="math inline">\(W,G,L\)</span>
+只和线段本身相关【不变的】</li>
+<li><span class="math inline">\(K,f_{r}\)</span> 和相邻的线段相关</li>
+</ul></li>
+</ul>
+<h3 id="kernel-函数">kernel 函数</h3>
+<ul>
+<li><span class="math inline">\(K\)</span>
+的设计允许和方向相关，而不是简单的两个顶点
+<ul>
+<li>可以任意给定，只需要满足能量守恒</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\int_{\mathcal{M}} K(\text{s}_i, \text{s}_{i+1}) \,
+\mathrm{d}\text{x}_{i+1} = 1 \tag{5}
+\]</span></p>
+<ul>
+<li>本文：有限范围内的均匀分布
+<ul>
+<li><span style="color:red">类似 PM，如何选择 Kernel
+可以是后续工作</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+K(\text{s}_i, \text{s}_{i+1}) = \left( \int_{\mathcal{K}(y_i)}
+\mathrm{d}\text{x}_{i+1} \right)^{-1}
+\]</span></p>
+<ul>
+<li><strong>当 <span class="math inline">\(K\)</span> 是 Delta
+分布的时候，我们的算法退化到之前的基于顶点的表达</strong></li>
+</ul>
+<h3 id="throughput-function">Throughput function</h3>
+<ul>
+<li>为了和 Delta 时保持一致，当 <span class="math inline">\(\mathrm{x}_i=\mathrm{y}_{i+1}\)</span>
+的时候，退化为三元组</li>
+</ul>
+<p><span class="math display">\[
+f_r(\text{s}_i, \text{s}_{i+1})=f_r(\text{x}_i, \text{y}_i,
+\text{y}_{i+1})
+\]</span></p>
+<ul>
+<li>我们提出 shift invariant【不变量】
+<ul>
+<li><span class="math inline">\(\text{x}_{i+1}\)</span> 依赖于 <span class="math inline">\(\text{y}_{i}\)</span></li>
+<li>和 path filtering 一致：不做方向修正的复用 incident radiance</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+f_r(\text{s}_i, \text{s}_{i+1})=f_r(\text{x}_i, \text{y}_i,
+\text{y}_{i+1}-(\text{x}_{i+1},\text{y}_{i}))
+\]</span></p>
+<ul>
+<li>论文使用 shift invariant，<span style="color:red">其他作为后续工作</span></li>
+<li>将渲染方程展开为<span id="eq78">递归形式</span></li>
+</ul>
+<p><span class="math display">\[
+L(\text{s}) = L_e(\text{s}) + \int_{\mathcal{S}_1} K(\text{s},
+\text{s}&#39;) f_r(\text{s}, \text{s}&#39;) G(\text{s}&#39;)
+L(\text{s}&#39;) \, \mathrm{d}\text{s}&#39; \tag{7}
+\]</span></p>
+<p><span class="math display">\[
+J_\rho = \int_{\mathcal{S}_1} W_\rho(\text{s}) G(\text{s}) L(\text{s})
+\, \mathrm{d}\text{s} \tag{8}
+\]</span></p>
+<h1 id="segment-samplers-and-estimators">Segment Samplers and
+Estimators</h1>
+<h2 id="samplers">Samplers</h2>
+<ul>
+<li><span id="fig2">采样示意图</span></li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2025/Seg-LTS/fig2-samplers.png"></p>
+<h3 id="uniform-segment-sampler">Uniform segment sampler</h3>
+<ul>
+<li><a href="#fig2">上图</a>的 (a)</li>
+<li>随机采样两个点，然后连起来
+<ul>
+<li><span class="math inline">\(|\mathcal{M}|\)</span> 表示场景面积</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p(\text{s}) = p(\text{x}) p(\text{y}) = \frac{1}{|\mathcal{M}|^2}
+\tag{12}
+\]</span></p>
+<ul>
+<li>impractical，无重要性采样，低效</li>
+</ul>
+<h3 id="ray-tracing-segment-sampler">Ray tracing segment sampler</h3>
+<ul>
+<li>稍改进一些</li>
+<li>第一个随机采，第二个点 cosine 半球采样
+<ul>
+<li>需要从立体角转化度量为面积度量</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p(\text{s}) = p(\text{x}) p(\text{y} \mid \text{x}) =
+\frac{1}{|\mathcal{M}|} \cdot \frac{|\mathrm{n}_{\text{x}_i} \cdot
+\vec{\text{s}}_i| \, |\mathrm{n}_{\text{y}_i} \cdot
+\vec{\text{s}}_i|}{\pi |\text{x} - \text{y}|^2} = \frac{G(\text{s})}{\pi
+|\mathcal{M}|} \tag{13}
+\]</span></p>
+<ul>
+<li>结果上来说重要性采样了几何项 <span class="math inline">\(G(\text{s})\)</span>
+<ul>
+<li><a href="#fig2">上图</a>的 (b)</li>
+</ul></li>
+<li>直接重要性采样 <span class="math inline">\(\mathrm{x}\)</span>
+的BSDF：<a href="#fig2">上图</a>的 (c)
+<ul>
+<li><span class="math inline">\(p(\bar{\text{s}} \mid \text{x},
+\bar{\text{s}}&#39;)\)</span> 正比于 BSDF，立体角度量分布</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p(\text{s} \mid \bar{\text{s}}&#39;) = p(\text{x}) p(\text{y} \mid
+\text{x}, \bar{\text{s}}&#39;) = \frac{1}{|\mathcal{M}|} \cdot
+\frac{p(\bar{\text{s}} \mid \text{x}, \bar{\text{s}}&#39;) \,
+|\mathrm{n}_{\text{y}_i} \cdot \bar{\text{s}}|}{|\text{x} - \text{y}|^2}
+\tag{14}
+\]</span></p>
+<ul>
+<li>上面方法的问题：<strong>segment 独立采样【效率低】</strong></li>
+</ul>
+<h3 id="sequential-segment-sampler">Sequential segment sampler</h3>
+<ul>
+<li>类似于【path tracing、light tracing】
+<ul>
+<li>采样一个序列【<a href="#fig2">上图</a>的 (d) (e)】</li>
+</ul></li>
+<li>初始
+<ul>
+<li>path tracing：<span class="math inline">\(p_W(\text{s}_1) \sim
+W_{\rho}(\text{s}_1) G(\text{s}_1)\)</span></li>
+<li>light tracing：<span class="math inline">\(p_L(\text{s}_1) \sim
+L_e(\text{s}_1) G(\text{s}_1)\)</span></li>
+</ul></li>
+<li>后续 segment
+<ul>
+<li>按照 kernel 采样第一个点：<span class="math inline">\(p_K(\text{x}_{i+1}\mid\text{s}_i)\sim
+K(\text{s}_i,\text{s}_{i+1})\)</span></li>
+<li>按照 BSDF 采样第二个点</li>
+</ul></li>
+</ul>
+$$
+<span class="math display">\[\begin{aligned}
+p(\text{s}_{i+1} \mid \text{s}_i)
+
+&amp;= p(\text{x}_{i+1} \mid \text{s}_i) p(\text{y}_{i+1} \mid
+\text{x}_{i+1}, \text{s}_i) \\
+
+&amp;= p_K(\text{x}_{i+1} \mid \text{s}_i) \cdot
+\frac{p_\omega(\vec{\text{s}_{i+1}} \mid \text{x}_{i+1}, \text{s}_i) \,
+|\mathrm{n}_{\text{y}_{i+1}} \cdot
+\vec{\text{s}_{i+1}}|}{|\text{x}_{i+1} - \text{y}_{i+1}|^2}
+\end{aligned}\tag{15}\]</span>
+<p>$$</p>
+<ul>
+<li>virtual perturbation：复制 <span class="math inline">\(\mathrm{x}_{i+1}=\mathrm{y}_{i}\)</span>
+<ul>
+<li>保留 pdf <span class="math inline">\(p_K(\text{x}_{i+1}\mid\text{s}_i)\)</span>【这样估计之后就不是无偏的了吧】</li>
+</ul></li>
+<li>bridge segment：采样的线段【区别于传统的确定性连接】
+<ul>
+<li>只是这样，没有带来好处</li>
+</ul></li>
+</ul>
+<h2 id="estimators">Estimators</h2>
+<ul>
+<li>和 vertex 不同，segment
+的采样方式不需要知道【给了更大的自由度】</li>
+<li>给一些基础算法</li>
+</ul>
+<h3 id="sequential">Sequential</h3>
+<ul>
+<li>采样 <span class="math inline">\(k\)</span> 个线段</li>
+</ul>
+<p><span class="math display">\[
+\langle J_{\rho k} \rangle =
+\frac{g_{\rho}(\bar{\text{s}})}{p(\bar{\text{s}})},\quad
+p(\bar{\text{s}}) = p(\text{s}_1, \ldots, \text{s}_k) \tag{16}
+\]</span></p>
+<h3 id="multiple-sampling-techniques">Multiple sampling techniques</h3>
+<ul>
+<li>BDPT 启发</li>
+<li><span class="math inline">\(T\)</span> 种采样技术，每种采样技术
+<span class="math inline">\(n_i\)</span> 个样本</li>
+</ul>
+<p><span class="math display">\[
+\langle J_{\rho k} \rangle_{\text{MIS}} = \sum_{i=1}^{T}
+\sum_{j=1}^{n_i} \frac{w_i(\bar{\text{s}}_{i,j})
+g_{\rho}(\bar{\text{s}}_{i,j})}{n_i p_i(\bar{\text{s}}_{i,j})} \tag{17}
+\]</span></p>
+<ul>
+<li>只需要满足对于所有路径：<span class="math inline">\(\sum_{i=1}^{T}w_i(\bar{\text{s}})=1\)</span>
+即可</li>
+</ul>
+<h3 id="recursive-estimation">Recursive estimation</h3>
+<ul>
+<li>递归形式：<a href="#eq78">式子 7、式子 8</a></li>
+<li>使用 <a href="/2025/06/18/CG/Papers/2022/MMIS/">MMIS</a>：<span class="math inline">\(T\)</span> 种采样技术，每种采样技术 <span class="math inline">\(n_i\)</span> 个样本</li>
+</ul>
+<p><span class="math display">\[
+\langle L(\text{s}) \rangle_{\text{BH}} = L_e(\text{s}) + \sum_{i=1}^{T}
+\sum_{j=1}^{n_i} \frac{K(\text{s}, \text{s}_{i,j}&#39;) f_r(\text{s},
+\text{s}_{i,j}&#39;) G(\text{s}_{i,j}&#39;) \langle
+L(\text{s}_{i,j}&#39;) \rangle_{\text{BH}}}{\sum_{i&#39;=1}^{T}
+\sum_{j&#39;=1}^{n_{i&#39;}} p_{i&#39;}(\text{s}_{i,j}&#39; \mid
+t_{i&#39;,j&#39;})} \tag{18}
+\]</span></p>
+<ul>
+<li>pixel forming equation【式子 8】</li>
+</ul>
+<p><span class="math display">\[
+\langle J_{\rho} \rangle_{\text{BH}} = \sum_{i=1}^{T} \sum_{j=1}^{n_i}
+\frac{W_{\rho}(\text{s}_{i,j}) G(\text{s}_{i,j}) \langle
+L(\text{s}_{i,j}) \rangle_{\text{BH}}}{\sum_{i&#39;=1}^{T}
+\sum_{j&#39;=1}^{n_{i&#39;}} p_{i&#39;}(\text{s}_{i,j} \mid
+t_{i&#39;,j&#39;})} \tag{19}
+\]</span></p>
+<ul>
+<li>直接展开有植树问题：使用 multi-vertex path filtering 高效实现
+<ul>
+<li>类似 Path Graph / MMIS</li>
+</ul></li>
+</ul>
+<h3 id="marginal-segment-path-sampling">Marginal segment path
+sampling</h3>
+<ul>
+<li>不是所有的都适合递归展开</li>
+<li>MMIS 对于整条路径的版本</li>
+</ul>
+<p><span class="math display">\[
+\langle J_{\rho k} \rangle_{\text{BH}} = \sum_{i=1}^{\bar{T}}
+\sum_{j=1}^{n_i}
+\frac{g_{\rho}(\bar{\text{s}}_{i,j})}{\sum_{i&#39;=1}^{\bar{T}}
+\sum_{j&#39;=1}^{n_{i&#39;}} p_{i&#39;}(\bar{\text{s}}_{i,j} \mid
+\bar{t}_{i&#39;,j&#39;})} \tag{20}
+\]</span></p>
+<h1 id="practical-algorithm">Practical Algorithm</h1>
+<h2 id="segment-based-path-tracing">Segment-based path tracing</h2>
+<ul>
+<li>sequential segment sampler + sequential estimation</li>
+<li>避免单向的问题：BSDT + bridge segment【MIS】</li>
+<li>效果比不过 vertex-based，没有发挥 segment 的优势</li>
+</ul>
+<h2 id="segment-based-multi-vertex-path-filtering">Segment-based
+multi-vertex path filtering</h2>
+<ul>
+<li>path filtering 的 segment 版本</li>
+<li>参考 <a href="/2025/06/18/CG/Papers/2022/MMIS/">MMIS</a> 的 path
+filtering</li>
+<li>相机出发：multi-vertex filtering（MVF）</li>
+<li>光源出发：photon filtering（PhF）</li>
+</ul>
+<h2 id="bidirectional-path-filtering">Bidirectional path filtering</h2>
+<ul>
+<li>基于 vertex 的版本很难实现 bidirectional filtering【<span style="color:red">不确定？</span>】</li>
+<li><strong>基于线段的算法能够天然的处理来自于任意分布</strong></li>
+<li>直接两头出发 sequential sampling，然后使用 MMIS 连接</li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2025/Seg-LTS/fig3-bidirectional-filtering.png"></p>
+<ul>
+<li>是 bidirectional photon mapping 的超集</li>
+<li>kernel 的帮助下非常鲁棒</li>
+</ul>
+<h1 id="实验与讨论">实验与讨论</h1>
+<ul>
+<li>CPU-based RGB renderer</li>
+<li>设定
+<ul>
+<li>1200 x 800</li>
+<li>segment path depth = 8</li>
+<li>1 segment path per pixel【per iteration】</li>
+<li>light paths / camera paths：<span class="math inline">\(\beta=0.25\)</span></li>
+<li>kernel 初始大小：4x average pixel footprint
+<ul>
+<li><span class="math inline">\(\alpha=0.67\)</span> 缩圈</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="bidirectional-filtering">Bidirectional Filtering</h2>
+<ul>
+<li><strong>同时间对比</strong>：MVF、PhF、BPM、UPS
+<ul>
+<li>说是 MVF 一致的比 PT 好，所以不加 PT</li>
+<li>类似的原因不比 BDPT【但是感觉 UPS 不一定比 BDPT 好吧，而且 BDPT
+后续发展还很多】</li>
+</ul></li>
+<li>复杂场景：<span class="math inline">\(\beta=1.0\)</span></li>
+<li>结果上来说
+<ul>
+<li>MVF、PhF【单向】存在优势场景，但是有明显的失败场景</li>
+<li>BPM、UPS【双向】收敛没有我们快</li>
+</ul></li>
+</ul>
+<h2 id="其他实验">其他实验</h2>
+<ul>
+<li>Filtering Efficiency and Kernel Size
+<ul>
+<li>大 kernel 收敛快，bias 大；小 kernel 收敛慢</li>
+<li>PPM 类似的缩半径策略做到了平衡</li>
+</ul></li>
+<li>Path Reuse Efficiency
+<ul>
+<li>和 BPM 相比，我们是超集；不同的 <span class="math inline">\(\beta\)</span></li>
+<li>我们一致的好</li>
+<li><span class="math inline">\(\beta\)</span> 增大，MMIS
+的平方计算开销导致很大的 <span class="math inline">\(\beta\)</span>
+结果反而不一定好</li>
+</ul></li>
+<li>Adding Bridge Segments【<span style="color:red">具体看补充材料</span>】
+<ul>
+<li>同时间差；同样本好【平方计算代价高】</li>
+<li>【<span style="color:red">留给 future work</span>】</li>
+</ul></li>
+</ul>
+<h1 id="未来工作">未来工作</h1>
+<ul>
+<li>Segment sampling
+<ul>
+<li>path guiding</li>
+<li>MCMC</li>
+<li>和 vertex-based sampler 结合</li>
+<li>bridge segment 的重要性采样</li>
+<li>类似 BDPT 的概率链接</li>
+</ul></li>
+<li>Segment paths construction
+<ul>
+<li>泛化成 directionaless variant</li>
+</ul></li>
+<li>Path filtering
+<ul>
+<li>MMIS 平方计算量</li>
+<li>如何提高 filtering efficiency</li>
+</ul></li>
+<li>Temporal Filtering</li>
+</ul>
+<h1 id="补充材料">补充材料</h1>
+<h2 id="bridge-segment-sampler">Bridge Segment Sampler</h2>
+<ul>
+<li>最简单的策略：kernel 采样两个点，然后可见性测试连起来</li>
+</ul>
+<p><span class="math display">\[
+p(\text{s}_i \mid \text{s}_{i-1}, \text{s}_{i+1}) = p(\text{s} \mid
+\text{z}_{i-1}, \text{z}_{i+1}) = p_K(\text{x}_i \mid \text{z}_{i-1})
+p_K(\text{y}_i \mid \text{z}_{i+1}) \tag{S6}
+\]</span></p>
+<ul>
+<li>类似 NEE，可以对光源（相机）采样
+<ul>
+<li>kernel 采样一个点；然后光源（相机）采样一个点</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p(\text{s}_i \mid \text{s}_{i-1}) = p(\text{s} \mid \text{z}_{i-1}) =
+p_W(\text{x}_i) p_K(\text{y}_i \mid \text{z}_{i-1}) \tag{S7}
+\]</span></p>
+<p><span class="math display">\[
+p(\text{s}_i \mid \text{s}_{i-1}) = p(\text{s} \mid \text{z}_{i-1}) =
+p_L(\text{x}_i) p_K(\text{y}_i \mid \text{z}_{i-1}) \tag{S8}
+\]</span></p>
+<h2 id="mmis">MMIS</h2>
+<ul>
+<li>采样 techinque、sample 对 <span class="math inline">\((t_i,s_i)\)</span>，然后做 MIS</li>
+<li>具体看 <a href="/2025/06/18/CG/Papers/2022/MMIS/">MMIS</a></li>
+</ul>
+<h2 id="实现细节">实现细节</h2>
+<ul>
+<li>核心：segment samplers、clustering algorithms、propagation<br>
+</li>
+<li>每轮迭代
+<ul>
+<li>采样线段</li>
+<li>线段顶点聚类</li>
+<li>传播线段 throughput</li>
+</ul></li>
+<li>采样线段：sequential segment samplers + bridge segment sampler
+<ul>
+<li>virtual perturbation【拷贝顶点】</li>
+<li>就是和传统的差不多</li>
+</ul></li>
+<li>聚类
+<ul>
+<li>kernel：uniform kernel
+<ul>
+<li>定义域由 position-normal voxel encoding method 决定【<span style="color:red;font-weight:bold">spatial hashing
+常用，不懂</span>】</li>
+<li>保存所有线段端点的哈希值</li>
+<li>根据哈希值排序，实现聚类</li>
+<li>类内顶点使用相同定义域</li>
+<li>量化误差使用 jittering 转化为噪声</li>
+</ul></li>
+<li>评估 kernel 函数：计算 voxel 内部的平均位置、法向
+<ul>
+<li>值设置为位置、法向张成平面和 voxel 的相交面积的倒数【<span style="color:red;font-weight:bold">也不太懂</span>】</li>
+<li>这样估计会有扁案的 bias；缩 voxel 能解决</li>
+</ul></li>
+</ul></li>
+<li>传播
+<ul>
+<li>预先计算 MMIS 权重，每一个线段最多和两个类别相关</li>
+<li>与计算完之后迭代计算，传播</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2025/Seg-LTS/alg1.png"></p>
+<ul>
+<li><span style="color:red;font-weight:bold">大概懂思路，具体细节还得看他开源代码</span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+              <a href="/tags/sampling/" rel="tag"># sampling</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/06/15/CG/Papers/2024/NPIS/" rel="prev" title="(论文)[2024-SIG-C] Neural Product Importance Sampling via Warp Composition">
+                  <i class="fa fa-chevron-left"></i> (论文)[2024-SIG-C] Neural Product Importance Sampling via Warp Composition
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/06/18/CG/Papers/2022/MMIS/" rel="next" title="(论文)[2022-SIGA-C] Marginal Multiple Importance Sampling">
+                  (论文)[2022-SIGA-C] Marginal Multiple Importance Sampling <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

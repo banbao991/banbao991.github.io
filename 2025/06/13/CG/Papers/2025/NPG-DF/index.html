@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="neural path guiding 算法；将输出的 2D 方向拆分为两个 1D 分布的乘积；然后使用神经网络近似 1D 分布，具体上网络输出一个离散的向量，然后使用插值的方式构建 pdf（最近邻、线性）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2025-EGSR] Neural Path Guiding with Distribution Factorization">
+<meta property="og:url" content="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="neural path guiding 算法；将输出的 2D 方向拆分为两个 1D 分布的乘积；然后使用神经网络近似 1D 分布，具体上网络输出一个离散的向量，然后使用插值的方式构建 pdf（最近邻、线性）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/fig1-pipeline.png">
+<meta property="og:image" content="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/fig2-nearest-neighbor-and-linear.png">
+<meta property="og:image" content="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/fig4.png">
+<meta property="og:image" content="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/tab1-equal-time.png">
+<meta property="og:image" content="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/fig6-equal-time.png">
+<meta property="og:image" content="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/fig7-pdfs.png">
+<meta property="article:published_time" content="2025-06-13T08:54:49.000Z">
+<meta property="article:modified_time" content="2025-06-15T07:48:55.744Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="EGSR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/fig1-pipeline.png">
+
+
+<link rel="canonical" href="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/","path":"2025/06/13/CG/Papers/2025/NPG-DF/","title":"(论文)[2025-EGSR] Neural Path Guiding with Distribution Factorization"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2025-EGSR] Neural Path Guiding with Distribution Factorization | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-path-guiding-with-distribution-factorization"><span class="nav-text">Neural Path
+Guiding with Distribution Factorization</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#related-work"><span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#method"><span class="nav-text">Method</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#distribution-factorization"><span class="nav-text">Distribution Factorization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#nearest-neighbor"><span class="nav-text">nearest neighbor</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#linear"><span class="nav-text">linear</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#connection-to-nis"><span class="nav-text">Connection to NIS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#optimization-with-radiance-caching"><span class="nav-text">Optimization with Radiance
+Caching</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#implementation"><span class="nav-text">Implementation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#results"><span class="nav-text">Results</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ablation"><span class="nav-text">Ablation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#future"><span class="nav-text">Future</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/06/13/CG/Papers/2025/NPG-DF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2025-EGSR] Neural Path Guiding with Distribution Factorization | Banbao">
+      <meta itemprop="description" content="neural path guiding 算法；将输出的 2D 方向拆分为两个 1D 分布的乘积；然后使用神经网络近似 1D 分布，具体上网络输出一个离散的向量，然后使用插值的方式构建 pdf（最近邻、线性）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2025-EGSR] Neural Path Guiding with Distribution Factorization
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-06-13 16:54:49" itemprop="dateCreated datePublished" datetime="2025-06-13T16:54:49+08:00">2025-06-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-06-15 15:48:55" itemprop="dateModified" datetime="2025-06-15T15:48:55+08:00">2025-06-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">neural path guiding 算法；将输出的 2D 方向拆分为两个 1D 分布的乘积；然后使用神经网络近似 1D 分布，具体上网络输出一个离散的向量，然后使用插值的方式构建 pdf（最近邻、线性）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="neural-path-guiding-with-distribution-factorization">Neural Path
+Guiding with Distribution Factorization</h1>
+<ul>
+<li>作者：Pedro Figueiredo、Qihao He、Nima Khademi Kalantari
+<ul>
+<li>Texas A&amp;M University</li>
+</ul></li>
+<li>之前的 PG 方法只占了一点【快、表达能力好】，我们试图又快又好
+<ul>
+<li>将 2D 分布拆分为两个 1D 的条件分布【神经网络输出1D
+数组作为离散分布】</li>
+<li>训练的时候，使用另外一个网络缓存 <span class="math inline">\(L_i\)</span> 作为真值训练</li>
+</ul></li>
+</ul>
+<h1 id="related-work">Related Work</h1>
+<ul>
+<li><p>Global Path Guiding</p>
+<ul>
+<li>primary sample space（PSS）</li>
+<li>curse of dimensions、长路径表现差</li>
+<li>偏镜面光路算法：specular chains 那一套</li>
+</ul></li>
+<li><p>Local Path Guiding</p>
+<ul>
+<li>空间、方向数据结构：kdtree、octree、vmf</li>
+<li>neural
+<ul>
+<li>近似分布参数、normalizing flow【问题在于表达能力不够】</li>
+<li>基于 CNN，甚至只能在第一跳 pg【慢】</li>
+</ul></li>
+</ul></li>
+<li><p>Radiance Caching</p></li>
+<li><p>Histogram Prediction</p></li>
+</ul>
+<h1 id="method">Method</h1>
+<ul>
+<li>渲染方程</li>
+</ul>
+<p><span class="math display">\[
+L_o(\mathbf{x}, \omega_o) = L_e(\mathbf{x}, \omega_o) + \int_{\Omega}
+\rho(\mathbf{x}, \omega_o, \omega) L_i(\mathbf{x}, \omega) \lvert
+\cos(\theta) \rvert \,\mathrm{d}\omega \tag{1}
+\]</span></p>
+<ul>
+<li>pg 目的
+<ul>
+<li><span class="math inline">\(\Theta\)</span> 表示 NN</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\hat{p}_{\Theta}(\omega \vert \mathbf{x}, \omega_o) \propto
+\rho(\mathbf{x}, \omega_o, \omega) L_i(\mathbf{x}, \omega) \vert
+\cos(\theta) \vert
+\]</span></p>
+<ul>
+<li>pipeline</li>
+</ul>
+<p><img src="/2025/06/13/CG/Papers/2025/NPG-DF/fig1-pipeline.png"></p>
+<h2 id="distribution-factorization">Distribution Factorization</h2>
+<ul>
+<li>需求
+<ul>
+<li>分布正比于目标分布</li>
+<li>快速采样、计算 pdf</li>
+</ul></li>
+<li>转换
+<ul>
+<li><span class="math inline">\(\phi=2\pi\epsilon_1,\theta=\arccos(1-2\epsilon_2)\)</span></li>
+<li><span class="math inline">\(\hat{p}(\omega \vert \mathbf{x},
+\omega_o)\)</span> 可以转化为 <span class="math inline">\(\hat{p}(\epsilon_1, \epsilon_2 \vert \mathbf{x},
+\omega_o)\)</span>
+<ul>
+<li>需要考虑 Jacobian 矩阵</li>
+</ul></li>
+</ul></li>
+<li>直接网络输出离散化的值【<span class="math inline">\(M_1\times
+M_2\)</span>】 开销太大</li>
+<li><strong>拆分</strong>
+<ul>
+<li>如此只需要两个独立的网络分别输出 <span class="math inline">\(M_1\)</span> 维的向量 <span class="math inline">\(\mathbf{v}_1\)</span>、<span class="math inline">\(M_2\)</span> 维的向量 <span class="math inline">\(\mathbf{v}_2\)</span> 即可</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\hat{p}_{\Theta}(\epsilon_1, \epsilon_2 \vert \mathbf{x}, \omega_o) =
+\hat{p}_{\mathbf{w}_1}(\epsilon_1 \vert \mathbf{x}, \omega_o) \,
+\hat{p}_{\mathbf{w}_2}(\epsilon_2 \vert \epsilon_1, \mathbf{x},
+\omega_o) \tag{3}
+\]</span></p>
+<ul>
+<li>如何使用离散向量：nearest neighbor、linear</li>
+</ul>
+<p><img src="/2025/06/13/CG/Papers/2025/NPG-DF/fig2-nearest-neighbor-and-linear.png"></p>
+<h3 id="nearest-neighbor">nearest neighbor</h3>
+<ul>
+<li><span class="math inline">\(\mathcal{C}\)</span> 是条件的简记，忽略
+<span class="math inline">\(\mathbf{v}\)</span> 的下标【二者类似】</li>
+<li>pdf</li>
+</ul>
+<p><span class="math display">\[
+\hat{p}_{\mathbf{w}}(\epsilon \vert \mathcal{C}) =
+\mathbf{v}[\lfloor\epsilon M\rfloor] \tag{4}
+\]</span></p>
+<ul>
+<li>cdf</li>
+</ul>
+<p><span class="math display">\[
+\hat{P}_{\mathbf{w}}(1) = \int_{0}^{1} \hat{p}_{\mathbf{w}}(\epsilon
+\vert \mathcal{C}) \,\mathrm{d}\epsilon = \sum_{i=0}^{M-1} \mathbf{v}[i]
+\frac{1}{M} = 1 \tag{5}
+\]</span></p>
+<ul>
+<li>需要网络输出的向量 <span class="math inline">\(\mathbf{v}\)</span>
+和为 <span class="math inline">\(M\)</span>
+<ul>
+<li>输出：softmax 归一化；乘上 <span class="math inline">\(M\)</span></li>
+</ul></li>
+<li>采样：算出 cdf，然后用它的逆</li>
+</ul>
+<h2 id="linear">linear</h2>
+<ul>
+<li>类似的，只不过 <span class="math inline">\(\mathbf{v}[i]\)</span>
+表示区间的中间值，然后剩余值插值【更平滑】</li>
+<li>pdf</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\hat{p}_{\mathbf{w}}(\epsilon \vert \mathcal{C}) &amp;= (1 - \alpha) \,
+\mathbf{v}[\lfloor m\rfloor] + \alpha \, \mathbf{v}[\lceil m\rceil]
+\tag{7} \\
+\\
+\text{where }&amp;m = \epsilon M - 0.5,\alpha = m - \lfloor m \rfloor
+\tag{8}
+\end{align}
+\]</span></p>
+<ul>
+<li>cdf</li>
+</ul>
+<p><span class="math display">\[
+\hat{P}_{\mathbf{w}}(1) = \int_{0}^{1} \hat{p}_{\mathbf{w}}(\epsilon
+\vert \mathcal{C}) \,\mathrm{d}\epsilon = \sum_{i=0}^{M-1}
+\frac{\mathbf{v}[i] + \mathbf{v}[i+1]}{2} \cdot \frac{1}{M} = 1 \tag{9}
+\]</span></p>
+<ul>
+<li>边界处理：<span class="math inline">\(\epsilon&lt;\dfrac{1}{2M},\epsilon&gt;1-\dfrac{1}{2M}\)</span>
+<ul>
+<li><span class="math inline">\(\epsilon_1\)</span>（<span class="math inline">\(\phi\)</span>）：对 <span class="math inline">\(\mathbf{v}_1[0],\mathbf{v}_1[M-1]\)</span>
+线性插值【<span class="math inline">\(0=2\pi\)</span>】</li>
+<li><span class="math inline">\(\epsilon_2\)</span>（<span class="math inline">\(\theta\)</span>）：最近邻</li>
+</ul></li>
+<li>两种处理结果都是正确的
+<ul>
+<li>中间部分 pdf 求和是：<span class="math inline">\(1-\dfrac{\mathbf{v}[0] +
+\mathbf{v}[M-1]}{2}\)</span></li>
+</ul></li>
+<li>采样类似</li>
+</ul>
+<h3 id="connection-to-nis">Connection to NIS</h3>
+<ul>
+<li>NIS 使用 normalizing flow
+变换分布；而我们直接拆分后估计分布【离散向量】</li>
+</ul>
+<h2 id="optimization-with-radiance-caching">Optimization with Radiance
+Caching</h2>
+<ul>
+<li>NPM 训练使用 MC 的结果，我们使用 NN 缓存 incident radiance</li>
+<li>KL 散度估计【然后使用 MC 估计 KL 散度的积分】</li>
+<li>理想目标分布</li>
+</ul>
+<p><span class="math display">\[
+p(\omega_i) = \underbrace{\rho(\mathbf{x}, \omega_o, \omega_i)
+L_i(\mathbf{x}, \omega_i) \vert \cos(\theta_i) \vert}_{\text{integrand}}
+\underbrace{L_r(\mathbf{x}, \omega_o)^{-1}}_{\text{normalization
+factor}} \tag{13}
+\]</span></p>
+<ul>
+<li>NPM 等实现
+<ul>
+<li><span class="math inline">\(L_i\)</span> 使用 MC 估计【噪声大】</li>
+<li><span class="math inline">\(L_r\)</span> 忽略
+<ul>
+<li>如果针对一个 <span class="math inline">\(\mathbf{x},
+\omega_o\)</span> 进行训练是 ok 的</li>
+<li>但是网络训练存在很多样本，这样会导致效果不好</li>
+</ul></li>
+</ul></li>
+<li>使用 NRC（<span class="math inline">\(f_{\Phi}\)</span>）缓存 <span class="math inline">\(L_r\)</span>【<strong>NRC 论文中明确说了缓存的就是
+<span class="math inline">\(L_r\)</span>，所以和本文是一样的</strong>】</li>
+<li>获取 <span class="math inline">\(L_i\)</span></li>
+</ul>
+<p><span class="math display">\[
+L_i(\mathbf{x}, \omega_i) = L_r(\mathbf{x}&#39;,
+\omega_o&#39;)=f_{\Phi}(\mathbf{x}&#39;, \omega_o&#39;)
+\]</span></p>
+<p><img src="/2025/06/13/CG/Papers/2025/NPG-DF/fig4.png"></p>
+<ul>
+<li>同样 normalizing factor 也被解决了</li>
+<li><strong>实验效果上缓存 <span class="math inline">\(L_r\)</span>
+的效果比 <span class="math inline">\(L_i\)</span> 更好</strong>
+<ul>
+<li>相当于过了一层 BSDF 的 filter</li>
+</ul></li>
+<li>理论上这只是把方差从估计 KL 散度转移到了 NRC 上
+<ul>
+<li>但是效果确实很好</li>
+<li>得益于估计 <span class="math inline">\(L_r\)</span>、NRC
+的高效实现【relative L2 loss】</li>
+</ul></li>
+<li>和强化学习中的 actor-critic techniques 很像
+<ul>
+<li>RL：缓存 reward，从而降低优化 policy 的噪声</li>
+</ul></li>
+</ul>
+<h1 id="implementation">Implementation</h1>
+<ul>
+<li>Kiraray + TCNN</li>
+<li>30% budget 用于训练</li>
+<li>3 个网络：<span class="math inline">\(f_{\mathbf{w}_1}\)</span>、<span class="math inline">\(f_{\mathbf{w}_2}\)</span>、<span class="math inline">\(f_{\Phi}\)</span></li>
+<li>70% guiding；30% BSDF</li>
+<li><span class="math inline">\(M_1=32,M_2=16\)</span></li>
+</ul>
+<h1 id="results">Results</h1>
+<ul>
+<li>NEE off，RR off</li>
+<li><strong>max depth 6</strong></li>
+<li>RTX 3080</li>
+<li>relMSE，去除 0.1% outlier，10 次取平均</li>
+<li>场景：小光源、光路难</li>
+<li>对比算法
+<ul>
+<li>PPG、Variance-Aware PG【估计 radiance】</li>
+<li>NIS、NPM、我们（DF-N、DF-L）【估计 product】
+<ul>
+<li><strong>We implement NIS with two fully-fused networks (L = 2) using
+piecewise quadratic coupling layers and fixed bin size and resolutions
+of 32 × 16 to match the capacity of our approach.</strong></li>
+</ul></li>
+</ul></li>
+<li>等时间比较【大概都是 DF-L 最优，DF-N 次优】
+<ul>
+<li>120s，30% 训练</li>
+<li>NIS 样本数更少【<strong>说明慢但是质量高</strong>】</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/13/CG/Papers/2025/NPG-DF/tab1-equal-time.png"></p>
+<p><img src="/2025/06/13/CG/Papers/2025/NPG-DF/fig6-equal-time.png"></p>
+<ul>
+<li>上面实验的<strong>分布好坏</strong>【这个例子设计的很难，6k spp PT
+还是糊的不行】
+<ul>
+<li>只看了 product-based 的方法</li>
+<li>NIS 缺失细节，因为慢导致训练样本少</li>
+<li>NPM 糊了</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/13/CG/Papers/2025/NPG-DF/fig7-pdfs.png"></p>
+<ul>
+<li>收敛性分析</li>
+</ul>
+<h2 id="ablation">Ablation</h2>
+<ul>
+<li><span class="math inline">\(M_1,M_2\)</span> 大小
+<ul>
+<li>trade off：开销、质量</li>
+</ul></li>
+<li>caching <span class="math inline">\(L_r\)</span>，对比
+<ul>
+<li>式子中 <span class="math inline">\(L_i\)</span> 用 MC
+样本计算，<span class="math inline">\(L_r\)</span> 忽略【No Cache】</li>
+<li>式子中 <span class="math inline">\(L_i\)</span> 用 <span class="math inline">\(L_r\)</span> 计算，<span class="math inline">\(L_r\)</span> 忽略【<span class="math inline">\(L_i\)</span>】</li>
+<li>式子中 <span class="math inline">\(L_i\)</span> 用 <span class="math inline">\(L_r\)</span> 计算，<span class="math inline">\(L_r\)</span> 也用【<span class="math inline">\(L_i+L_r\)</span>】</li>
+</ul></li>
+</ul>
+<h1 id="future">Future</h1>
+<ul>
+<li>网络直接估计可变的 <span class="math inline">\(M_1,M_2\)</span></li>
+<li>局限
+<ul>
+<li>pdf 不够 sharp：游泳池场景不能很好学到光源方向，比不上 PPG
+传统方法</li>
+<li>简单场景 PT、NPM 可能更好</li>
+</ul></li>
+<li>Futrue：<strong>把 NN 和显式数据结构结合</strong></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/EGSR/" rel="tag"># EGSR</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/06/12/CG/Papers/2019/DDGI/" rel="prev" title="(论文)[2019-JCGT] Dynamic Diffuse Global Illumination with Ray-Traced Irradiance Fields">
+                  <i class="fa fa-chevron-left"></i> (论文)[2019-JCGT] Dynamic Diffuse Global Illumination with Ray-Traced Irradiance Fields
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/06/15/CG/Papers/2024/NPIS/" rel="next" title="(论文)[2024-SIG-C] Neural Product Importance Sampling via Warp Composition">
+                  (论文)[2024-SIG-C] Neural Product Importance Sampling via Warp Composition <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

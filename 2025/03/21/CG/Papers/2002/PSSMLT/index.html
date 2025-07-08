@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="PSSMLT，将 MLT 的突变放到了 Primary Space，这样就不需要特地去设计变异策略；另外引入了 large step 的变异，同时保证了遍历性、高接收率、以及 MIS 的引入（优化了暗处）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2002-EG] A Simple and Robust Mutation Strategy for the Metropolis Light Transport Algorithm">
+<meta property="og:url" content="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="PSSMLT，将 MLT 的突变放到了 Primary Space，这样就不需要特地去设计变异策略；另外引入了 large step 的变异，同时保证了遍历性、高接收率、以及 MIS 的引入（优化了暗处）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/mcmc.png">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/mlt.png">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/fig1-small-and-large-perterbation.png">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/fig2-primaryspace-and-pathspace.png">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/fig3-primaryspace-and-pathspace-BDPT.png">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/fig5-result1-RMS.png">
+<meta property="og:image" content="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/fig5-result2-perceptual.png">
+<meta property="article:published_time" content="2025-03-21T12:15:37.000Z">
+<meta property="article:modified_time" content="2025-04-07T06:54:14.804Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="EG">
+<meta property="article:tag" content="MLT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/mcmc.png">
+
+
+<link rel="canonical" href="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/","path":"2025/03/21/CG/Papers/2002/PSSMLT/","title":"(论文)[2002-EG] A Simple and Robust Mutation Strategy for the Metropolis Light Transport Algorithm"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2002-EG] A Simple and Robust Mutation Strategy for the Metropolis Light Transport Algorithm | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pssmlt"><span class="nav-text">PSSMLT</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#local-and-multiple-importance-sampling"><span class="nav-text">Local and multiple
+importance sampling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mlt"><span class="nav-text">MLT</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A5%BD%E7%9A%84%E5%8F%98%E5%BC%82%E7%A9%BA%E9%97%B4"><span class="nav-text">好的变异空间</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#pt-%E4%BE%8B%E5%AD%90"><span class="nav-text">PT 例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bpdt-%E4%BE%8B%E5%AD%90"><span class="nav-text">BPDT 例子</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#large-step"><span class="nav-text">Large step</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%98%E5%BC%82%E7%AD%96%E7%95%A5"><span class="nav-text">变异策略</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#utilization-of-rejected-and-large-step-samples"><span class="nav-text">Utilization of
+rejected and large step samples</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%90%86%E8%A7%A3"><span class="nav-text">实现理解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA"><span class="nav-text">讨论</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82"><span class="nav-text">实现细节</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#evaluation"><span class="nav-text">Evaluation</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/21/CG/Papers/2002/PSSMLT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2002-EG] A Simple and Robust Mutation Strategy for the Metropolis Light Transport Algorithm | Banbao">
+      <meta itemprop="description" content="PSSMLT，将 MLT 的突变放到了 Primary Space，这样就不需要特地去设计变异策略；另外引入了 large step 的变异，同时保证了遍历性、高接收率、以及 MIS 的引入（优化了暗处）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2002-EG] A Simple and Robust Mutation Strategy for the Metropolis Light Transport Algorithm
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-03-21 20:15:37" itemprop="dateCreated datePublished" datetime="2025-03-21T20:15:37+08:00">2025-03-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-04-07 14:54:14" itemprop="dateModified" datetime="2025-04-07T14:54:14+08:00">2025-04-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">PSSMLT，将 MLT 的突变放到了 Primary Space，这样就不需要特地去设计变异策略；另外引入了 large step 的变异，同时保证了遍历性、高接收率、以及 MIS 的引入（优化了暗处）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="pssmlt">PSSMLT</h1>
+<ul>
+<li>Primary Space Sample Metropolis Light Transport</li>
+<li>MIS 部分是作者论文<a target="_blank" rel="noopener" href="https://cg.informatik.uni-freiburg.de/intern/seminar/raytracing%20-%20Kelemen%20-%202002%20-%20Metropolis.pdf">另外一个版本</a></li>
+<li>简单实现：<a target="_blank" rel="noopener" href="https://cs.uwaterloo.ca/~thachisu/smallpssmlt.cpp">原版</a>，<a href="/utils/show_code/?CG/Paper/2002/PSSMLT/smallpssmlt.cpp">备份</a></li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>PT</li>
+</ul>
+<p><span class="math display">\[
+\Phi_{j}=\int_{\mathcal{P}} F(\mathbf{z})\,\mathrm{d}\mathbf{z} \approx
+\frac{1}{M}\sum_{i = 1}^{M}\frac{F(\mathbf{z}_i)}{p(\mathbf{z}_i)}
+\]</span></p>
+<ul>
+<li>重要性采样：正比于分子
+<ul>
+<li>3d =&gt; 1d：scalar contribution function <span class="math inline">\(I(\mathbf{z})\)</span>
+<ul>
+<li>例如：luminance</li>
+</ul></li>
+<li>于是：<span class="math inline">\(p(\mathbf{z})=I(\mathbf{z})/b=I(\mathbf{z})/\int_{\mathcal{P}}
+I(\mathbf{z})\,\mathrm{d}\mathbf{z}\)</span></li>
+</ul></li>
+</ul>
+<h2 id="local-and-multiple-importance-sampling">Local and multiple
+importance sampling</h2>
+<ul>
+<li>primary space：<span class="math inline">\(\mathcal{U}\)</span></li>
+<li>生成一条路径用的随机数：<span class="math inline">\(\mathbf{z}\in\mathcal{U}\)</span></li>
+<li>路径：<span class="math inline">\(\mathbf{z}=S(\mathbf{u})\)</span></li>
+<li>于是贡献值</li>
+</ul>
+<p><span class="math display">\[
+\Phi_{j}=\int_{\mathcal{U}}
+F(S(\mathbf{u}))\cdot\left|\frac{\mathrm{d}S(\mathbf{u})}{\mathrm{d}\mathbf{u}}\right|\,\mathrm{d}\mathbf{u}
+\]</span></p>
+<ul>
+<li>Jacobian</li>
+</ul>
+<p><span class="math display">\[
+\left|\frac{\mathrm{d}S(\mathbf{u})}{\mathrm{d}\mathbf{u}}\right|=\dfrac{1}{p_S(\mathbf{u})}
+\]</span></p>
+<ul>
+<li>如果 <span class="math inline">\(\mathbf{u}\)</span>
+是均匀分布，那么 <span class="math inline">\(p_S(\mathbf{u})\)</span>
+就是 <span class="math inline">\(\mathbf{z}=S(\mathbf{u})\)</span> 的
+pdf</li>
+<li>随机决定当前 bounce 使用 light sampling/BSDF sampling
+会导致目标函数不一样
+<ul>
+<li>加入 MIS</li>
+</ul></li>
+</ul>
+<h2 id="mlt">MLT</h2>
+<ul>
+<li>采样整条路路径，而不是一个方向</li>
+<li>平稳分布 <span class="math inline">\(p(\mathbf{z})\)</span></li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2002/PSSMLT/mcmc.png"></p>
+<ul>
+<li>对所有像素定义一个过程（one single process for all pixels）
+<ul>
+<li><span class="math inline">\(I\)</span> 近似
+radiance，和像素无关</li>
+<li>这样直方图就对应像素的 luminance</li>
+</ul></li>
+<li>存在 start-up bias
+<ul>
+<li>原始解决方案：<span class="math inline">\(p_0\)</span>
+生成一些样本，然后从这些样本中根据 scalar contribution function
+重采样得到初始样本</li>
+</ul></li>
+<li>新老样本都用，效果更好【<span class="math inline">\(a\bar{y}+(1-a)\bar{x}\)</span>】</li>
+<li>MLT 算法如下</li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2002/PSSMLT/mlt.png"></p>
+<ul>
+<li>MLT 生成的样本是相关的</li>
+<li>MC 保证标准差 <span class="math inline">\(=\sigma_{\text{primary}}\Big/\sqrt{M\text{
+samples}}\)</span></li>
+<li>相关样本（Bernstein theorem）
+<ul>
+<li><span class="math inline">\(R(k)\)</span> 表示样本 <span class="math inline">\(F(\mathbf{z}_i)/p(\mathbf{z}_i),F(\mathbf{z}_{i+k})/p(\mathbf{z}_{i+k})\)</span>
+相关性的上界</li>
+<li>样本之间的相关性会导致 error 增加</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\sigma\le\sigma_{\text{primary}}\sqrt{\dfrac{1+2\sum_{k=1}^MR(k)}{M}}
+\]</span></p>
+<ul>
+<li>小扰动导致相关性大大【独立机会小】</li>
+<li>大扰动也可能导致大相关性【接受概率小】</li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2002/PSSMLT/fig1-small-and-large-perterbation.png"></p>
+<ul>
+<li>于是我们需要一种变异策略：<strong>一般情况来说变异大，积分值大的地方变异小</strong></li>
+<li>MLT 原始论文：设计了 3
+种针对不同光路的变异策略，具体选择依赖于场景相关的超参</li>
+<li>我们：<strong>简单的自动选择变异的策略</strong></li>
+</ul>
+<h1 id="好的变异空间">好的变异空间</h1>
+<ul>
+<li>如何实现上面说的积分值大的地方变异小？
+<ul>
+<li>变换到一个方差小的函数 <span class="math inline">\(f&#39;\)</span>，此时如果在这个函数中使用固定的变异步长，则其在原始空间中就实现了上面这一点</li>
+<li>积分值大 =&gt; 对应到 <span class="math inline">\(f&#39;\)</span>
+的更大范围
+<ul>
+<li>于是相同的 <span class="math inline">\(f&#39;\)</span>
+的范围，原始积分值大则对应小的范围，原始积分值小则对应大的范围</li>
+</ul></li>
+</ul></li>
+<li>primary sample space</li>
+<li>新的积分、scalar contribution function
+<ul>
+<li><span style="color:red;font-weight:bold">方差小</span></li>
+<li>例如 glossy lobe，随机数动一点，方向在 lobe 上的变化很小</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+F^{*}(\mathbf{u}) =
+F(S(\mathbf{u}))\cdot\left|\frac{dS(\mathbf{u})}{d\mathbf{u}}\right|=\frac{F(S(\mathbf{u}))}{p_S(\mathbf{u})}
+\]</span></p>
+<p><span class="math display">\[
+I^{*}(\mathbf{u})=\frac{I(S(\mathbf{u}))}{p_S(\mathbf{u})}
+\]</span></p>
+<h2 id="pt-例子">PT 例子</h2>
+<ul>
+<li>直接光采样的例子【不够有效】
+<ul>
+<li><span class="math inline">\(u_1,u_2\)</span>：选择一个像素位置</li>
+<li><span class="math inline">\(u_3\)</span>：选择一种 BRDF、是否
+RR</li>
+<li>（继续 PT）<span class="math inline">\(u_4,u_5\)</span>：采样反射方向</li>
+<li><span class="math inline">\(u_6\)</span>：RR 停止</li>
+<li><span class="math inline">\(u_7,u_8\)</span>：光源采样位置</li>
+</ul></li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2002/PSSMLT/fig2-primaryspace-and-pathspace.png"></p>
+<ul>
+<li>扰动如上图</li>
+</ul>
+<h2 id="bpdt-例子">BPDT 例子</h2>
+<ul>
+<li>eye path、light path：所有顶点连接测试可见性
+<ul>
+<li>下图实线表示 subpath</li>
+<li>虚线表示连接</li>
+</ul></li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2002/PSSMLT/fig3-primaryspace-and-pathspace-BDPT.png"></p>
+<ul>
+<li>这里使用 maximum heuristic MIS
+<ul>
+<li><span style="color:red;font-weight:bold">好处是不需要追完所有 shadow
+ray</span>，如果不考虑可见性都不是最大就不用追了</li>
+</ul></li>
+<li>一个 PSS 对应 BDPT 生成多条可行光路，需要重新定义 scalar
+contribution function
+<ul>
+<li>所有 path 的 luminance 之和【倾向生成长路径，计算开销大】</li>
+<li>使用 path 的<strong>最大</strong> luminance
+<ul>
+<li><span style="color:red;font-weight:bold">这最终只用了最大 luminance
+的贡献？</span></li>
+</ul></li>
+</ul></li>
+<li>如果 RR 导致 eye path 节点变少，此时下一个原本用于 eye path
+的随机数会被用于 light path，造成剧烈变化
+<ul>
+<li>于是我们将两边生成位置的随机数分离；例如奇数用于 eye path，偶数用于
+light path</li>
+</ul></li>
+</ul>
+<h1 id="large-step">Large step</h1>
+<ul>
+<li>MLT 需要遍历</li>
+<li>很多光路贡献为
+0，因此存在“距离”较远的区域，需要的大的变异才能满足遍历性</li>
+<li>加上一种不考虑原始状态的变异方式，称为 large steps</li>
+<li>好处
+<ul>
+<li>遍历性</li>
+<li>Metropolis 算法从新的种子开始，减小 start bias</li>
+<li>样本 pdf 已知，可以用于后续的 MIS【<span style="color:red;font-weight:bold">？</span>】</li>
+</ul></li>
+<li>如何选择新样本？希望接收率大
+<ul>
+<li>新样本的概率与旧样本无关：<span class="math inline">\(T(\mathbf{z}_i\to\mathbf{z}_t)=T(\mathbf{z}_t)\)</span></li>
+<li>如果 <span class="math inline">\(T\propto I\)</span>，则 <span class="math inline">\(a=0\)</span>；但是不可能实现</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+a(\mathbf{z}_i\to\mathbf{z}_t)=\dfrac{I(\mathbf{z}_t)\cdot
+T(\mathbf{z}_i)}{I(\mathbf{z}_i)\cdot T(\mathbf{z}_t)}
+\]</span></p>
+<ul>
+<li>primary space
+<ul>
+<li>实现的时候用的是这个版本，不管 larrge step 还是常规变异 <span class="math inline">\(T_x=T_y\)</span> 都相同</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+a(\mathbf{u}_i \rightarrow \mathbf{u}_t)=\frac{I^{*}(\mathbf{u}_t)\cdot
+T^{*}(\mathbf{u}_i)}{I^{*}(\mathbf{u}_i)\cdot T^{*}(\mathbf{u}_t)}
+\]</span></p>
+<ul>
+<li>将 <span class="math inline">\(I^{\ast}\)</span>
+近似为常数【低方差】</li>
+</ul>
+<p><span class="math display">\[
+a(\mathbf{u}_i \rightarrow \mathbf{u}_t)\approx\frac{
+T^{*}(\mathbf{u}_i)}{T^{*}(\mathbf{u}_t)}
+\]</span></p>
+<ul>
+<li>此时，如果变异策略是随机采样，则接受率近似为 1</li>
+</ul>
+<h1 id="变异策略">变异策略</h1>
+<ul>
+<li>Designing mutation strategies in the <strong>infinite dimensional
+cube</strong>：<strong>lazy evaluation</strong></li>
+<li>空间是无限的，如何变异</li>
+<li>如果一个变量 <span class="math inline">\(u\)</span>
+没有被用到，那么就不需要更新它【不用每次都更新他，用的时候再更新】</li>
+<li>具体看第 6 章节的实现部分</li>
+</ul>
+<h1 id="utilization-of-rejected-and-large-step-samples">Utilization of
+rejected and large step samples</h1>
+<ul>
+<li>原始 MLT
+利用被拒绝样本的方式：<strong>记录他们的加权均值</strong></li>
+<li>large step sample 能用 MIS 更好处理</li>
+<li>MLT 通过 <span class="math inline">\(p_1(\mathbf{u})\)</span> 生成
+<span class="math inline">\(M_1\)</span> 个样本；large step 通过 <span class="math inline">\(p_2(\mathbf{u})\)</span> 生成 <span class="math inline">\(M_2\)</span> 个样本</li>
+<li>balance heuristic MIS</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+w_1(\mathbf{u}) = \frac{M_1 p_1(\mathbf{u})}{M_1 p_1(\mathbf{u}) + M_2
+p_2(\mathbf{u})}\\
+w_2(\mathbf{u}) = \frac{M_2 p_2(\mathbf{u})}{M_1 p_1(\mathbf{u}) + M_2
+p_2(\mathbf{u})}
+\end{aligned}
+\]</span></p>
+<ul>
+<li>MLT：<span class="math inline">\(p_1(\mathbf{u})=I^{\ast}(\mathbf{u})/b\)</span></li>
+<li>large step：<span class="math inline">\(p_2(\mathbf{u})=1\)</span></li>
+<li>如果 <span class="math inline">\(p_{\text{large}}\)</span> 表示采样
+large step 的概率
+<ul>
+<li><span class="math inline">\(M_1=M\rightarrow
+M_2=p_{\text{large}}M\)</span>【<strong>一共变异 <span class="math inline">\(M\)</span> 次，large step
+的时候同时生成两个样本</strong>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+M_1 p_1(\mathbf{u}) + M_2
+p_2(\mathbf{u})=M(I^{\ast}(\mathbf{u})/b+p_{\text{large}})
+\]</span></p>
+<p><span class="math display">\[
+w_1(\mathbf{u})=
+\frac{I^{\ast}(\mathbf{u})/b}{I^{\ast}(\mathbf{u})/b+p_{\text{large}}}
+\]</span></p>
+<p><span class="math display">\[
+w_2(\mathbf{u})=
+\frac{p_{\text{large}}}{I^{\ast}(\mathbf{u})/b+p_{\text{large}}}
+\]</span></p>
+<ul>
+<li>加权</li>
+<li>旧样本的贡献【MLT 转移成功，但是使用加权贡献】
+<ul>
+<li>其实都一样了，<span class="math inline">\(w\)</span> 和 <span class="math inline">\(F/p\)</span> 的 <span class="math inline">\(p\)</span> 消掉了</li>
+<li>转移失败 <span class="math inline">\((1-a)\)</span> 就是 <span class="math inline">\(1\)</span> 了</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+(1 - a)\cdot w_1(\mathbf{u})\cdot
+\dfrac{F^{*}(\mathbf{u})}{p_1(\mathbf{u})}=\frac{(1 -
+a)}{I^{*}(\mathbf{u})/b + p_{\text{large}}}\cdot F^{*}(\mathbf{u})
+\]</span></p>
+<ul>
+<li>新样本的贡献（large step）
+<ul>
+<li>the generated path is a sample of the Metropolis method and a sample
+of the uncorrelated strategy at the same time【贡献两次】
+<ul>
+<li><span style="color:red;font-weight:bold">怎么理解这个既是又是</span>：相当于在原来的整体估计上，叠加上了一个无偏估计，是正确的【因为反正是直方图】</li>
+</ul></li>
+<li>然后 MLT 部分需要被加权</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+a\cdot w_{1}(\mathbf{u})\cdot \dfrac{F^{*}(\mathbf{u})}{p_1(\mathbf{u})}
++ w_{2}(\mathbf{u})\cdot
+\dfrac{F^{*}(\mathbf{u})}{p_2(\mathbf{u})}=\frac{(a +
+1)}{I^{*}(\mathbf{u})/b + p_{\text{large}}}\cdot F^{*}(\mathbf{u})
+\]</span></p>
+<ul>
+<li>新样本的贡献（small step）</li>
+</ul>
+<p><span class="math display">\[
+a\cdot w_1(\mathbf{u})\cdot
+\dfrac{F^{*}(\mathbf{u})}{p_1(\mathbf{u})}=\frac{a}{I^{*}(\mathbf{u})/b
++ p_{\text{large}}}\cdot F^{*}(\mathbf{u})
+\]</span></p>
+<ul>
+<li>使用变量 <span class="math inline">\(\text{large-step}\)</span>
+（0，1）统一表示两个式子</li>
+</ul>
+<p><span class="math display">\[
+\frac{(a+\text{large-step})}{I^{*}(\mathbf{u})/b +
+p_{\text{large}}}\cdot F^{*}(\mathbf{u})
+\]</span></p>
+<ul>
+<li><strong>理解</strong>：large step 和 MLT 做 MIS；然后 MLT 使用 <span class="math inline">\((a,1-a)\)</span> 加权</li>
+</ul>
+<h2 id="实现理解"><span id="impl-understanding">实现理解</span></h2>
+<ul>
+<li>mitsuba0.6 的实现，把所有权重都乘上了 <span class="math inline">\(I^{*}(\mathbf{u})\)</span>，但是在 Veach-Style
+用的还是 <span class="math inline">\((a,1-a)\)</span>【没乘】</li>
+<li><span style="color:red;font-weight:bold">实现需要这样</span>，<a href="/kits/canvas/math/mlt2/">实验</a></li>
+</ul>
+<h3 id="讨论">讨论</h3>
+<ul>
+<li>如果是灰度图，那么每个样本累计 1，最终的直方图就是灰度的分布
+<ul>
+<li>和下面的 Veach-Style 一样，这里是以 <span class="math inline">\(a\)</span> 概率累计 <span class="math inline">\(I_{\text{new}}\)</span>，<span class="math inline">\(1-a\)</span> 概率累计 <span class="math inline">\(I_{\text{old}}\)</span></li>
+<li>而 Veach-Style 直接累计 <span class="math inline">\(aI_{\text{new}}+(1-a)I_{\text{old}}\)</span></li>
+<li>表达式是一样的</li>
+</ul></li>
+<li>如果是颜色图，那么每个样本累计用 <span class="math inline">\(I(\cdot)\)</span> 归一化之后的 color 值
+<ul>
+<li>使用 <span class="math inline">\(I(\cdot)\)</span>
+作为平稳分布，那么得到的结果就已经是 <span class="math inline">\(I(\cdot)\)</span>
+的一个近似了；在其上面乘上平均颜色就是结果</li>
+<li><span class="math inline">\(I(\cdot)\)</span> 一般使用
+luminance</li>
+</ul></li>
+<li>Veach-Style 理解
+<ul>
+<li>这里还是分布，相当于累积到直方图（图片上）的值需要正比于 <span class="math inline">\(I(\cdot)\)</span></li>
+<li>权重只能是 <span class="math inline">\((a,1-a)\)</span>，<span style="color:red;font-weight:bold">试过 <span class="math inline">\((0.5,0.5)\)</span>
+结果是错的</span>，具体理解如下</li>
+<li>假设灰度；假设目前达到了平稳分布 <span class="math inline">\(p\)</span>
+<ul>
+<li>灰度转化为 color，和上面颜色的转化一样</li>
+</ul></li>
+<li>那么累积到像素 <span class="math inline">\(i\)</span>
+的期望贡献如下，于是累计的时候累计的 <span class="math inline">\(I_i=1\)</span>（注意到推导过程没有用到 <span class="math inline">\(I_i\)</span> 信息，所以可以这么搞），此时便正比于
+<span class="math inline">\(p_i\)</span> 了</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;p_i\left(\sum_{j\ne i} T_{i\to j}\left(1-a_{i\to
+j}\right)I_{i}\right)+\sum_{j\ne i} p_j\left(T_{j\to i}a_{j\to
+i}\right)I_{i}\\
+=&amp;\sum_{j\ne i}\left( p_iT_{i\to j}\left(1-a_{i\to j}\right)+
+p_jT_{j\to i}a_{j\to i}\right)I_{i}\\
+=&amp;\sum_{j\ne i}\left( p_iT_{i\to j}- p_iT_{i\to j}a_{i\to j}+
+p_jT_{j\to i}a_{j\to i}\right)I_{i}\\
+(细致平衡)=&amp;\sum_{j\ne i}\left( p_iT_{i\to j}\right)I_{i}\\
+=&amp;p_iI_i
+\end{aligned}
+\]</span></p>
+<ul>
+<li>Kelemen-Style 理解
+<ul>
+<li>最终累积到图片上的就是和 PT 一样估计的最终结果
+<ul>
+<li>然而此时的 color 已经被 <span class="math inline">\(I(\cdot)\)</span> 归一化了，因此需要乘回去</li>
+</ul></li>
+<li>这是一种重要性采样，假设我们现在已经达到了细致平衡</li>
+<li>计算得到的权重就是最终两种采样方式的 MIS 权重</li>
+<li>两种方式都用，相当于在最终结果上再叠加了一层 PT
+的结果，所以也是对的</li>
+<li><code>proposedWeight</code> 这一部分
+<code>(a + (largeStep ? 1 : 0))</code> 修改为我们认知中的
+<code>(largeStep ? a : 1)</code> 当然也是正确的
+<ul>
+<li>这样的话相当于就是 1 个样本</li>
+</ul></li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (a &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (m_config.kelemenStyleWeights &amp;&amp; !m_config.importanceMap) &#123;</span><br><span class="line">        <span class="comment">/* Kelemen-style MLT weights (these don&#x27;t work for 2-stage MLT) */</span></span><br><span class="line">        currentWeight = (<span class="number">1</span> - a) * current-&gt;luminance</span><br><span class="line">            / (current-&gt;luminance/m_config.luminance + m_config.pLarge);</span><br><span class="line">        proposedWeight = (a + (largeStep ? <span class="number">1</span> : <span class="number">0</span>)) * proposed-&gt;luminance</span><br><span class="line">            / (proposed-&gt;luminance/m_config.luminance + m_config.pLarge);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* Veach-style use of expectations */</span></span><br><span class="line">        currentWeight = <span class="number">1</span>-a;</span><br><span class="line">        proposedWeight = a;</span><br><span class="line">    &#125;</span><br><span class="line">    accept = (a == <span class="number">1</span>) || (random-&gt;<span class="built_in">nextFloat</span>() &lt; a);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (m_config.kelemenStyleWeights)&#123;</span><br><span class="line">        currentWeight = current-&gt;luminance</span><br><span class="line">            / (current-&gt;luminance/m_config.luminance + m_config.pLarge);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        currentWeight = <span class="number">1</span>;   </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="实现细节">实现细节</h1>
+<ul>
+<li><code>mitsuba0.6</code> 上的实现似乎和文章是一样的，看看代码</li>
+<li><code>PrimarySample(i)</code>，生成第 <span class="math inline">\(i\)</span> 个随机数
+<ul>
+<li>布尔变量 <span class="math inline">\(\text{large-step}\)</span></li>
+<li><code>push</code>
+是保存旧的状态，如果被拒绝了的话，用于恢复旧的样本</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">float</span> <span class="title">PrimarySample</span><span class="params">(<span class="type">int</span> i)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (u[i].modify &lt; time) &#123;</span><br><span class="line">        <span class="keyword">if</span> (large_step) &#123; <span class="comment">// large step</span></span><br><span class="line">            <span class="built_in">Push</span>(i, u[i]); <span class="comment">// save state</span></span><br><span class="line">            u[i].modify = time;</span><br><span class="line">            u[i].value = <span class="built_in">random</span>();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123; <span class="comment">// small step</span></span><br><span class="line">            <span class="keyword">if</span> (u[i].modify &lt; large_step_time) &#123;</span><br><span class="line">                <span class="comment">// large step 之后就和之前独立了，因此只需要记录最新的 large_step_time</span></span><br><span class="line">                u[i].modify = large_step_time;</span><br><span class="line">                u[i].value = <span class="built_in">random</span>();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// lazy evaluation of mutations</span></span><br><span class="line">            <span class="keyword">while</span> (u[i].modify &lt; time<span class="number">-1</span>) &#123;</span><br><span class="line">                u[i].value = <span class="built_in">Mutate</span>(u[i].value);</span><br><span class="line">                u[i].modify++;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="built_in">Push</span>(i, u[i]); <span class="comment">// save state</span></span><br><span class="line">            u[i].value = <span class="built_in">Mutate</span>(u[i].value);</span><br><span class="line">            u[i].modify++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> u[i].value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>变异策略：<span class="math inline">\([s_1,s_2]\)</span> 之间</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">float</span> <span class="title">Mutate</span><span class="params">( <span class="type">float</span> value )</span> </span>&#123;</span><br><span class="line">    <span class="type">float</span> s1 = <span class="number">1.</span>/<span class="number">1024</span>, s2 = <span class="number">1.</span>/<span class="number">64</span>;</span><br><span class="line">    <span class="type">float</span> dv = s2*<span class="built_in">exp</span>(-<span class="built_in">log</span>(s2/s1)*<span class="built_in">random</span>());</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">random</span>() &lt; <span class="number">0.5</span>) &#123;</span><br><span class="line">        value += dv; <span class="keyword">if</span> (value &gt; <span class="number">1</span>) value -= <span class="number">1</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        value -= dv; <span class="keyword">if</span> (value &lt; <span class="number">0</span>) value += <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>每个样本至少会贡献两次（刚生成，新的生成而且被接受）
+<ul>
+<li><code>Next</code> 函数返回失效样本，保留还在用的样本</li>
+<li>直接把贡献权重累计</li>
+<li>contrib: <span class="math inline">\(F^{\ast}(\mathbf{u})\)</span>
+<ul>
+<li>可能是个数组，贡献给多个像素</li>
+</ul></li>
+<li>I：<span class="math inline">\(I^{\ast}(\mathbf{u})\)</span></li>
+<li>接收率计算不需要考虑转移函数 <span class="math inline">\(T\)</span>，因为不管是 large/small，<span class="math inline">\(T\)</span> 都是对称的</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Sample <span class="title">Next</span><span class="params">(<span class="type">float</span> I, Contrib contrib)</span> </span>&#123;</span><br><span class="line">    <span class="type">float</span> a = <span class="built_in">min</span>(<span class="number">1</span>, I/oldI); <span class="comment">// accept prob.</span></span><br><span class="line">    newsample.contrib = contrib;</span><br><span class="line">    newsample.w = (a+large_step)/(I/b+plarge)/M;</span><br><span class="line">    <span class="comment">// cumulate weight</span></span><br><span class="line">    oldsample.w += (<span class="number">1</span>-a)/(oldI/b+plarge)/M;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">random</span>() &lt; a) &#123; <span class="comment">// accept</span></span><br><span class="line">        oldI = I;</span><br><span class="line">        contribsample = oldsample;</span><br><span class="line">        oldsample = newsample;</span><br><span class="line">        <span class="keyword">if</span> (large_step) large_step_time = time;</span><br><span class="line">        time++;</span><br><span class="line">        <span class="built_in">ClearStack</span>(); <span class="comment">// no state restoration</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123; <span class="comment">// reject</span></span><br><span class="line">        contribsample = newsample;</span><br><span class="line">        <span class="comment">// restore state</span></span><br><span class="line">        <span class="keyword">while</span>( !<span class="built_in">IsStackEmpty</span>() ) <span class="built_in">Pop</span>(i, u[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    large_step = (<span class="built_in">random</span>() &lt; plarge) ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">return</span> contribsample;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="evaluation">Evaluation</h1>
+<ul>
+<li>pt，simple BDPT（只连端点）、normal BDPT（所有点都连）</li>
+<li>MLT 只改动局部，获取样本计算代价小；我们需要重新构建，计算代价大
+<ul>
+<li>需要同时间比较</li>
+</ul></li>
+<li>验证了我们算法的有效性、MIS 的有效性</li>
+</ul>
+<p><img src="/2025/03/21/CG/Papers/2002/PSSMLT/fig5-result1-RMS.png"></p>
+<p><img src="/2025/03/21/CG/Papers/2002/PSSMLT/fig5-result2-perceptual.png"></p>
+<ul>
+<li>复杂场景 MIS 效果好
+<ul>
+<li>尤其是复杂场景的暗处【MLT 本身处理暗处效果不好】</li>
+</ul></li>
+<li>large step 降低相关性带来的 bias</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/EG/" rel="tag"># EG</a>
+              <a href="/tags/MLT/" rel="tag"># MLT</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/20/CG/Papers/2005/MLT-impl/" rel="prev" title="(论文)[2005-CGVR] A Practical Introduction to Metropolis Light Transport">
+                  <i class="fa fa-chevron-left"></i> (论文)[2005-CGVR] A Practical Introduction to Metropolis Light Transport
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/21/CG/Papers/2022/Biased2Unbiased/" rel="next" title="(论文)[2022-SIG] Unbiased and consistent rendering using biased estimators">
+                  (论文)[2022-SIG] Unbiased and consistent rendering using biased estimators <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

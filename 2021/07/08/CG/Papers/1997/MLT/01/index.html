@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="光传输方程的路径空间形式，Metropolis 算法理论">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[1997-SIG] Metropolis Light Transport(1)">
+<meta property="og:url" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/01/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="光传输方程的路径空间形式，Metropolis 算法理论">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/01/fig1-path.png">
+<meta property="og:image" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/01/MLT-pseudocode.png">
+<meta property="og:image" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/01/fig1-path.png">
+<meta property="article:published_time" content="2021-07-08T13:50:00.000Z">
+<meta property="article:modified_time" content="2025-04-07T06:36:53.348Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="MLT">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/07/08/CG/Papers/1997/MLT/01/fig1-path.png">
+
+
+<link rel="canonical" href="http://example.com/2021/07/08/CG/Papers/1997/MLT/01/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2021/07/08/CG/Papers/1997/MLT/01/","path":"2021/07/08/CG/Papers/1997/MLT/01/","title":"(论文)[1997-SIG] Metropolis Light Transport(1)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[1997-SIG] Metropolis Light Transport(1) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#metropolis-light-transport"><span class="nav-text">Metropolis Light Transport</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#abstract"><span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#overview-of-the-mlt-algorithm"><span class="nav-text">Overview of the MLT
+algorithm</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#metropolis-sampling-algorithm"><span class="nav-text">Metropolis sampling
+algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#the-stationary-distribution"><span class="nav-text">The stationary distribution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#detailed-balance"><span class="nav-text">Detailed balance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#the-acceptance-probability"><span class="nav-text">The acceptance probability</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95%E5%AF%B9%E6%AF%94"><span class="nav-text">遗传算法对比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#the-path-integral-formulation-of-light-transport"><span class="nav-text">The path
+integral formulation of light transport</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#the-light-transport-equation"><span class="nav-text">The light transport equation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#the-measurement-equation"><span class="nav-text">The measurement equation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#the-path-integral-formulation"><span class="nav-text">The path integral
+formulation</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/08/CG/Papers/1997/MLT/01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[1997-SIG] Metropolis Light Transport(1) | Banbao">
+      <meta itemprop="description" content="光传输方程的路径空间形式，Metropolis 算法理论">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[1997-SIG] Metropolis Light Transport(1)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-07-08 21:50:00" itemprop="dateCreated datePublished" datetime="2021-07-08T21:50:00+08:00">2021-07-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-04-07 14:36:53" itemprop="dateModified" datetime="2025-04-07T14:36:53+08:00">2025-04-07</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">光传输方程的路径空间形式，Metropolis 算法理论</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li><a href="/2021/07/08/CG/Papers/1997/MLT/00/">目录</a></li>
+</ul>
+<h1 id="metropolis-light-transport">Metropolis Light Transport</h1>
+<h1 id="abstract">Abstract</h1>
+<ul>
+<li>MLT 是无偏的</li>
+<li>在复杂场景中表现很好，简单场景中和之前的方法相比也不错
+<ul>
+<li>bright indirect light</li>
+<li>small geometric holes</li>
+<li>glossy surfaces</li>
+</ul></li>
+<li>MLT 优点，局部搜索
+<ul>
+<li>平均计算代价小（~1-2 rays）</li>
+<li>一旦一条重要路径被发现，周围的也会被发现【均摊开销】</li>
+<li>可以根据光路的相关性设计变异策略</li>
+</ul></li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>为了处理真实场景，算法需要足够鲁棒：支持 complex
+geometry、materials、illumination<br>
+</li>
+<li>MCPT 复杂场景失效（例如门缝外的光、焦散等）</li>
+<li>复杂光路求解：BDPT、Path Guiding（radiance guidance）</li>
+<li>MLT 按照光路对最终图片的贡献去采样</li>
+<li>第一次将 Metropolis 方法引入 light transport 求解</li>
+</ul>
+<h1 id="overview-of-the-mlt-algorithm">Overview of the MLT
+algorithm</h1>
+<p><img src="/2021/07/08/CG/Papers/1997/MLT/01/fig1-path.png"></p>
+<ul>
+<li>path <span class="math inline">\(\bar{x}=\mathrm{x}_0\mathrm{x}_1\cdots\mathrm{x}_k\)</span>
+<ul>
+<li><span class="math inline">\(\mathrm{x}_0\)</span> 是光源</li>
+<li>长度 <span class="math inline">\(k\ge1\)</span></li>
+</ul></li>
+<li><span class="math inline">\(f\)</span>：<strong>image contribution
+function</strong></li>
+</ul>
+<p><span class="math display">\[
+\int_{D}f(\bar{x})\;d\mu(\mathrm{x})
+\]</span></p>
+<ul>
+<li>策略：正比于 <span class="math inline">\(f\)</span>
+对光路进行采样，然后在相机平面记录贡献值</li>
+<li>生成一系列 paths <span class="math inline">\(\bar{X}_0,\bar{X}_1,\cdots,\bar{X}_N\)</span>
+<ul>
+<li><span class="math inline">\(\bar{X}_i\)</span> 通过 <span class="math inline">\(\bar{X}_{i-1}\)</span> 随机扰动（random
+mutation）得到</li>
+</ul></li>
+<li>mutation
+可以随意，典型的包括：<strong>添加、删除、替换当前路径的部分节点</strong></li>
+<li>mutation 可以被拒绝，取决于接受率（新老路径的相对贡献）
+<ul>
+<li>拒绝后 <span class="math inline">\(\bar{X}_i\)</span>
+设置为原来的路径 <span class="math inline">\(\bar{X}_{i-1}\)</span></li>
+</ul></li>
+<li>MLT 框架下，采样的 <span class="math inline">\(\bar{X}_i\)</span>
+最终会服从于 <span class="math inline">\(f\)</span>
+的分布【平稳分布】</li>
+<li>算法如下</li>
+</ul>
+<p><img src="/2021/07/08/CG/Papers/1997/MLT/01/MLT-pseudocode.png"></p>
+<h1 id="metropolis-sampling-algorithm">Metropolis sampling
+algorithm</h1>
+<ul>
+<li><p>来源于 computational physics，1953</p></li>
+<li><p>设定</p>
+<ul>
+<li><p>状态空间 <span class="math inline">\(\Omega\)</span></p></li>
+<li><p>非负函数 <span class="math inline">\(f:\Omega\to
+\mathbb{R}^+\)</span></p></li>
+<li><p>初始状态 <span class="math inline">\(\bar{X}_0\in\Omega\)</span></p></li>
+</ul></li>
+<li><p>目标：生成随机游走样本 <span class="math inline">\(\bar{X}_0,\bar{X}_1,\cdots,\bar{X}_N\)</span>，使得不管初始样本是什么，让最终的样本
+<span class="math inline">\(\bar{X}_i\)</span> 的分布正比于 <span class="math inline">\(f\)</span></p>
+<ul>
+<li>Metropolis 算法不要求 <span class="math inline">\(f\)</span> 积分为
+1</li>
+</ul></li>
+<li><p><span class="math inline">\(\bar{X}_i\)</span> 通过对 <span class="math inline">\(\bar{X}_{i−1}\)</span> 的随机扰动生成</p>
+<ul>
+<li>我们：path mutations</li>
+<li>马尔科夫链：<span class="math inline">\(\bar{X}_i\)</span> 只依赖于
+<span class="math inline">\(\bar{X}_{i−1}\)</span></li>
+</ul></li>
+<li><p>转移函数 <span class="math inline">\(K(\bar{y}|\bar{x})\)</span></p></li>
+</ul>
+<p><span class="math display">\[
+\int_{\Omega}K(\bar{y}|\bar{x})\;d\mu(\bar{y})=1,\forall\bar{x}\in\Omega
+\]</span></p>
+<h2 id="the-stationary-distribution">The stationary distribution</h2>
+<ul>
+<li>平稳分布（状态不变）</li>
+<li><span class="math inline">\(\bar{X}_i\)</span>都是服从分布 <span class="math inline">\(p_i\)</span> 的随机变量</li>
+</ul>
+<p><span class="math display">\[
+p_{i}(\bar{x})=\int_{G}K(\bar{x}|\bar{y})\;p_{i-1}(\bar{y})\;d\mu(\bar{y})\tag{1}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(p_i\)</span> 最终会收敛到唯一的分布
+<span class="math inline">\(p\)</span>，称为<strong>平稳分布</strong>
+<ul>
+<li><strong>注意到 <span class="math inline">\(p\)</span>
+不依赖于初始状态 <span class="math inline">\(\bar{X}_0\)</span></strong></li>
+</ul></li>
+</ul>
+<h2 id="detailed-balance">Detailed balance</h2>
+<ul>
+<li>细致平衡</li>
+<li>在实际的物理系统中，<span class="math inline">\(K\)</span>
+是由物理约束决定的，给定初始状态便会变化到平稳分布</li>
+<li>Metropolis 算法与之相反，构建 <span class="math inline">\(K\)</span>
+使得平稳分布正比于 <span class="math inline">\(f\)</span>（越快越好）
+<ul>
+<li>达到细致平衡</li>
+</ul></li>
+<li>给定 <span class="math inline">\(\bar{X}_{i-1}\)</span>，如果过程生成 <span class="math inline">\(\bar{X}_i\)</span>
+<ul>
+<li>通过 <strong>tentative transition function</strong> <span class="math inline">\(T\)</span> 生成一个样本 <span class="math inline">\(X_i&#39;\)</span></li>
+<li><span class="math inline">\(T(X_i&#39;|\bar{X}_{i-1})\)</span>
+表示转移概率</li>
+<li>按照接受率 <span class="math inline">\(a\)</span> 接受</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+X_i=
+\left\{
+\begin{array}{ll}
+\bar{X}_i&#39;    &amp;\text{with probability
+}a(\bar{X}_i&#39;|\bar{X}_{i-1})\\
+\bar{X}_{i-1} &amp;\text{otherwise}
+\end{array}
+\right.
+\tag{2}
+\]</span></p>
+<ul>
+<li><span id="eq3">细致平衡条件</span>【达到平稳分布的<strong>充分条件</strong>】</li>
+</ul>
+<p><span class="math display">\[
+f(\bar{x})\;T(\bar{y}|\bar{x})\;a(\bar{y}|\bar{x})=f(\bar{y})\;T(\bar{x}|\bar{y})\;a(\bar{x}|\bar{y})\tag{3}
+\]</span></p>
+<ul>
+<li><span id="eq4">细致平衡条件是平稳分布的充分条件</span>
+<ul>
+<li>假定 <span class="math inline">\(p_{i-1}\propto f\)</span>
+而且满足细致平衡</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+p_{i}(\bar{x})=&amp;\Big[1-\int_{\Omega}T(\bar{y}|\bar{x})\;a(\bar{y}|\bar{x})\;\mathrm{d}\mu(\bar{y})\Big]p_{i-1}(\bar{x})\\
+&amp;+\int_{\Omega}p_{i-1}(\bar{y})T(\bar{x}|\bar{y})\;a(\bar{x}|\bar{y})\;\mathrm{d}\mu(\bar{y})\\
+&amp;\\
+&amp;=p_{i-1}(\bar{x})\\
+\end{aligned}\tag{4}
+\]</span></p>
+<h2 id="the-acceptance-probability">The acceptance probability</h2>
+<ul>
+<li>接受概率</li>
+<li><span class="math inline">\(f\)</span> 给定，<span class="math inline">\(T\)</span> 任意选取，等式 <a href="#eq3">(3)</a>取决于 <span class="math inline">\(a(\bar{y}|\bar{x})/a(\bar{x}|\bar{y})\)</span>.</li>
+<li>为了快速收敛，希望 <span class="math inline">\(a\)</span>
+越大越好</li>
+</ul>
+<p><span class="math display">\[
+a(\bar{y}|\bar{x})=\min\Big\{1,\dfrac{f(\bar{y})T(\bar{x}|\bar{y})}{f(\bar{x})T(\bar{y}|\bar{x})}\Big\}
+\]</span></p>
+<ul>
+<li>按照这个规则，有一个方向的转移一定会被接受【另一个方向可能被拒绝，但是总的移动步数期望是一样的】</li>
+</ul>
+<h2 id="遗传算法对比">遗传算法对比</h2>
+<ul>
+<li>MLT 解决采样问题，遗传算法解决优化问题</li>
+<li>遗传算法在群体中起效，MLT 只需要保存当前状态</li>
+<li>遗传算法的变异策略更随意，MLT 有限制（需要算转移概率）</li>
+<li><strong>Rayvolution: An evolutionaryray tracing
+algorithm</strong>【EGSR Workshop 1994】
+<ul>
+<li>利用遗传算法优化半球面的积分，优化 incident radiance 的分布【<span style="color:red;font-weight:bold">path
+guiding？没找到论文</span>】</li>
+</ul></li>
+</ul>
+<h1 id="the-path-integral-formulation-of-light-transport">The path
+integral formulation of light transport</h1>
+<ul>
+<li>MLT 基于路径空间的形式</li>
+</ul>
+<h2 id="the-light-transport-equation">The light transport equation</h2>
+<ul>
+<li>光传输方程</li>
+</ul>
+<p><span class="math display">\[
+L(\mathrm{x&#39;}\to\mathrm{x&#39;&#39;})=L_e(\mathrm{x&#39;}\to\mathrm{x&#39;&#39;})+\int_{\mathcal{M}}L(\mathrm{x}\to\mathrm{x&#39;})f_s(\mathrm{x}\to\mathrm{x&#39;}\to\mathrm{x&#39;&#39;}){\color{red}G(\mathrm{x}\leftrightarrow\mathrm{x&#39;})}\;\mathrm{d}A(\mathrm{x})
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\mathcal{M}\)</span> 表面集合</li>
+<li><span class="math inline">\(A\)</span> 面积度量</li>
+<li><span class="math inline">\(G\)</span> 几何项与可见性
+<ul>
+<li><span class="math inline">\(V\)</span> 可见性</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+G(\mathrm{x}\leftrightarrow\mathrm{x&#39;})=V(\mathrm{x}\leftrightarrow\mathrm{x&#39;})\dfrac{|\cos\theta_o\cos\theta_i&#39;|}{\Vert\mathrm{x}-\mathrm{x&#39;}\Vert^2}
+\]</span></p>
+<h2 id="the-measurement-equation">The measurement equation</h2>
+<p><span class="math display">\[
+m_j=\int_{\mathcal{M}\times\mathcal{M}}W_e^{(j)}(\mathrm{x}\to\mathrm{x}&#39;)L(\mathrm{x}\to\mathrm{x}&#39;)G(\mathrm{x}\leftrightarrow\mathrm{x}&#39;)\;\mathrm{d}A(\mathrm{x})\;\mathrm{d}A(\mathrm{x}&#39;)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(m_j\)</span> 表示对最终图片的贡献</li>
+<li><span class="math inline">\(W_e^{(j)}(\mathrm{x}\to\mathrm{x&#39;})\)</span>
+<ul>
+<li>实际：相机响应函数（<strong>flux responsivity</strong> ）</li>
+<li>渲染：重要性函数（<strong>importance function</strong>）</li>
+</ul></li>
+</ul>
+<h2 id="the-path-integral-formulation">The path integral
+formulation</h2>
+<ul>
+<li>路径积分形式：递归展开</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+m_j=&amp;\int_{\mathcal{M}^2}L(\mathrm{x}_0\to\mathrm{x}_1)G(\mathrm{x}_0\leftrightarrow\mathrm{x}_1)W_e^{(j)}(\mathrm{x}_0\to\mathrm{x}_1)\;\mathrm{d}A(\mathrm{x}_0)\;\mathrm{d}A(\mathrm{x}_1)\\
+&amp;+\int_{\mathcal{M}^3}L(\mathrm{x}_0\to\mathrm{x}_1)G(\mathrm{x}_0\leftrightarrow\mathrm{x}_1)f_s(\mathrm{x}_0\leftrightarrow\mathrm{x}_1\leftrightarrow\mathrm{x}_2)G(\mathrm{x}_1\leftrightarrow\mathrm{x}_2)W_e^{(j)}(\mathrm{x}_1\to\mathrm{x}_2)\;\mathrm{d}A(\mathrm{x}_0)\;\mathrm{d}A(\mathrm{x}_1)\;\mathrm{d}A(\mathrm{x}_2)\\
+&amp;\cdots\\
+\end{aligned}
+\]</span></p>
+<ul>
+<li>能够写成统一的形式</li>
+</ul>
+<p><span class="math display">\[
+m_j=\int_{\Omega}f_j(\bar{x})\;\mathrm{d}\mu(\bar{x})
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\Omega_k\)</span> 长度为 <span class="math inline">\(k\)</span> 的路径集合
+<ul>
+<li><span class="math inline">\(\bar{x}=\mathrm{x}_0\mathrm{x}_1\cdots\mathrm{x}_k\)</span>，<span class="math inline">\(k\ge1\land\forall x_i\in\mathcal{M}\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathrm{d}\mu_k(\mathrm{x}_0\cdots\mathrm{x}_k)=\mathrm{d}A(\mathrm{x}_0)\cdots\;\mathrm{d}A(\mathrm{x}_k)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\Omega\)</span> 路径全空间（<span class="math inline">\(\Omega_k\)</span> 的并）， <span class="math inline">\(\mu\)</span> 表示 <span class="math inline">\(\Omega\)</span> 上的度量
+<ul>
+<li><span class="math inline">\(D\)</span>
+表示特定路径，右边表示找到其对应长度所在的子空间，然后度量</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mu(D)=\sum_{k=1}^{\infty}\mu_k(D\;\cap\Omega_k)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(f_j\)</span>：<strong>measurement
+contribution function</strong></li>
+<li>例子</li>
+</ul>
+<p><span class="math display">\[
+f_j(\mathrm{x}_0\mathrm{x}_1)=L_e(\mathrm{x}_0\to\mathrm{x}_1)G(\mathrm{x}_0\leftrightarrow\mathrm{x}_1)W_e^{(j)}(\mathrm{x}_0\to\mathrm{x}_1)
+\]</span></p>
+<p><img src="/2021/07/08/CG/Papers/1997/MLT/01/fig1-path.png"></p>
+<ul>
+<li>上面转化的目的：表示成统一的积分形式，方便 MLT</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/MLT/" rel="tag"># MLT</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/08/CG/Papers/1997/MLT/00/" rel="prev" title="(论文)[1997-SIG] Metropolis Light Transport(目录)">
+                  <i class="fa fa-chevron-left"></i> (论文)[1997-SIG] Metropolis Light Transport(目录)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/08/CG/Papers/1997/MLT/02/" rel="next" title="(论文)[1997-SIG] Metropolis Light Transport(2)">
+                  (论文)[1997-SIG] Metropolis Light Transport(2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

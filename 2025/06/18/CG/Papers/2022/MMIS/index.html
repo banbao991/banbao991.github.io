@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="MMIS 将每一次采样到的策略都认为是一种新策略（可以重复），然后对他们做 balance heuristic MIS，用复杂的计算带来了好的结果；SMIS 只能处理一个参数化的采样方式，但是 MMIS 能够处理多种采样方式；两个应用 path filtering、photon mapping">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2022-SIGA-C] Marginal Multiple Importance Sampling">
+<meta property="og:url" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="MMIS 将每一次采样到的策略都认为是一种新策略（可以重复），然后对他们做 balance heuristic MIS，用复杂的计算带来了好的结果；SMIS 只能处理一个参数化的采样方式，但是 MMIS 能够处理多种采样方式；两个应用 path filtering、photon mapping">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/fig1-MMIS-n.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/upt.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/upt-remove-vertex.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/marginal-path-sampling.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/fig-path-filter.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/fig-mps-path-filter.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/fig-mps-multi-vertex-path-filter.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/fig-pm.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/fig-mps-pm.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/fig-mps-multi-vertex-path-filter-2.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/alg1-mvpt.png">
+<meta property="og:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/alg2-range-query-based-clusting.png">
+<meta property="article:published_time" content="2025-06-18T06:25:08.000Z">
+<meta property="article:modified_time" content="2025-06-19T08:56:04.428Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="MIS">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/06/18/CG/Papers/2022/MMIS/fig1-MMIS-n.png">
+
+
+<link rel="canonical" href="http://example.com/2025/06/18/CG/Papers/2022/MMIS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/06/18/CG/Papers/2022/MMIS/","path":"2025/06/18/CG/Papers/2022/MMIS/","title":"(论文)[2022-SIGA-C] Marginal Multiple Importance Sampling"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2022-SIGA-C] Marginal Multiple Importance Sampling | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#marginal-multiple-importance-sampling"><span class="nav-text">Marginal Multiple
+Importance Sampling</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mmis"><span class="nav-text">MMIS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#marginal-mis-estimator"><span class="nav-text">Marginal MIS estimator</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#canonical-experiments"><span class="nav-text">Canonical experiments</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#path-sampling-using-mmis"><span class="nav-text">Path Sampling Using MMIS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mcpt"><span class="nav-text">MCPT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#marginal-path-sampling-framework"><span class="nav-text">marginal path sampling
+framework</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#multi-vertex-path-filtering"><span class="nav-text">Multi-Vertex Path Filtering</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#extension-to-multi-vertex-filtering"><span class="nav-text">Extension to multi-vertex
+filtering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#discussion"><span class="nav-text">Discussion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#result"><span class="nav-text">Result</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#multi-vertex-photon-mapping"><span class="nav-text">Multi-Vertex Photon Mapping</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#results"><span class="nav-text">Results</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#conclusion"><span class="nav-text">Conclusion</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#appedix"><span class="nav-text">Appedix</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mmis-%E6%97%A0%E5%81%8F%E6%80%A7%E8%AF%81%E6%98%8E"><span class="nav-text">MMIS
+无偏性证明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mvpf-%E5%AE%9E%E7%8E%B0"><span class="nav-text">MVPF 实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#iterative-mvpf-%E7%AE%97%E6%B3%95"><span class="nav-text">Iterative MVPF 算法</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/06/18/CG/Papers/2022/MMIS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2022-SIGA-C] Marginal Multiple Importance Sampling | Banbao">
+      <meta itemprop="description" content="MMIS 将每一次采样到的策略都认为是一种新策略（可以重复），然后对他们做 balance heuristic MIS，用复杂的计算带来了好的结果；SMIS 只能处理一个参数化的采样方式，但是 MMIS 能够处理多种采样方式；两个应用 path filtering、photon mapping">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2022-SIGA-C] Marginal Multiple Importance Sampling
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-06-18 14:25:08" itemprop="dateCreated datePublished" datetime="2025-06-18T14:25:08+08:00">2025-06-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-06-19 16:56:04" itemprop="dateModified" datetime="2025-06-19T16:56:04+08:00">2025-06-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">MMIS 将每一次采样到的策略都认为是一种新策略（可以重复），然后对他们做 balance heuristic MIS，用复杂的计算带来了好的结果；SMIS 只能处理一个参数化的采样方式，但是 MMIS 能够处理多种采样方式；两个应用 path filtering、photon mapping</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="marginal-multiple-importance-sampling">Marginal Multiple
+Importance Sampling</h1>
+<ul>
+<li>作者
+<ul>
+<li><a target="_blank" rel="noopener" href="http://mmis.rexwe.st/">Rex West</a>：The University of
+Tokyo Japan</li>
+<li>Iliyan Georgiev：Autodesk United Kingdom</li>
+<li>Toshiya Hachisuka：University of Waterloo Canada</li>
+</ul></li>
+<li>使用 MIS 的时候，如果 pdf 无法单点计算【例如是其他 pdf
+的积分】，如何处理？
+<ul>
+<li><a href="/2024/06/05/CG/Papers/2020/CMIS">SMIS</a>
+只能处理一种采样方式【一个连续的 technique space <span class="math inline">\(\mathcal{T_1}\)</span>】</li>
+<li>我们提出 MMIS 能够结合多种采样方式【可以处理多个连续的 technique
+space】</li>
+</ul></li>
+<li>另外给出了两个应用：path filtering、photon mapping</li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li><a href="/2024/06/05/CG/Papers/2020/CMIS">CMIS</a>
+可以结合无穷多种【不可数也行】采样方式，但是计算代价高；于是其使用 SMIS
+近似
+<ul>
+<li>SMIS 预先采样几种采样技术，然后只对这几种技术做 MIS</li>
+<li>SMIS is limited to combining samples drawn from techniques that are
+defined (parameterized) in a single technique space.
+<ul>
+<li>他说 SMIS 只能从一个单一的参数化采样方法中采样，MMIS
+能够结合多种技术</li>
+<li><span style="color:red">意思应该是 <span class="math inline">\(\mathcal{T}_1,\mathcal{T}_2\)</span>
+都是无穷的空间，SMIS 只能处理 <span class="math inline">\(\mathcal{T}_1\)</span>，但是 MMIS 能够结合 <span class="math inline">\(\mathcal{T}_1,\mathcal{T}_2\)</span></span></li>
+</ul></li>
+</ul></li>
+<li>提出了 MMIS，然后以及几种应用
+<ul>
+<li>marginal path sampling framework</li>
+<li>path-space filtering；CMIS
+论文说可以将其构建成<strong>无偏采样形式</strong>
+<ul>
+<li>对比 path graph</li>
+</ul></li>
+</ul></li>
+<li>MMIS 和 SMIS 的区别
+<ul>
+<li><strong>SMIS 只考虑了 1 种采样空间；MMIS
+可以和处理多种采样空间</strong></li>
+<li>SMIS 脱胎于 CMIS，因此本文将 SMIS
+的作用限制于只能采样一种采样方式【对应 CMIS 的那个连续空间】</li>
+<li><strong>说实话这个扩展也太直观了，以至于我都没理解他在做这个</strong></li>
+</ul></li>
+<li>MMIS 的思路：把每一种边缘分布本身当作一种采样策略
+<ul>
+<li>MMIS 混合的是 <span class="math inline">\(nT\)</span> 种采样技术
+<ul>
+<li>看看<a href="#app-MMIS-unbiased">副录</a>中平衡启发式的表达形式你就懂了</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="mmis">MMIS</h1>
+<ul>
+<li>积分</li>
+</ul>
+<p><span class="math display">\[
+I=\int_{\mathcal{X}}f(x)\;\mathrm{d}x
+\]</span></p>
+<ul>
+<li><span class="math inline">\(T\)</span> 种采样技术 ，每种 <span class="math inline">\(n_i\)</span> 个样本，每个样本采样概率 <span class="math inline">\(p_i\)</span></li>
+<li>无偏估计如下</li>
+</ul>
+<p><span class="math display">\[
+\langle I \rangle_{\text{MIS}} = \sum_{i=1}^{T} \sum_{j=1}^{n_i}
+\frac{w_i(x_{i,j}) f(x_{i,j})}{n_i p_i(x_{i,j})} = \sum_{i=1}^{T}
+\sum_{j=1}^{n_i} \langle I \rangle_{\text{MIS}}^{i,j} \tag{1}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(p_i\)</span>
+可能没有闭式解，这样就无法无偏估计 <span class="math inline">\(I\)</span></li>
+</ul>
+<p><span class="math display">\[
+p_i(x) = \int_{\mathcal{T}_i} p_i(x, t) \,\mathrm{d}t =
+\int_{\mathcal{T}_i} p_i(x \vert t) p_i(t) \,\mathrm{d}t \tag{2}
+\]</span></p>
+<h2 id="marginal-mis-estimator">Marginal MIS estimator</h2>
+<ul>
+<li>balance heuristic</li>
+</ul>
+<p><span class="math display">\[
+w_i(x) = \frac{n_i p_i(x)}{\sum_{i&#39;=1}^{T} n_{i&#39;} p_{i&#39;}(x)}
+= \frac{n_i p_i(x)}{\sum_{i&#39;=1}^{T} n_{i&#39;}
+\int_{\mathcal{T}_{i&#39;}} p_{i&#39;}(x \vert t) p_{i&#39;}(t)
+\,\mathrm{d}t} \tag{3}
+\]</span></p>
+<ul>
+<li>那么单样本的估计如下</li>
+</ul>
+<p><span class="math display">\[
+\langle I \rangle_{\text{MIS}}^{i,j} =
+\frac{f(x_{i,j})}{\sum_{i&#39;=1}^{T} n_{i&#39;}
+\int_{\mathcal{T}_{i&#39;}} p_{i&#39;}(x_{i,j} \vert t) p_{i&#39;}(t)
+\,\mathrm{d}t} \tag{4}
+\]</span></p>
+<ul>
+<li>和 CMIS 类似，分母构建估计</li>
+</ul>
+<p><span class="math display">\[
+\langle I \rangle_{\text{MIS}}^{i,j} \approx
+\frac{f(x_{i,j})}{\sum_{i&#39;=1}^{T} \cancel{n_{i&#39;}} \left[
+\frac{1}{\cancel{n_{i&#39;}}} \sum_{j&#39;=1}^{n_{i&#39;}}
+\frac{p_{i&#39;}(x_{i,j} \mid t_{i&#39;,j&#39;})
+\cancel{p_{i&#39;}(t_{i&#39;,j&#39;})}}{\cancel{p_{i&#39;}(t_{i&#39;,j&#39;})}}
+\right]} \tag{5}
+\]</span></p>
+<ul>
+<li><span id="eq6">此时无偏估计如下</span>
+<ul>
+<li>条件是采样到的技术需要<strong>包含整个定义域</strong>【和 SMIS
+相同】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\langle I \rangle_{\text{MMIS}} = \sum_{i=1}^{T} \sum_{j=1}^{n_i}
+\frac{f(x_{i,j})}{\sum_{i&#39;=1}^{T} \sum_{j&#39;=1}^{n_{i&#39;}}
+p_{i&#39;}(x_{i,j} \mid t_{i&#39;,j&#39;})} \tag{6}
+\]</span></p>
+<ul>
+<li>SMIS 的形式如下</li>
+</ul>
+<p><span class="math display">\[
+\langle
+I\rangle_{\mathrm{SMIS}}=\sum_{i=1}^n\frac{\dot{w}(t_i,x_i)f(x_i)}{p(x_i|t_i)}=\sum_{i=1}^n\frac{f(x_i)}{\sum_{j=1}^np(x_i|t_j)}
+\]</span></p>
+<p><span class="math display">\[
+\dot{w}(t_{i},x)=\frac{p(x|t_{i})}{\sum_{j=1}^{n}p(x|t_{j})}
+\]</span></p>
+<ul>
+<li>二者的区别
+<ul>
+<li>当 <span class="math inline">\(T=1\)</span> 的时候，MMIS 退化为
+SMIS【看下面实验计算 pdf 评估次数】</li>
+</ul></li>
+<li>无偏条件都是：<strong><span style="color:red">采样到的技术需要包含整个定义域</span></strong></li>
+<li>classical 和 marginal 结合
+<ul>
+<li>classical technique：扩展 <span class="math inline">\(p(x\mid
+t)=p(x)\)</span></li>
+<li>或者将积分拆分为两个部分：classical + marginal</li>
+</ul></li>
+</ul>
+<h1 id="canonical-experiments">Canonical experiments</h1>
+<ul>
+<li>一些 2D 实验</li>
+<li>MMIS<span class="math inline">\(_n\)</span> 表示每种策略使用 <span class="math inline">\(n\)</span> 个样本（<span class="math inline">\(n_i=n\)</span>）</li>
+<li>实验 1
+<ul>
+<li><span class="math inline">\(T=2\)</span>，MMIS<span class="math inline">\(_1\)</span> 能够结合 classical 算法 和 SMIS<span class="math inline">\(_2\)</span>，然后实现更好的结果</li>
+</ul></li>
+<li>实验 2：一共 <span class="math inline">\(N\)</span> samples，<span class="math inline">\(N/(nT)\)</span> 轮取平均
+<ul>
+<li>MIS 表示式子 (1) 解析计算分母</li>
+<li>MMIS<span class="math inline">\(_n\)</span> pdf 评估次数：<span class="math inline">\(nNT=nT\times nT\times N/(nT)\)</span>
+<ul>
+<li>增大了计算开销</li>
+</ul></li>
+<li>SMIS<span class="math inline">\(_n\)</span> pdf 评估次数：<span class="math inline">\(nN=n^2\times N/n\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/fig1-MMIS-n.png"></p>
+<h1 id="path-sampling-using-mmis">Path Sampling Using MMIS</h1>
+<h2 id="mcpt">MCPT</h2>
+<p><span class="math display">\[
+I = \int_{\mathcal{P}} f(\mathbf{\bar{x}}) \,\mathrm{d}\mathbf{\bar{x}}
+\approx \frac{1}{n} \sum_{i=1}^{n}
+\frac{f(\mathbf{\bar{x}}_i)}{\rho(\mathbf{\bar{x}}_i)} \tag{7}
+\]</span></p>
+<ul>
+<li>UPT</li>
+</ul>
+<p><span class="math display">\[
+p(\mathbf{\bar{x}}) = p(x_1, \ldots, x_k) = p(x_1) p(x_2 \mid x_1)
+\prod_{i=3}^{k} p(x_i \mid x_{i-1}, x_{i-2}) \tag{8}
+\]</span></p>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/upt.png"></p>
+<ul>
+<li>任意方式构建 <span class="math inline">\(\mathbf{x}\)</span>，只需要
+pdf 能解析计算【readily computable】</li>
+<li>如下方式：移除 <span class="math inline">\(\mathbf{x}_2\)</span>
+构建，此时 pdf 不好算</li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/upt-remove-vertex.png"> <span class="math display">\[
+\begin{align}
+p^*(\mathbf{\bar{x}}) &amp;= p^*(\mathbf{x}_1, \mathbf{x}_3, \ldots,
+\mathbf{x}_{k+1}) \tag{9} \\
+&amp;= p^*(\mathbf{x}_1) p^*(\mathbf{x}_3 \mid \mathbf{x}_1)
+p^*(\mathbf{x}_4 \mid \mathbf{x}_3) \prod_{i=5}^{k+1} p^*(\mathbf{x}_i
+\mid \mathbf{x}_{i-1}, \mathbf{x}_{i-2}) \tag{10} \\
+\\
+p^*(\mathbf{x}_3 \mid \mathbf{x}_1) &amp;= \int_{\mathcal{M}}
+p^*(\mathbf{x}_3 \mid \mathbf{x}_2, \mathbf{x}_1) p^*(\mathbf{x}_2 \mid
+\mathbf{x}_1) \,\mathrm{d}\mathbf{x}_2 \tag{11} \\
+p^*(\mathbf{x}_4 \mid \mathbf{x}_3) &amp;= \int_{\mathcal{M}}
+p^*(\mathbf{x}_4 \mid \mathbf{x}_3, \mathbf{x}_2) p^*(\mathbf{x}_2 \mid
+\mathbf{x}_1) \,\mathrm{d}\mathbf{x}_2 \tag{12}
+\end{align}
+\]</span></p>
+<ul>
+<li>不能直接 MC 估计 <span class="math inline">\(p^{\ast}\)</span>，结果有偏</li>
+<li><strong>MMIS 能解决这个问题</strong></li>
+</ul>
+<h2 id="marginal-path-sampling-framework">marginal path sampling
+framework</h2>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/marginal-path-sampling.png"></p>
+<ul>
+<li>采样得到的路径 <span class="math inline">\(\mathbf{\bar{x}}\)</span>
+依赖于辅助节点 <span class="math inline">\(\mathbf{\bar{t}}\)</span></li>
+<li>和<a href="#eq6">式子 (6)</a> 中的 MMIS 对应，(6) 中的 <span class="math inline">\(p_i(x_{i,j} \mid t_{i,j})\)</span> 就是 <span class="math inline">\(p_i(\mathbf{\bar{x}}_{i,j} \mid
+\mathbf{\bar{t}}_{i,j})\)</span>
+<ul>
+<li>classical 情况就是 <span class="math inline">\(\mathbf{\bar{t}}=\varnothing\)</span></li>
+</ul></li>
+<li>对于 <span class="math inline">\(T\)</span> 种采样技术 <span class="math inline">\(p_i\)</span>，分别采样 <span class="math inline">\(n_i\)</span> 组 technique-sample 对 <span class="math inline">\((\mathbf{\bar{x}} \mid \mathbf{\bar{t}})\sim
+p_i(\mathbf{\bar{x}} \mid \mathbf{\bar{t}})\)</span>，其中 <span class="math inline">\(\mathbf{\bar{t}\in \mathcal{T}_i}\)</span></li>
+<li>marginal path sampling（MPS）estimator 如下
+<ul>
+<li>【这里考虑只会删除节点 <span class="math inline">\(\mathbf{x}_2\)</span>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\langle I_k \rangle_{\text{MPS}} = \sum_{i=1}^{T} \sum_{j=1}^{n_i}
+\frac{f(\mathbf{\bar{x}}_{i,j})}{\sum_{i&#39;=1}^{T}
+\sum_{j&#39;=1}^{n_{i&#39;}} p_{i&#39;}(\mathbf{\bar{x}}_{i,j} \mid
+\mathbf{\bar{t}}_{i&#39;,j&#39;})} \tag{13}
+\]</span></p>
+<ul>
+<li>这假设 <span class="math inline">\(p(\mathbf{\bar{x}} \mid
+\mathbf{\bar{t}})\)</span> 是能计算的，一般都是容易满足的</li>
+<li>策略 <span class="math inline">\(\mathbf{\bar{t}}\)</span>
+不一定需要时节点，也可以是<strong>波长</strong>等</li>
+</ul>
+<h1 id="multi-vertex-path-filtering">Multi-Vertex Path Filtering</h1>
+<ul>
+<li>CMIS 给出了一种 path filtering 的无偏形式【前缀路径作为
+technique，后缀路径作为 sample】</li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/fig-path-filter.png"></p>
+<ul>
+<li>MPS 可以处理这个
+<ul>
+<li>前缀作为 <span class="math inline">\(\mathbf{t}\)</span>，<span class="math inline">\(\mathcal{T}\)</span> 就是<strong>所有满足 kernel
+<span class="math inline">\(\kappa\)</span></strong> 的前缀路径</li>
+<li>当前前缀 + <span class="math inline">\(\mathbf{t}\)</span>
+对应的后缀作为样本 <span class="math inline">\(\mathbf{x}\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/fig-mps-path-filter.png"></p>
+<h2 id="extension-to-multi-vertex-filtering">Extension to multi-vertex
+filtering</h2>
+<ul>
+<li>传统的只用一个节点，我们均摊开销，filtering 多个样本</li>
+<li>例如下图，3 个节点依次进行采样【<span class="math inline">\(k=3\)</span>】
+<ul>
+<li>看他这个图的意思应该是：根据当前点采样一个 path，再根据采样到的 path
+的下一个节点采样</li>
+<li><strong><a href="#app-MVPF">附录</a>里的图就清晰多了</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/fig-mps-multi-vertex-path-filter.png"></p>
+<ul>
+<li>那么采样总数：<span class="math inline">\(T=\prod_{i=1}^{k}N(\mathbf{P},\kappa_i)\)</span>
+<ul>
+<li><span class="math inline">\(N(\mathbf{P},\kappa_i)\)</span> 表示满足
+kernel 的前缀路径数量</li>
+<li><span class="math inline">\(T\)</span> 关于 <span class="math inline">\(k\)</span> 指数</li>
+</ul></li>
+<li>于是展开 MPS 的分母
+<ul>
+<li><span class="math inline">\(k&#39;\)</span> 表示路径的第 <span class="math inline">\(k&#39;\)</span> 个节点</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\sum_{i&#39;=1}^{T} \sum_{j&#39;=1}^{n_{i&#39;}}
+p_{i&#39;}(\mathbf{\bar{x}}_{i,j} \mid \bar{t}_{i&#39;,j&#39;}) =
+\sum_{i&#39;=1}^{T} \sum_{j&#39;=1}^{n_{i&#39;}}
+\underbrace{\prod_{k&#39;=1}^{k} p_{i&#39;}(\mathbf{x}_{i,j,k&#39;} \mid
+\mathbf{\bar{y}}_{i&#39;,j&#39;,k&#39;})}_{p_{i&#39;}(\mathbf{\bar{x}}_{i,j}
+| \mathbf{\bar{t}}_{i&#39;,j&#39;})} \tag{14}
+\]</span></p>
+<ul>
+<li>式子展开之后，有很多公共项，<span style="color:red">复杂度从指数变为线性</span>，<a href="#app-MVPF">副录</a>有过程</li>
+</ul>
+<h2 id="discussion">Discussion</h2>
+<ul>
+<li>MPS 无偏条件：对于 <span class="math inline">\(f(\mathbf{x})&gt;0\)</span> 的点，存在任意一个
+<span class="math inline">\(p_i(\mathbf{x}\mid\mathbf{t})&gt;0\)</span>
+<ul>
+<li><strong>选中的采样策略要覆盖定义域</strong></li>
+<li>可以通过【including the classical path tracing
+techniques】实现，【query point 做 pt】
+<ul>
+<li>所有策略都无法覆盖定义域时，这样也能实现无偏</li>
+</ul></li>
+</ul></li>
+<li>无偏实现很复杂，需要对每一个做可见性测试【ray casting】</li>
+<li><strong>有偏近似</strong>：认为 kernel 内部可见性相同
+<ul>
+<li>和 Path Graph 类似，依赖于高效 GPU 实现</li>
+</ul></li>
+<li>和 Path Graph 的区别【<span style="color:red">还没看 Path Graph
+呢</span>】
+<ul>
+<li>MMIS 在形式上提供了和 MC 的联系，不需要做 energy clamping</li>
+<li>MMIS 权重和为 1，可以保证无偏</li>
+<li>聚类算法需要对每个查询点尽心最近邻查找，然后 pdf
+评估，开销巨大；Path Graph 通过 k-means 均摊开销，但是 bias
+不可控；我们可控【<span style="color:red">补充材料</span>】</li>
+</ul></li>
+</ul>
+<h2 id="result">Result</h2>
+<ul>
+<li>离谱比赛又来了：CPU ray tracer + cuda GPU filtering</li>
+<li>结果：我们用了 multi-vertex 效果好很多
+<ul>
+<li>SMIS 的 single-vertex 开销大，效果不好</li>
+</ul></li>
+</ul>
+<h1 id="multi-vertex-photon-mapping">Multi-Vertex Photon Mapping</h1>
+<ul>
+<li>有些场景 PT 框架下就是效果差，需要 photon
+mapping【强方向光、焦散】</li>
+<li>PM 算法：收集周围的 emitter subpaths</li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/fig-pm.png"></p>
+<ul>
+<li>MPS 框架也适用，只是现在变成了收集 emitter subpath</li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/fig-mps-pm.png"></p>
+<ul>
+<li>和之前的 PM 算法实现不兼容，因为他们不是基于 path sampling 的，没存
+pdf</li>
+<li>实现：作为 PM emitter pass 之后的一个后处理
+<ul>
+<li>emitter pass -&gt; path filtering（保持方向） -&gt; standard
+photon-density estimation</li>
+</ul></li>
+</ul>
+<h2 id="results">Results</h2>
+<ul>
+<li>rendering system 和前面一样</li>
+<li><strong>一个强焦散场景的结果</strong>：Path Graph &lt; BDPT &lt; PM
+&lt; <strong>Photon Filtering</strong></li>
+</ul>
+<h1 id="conclusion">Conclusion</h1>
+<ul>
+<li><p>Limitations</p>
+<ul>
+<li><p>有些方式 conditional pdf 也不能算：例如 MCMC</p></li>
+<li><p>我们的方法引入了额外的内存开销</p></li>
+</ul></li>
+<li><p>Future work</p>
+<ul>
+<li>Path and photon filtering 如何结合【类似于 UPS/VCM】</li>
+<li><strong>类似于 PM 缩半径，path filtering 能不能也在 kernel
+内保持一致</strong></li>
+<li>MMIS 引入了额外开销</li>
+<li>多次复用，形成 Graph</li>
+</ul></li>
+</ul>
+<h1 id="appedix">Appedix</h1>
+<h2 id="mmis-无偏性证明"><span id="app-MMIS-unbiased">MMIS
+无偏性证明</span></h2>
+<ul>
+<li>采样逻辑等价于：先采样 <span class="math inline">\(T\)</span>
+种技术，才然每种技术分配样本 <span class="math inline">\(n_i\)</span></li>
+<li>保证了 MIS 和为 1，再加上全覆盖，就是无偏</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+\mathbb{E}\big[\langle I \rangle_{\text{Mar}}\big] &amp;=
+\mathbb{E}\big[\langle I \rangle_{\text{Mar}}\big]_{(t_{1,1}, x_{1,1}),
+\dots, (t_{T,n_T}, x_{T,n_T})} \tag{1a} \\
+&amp;= \mathbb{E}\Bigg[\mathbb{E}\big[\langle I \rangle_{\text{Mar}}
+\big| x_{1,1}, \dots, x_{T,n_T}\big]\Bigg]_{t_{1,1}, \dots, t_{T,n_T}}
+\tag{1b} \\
+&amp;= \mathbb{E}\Bigg[\mathbb{E}\bigg[\sum_{i=1}^T \sum_{j=1}^{n_i}
+\frac{f(x_{i,j})}{\sum_{i&#39;=1}^T \sum_{j&#39;=1}^{n_{i&#39;}}
+p_{i&#39;}(x_{i,j} | t_{i&#39;,j&#39;})}\bigg]_{x_{1,1}, \dots,
+x_{T,n_T}}\Bigg]_{t_{1,1}, \dots, t_{T,n_T}} \tag{1c} \\
+&amp;= \mathbb{E}\Bigg[\sum_{i=1}^T \sum_{j=1}^{n_i} \int_{\mathcal{X}}
+\frac{f(x)}{\sum_{i&#39;=1}^T \sum_{j&#39;=1}^{n_{i&#39;}} p_{i&#39;}(x
+| t_{i&#39;,j&#39;})} p_i(x | t_{i,j}) \, \mathrm{d}x\Bigg]_{t_{1,1},
+\dots, t_{T,n_T}} \tag{1d} \\
+&amp;= \mathbb{E}\Bigg[\int_{\mathcal{X}} \underbrace{\sum_{i=1}^T
+\sum_{j=1}^{n_i} \frac{p_i(x | t_{i,j})}{\sum_{i&#39;=1}^T
+\sum_{j&#39;=1}^{n_{i&#39;}} p_{i&#39;}(x | t_{i&#39;,j&#39;})}}_{=1}
+f(x) \, \mathrm{d}x\Bigg]_{t_{1,1}, \dots, t_{T,n_T}} \tag{1e}\\
+&amp;= \mathbb{E}\Bigg[\int_{\mathcal{X}} f(x) \, dx\Bigg]_{t_{1,1},
+\dots, t_{T,n_T}} = I
+\tag{1f}
+\end{align}
+\]</span></p>
+<ul>
+<li>不一定是从 balance heuristic 推导，只要满足和为 1 就行</li>
+</ul>
+<p><span class="math display">\[
+\langle I \rangle_{\text{Mar}}^* = \sum_{i=1}^T \sum_{j=1}^{n_i}
+w_i(t_{i,j}, x_{i,j}) \frac{f(x_{i,j})}{p_i(x_{i,j} | t_{i,j})}
+\]</span></p>
+<ul>
+<li>使用如下平衡启发式，即得 MMIS estimator</li>
+</ul>
+<p><span class="math display">\[
+w_i(t, x) = \frac{p_i(x | t)}{\sum_{i&#39;=1}^T
+\sum_{j&#39;=1}^{n_{i&#39;}} p_{i&#39;}(x | t_{i&#39;,j&#39;})}
+\]</span></p>
+<h2 id="mvpf-实现"><span id="app-MVPF">MVPF</span> 实现</h2>
+<ul>
+<li>multi-vertex path filtering（MVPF）</li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/fig-mps-multi-vertex-path-filter-2.png"></p>
+<ul>
+<li>上面的式子 (14)</li>
+</ul>
+<p><span class="math display">\[
+\sum_{i&#39;=1}^{T} \sum_{j&#39;=1}^{n_{i&#39;}}
+p_{i&#39;}(\mathbf{\bar{x}}_{i,j} \mid \bar{t}_{i&#39;,j&#39;}) =
+\sum_{i&#39;=1}^{T} \sum_{j&#39;=1}^{n_{i&#39;}}
+\underbrace{\prod_{k&#39;=1}^{k} p_{i&#39;}(\mathbf{x}_{i,j,k&#39;} \mid
+\mathbf{\bar{y}}_{i&#39;,j&#39;,k&#39;})}_{p_{i&#39;}(\mathbf{\bar{x}}_{i,j}
+| \mathbf{\bar{t}}_{i&#39;,j&#39;})} \tag{14}
+\]</span></p>
+<ul>
+<li>变换形式：预计算好每一种策略的 pdf
+<ul>
+<li>复杂度从指数变成线性【指数是因为 <span class="math inline">\(N(\mathbf{P}, k&#39;)\)</span> 这里对 <span class="math inline">\(k\)</span> 累乘】</li>
+<li>感觉思路就是预计算，然后开销分摊给其他的点</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\sum_{i&#39;=1}^T \sum_{j&#39;=1}^{n_{i&#39;}} p_{i&#39;}(\bar{x}_{i,j}
+| \bar{t}_{i&#39;,j&#39;}) = \prod_{k&#39;=1}^k
+\underbrace{\sum_{m=1}^{N(\mathbf{P}, k&#39;)} p_m(x_{i,j,k&#39;} |
+\overline{y}_{m,k&#39;})}_{\text{filter local MIS}}
+\]</span></p>
+<h3 id="iterative-mvpf-算法">Iterative MVPF 算法</h3>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/alg1-mvpt.png"></p>
+<ul>
+<li>初始化：每一个节点的入射辐射度初始化为原始前缀对应的无偏估计
+<ul>
+<li>这在能量上比较稳定，允许任意次数 <span class="math inline">\(K\)</span> 的迭代</li>
+</ul></li>
+<li>迭代完之后，质量比较高</li>
+<li>加入 NEE：相当于加入一种采样策略
+<ul>
+<li>每一个节点多加上 <span class="math inline">\(\mathbf{N}\)</span> 种
+Light Sampling 策略</li>
+<li>path sampling 的时候加上 NEE，cluster filtering 的时候，local MIS
+分布修改为</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\sum_{m=1}^{N(\mathbf{P}, \kappa_{k&#39;})} p_m(x_{k&#39;} |
+\overline{y}_{m,k&#39;}) {\color{red}+ N_L(\mathbf{P}, \kappa_{k&#39;})
+p_L(x_{k&#39;})}
+\]</span></p>
+<ul>
+<li>Greedy range query clustering
+<ul>
+<li>逐个检查是否存在 id，如果没有 id，则执行给定半径的查询，将半径内无
+id 的 vertex 和当前 vertex 都设置为新 id</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/18/CG/Papers/2022/MMIS/alg2-range-query-based-clusting.png"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/MIS/" rel="tag"># MIS</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/06/18/CG/Papers/2025/Seg-LTS/" rel="prev" title="(论文)[2025-SIG] Segment-based Light Transport Simulation">
+                  <i class="fa fa-chevron-left"></i> (论文)[2025-SIG] Segment-based Light Transport Simulation
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/06/25/CG/Papers/2025/NRIS/" rel="next" title="(论文)[2025-EGSR] Neural Resampling with Optimized Candidate Allocation">
+                  (论文)[2025-EGSR] Neural Resampling with Optimized Candidate Allocation <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

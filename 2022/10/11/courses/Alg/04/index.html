@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="贪心算法分析策略，交换货币问题，区间调度，最低延迟调度，最优缓存策略">
+<meta property="og:type" content="article">
+<meta property="og:title" content="算法设计与分析.04.贪心算法 (1)">
+<meta property="og:url" content="http://example.com/2022/10/11/courses/Alg/04/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="贪心算法分析策略，交换货币问题，区间调度，最低延迟调度，最优缓存策略">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/10/11/courses/Alg/04/cashier-s-algorithm.png">
+<meta property="og:image" content="http://example.com/2022/10/11/courses/Alg/04/interval-scheduling-eftf.png">
+<meta property="og:image" content="http://example.com/2022/10/11/courses/Alg/04/interval-scheduling-estf.png">
+<meta property="og:image" content="http://example.com/2022/10/11/courses/Alg/04/Interval-partitioning-eftf.png">
+<meta property="og:image" content="http://example.com/2022/10/11/courses/Alg/04/Minimizing-lateness-no-idle-time.png">
+<meta property="og:image" content="http://example.com/2022/10/11/courses/Alg/04/minimizing-lateness-inversion.png">
+<meta property="og:image" content="http://example.com/2022/10/11/courses/Alg/04/minimizing-lateness-adjacent-inversion.png">
+<meta property="og:image" content="http://example.com/2022/10/11/courses/Alg/04/optimal-offline-caching-ex1.png">
+<meta property="og:image" content="http://example.com/2022/10/11/courses/Alg/04/optimal-offline-caching-ex2.png">
+<meta property="article:published_time" content="2022-10-11T05:01:39.000Z">
+<meta property="article:modified_time" content="2025-06-18T05:50:41.484Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="Algrithom">
+<meta property="article:tag" content="WXL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/10/11/courses/Alg/04/cashier-s-algorithm.png">
+
+
+<link rel="canonical" href="http://example.com/2022/10/11/courses/Alg/04/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2022/10/11/courses/Alg/04/","path":"2022/10/11/courses/Alg/04/","title":"算法设计与分析.04.贪心算法 (1)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>算法设计与分析.04.贪心算法 (1) | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95"><span class="nav-text">贪心算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90%E7%AD%96%E7%95%A5"><span class="nav-text">贪心算法分析策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%A4%E6%8D%A2%E8%B4%A7%E5%B8%81%E9%97%AE%E9%A2%98"><span class="nav-text">交换货币问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#cashiers-algorithm"><span class="nav-text">Cashier′s algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E4%BC%98%E6%80%A7"><span class="nav-text">最优性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BE%8E%E5%9B%BD%E8%B4%A7%E5%B8%81%E6%98%AF%E6%9C%80%E4%BC%98%E7%9A%84"><span class="nav-text">美国货币是最优的</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%BA%E9%97%B4%E8%B0%83%E5%BA%A6"><span class="nav-text">区间调度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90"><span class="nav-text">算法分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#eftf"><span class="nav-text">EFTF</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E4%BC%98%E6%80%A7%E5%88%86%E6%9E%90"><span class="nav-text">最优性分析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%BA%E9%97%B4%E5%88%92%E5%88%86"><span class="nav-text">区间划分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90-1"><span class="nav-text">算法分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#estf"><span class="nav-text">ESTF</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B7%B1%E5%BA%A6"><span class="nav-text">深度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E4%BC%98%E6%80%A7%E5%88%86%E6%9E%90-1"><span class="nav-text">最优性分析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E4%BD%8E%E5%BB%B6%E8%BF%9F%E8%B0%83%E5%BA%A6"><span class="nav-text">最低延迟调度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90-2"><span class="nav-text">算法分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#no-idle-time"><span class="nav-text">no idle time</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#inversion"><span class="nav-text">inversion</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#edf"><span class="nav-text">EDF</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E4%BC%98%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5"><span class="nav-text">最优缓存策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%AA%E5%BF%83%E7%AE%97%E6%B3%95-1"><span class="nav-text">贪心算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E4%BC%98%E7%A6%BB%E7%BA%BF%E7%AE%97%E6%B3%95"><span class="nav-text">最优离线算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ff-%E6%9C%80%E4%BC%98%E6%80%A7"><span class="nav-text">FF 最优性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#reduced-schedule"><span class="nav-text">reduced schedule</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%81%E6%98%8E"><span class="nav-text">证明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E7%AE%97%E6%B3%95"><span class="nav-text">在线算法</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/10/11/courses/Alg/04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="算法设计与分析.04.贪心算法 (1) | Banbao">
+      <meta itemprop="description" content="贪心算法分析策略，交换货币问题，区间调度，最低延迟调度，最优缓存策略">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          算法设计与分析.04.贪心算法 (1)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-10-11 13:01:39" itemprop="dateCreated datePublished" datetime="2022-10-11T13:01:39+08:00">2022-10-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-06-18 13:50:41" itemprop="dateModified" datetime="2025-06-18T13:50:41+08:00">2025-06-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Algrithom-wxl/" itemprop="url" rel="index"><span itemprop="name">Algrithom.wxl</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">贪心算法分析策略，交换货币问题，区间调度，最低延迟调度，最优缓存策略</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="贪心算法">贪心算法</h1>
+<ul>
+<li>coin changing</li>
+<li>interval scheduling</li>
+<li>interval partitioning</li>
+<li>scheduling to minimize lateness</li>
+<li>optimal caching</li>
+</ul>
+<h2 id="贪心算法分析策略">贪心算法分析策略</h2>
+<ul>
+<li>Greedy algorithm stays ahead
+<ul>
+<li>证明在每一步过后，贪心算法至少和其他算法一样好</li>
+</ul></li>
+<li>Structural
+<ul>
+<li>找到所有可行解都需要满足的数值性质，而贪心算法总能够达到临界值</li>
+</ul></li>
+<li>Exchange argument
+<ul>
+<li>把最优算法一步步变换到贪心算法的结果，在这个过程中不失其最优性</li>
+</ul></li>
+</ul>
+<h2 id="交换货币问题">交换货币问题</h2>
+<ul>
+<li>有不同面值的硬币，给定一个总数，计算最少使用的货币数量</li>
+</ul>
+<h3 id="cashiers-algorithm">Cashier′s algorithm</h3>
+<h4 id="最优性">最优性</h4>
+<ul>
+<li>Cashier′s algorithm
+<ul>
+<li>从大到小使用货币</li>
+</ul></li>
+<li>不是最优的
+<ul>
+<li>硬币面值：1，4，5</li>
+<li>总和：8</li>
+<li>算法结果：5，1，1，1</li>
+<li>最优结果：4，4</li>
+</ul></li>
+<li>可能实际有解，但是算法无解
+<ul>
+<li>硬币面值：7，8，9</li>
+<li>总和：15</li>
+<li>算法结果：9，？</li>
+<li>最优结果：8，7</li>
+</ul></li>
+</ul>
+<h4 id="美国货币是最优的">美国货币是最优的</h4>
+<ul>
+<li>硬币：penny(1)、nickel(5)、dime(10)、quarter(25)、dollar(100)</li>
+<li>限制条件：</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">penny         &lt;= <span class="number">4</span>;</span><br><span class="line">nickel        &lt;= <span class="number">1</span>;</span><br><span class="line">quarter       &lt;= <span class="number">3</span>;</span><br><span class="line">nickel + dime &lt;= <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>证明
+<ul>
+<li>对总数 <span class="math inline">\(x\)</span> 进行归纳</li>
+<li>对于 <span class="math inline">\(c_{k}\le x&lt;c_{k+1}\)</span>
+一定会取货币 <span class="math inline">\(k\)</span>
+<ul>
+<li>否则无解，如下图
+<ul>
+<li>Line 2：如果不使用 nickel，根据对 penny 的限制，最多只能够达到总数
+4</li>
+<li>Line 5：如果不使用 dollar，根据对其他硬币的限制，最多只能够达到总数
+99
+<ul>
+<li><span class="math inline">\(4+20+25*3=99\)</span></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>此时转化为 <span class="math inline">\(x-c_{k}\)</span>
+的子问题</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/11/courses/Alg/04/cashier-s-algorithm.png"></p>
+<h2 id="区间调度">区间调度</h2>
+<ul>
+<li>工作 <span class="math inline">\(j\)</span> 开始于 <span class="math inline">\(s_j\)</span> 结束于 <span class="math inline">\(f_j\)</span>（开区间）</li>
+<li>工作 <span class="math inline">\(i,j\)</span> 相容 <span class="math inline">\(\Leftrightarrow\)</span> <span class="math inline">\((s_i,f_i)\cap(s_j,f_j)=\varnothing\)</span>
+<ul>
+<li>compatible</li>
+</ul></li>
+<li>Goal：找出最多相容的工作</li>
+</ul>
+<h3 id="算法分析">算法分析</h3>
+<ul>
+<li><strong>排序后从前往后选</strong></li>
+<li>按照<strong><span style="color:red">开始时间</span></strong>升序：不是最优的
+<ul>
+<li>Earliest start time</li>
+</ul></li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">------------</span><br><span class="line"> --  --  --</span><br></pre></td></tr></table></figure>
+<ul>
+<li>按照<strong><span style="color:red">结束时间</span></strong>升序：<strong>最优的</strong>
+<ul>
+<li>Earliest finish time</li>
+</ul></li>
+<li>按照<strong><span style="color:red">持续时间</span></strong>升序：不是最优的
+<ul>
+<li>Shortest interval</li>
+</ul></li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">---- ----</span><br><span class="line">   ---</span><br></pre></td></tr></table></figure>
+<h3 id="eftf">EFTF</h3>
+<ul>
+<li>earliest-finish-time-first algorithm</li>
+<li><span class="math inline">\(O(n\log n)\)</span></li>
+</ul>
+<h4 id="最优性分析">最优性分析</h4>
+<ul>
+<li>反证法</li>
+<li>假设不是最优的，算法得到的序列为 <span class="math inline">\(i_1,\cdots,i_k\)</span>
+<ul>
+<li>此时必然有 <span class="math inline">\(m&lt;n\)</span></li>
+</ul></li>
+<li>设 <span class="math inline">\(r\)</span> 是满足如下情况的的最大值
+<ul>
+<li><span class="math inline">\(i_1=j_1,i_2=j_2,\cdots,i_r=j_r\)</span></li>
+</ul></li>
+<li>设 <span class="math inline">\(j_1,\cdots,j_m\)</span> 是 <span class="math inline">\(k\)</span> 最大的最优序列</li>
+</ul>
+<p><img src="/2022/10/11/courses/Alg/04/interval-scheduling-eftf.png"></p>
+<ul>
+<li>设 <span class="math inline">\(a=i_{r+1},b=j_{r+1},c=j_{r}=i_{r}\)</span>
+<ul>
+<li>根据贪心策略，<span class="math inline">\(f_{a}\le
+f_{b}\)</span></li>
+</ul></li>
+<li>如果 <span class="math inline">\(f_a=f_b\)</span>，那么会有 <span class="math inline">\(s_a&lt;s_b\)</span>
+<ul>
+<li>此时将最优策略中的 <span class="math inline">\(b=f_{r+1}\)</span>
+替换为 <span class="math inline">\(a=i_{r+1}\)</span>，还是最优的，与序列 <span class="math inline">\(j\)</span> 的最大 <span class="math inline">\(k\)</span> 矛盾</li>
+</ul></li>
+<li>如果 <span class="math inline">\(f_a&lt;f_b\)</span>，根据相容性：<span class="math inline">\(f_{c}&lt;=s_{a}&lt;s_{b}\)</span>，同样可以替换，矛盾</li>
+</ul>
+<h2 id="区间划分">区间划分</h2>
+<ul>
+<li>讲座 <span class="math inline">\(j\)</span> 开始于 <span class="math inline">\(s_j\)</span> 结束于 <span class="math inline">\(f_j\)</span>，不同讲座不能共用教室，如果需要让所有的讲座按时开展，最少需要几间教室？</li>
+</ul>
+<h3 id="算法分析-1">算法分析</h3>
+<ul>
+<li><strong>排序后从前往后选</strong></li>
+<li>按照<strong><span style="color:red">开始时间</span></strong>升序：<strong>最优的</strong>
+<ul>
+<li>Earliest start time</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/11/courses/Alg/04/interval-scheduling-estf.png"></p>
+<ul>
+<li>按照<strong><span style="color:red">结束时间</span></strong>升序：不是最优的
+<ul>
+<li>Earliest finish time</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/11/courses/Alg/04/Interval-partitioning-eftf.png"></p>
+<ul>
+<li>按照<strong><span style="color:red">持续时间</span></strong>升序：不是最优的
+<ul>
+<li>Shortest interval</li>
+</ul></li>
+</ul>
+<h3 id="estf">ESTF</h3>
+<ul>
+<li>earliest-start-time-first algorithm</li>
+<li><span class="math inline">\(O(n\log n)\)</span></li>
+</ul>
+<h4 id="深度">深度</h4>
+<ul>
+<li>The <strong>depth</strong> of a set of open intervals is the maximum
+number of intervals that contain any given point.
+<ul>
+<li>同时开展讲座的最多门数</li>
+</ul></li>
+<li>观察：需要的教室数目 <span class="math inline">\(\ge\)</span> 深度
+<ul>
+<li>至少需要这么多</li>
+</ul></li>
+</ul>
+<h4 id="最优性分析-1">最优性分析</h4>
+<ul>
+<li>ESTF 算法不会将两门不相容的课放在同一间教室里</li>
+<li>设 d 表示 ESTF 算法使用的教室数目</li>
+<li>假设我们使用第 <span class="math inline">\(d\)</span>
+间教室的时候，调度讲座 <span class="math inline">\(j\)</span></li>
+<li>此时剩余 <span class="math inline">\(d-1\)</span>
+间教室都在使用，而且这些教室的开始时间都比 <span class="math inline">\(j\)</span> 早</li>
+<li>也就是说，在时刻 <span class="math inline">\(s+\epsilon\)</span>，有
+<span class="math inline">\(d\)</span> 门讲座同时开展</li>
+<li>注意此时，任意算法使用教室数目 <span class="math inline">\(\ge
+d\)</span></li>
+<li>最优性得证</li>
+</ul>
+<h2 id="最低延迟调度">最低延迟调度</h2>
+<ul>
+<li>scheduling to minimize lateness</li>
+<li>任务 <span class="math inline">\(j\)</span> 耗时 <span class="math inline">\(t_j\)</span> 截止时间 <span class="math inline">\(d_j\)</span></li>
+<li>lateness：<span class="math inline">\(l_j\)</span>
+<ul>
+<li>如果任务 <span class="math inline">\(j\)</span> 分配开始做的时间是
+<span class="math inline">\(s_j\)</span>，那么 <span class="math inline">\(l_j=\max\{0,s_j+t_j-d_j\}\)</span></li>
+</ul></li>
+<li>Goal：调度使得 <span class="math inline">\(L=\max_j{l_j}\)</span>
+最小</li>
+<li><span style="color:red">算法输入满足</span>：<span class="math inline">\(d_1\le d_1\le\cdots\le d_n\)</span></li>
+</ul>
+<h3 id="算法分析-2">算法分析</h3>
+<ul>
+<li>按照处理时间升序
+<ul>
+<li>shortest processing time</li>
+</ul></li>
+<li>按照截止时间升序：<strong><span style="color:red">最优</span></strong>
+<ul>
+<li>earliest deadline first（EDF）</li>
+</ul></li>
+<li>按照 <span class="math inline">\(d_j-t_j\)</span> 升序
+<ul>
+<li>smallest slack</li>
+</ul></li>
+</ul>
+<h3 id="no-idle-time">no idle time</h3>
+<ul>
+<li>最优调度一定是没有空闲时间（idle time）的</li>
+</ul>
+<p><img src="/2022/10/11/courses/Alg/04/Minimizing-lateness-no-idle-time.png"></p>
+<ul>
+<li>去掉空闲时间，则转化为更优的调度</li>
+<li>EDF 算法是没有空闲时间的</li>
+</ul>
+<h3 id="inversion">inversion</h3>
+<ul>
+<li>inversion：倒置（对）
+<ul>
+<li>指对于某个调度 S，存在对 <span class="math inline">\((i,
+j),i&lt;j\)</span>，任务 <span class="math inline">\(j\)</span> 被调度在
+<span class="math inline">\(i\)</span> 之前</li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/11/courses/Alg/04/minimizing-lateness-inversion.png"></p>
+<ul>
+<li>EDF 是唯一不存在空闲时间、而且不存在倒置对的调度</li>
+<li>如果一个调度存在倒置对，那么一定存在相邻的倒置对（上图的 <span class="math inline">\(i,j\)</span> 就是）
+<ul>
+<li>反证法，假设最近的倒置对是 <span class="math inline">\(i,j,(i&lt;j)\)</span>，假设任务 <span class="math inline">\(j\)</span> 之后的是任务 <span class="math inline">\(k\)</span>
+<ul>
+<li>对 <span class="math inline">\(j,k\)</span> 大小进行分类讨论</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2022/10/11/courses/Alg/04/minimizing-lateness-adjacent-inversion.png"></p>
+<ul>
+<li>如果存在相邻倒置对，那么交换这连个任务的调度顺序，不会使的 <span class="math inline">\(L\)</span> 增大</li>
+<li>证明：
+<ul>
+<li>其他任务的 lateness 不变</li>
+<li>对于任务 <span class="math inline">\(i\)</span>
+<ul>
+<li><span class="math inline">\(d&#39;_i=\max\{s_j+t_i-d_i,0\}\le\max\{s_i+t_i-d_i,0\}=d_i\)</span></li>
+</ul></li>
+<li>对于任务 <span class="math inline">\(j\)</span>
+<ul>
+<li>如果调度之后 <span class="math inline">\(l&#39;_j=0\)</span>，显然
+<span class="math inline">\(L\)</span> 没有增大</li>
+<li>如果调度之后 <span class="math inline">\(l&#39;_j\ne0\)</span>
+<ul>
+<li><span class="math inline">\(l&#39;_j=s_i+t_i-d_j\le s_i+t_i-d_i\le
+l_i\le L\)</span></li>
+<li>因此 <span class="math inline">\(L\)</span> 没有增大</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="edf">EDF</h3>
+<ul>
+<li>EDF 调度是最优的（因为不存在倒置对）</li>
+<li>反证法：假设调度 S' 是最优调度中倒置对最少的
+<ul>
+<li>如果为 0，则就是 EDF</li>
+<li>如不为 0，则可以构造出倒置对更少的最优调度，矛盾</li>
+</ul></li>
+</ul>
+<h2 id="最优缓存策略">最优缓存策略</h2>
+<ul>
+<li>cache：大小为 <span class="math inline">\(k\)</span></li>
+<li>请求序列：<span class="math inline">\(d_1,d_1,\cdots,d_m\)</span>
+<ul>
+<li>已知的，<em>offline</em></li>
+</ul></li>
+<li>cache hit</li>
+<li>cache miss（evictions）</li>
+<li>求一种缓存策略，使得 cache miss 次数最少</li>
+</ul>
+<h3 id="例子">例子</h3>
+<p><img src="/2022/10/11/courses/Alg/04/optimal-offline-caching-ex1.png"></p>
+<p><img src="/2022/10/11/courses/Alg/04/optimal-offline-caching-ex2.png"></p>
+<h3 id="贪心算法-1">贪心算法</h3>
+<ul>
+<li>LIFO/FIFO
+<ul>
+<li>Evict item brought in least (most) recently</li>
+<li>访问顺序</li>
+</ul></li>
+<li>LRU
+<ul>
+<li>Evict item whose <span style="color:red">most recent access</span>
+was <span style="color:red">earliest</span></li>
+</ul></li>
+<li>LFU
+<ul>
+<li>Evict item that was least frequently requested</li>
+</ul></li>
+</ul>
+<h3 id="最优离线算法">最优离线算法</h3>
+<ul>
+<li>Farthest-in-future
+<ul>
+<li>驱逐将来最晚访问的一个元素</li>
+</ul></li>
+<li>[Bélády 1966] FF is optimal eviction schedule.</li>
+</ul>
+<h3 id="ff-最优性">FF 最优性</h3>
+<h4 id="reduced-schedule">reduced schedule</h4>
+<ul>
+<li><p>reduced schedule</p>
+<ul>
+<li>d 进缓存当且仅当<span style="color:red"><strong>同时</strong></span>满足如下两种情况
+<ul>
+<li>当前时刻请求 d</li>
+<li>d 不在缓存中</li>
+</ul></li>
+</ul></li>
+<li><p>可以将一个 unreduced schedule 转变为 reduced
+schedule，同时不增加驱逐次数</p>
+<ul>
+<li>归纳法</li>
+</ul></li>
+<li><p>假设步骤 <span class="math inline">\(j\)</span> 的时候，没有请求
+<span class="math inline">\(d\)</span>，便将 <span class="math inline">\(d\)</span> 载入缓存，此时驱逐了 <span class="math inline">\(c\)</span>（<strong>分类讨论</strong>）</p></li>
+<li><p><span class="math inline">\(d\)</span> 不在缓存中</p>
+<ul>
+<li><span class="math inline">\(d\)</span> evicted before next request
+for <span class="math inline">\(d\)</span>
+<ul>
+<li>不载入 <span class="math inline">\(d\)</span>，驱逐次数减小 1</li>
+</ul></li>
+<li>next request for <span class="math inline">\(d\)</span> occurs
+before <span class="math inline">\(d\)</span> is evicted
+<ul>
+<li>直至请求 <span class="math inline">\(d\)</span> 的时候再载入 <span class="math inline">\(d\)</span></li>
+<li>驱逐次数不变（甚至更少，中间请求了 <span class="math inline">\(c\)</span>）</li>
+</ul></li>
+</ul></li>
+<li><p><span class="math inline">\(d\)</span> 在缓存中</p>
+<ul>
+<li><span class="math inline">\(d\)</span> evicted before it is needed.
+<ul>
+<li>不载入 <span class="math inline">\(d\)</span>，驱逐次数减小 1</li>
+</ul></li>
+<li><span class="math inline">\(d\)</span> needed before it is evicted.
+<ul>
+<li>直至请求 <span class="math inline">\(d\)</span> 的时候再载入 <span class="math inline">\(d\)</span></li>
+<li>驱逐次数不变（甚至更少，中间请求了 <span class="math inline">\(c\)</span>）</li>
+</ul></li>
+</ul></li>
+</ul>
+<h4 id="证明">证明</h4>
+<ul>
+<li>存在一个 reduced schedule（S） 和 FF 的驱逐次数相同</li>
+<li><strong>归纳法</strong></li>
+<li><span class="math inline">\(1\sim j\)</span>
+步执行结束之后，两种方法 cache 相同，考虑 <span class="math inline">\(j+1\)</span> 步骤（分类讨论）</li>
+<li><span class="math inline">\(d\)</span> 在 cache 中</li>
+<li><span class="math inline">\(d\)</span> 不在 cache 中
+<ul>
+<li>驱逐元素一样</li>
+<li>驱逐元素不一样，FF 驱逐 <span class="math inline">\(e\)</span>，S
+驱逐 <span class="math inline">\(f\)</span>
+<ul>
+<li>构造 S'，S‘ 和 S 除了在 <span class="math inline">\(j+1\)</span>
+驱逐了 <span class="math inline">\(e\)</span> 之外和 S 完全一样</li>
+<li>在接下来的步骤中，S' 保持和 S 相同，直到需要请求 <span class="math inline">\(e/f\)</span> 或者 S 驱逐了 <span class="math inline">\(e\)</span></li>
+<li>请求 <span class="math inline">\(e\)</span>：不可能发生，根据 FF
+的性质，<span class="math inline">\(f\)</span> 的请求发生在 <span class="math inline">\(e\)</span> 之前</li>
+<li>请求 <span class="math inline">\(f\)</span>
+<ul>
+<li>此时 S 中不包含 <span class="math inline">\(f\)</span>（reduced
+schedule 性质）</li>
+<li>如果此时 S 驱逐 <span class="math inline">\(e\)</span>，此时 S'
+直接从 cache 中获取 <span class="math inline">\(e\)</span>，S'
+驱逐次数比 S 少 1</li>
+<li>如果此时 S 驱逐元素不是 <span class="math inline">\(e\)</span>，此时
+S' 驱逐 <span class="math inline">\(e&#39;\)</span> 获取 <span class="math inline">\(e\)</span>，S' 驱逐次数和 S 相同</li>
+<li>上面两种行为的结果都使得 S 和 S' 的 cache 相同，之后让 S' 的行为和 S
+一致，，此时调度 S' 的驱逐次数不必 S 多，接着将 S' 修改为 reduced
+schedule 即可（由于前 <span class="math inline">\(j+1\)</span> 步骤满足
+reduced schedule 的规则，因此可以保留前 <span class="math inline">\(j+1\)</span> 不变，即和 FF 相同）</li>
+</ul></li>
+<li>驱逐了 <span class="math inline">\(e\)</span>
+<ul>
+<li>S' 驱逐 <span class="math inline">\(f\)</span> 即可，接着行为和 S
+相同，然后转化为 reduce schedule 即可</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<h3 id="在线算法">在线算法</h3>
+<ul>
+<li>online：事先不知道请求序列</li>
+<li>LRU 是 <span class="math inline">\(k\)</span> 竞争的（<span class="math inline">\(k\)</span>-competitive）
+<ul>
+<li>对于任意一个请求序列 <span class="math inline">\(\sigma\)</span>
+满足：<span class="math inline">\(\text{LRU}(\sigma) ≤ k\cdot
+\text{FF}(\sigma) + k\)</span></li>
+</ul></li>
+<li>Randomized marking is <span class="math inline">\(O(\log
+k)\)</span>-competitive</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Algrithom/" rel="tag"># Algrithom</a>
+              <a href="/tags/WXL/" rel="tag"># WXL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/10/10/courses/Alg/03/" rel="prev" title="算法设计与分析.03.图算法及其概念">
+                  <i class="fa fa-chevron-left"></i> 算法设计与分析.03.图算法及其概念
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/10/12/courses/Alg/04-1/" rel="next" title="算法设计与分析.04.贪心算法 (2)">
+                  算法设计与分析.04.贪心算法 (2) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

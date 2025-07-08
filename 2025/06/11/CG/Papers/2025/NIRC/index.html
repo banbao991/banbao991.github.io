@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="和 NRC 类似的思路，但是缓存入射辐射场 NIRC；引入双层 MC，估计 NIRC 和 GT 的残差用于保证无偏；优化了 NRC 的路径终止策略，使其能够在第一跳停止；实现做了一些优化，使其更快，能够用更多样本估计">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2025-EG] Neural Two-Level Monte Carlo Real-Time Rendering">
+<meta property="og:url" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="和 NRC 类似的思路，但是缓存入射辐射场 NIRC；引入双层 MC，估计 NIRC 和 GT 的残差用于保证无偏；优化了 NRC 的路径终止策略，使其能够在第一跳停止；实现做了一些优化，使其更快，能够用更多样本估计">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig1-teaser.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig2.difference.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig3-pipeline.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig3-pipeline.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig5-optimization.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig6-equal-memory-comp.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig7-result-nirc-pt-nrc.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/uint-vector-to-octahedron.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/tab1-time-consuming.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig10-error-by-frames.png">
+<meta property="og:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig12-nrc-vs-nirc.png">
+<meta property="article:published_time" content="2025-06-11T11:42:38.000Z">
+<meta property="article:modified_time" content="2025-06-12T13:42:29.546Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="EG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/06/11/CG/Papers/2025/NIRC/fig1-teaser.png">
+
+
+<link rel="canonical" href="http://example.com/2025/06/11/CG/Papers/2025/NIRC/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/06/11/CG/Papers/2025/NIRC/","path":"2025/06/11/CG/Papers/2025/NIRC/","title":"(论文)[2025-EG] Neural Two-Level Monte Carlo Real-Time Rendering"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2025-EG] Neural Two-Level Monte Carlo Real-Time Rendering | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-two-level-monte-carlo-real-time-rendering"><span class="nav-text">Neural
+Two-Level Monte Carlo Real-Time Rendering</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#background"><span class="nav-text">Background</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#related-work"><span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#nirc"><span class="nav-text">NIRC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#radiance-cache-optimization"><span class="nav-text">Radiance Cache Optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E5%B7%AE"><span class="nav-text">方差</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%9F%E6%9C%9B"><span class="nav-text">期望</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#path-termination-heuristics"><span class="nav-text">Path Termination Heuristics</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cache-application"><span class="nav-text">Cache Application</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#neural-network-architecture"><span class="nav-text">Neural Network Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#performance-optimization"><span class="nav-text">Performance Optimization</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-visibility-cache"><span class="nav-text">Neural Visibility Cache</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#results"><span class="nav-text">Results</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mlmc-vs-cv"><span class="nav-text">MLMC vs CV</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#evaluation"><span class="nav-text">Evaluation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cache-analysis"><span class="nav-text">Cache Analysis</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#discussion-and-future-work"><span class="nav-text">Discussion and Future Work</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/06/11/CG/Papers/2025/NIRC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2025-EG] Neural Two-Level Monte Carlo Real-Time Rendering | Banbao">
+      <meta itemprop="description" content="和 NRC 类似的思路，但是缓存入射辐射场 NIRC；引入双层 MC，估计 NIRC 和 GT 的残差用于保证无偏；优化了 NRC 的路径终止策略，使其能够在第一跳停止；实现做了一些优化，使其更快，能够用更多样本估计">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2025-EG] Neural Two-Level Monte Carlo Real-Time Rendering
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-06-11 19:42:38" itemprop="dateCreated datePublished" datetime="2025-06-11T19:42:38+08:00">2025-06-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-06-12 21:42:29" itemprop="dateModified" datetime="2025-06-12T21:42:29+08:00">2025-06-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">和 NRC 类似的思路，但是缓存入射辐射场 NIRC；引入双层 MC，估计 NIRC 和 GT 的残差用于保证无偏；优化了 NRC 的路径终止策略，使其能够在第一跳停止；实现做了一些优化，使其更快，能够用更多样本估计</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="neural-two-level-monte-carlo-real-time-rendering">Neural
+Two-Level Monte Carlo Real-Time Rendering</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://mishok43.github.io/nirc/">主页</a></li>
+<li>FLIP / MRSE</li>
+</ul>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/fig1-teaser.png"></p>
+<ul>
+<li>和 NRC 类似的思路，但是缓存入射辐射场 NIRC</li>
+<li>两步 MC 算法（Two-Level Monte Carlo，subset of Multi-Level Monte
+Carlo，<strong>MLMC</strong>）
+<ul>
+<li>先估计积分，然后估计残差</li>
+<li>估计积分使用 Neural Incident Radiance Cache（NIRC）</li>
+<li>估计残差使用 NIRC + PT</li>
+</ul></li>
+<li>在线学习</li>
+<li>实现上做了一些优化，推理更快</li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/fig2.difference.png"></p>
+<ul>
+<li>一些对比
+<ul>
+<li>NIRC 直接缓存 incident radiance，<strong>比 NRC
+少一次光追开销</strong></li>
+<li>biased 版本：提出了一种新的路径终止策略【Balanced Termination
+Heuristic（BTH）】
+<ul>
+<li>NRC 的 Spread Angle Heuristic（SPH）不能直接在第一跳使用缓存</li>
+</ul></li>
+<li>感觉确实和 CV 很像；论文中说 CV
+用的一般是解析模型（SH、vMF）近似【NCV 也是近似一个分布】</li>
+</ul></li>
+<li>MLMC+NIRC 在短训练时间下比 CV 效果更好</li>
+<li>比 NRC 更高效【具体看论文】</li>
+<li>环境光特殊使用，同时近似可见性</li>
+</ul>
+<h1 id="background">Background</h1>
+<ul>
+<li>渲染方程、MC 求解</li>
+<li>Multi-Level Monte Carlo（MLMC）
+<ul>
+<li><span class="math inline">\(F_c\)</span>：NIRC
+<ul>
+<li><span class="math inline">\(\mathbf{w}\)</span>
+表示可学习的参数</li>
+</ul></li>
+<li><span class="math inline">\(F_r\)</span>：残差的 MC 估计</li>
+<li>二者可以用不同的样本数，<strong>只要 <span class="math inline">\(F_c\)</span> 的期望存在</strong>，那么 <span class="math inline">\(F_{tl}\)</span> 就是无偏的</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+F_c \approx \frac{1}{N_c} \sum_{i}^{N_c} \frac{f_c(X_i,
+\mathbf{w})}{p_c(X_i)} \tag{4}
+\]</span></p>
+<p><span class="math display">\[
+F_r \approx \frac{1}{N_r} \sum_{i}^{N_r} \frac{f(Y_i) - f_c(Y_i,
+\mathbf{w})}{p_r(Y_i)} \tag{5}
+\]</span></p>
+<p><span class="math display">\[
+F_{tl}\approx F_c+F_r \tag{6}
+\]</span></p>
+<ul>
+<li>Control Variates（CV）
+<ul>
+<li>形式很像，但是一般来说 <span class="math inline">\(F_c\)</span>
+（期望）是数值计算得到的</li>
+</ul></li>
+</ul>
+<h1 id="related-work">Related Work</h1>
+<ul>
+<li>Radiance Caching</li>
+<li>Neural Methods</li>
+<li>Neural Control Variates</li>
+</ul>
+<h1 id="nirc">NIRC</h1>
+<ul>
+<li>Neural Incident Radiance Cache</li>
+<li>拆分为直接光和间接光，需要和 NEE 做 MIS
+<ul>
+<li><strong>这个写法感觉怪怪的？</strong>感觉不如直接写成两种策略，但是式子
+9 又没有 MIS 权重</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+L_i(x, \omega_i) = L_{ind}(x, \omega_i) + L_{nee}(x, \omega_i) \tag{8}
+\]</span></p>
+<ul>
+<li>间接光使用 NIRC【<span class="math inline">\(n_i\)</span>】
+<ul>
+<li><span class="math inline">\(\phi\)</span> 表示辅助信息</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+L_{ind} \approx f_c(x, \omega_i, \omega_o, \phi, \mathbf{w}) = n_i(x,
+\omega_i, \phi, \mathbf{w}) f_r(x, \omega_i, \omega_o) \cos\theta_i
+\tag{9}
+\]</span></p>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/fig3-pipeline.png"></p>
+<ul>
+<li>展开渲染方程
+<ul>
+<li>有偏的就是直接不管残差项</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\hat{L}_o(x, \omega_o) \approx L_e(x, \omega_o) + \hat{L}_{nee}(x,
+\omega_o) + \hat{L}_c(x, \omega_o) + \hat{L}_r(x, \omega_o) \tag{10}
+\]</span></p>
+<p><span class="math display">\[
+\hat{L}_{\text{biased}}(x, \omega_o) \approx L_e(x, \omega_o) +
+\hat{L}_{nee}(x, \omega_o) + \hat{L}_c(x, \omega_o) \tag{13}
+\]</span></p>
+<h2 id="radiance-cache-optimization">Radiance Cache Optimization</h2>
+<ul>
+<li>损失函数两个部分
+<ul>
+<li><strong>残差项的方差最小化</strong></li>
+<li>残差项的期望最小化</li>
+</ul></li>
+</ul>
+<h3 id="方差">方差</h3>
+<ul>
+<li>单样本方差；方差估计直接使用 MC 样本【同一个采样 pdf <span class="math inline">\(p_r\)</span>】</li>
+</ul>
+<p><span class="math display">\[
+\left\langle \mathcal{L}_{\mathbb{V}}(f, f_c, \mathbf{w}) \right\rangle
+\approx \left( \frac{f(x) - f_c(x, \mathbf{w})}{p_r(x)} - F_r \right)^2
+\tag{16}
+\]</span></p>
+<p><span class="math display">\[
+F_r = \mathbb{E} \left[ \frac{f(X) - f_c(X, \mathbf{w})}{p_r(X)} \right]
+\]</span></p>
+<h3 id="期望">期望</h3>
+<ul>
+<li>只用方差的话，biased 版本效果差</li>
+</ul>
+<p><span class="math display">\[
+\left\langle \mathcal{L}_{\text{rel}}^2(f, f_c, \mathbf{w})
+\right\rangle = \frac{(f(x) - f_c(x, \mathbf{w}))^2}{p_r(x) \left(
+\text{sg}(f_c(x, \mathbf{w}))^2 + \epsilon \right)} \tag{18}
+\]</span></p>
+<ul>
+<li>原理就是让 <span class="math inline">\(\int(f(x) - f_c(x,
+\mathbf{w}))^2\;\mathrm{d}x\)</span> 最小【分母是为了补偿暗区域】</li>
+</ul>
+<h2 id="path-termination-heuristics">Path Termination Heuristics</h2>
+<ul>
+<li>NRC</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+a(x_1 \cdots x_n) &amp;= \left( \prod_{i=2}^{n} \frac{\| x_{i-1} - x_i
+\|}{p(\omega_i | x_{i-1}, \omega) \cos\theta_i} \right)^2 \tag{19} \\
+\\
+a_0 &amp;= \frac{\| x_0 - x_1 \|^2}{4\pi \cos\theta_1} \tag{20}\\
+\\
+a(x_1 \cdots x_n) &amp;&gt;c\cdot a_0 \tag{21}
+\end{align}
+\]</span></p>
+<ul>
+<li>扩展，使得可以在 primary hit 终止</li>
+<li>从平衡启发式得到灵感
+<ul>
+<li>NIRC glossy 处理不好，将其认为是 <strong>virtual diffuse
+采样方法</strong></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+P_s = \frac{p(\omega_i)}{p(\omega_i) + \dfrac{N_c}{\pi}} \tag{22}
+\]</span></p>
+<ul>
+<li>终止条件 BTH</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+i = 1: &amp;\quad \text{stop if } \xi &gt; P_s, \notag \\
+i &gt; 1: &amp;\quad \text{stop if } \xi &gt; P_s \text{ or } a(x_1
+\cdots x_i) &gt; c \cdot a_0, \tag{23}
+\end{align}
+\]</span></p>
+<h2 id="cache-application">Cache Application</h2>
+<ul>
+<li><strong>megakernel</strong></li>
+<li>估计 <span class="math inline">\(L_c,L_r\)</span> 的时候，使用独立的
+BSDF 采样</li>
+</ul>
+<h2 id="neural-network-architecture">Neural Network Architecture</h2>
+<ul>
+<li>输入：64 d
+<ul>
+<li>位置：hash grid【12 level x 2 features】【24】</li>
+<li>方向：4 阶 SH【25】</li>
+<li>albedo：identity【3】</li>
+<li>normal：one-blob【8】</li>
+<li>roughness：one-blob【4】</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/fig3-pipeline.png"></p>
+<h2 id="performance-optimization">Performance Optimization</h2>
+<ul>
+<li>hash encoding 需要获取离散的位置
+<ul>
+<li>优化：将相同的 shading surface 的 request 一起做</li>
+<li><span class="math inline">\(\phi\)</span> 同样可以这么优化</li>
+</ul></li>
+<li>SH 优化【<span style="color:red;font-weight:bolder">代码开源了仔细学学</span>】
+<ul>
+<li>full-fused，不存到 global memory，直接保存到 shared memory</li>
+<li>packing + compressing 方向分量能最大化系统带宽</li>
+</ul></li>
+<li>tcnn 输出的时候不使用临时
+buffer【这个我也这么用了，是有优化的】</li>
+<li><strong>优化提升：3.64x speedup</strong>【<strong><span style="color:red;font-weight:bolder">！！！</span></strong>】
+<ul>
+<li>sample count 表示 NIRC 样本数</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/fig5-optimization.png"></p>
+<ul>
+<li>训练路径、渲染路径分开 kernel
+<ul>
+<li><strong>训练路径长、渲染路径短</strong>【megakernel divergence
+大】</li>
+<li>实现方便，而且提升了效率</li>
+</ul></li>
+</ul>
+<h1 id="neural-visibility-cache">Neural Visibility Cache</h1>
+<ul>
+<li>估计环境光的可见性，0-1 实数，sigmoid 激活函数</li>
+</ul>
+<h1 id="results">Results</h1>
+<h2 id="mlmc-vs-cv">MLMC vs CV</h2>
+<ul>
+<li>公平对比：<strong>每个像素维护自己的参数</strong>
+<ul>
+<li>720p</li>
+<li>Falcor 7 + Pytorch（TCNN bindings）</li>
+</ul></li>
+<li>CV：SH、vMF【内存相当】
+<ul>
+<li>vMF：11 lobes per pixel <span class="math inline">\(\times\)</span>
+7 coeffs
+<ul>
+<li>初始化：spherical Fibonacci lattice</li>
+<li>优化：stepwise-EM</li>
+</ul></li>
+<li>SH：5 阶</li>
+</ul></li>
+<li>Screen Space NIRC（SS NIRC）
+<ul>
+<li>输入修改为 one latent vector per pixel</li>
+<li>6 层</li>
+<li>训练帧数：4000【面向实时】</li>
+</ul></li>
+<li>学习的不仅是 incident radiance，而是整个积分【上面不是说 radiance
+吗？实现上无所谓】</li>
+<li>和 NCV 对比：<a target="_blank" rel="noopener" href="https://github.com/ndeutschmann/zunis">开源
+NIS 代码</a>【但是 NCV
+本身比较也不能这么比吧，他也是优化残差的方差，下图比较合理吗？】
+<ul>
+<li>NCV 需要另外一个网络近似 BSDF</li>
+<li>NCV 需要访问 MLP 18 次，NIRC 1 次</li>
+</ul></li>
+<li>同内存比较</li>
+</ul>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/fig6-equal-memory-comp.png"></p>
+<h2 id="evaluation">Evaluation</h2>
+<ul>
+<li>Falcor 4.4（D3D12），TCNN（cuda）</li>
+<li>NIRC
+<ul>
+<li>4 layers 64 neurons、ReLU、Adam（lr=0.01）</li>
+<li>因为快了，所以每帧优化 4 次</li>
+</ul></li>
+<li>NRC 只访问一次网络【原论文一样】</li>
+<li>训练和 NRC 相同【不使用 self-training strategy，因为效果不好】</li>
+<li>1080P，RTX3080，i7-12700k CPU 32G</li>
+<li>MRSE、FLIP</li>
+<li>NEE 开，light BVH</li>
+<li>RR（0.1 终止）</li>
+<li>版本
+<ul>
+<li>unbiased：前 3 non-specular
+跳使用预定义样本数【per-scene】访问网络，使用完整 PT 估计残差</li>
+<li>biased：使用 BTH 终止 NIRC；SPH 终止 NRC【不估计残差】
+<ul>
+<li>NIRC 少光追一次，因此可以有多个样本访问网络</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/fig7-result-nirc-pt-nrc.png"></p>
+<ul>
+<li>Environment map lighting：不用环境光前提下也比 NRC
+好【额外实验】</li>
+<li>NIRC 的样本数
+<ul>
+<li>目前只在前 3 non-specular 跳使用
+NIRC；实验没有显示出使用更多跳数的好处</li>
+<li>具体 NIRC 的样本数也是个研究话题【论文给了一些例子】</li>
+</ul></li>
+<li>Memory consumption
+<ul>
+<li>surface parameter buffer：9 floats</li>
+<li>encoded parameter buffer：39 half</li>
+<li>encoded parameter buffer：4 bytes each direction【转化为下图的
+(u,v)，估计是两个 half】</li>
+<li><strong>前 3 跳一共 25 个样本</strong></li>
+<li><strong>1080P 大概 879.1 MB</strong></li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/uint-vector-to-octahedron.png"></p>
+<ul>
+<li>大概开销分布</li>
+</ul>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/tab1-time-consuming.png"></p>
+<ul>
+<li>动态场景支持
+<ul>
+<li>20 帧之后就比 PT 好了【GT 1k spp】</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/fig10-error-by-frames.png"></p>
+<ul>
+<li>Neural Visibility Cache（NVC）【<span style="color:red;font-weight:bolder">这个估计的得看环境光的具体实现了</span>】</li>
+</ul>
+<h2 id="cache-analysis">Cache Analysis</h2>
+<ul>
+<li>NIRC vs NRC：bias，variance，path length，render time</li>
+<li>实验
+<ul>
+<li>RTX 4080，32GB RAM</li>
+<li>NEE off，无环境光</li>
+<li>train 2000 frames with 4 epochs</li>
+</ul></li>
+</ul>
+<p><img src="/2025/06/11/CG/Papers/2025/NIRC/fig12-nrc-vs-nirc.png"></p>
+<h1 id="discussion-and-future-work">Discussion and Future Work</h1>
+<ul>
+<li>提高 NIRC 质量【incident radiance 比较复杂】
+<ul>
+<li>结合 NRC 和 NIRC</li>
+<li>ReSTIR</li>
+</ul></li>
+<li>MLMC 在哪里使用
+<ul>
+<li>MLMC 引入方差，近似的好的地方不需要用 MLMC</li>
+</ul></li>
+<li>更好适配动态场景
+<ul>
+<li>NN 陷入局部最值</li>
+</ul></li>
+<li>多层级的 MC【小的 MLP 作为低层级】</li>
+<li>残差有负值
+<ul>
+<li>需要引入 path guiding 的时候，需要考虑这个</li>
+</ul></li>
+<li>rel L2 loss 不够
+<ul>
+<li>引入 tone mapping、perceptual loss</li>
+<li>减小梯度噪声</li>
+</ul></li>
+<li>In Place Execution【内存问题】</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/EG/" rel="tag"># EG</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/05/27/CG/Papers/2025/MIR-PG/" rel="prev" title="(论文)[2025-SIG] Multiple Importance Reweighting for Path Guiding">
+                  <i class="fa fa-chevron-left"></i> (论文)[2025-SIG] Multiple Importance Reweighting for Path Guiding
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/06/12/CG/Papers/2019/DDGI/" rel="next" title="(论文)[2019-JCGT] Dynamic Diffuse Global Illumination with Ray-Traced Irradiance Fields">
+                  (论文)[2019-JCGT] Dynamic Diffuse Global Illumination with Ray-Traced Irradiance Fields <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
