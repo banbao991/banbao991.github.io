@@ -30,7 +30,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2024/03/01/CG/Papers/2023/ReSTIR-Course/01/3.1-ris-process.png">
 <meta property="article:published_time" content="2024-03-01T08:08:45.000Z">
-<meta property="article:modified_time" content="2025-03-11T07:48:33.025Z">
+<meta property="article:modified_time" content="2026-03-20T05:53:41.576Z">
 <meta property="article:author" content="banbao(990)">
 <meta property="article:tag" content="CG">
 <meta property="article:tag" content="Paper">
@@ -169,7 +169,7 @@ NEE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#i
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-count">378</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -180,7 +180,7 @@ NEE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#i
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">113</span>
+        <span class="site-state-item-count">114</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -266,7 +266,7 @@ NEE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#i
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-03-11 15:48:33" itemprop="dateModified" datetime="2025-03-11T15:48:33+08:00">2025-03-11</time>
+      <time title="Modified: 2026-03-20 13:53:41" itemprop="dateModified" datetime="2026-03-20T13:53:41+08:00">2026-03-20</time>
     </span>
 
   
@@ -461,7 +461,7 @@ Sampling</h1>
 <li>使用 <span class="math inline">\(W_X\)</span> 替换掉 <span class="math inline">\(f(x)/p(x)\)</span> 中的 <span class="math inline">\(1/p(x)\)</span></li>
 <li>Unbiased Contribution Weights</li>
 </ul></li>
-<li>上面这个式子就是 ReSTIR 早期论文用的重采样权重
+<li>下面这个式子就是 ReSTIR 早期论文用的重采样权重
 <ul>
 <li><span class="math inline">\(\hat{p}(x)\)</span> is the
 <strong>target function</strong> that the PDF of <span class="math inline">\(X\)</span> approximates better and better with
@@ -469,7 +469,13 @@ more and more candidates.</li>
 <li><span class="math inline">\(\hat{p}(x)\)</span>
 虽然很难算，但是存在</li>
 <li>这里的 <span class="math inline">\(\dfrac{1}{M}\)</span>
-就是后面说的 MIS 权重【可以理解为 <span class="math inline">\(X_i\)</span> 中可能有一样的，因此需要 MIS，<span class="math inline">\(1/M\)</span> 的设置具体见下面<a href="#mis-weights">这里</a>】</li>
+就是后面说的 MIS 权重
+<ul>
+<li>因为都来自相同定义域，<span class="math inline">\(\dfrac{1}{M}\)</span> 才是无偏的</li>
+<li>可以理解为 <span class="math inline">\(X_i\)</span>
+中可能有一样的，因此需要 MIS，<span class="math inline">\(1/M\)</span>
+的设置具体见下面<a href="#mis-weights">这里</a></li>
+</ul></li>
 </ul></li>
 </ul>
 <p><span class="math display">\[
@@ -546,11 +552,12 @@ support）（需要找到所有可能的样本）</li>
 <li>如果所有样本的 <span class="math inline">\(w_i\)</span> 都是
 0，那么没有样本生成，算法返回 a null sample <span class="math inline">\(\emptyset\)</span>（<span class="math inline">\(W_{\emptyset}=0\)</span>）
 <ul>
-<li><strong>特殊处理</strong>而不是直接替换，替换会导致 bias<span style="color:red">（为啥？）</span></li>
+<li><strong>特殊处理</strong>而不是直接替换，替换会导致 bias 【和常规
+MIS 一样，不能丢弃 0 样本】</li>
 </ul></li>
 <li>独立同分布：如果生成样本 <span class="math inline">\(X_i\)</span> 的
-pdf 已知为 <span class="math inline">\(p(x)\)</span>，MIS 权重可以设置为
-<span class="math inline">\(\dfrac{1}{M}\)</span>
+pdf 已知都为 <span class="math inline">\(p(x)\)</span>，MIS
+权重可以设置为 <span class="math inline">\(\dfrac{1}{M}\)</span>
 <ul>
 <li>期望含义上，<span class="math inline">\(\mathbb{E}[W_X]=\dfrac{\int\hat{p}(X)}{\hat{p}(X)}\)</span>，<span class="math inline">\(M\to\infty\)</span></li>
 </ul></li>
@@ -744,9 +751,13 @@ weights）
 m_i(x)=\frac{\hat{p}_i(x)}{\sum_{j=1}^M\hat{p}_j(x)}
 \]</span></p>
 <ul>
-<li>迭代的时候，我们保证变量的定义域（原始的 <span class="math inline">\(p\)</span> 采样得到的）和 target function <span class="math inline">\(\hat{p}\)</span> 的定义域完全相同
+<li>无偏保证（<span style="color:red">感觉是这两个条件都得要：一个保证
+MIS 无偏，一个保证所有定义域并集包含积分定义域</span>）
+<ul>
+<li>迭代的时候，我们保证变量的定义域（原始的 <span class="math inline">\(p_i\)</span> 采样得到的）和 target function <span class="math inline">\(\hat{p}_i\)</span> 的定义域完全相同
 <ul>
 <li><span class="math inline">\(\hat{p}=0\)</span> exactly when <span class="math inline">\(p=0\)</span></li>
+</ul></li>
 <li>通过使用一个 canonical sample <span class="math inline">\(X_c\)</span> 保证（通过在一个覆盖 <span class="math inline">\(\text{supp}(\hat{p})\)</span> 的 pdf RIS
 实现）</li>
 </ul></li>
@@ -798,7 +809,7 @@ m_i(x)=\frac{\hat{p}_i(x)}{\sum_{j=1}^M\hat{p}_j(x)}
 
 <div class="copyright">
   &copy; 2021 – 
-  <span itemprop="copyrightYear">2025</span>
+  <span itemprop="copyrightYear">2026</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

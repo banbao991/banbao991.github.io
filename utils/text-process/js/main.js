@@ -4,15 +4,20 @@ const TEXTS = [
   '去掉每一行末尾的换行，合并成一行（论文复制），粘贴/回车触发',
   '合并成一行，每个单词第一个字母大写，粘贴/回车触发',
   'git-submodule 里面的 http 修改为 git，粘贴触发',
+  '合并行，消除冒号，添加指定前缀，粘贴/回车触发',
 ];
 
-const FUNCTIONS = [f0, f1, f2, f3, f4];
+const HELPER_TEXTS =
+    ['未使用', '未使用', '未使用', '未使用', '未使用', '输入前缀'];
+
+const FUNCTIONS = [f0, f1, f2, f3, f4, f5];
 
 ///////////////////////////////////////////////////////////////////
 // update the function list above if you add a new function here //
 ///////////////////////////////////////////////////////////////////
 
 let textareas_input = null;
+let textareas_helper = null;
 
 const DEFAULT_FUNTION = 2;
 
@@ -25,7 +30,16 @@ function main() {
 function initialize_textareas() {
   const container = d3.select('#textareas');
   container.selectAll('div').remove();
-  textareas_input = container.append('div').append('textarea');
+  textareas_input =
+      container.append('div').append('textarea').attr('id', 'textareas_input');
+
+  // helper
+  const helper_container = d3.select('#textareas_helper');
+  textareas_helper = helper_container.append('div')
+                         .style('padding-top', '10px')
+                         .append('textarea')
+                         .attr('id', 'textareas_helper')
+                         .style('height', '200px');
 }
 
 function set_function(i) {
@@ -37,6 +51,8 @@ function set_function(i) {
     console.log('Invalid function index:', i);
     return;
   }
+  // clear helper
+  textareas_helper.attr('placeholder', HELPER_TEXTS[i]).node().value = '';
   textareas_input.attr('placeholder', TEXTS[i]).on('input', function(e) {
     // console.log(e.inputType, `"${e.data}"`);
     if (!check_should_apply(e)) {
@@ -119,4 +135,11 @@ function f4(ele) {
     }
   }
   ele.value = lines.join('\n');
+}
+
+function f5(ele) {
+  // 合并行，消除冒号，添加指定前缀
+  const prefix = textareas_helper.node().value;
+  const text_ori = ele.value;
+  ele.value = prefix + text_ori.split('\n').join(' ').replace(/:/g, '-');
 }

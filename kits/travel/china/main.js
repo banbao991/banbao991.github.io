@@ -4,6 +4,12 @@ let goneTimeMap = null;
 
 let isWe = true;
 
+// Cache to avoid re-fetching on repeated main() calls
+let dataLoaded = false;
+let cachedGeojson = null;
+let cachedTravelWe = '';
+let cachedTravelMe = '';
+
 const SVG_SIZE_RATE = 1.0;
 
 const BASE_COLOR_PROVINCE = '#69b3a2';
@@ -348,12 +354,37 @@ function initGoneSet(geojson, travel) {
   // console.log(goneTimeMap);
 }
 
-function main() {
-  const goneFile = isWe ? 'gone-we.txt' : 'gone.txt';
-  task1 = d3.json('data/china.json');
-  task2 = fetch(goneFile).then(response => response.text());
-  Promise.all([task1, task2]).then(([geojson, travel]) => {
-    initGoneSet(geojson, travel);
-    draw_main(geojson);
+// Helper: build travel string based on current flag
+function buildTravelString() {
+  return isWe ? cachedTravelWe : (cachedTravelWe + '\n' + cachedTravelMe);
+}
+
+// Helper: initial data load
+function loadInitialData() {
+  const task1 = d3.json('data/china.json');
+  const task2 = fetch('gone-we.txt').then(r => r.text());
+  const task3 = fetch('gone.txt').then(r => r.text());
+  return Promise.all([task1, task2, task3]).then(([
+                                                   geojson, travelWe, travelMe
+                                                 ]) => {
+    cachedGeojson = geojson;
+    cachedTravelWe = travelWe;
+    cachedTravelMe = travelMe;
+    dataLoaded = true;
   });
+}
+
+function main(forceReload = false) {
+  const run = () => {
+    const travel = buildTravelString();
+    initGoneSet(cachedGeojson, travel);
+    draw_main(cachedGeojson);
+  };
+
+  if (!dataLoaded || forceReload) {
+    loadInitialData().then(run).catch(
+        err => console.error('Data load failed:', err));
+  } else {
+    run();
+  }
 }

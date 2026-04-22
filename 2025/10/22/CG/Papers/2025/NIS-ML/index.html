@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="直接光的多光源采样问题；使用神经网络预测每一个点的采样光源的分布（一个数组）；对于光源数量多的，首先使用传统方法建立一个全局共享的 light hierarchy，将其划分为若干子树；NN 估计对于不同子树的采样概率（子树内的采样和传统方法相同）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2025-SIGC] Neural Importance Sampling of Many Lights">
+<meta property="og:url" content="http://example.com/2025/10/22/CG/Papers/2025/NIS-ML/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="直接光的多光源采样问题；使用神经网络预测每一个点的采样光源的分布（一个数组）；对于光源数量多的，首先使用传统方法建立一个全局共享的 light hierarchy，将其划分为若干子树；NN 估计对于不同子树的采样概率（子树内的采样和传统方法相同）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/10/22/CG/Papers/2025/NIS-ML/parallax.png">
+<meta property="og:image" content="http://example.com/2025/10/22/CG/Papers/2025/NIS-ML/fig2-pipeline.png">
+<meta property="og:image" content="http://example.com/2025/10/22/CG/Papers/2025/NIS-ML/fig3-clusters.png">
+<meta property="og:image" content="http://example.com/2025/10/22/CG/Papers/2025/NIS-ML/result.png">
+<meta property="article:published_time" content="2025-10-22T03:48:58.000Z">
+<meta property="article:modified_time" content="2025-10-23T03:14:36.517Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="NN">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="SIG">
+<meta property="article:tag" content="ManyLight">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/10/22/CG/Papers/2025/NIS-ML/parallax.png">
+
+
+<link rel="canonical" href="http://example.com/2025/10/22/CG/Papers/2025/NIS-ML/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/10/22/CG/Papers/2025/NIS-ML/","path":"2025/10/22/CG/Papers/2025/NIS-ML/","title":"(论文)[2025-SIGC] Neural Importance Sampling of Many Lights"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2025-SIGC] Neural Importance Sampling of Many Lights | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-importance-sampling-of-many-lights"><span class="nav-text">Neural Importance
+Sampling of Many Lights</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#related-work"><span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-light-selection-importance-sampling"><span class="nav-text">Neural Light
+Selection Importance Sampling</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%8C%96"><span class="nav-text">优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84"><span class="nav-text">网络架构</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#neural-light-cluster-sampling"><span class="nav-text">Neural Light Cluster
+Sampling</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cluster-%E6%9E%84%E5%BB%BA"><span class="nav-text">cluster 构建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%8C%96-1"><span class="nav-text">优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AE%8B%E5%B7%AE%E5%AD%A6%E4%B9%A0"><span class="nav-text">残差学习</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-text">实验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C"><span class="nav-text">消融实验</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">378</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">114</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/22/CG/Papers/2025/NIS-ML/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2025-SIGC] Neural Importance Sampling of Many Lights | Banbao">
+      <meta itemprop="description" content="直接光的多光源采样问题；使用神经网络预测每一个点的采样光源的分布（一个数组）；对于光源数量多的，首先使用传统方法建立一个全局共享的 light hierarchy，将其划分为若干子树；NN 估计对于不同子树的采样概率（子树内的采样和传统方法相同）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2025-SIGC] Neural Importance Sampling of Many Lights
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-10-22 11:48:58" itemprop="dateCreated datePublished" datetime="2025-10-22T11:48:58+08:00">2025-10-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-10-23 11:14:36" itemprop="dateModified" datetime="2025-10-23T11:14:36+08:00">2025-10-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">直接光的多光源采样问题；使用神经网络预测每一个点的采样光源的分布（一个数组）；对于光源数量多的，首先使用传统方法建立一个全局共享的 light hierarchy，将其划分为若干子树；NN 估计对于不同子树的采样概率（子树内的采样和传统方法相同）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="neural-importance-sampling-of-many-lights">Neural Importance
+Sampling of Many Lights</h1>
+<ul>
+<li>PEDRO FIGUEIREDO, Texas A&amp;M University, USA<br>
+</li>
+<li><a target="_blank" rel="noopener" href="https://pedrovfigueiredo.github.io/projects/manylights/SIGGRAPH_2025_Importance_Sampling/index.html">项目主页</a>，<a target="_blank" rel="noopener" href="https://github.com/pedrovfigueiredo/nis-manylights/">代码实现</a></li>
+<li><strong>直接光</strong>的<strong>多光源采样</strong>问题
+<ul>
+<li>和 PG 的区别：小而强的占据小立体角的光源，PG 方法很难学习</li>
+</ul></li>
+<li>使用神经网络预测每一个点的采样光源的分布（一个数组）【<strong>光源内部采样还是传统的</strong>】
+<ul>
+<li>对于光源数量多的，首先使用传统方法建立一个全局共享的 light
+hierarchy，将其划分为若干子树；NN
+估计对于不同子树的采样概率（子树内的采样和传统方法相同）</li>
+</ul></li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>多光源采样传统方法
+<ul>
+<li>利用特征构建树结构（light hierarchy）【不考虑可见性】</li>
+<li>考虑可见性，更复杂的空间数据结构
+<ul>
+<li>因为一个 subspace 内共享分布，导致 parallax 问题</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2025/10/22/CG/Papers/2025/NIS-ML/parallax.png"></p>
+<h1 id="related-work">Related Work</h1>
+<ul>
+<li>Many Light Rendering</li>
+<li>Learning-Based Light Sampling</li>
+<li>Resampled Importance Sampling</li>
+<li>Path Guiding
+<ul>
+<li>学不到稀疏光源</li>
+</ul></li>
+</ul>
+<h1 id="neural-light-selection-importance-sampling">Neural Light
+Selection Importance Sampling</h1>
+<ul>
+<li>考虑 DI
+<ul>
+<li>一共 <span class="math inline">\(M\)</span>
+个光源，根据光源拆分</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+L_o(\mathbf{x}, \omega_o) = \sum_{y=1}^{M} L_y(\mathbf{x}, \omega_o) =
+\sum_{y=1}^{M} \int_{A_y} F(\mathbf{x}, \mathbf{z}, \omega_o) \,
+dA_y(\mathbf{z})
+\]</span></p>
+<p><span class="math display">\[
+F(\mathbf{x}, \mathbf{z}, \omega_{o}) = L_i(\mathbf{x}, \mathbf{z}) \,
+f_s(\mathbf{x}, \omega_{o}, \mathbf{z}) \, G(\mathbf{x}, \mathbf{z})
+\]</span></p>
+<ul>
+<li>采样第 <span class="math inline">\(y\)</span> 个光源概率：<span class="math inline">\(Y_j\sim p(y)\)</span>
+<ul>
+<li><span class="math inline">\(Y_j=\{1,\dots,M\}\)</span></li>
+</ul></li>
+<li>于是 MC 估计</li>
+</ul>
+<p><span class="math display">\[
+\langle{L_o(\mathbf{x}, \omega_o)
+}\rangle=\frac{1}{N}\sum_{j=1}^{N}\frac{L_{Y_j}(\mathbf{x},
+\omega_o)}{p(Y_j)}
+\]</span></p>
+<ul>
+<li>估计 <span class="math inline">\(L_{y}(\mathbf{x},
+\omega_o)\)</span> 需要在光源 <span class="math inline">\(y\)</span>
+上做 MC 积分
+<ul>
+<li><span style="color:red;font-weight:bold">这个就使用 PBRT
+自带的了；论文只管选择光源</span></li>
+</ul></li>
+<li>论文：使用神经网络估计 <span class="math inline">\(p_{\theta}(y)\)</span>
+<ul>
+<li><span style="color:red;font-weight:bold">表示形式就是一个数组</span></li>
+</ul></li>
+</ul>
+<h2 id="优化">优化</h2>
+<ul>
+<li>KL 散度</li>
+</ul>
+<p><span class="math display">\[
+D_{\text{KL}}(q, p_\theta) = \sum_{y=1}^{M} q(y) \log
+\frac{q(y)}{p_\theta(y)}
+\]</span></p>
+<ul>
+<li>梯度</li>
+</ul>
+<p><span class="math display">\[
+\nabla_\theta D_{\text{KL}}(q, p_\theta) = -\sum_{y=1}^{M} q(y)
+\nabla_\theta \log p_\theta(y)
+\]</span></p>
+<ul>
+<li>使用 <span class="math inline">\(Y\sim p_{\theta}(y)\)</span> 进行
+MC 估计</li>
+</ul>
+<p><span class="math display">\[
+\langle \nabla_\theta D_{\text{KL}}(q, p_\theta) \rangle = -\frac{1}{N}
+\sum_{j=1}^{N} \left[ \frac{q(Y_j)}{p_\theta(Y_j)} \nabla_\theta \log
+p_\theta(Y_j) \right]
+\]</span></p>
+<ul>
+<li>定义目标分布：光源 <span class="math inline">\(y\)</span>
+的贡献除以所有光源总的贡献</li>
+</ul>
+<p><span class="math display">\[
+q(y|\mathbf{x}, \omega_o) = L_y(\mathbf{x}, \omega_o)\Big/
+L_o(\mathbf{x}, \omega_o)=A\Big/ B
+\]</span></p>
+<ul>
+<li><span class="math inline">\(A\)</span> 项使用 MC
+估计【采样光源上的一个点，计算贡献】</li>
+<li><span class="math inline">\(B\)</span>
+项忽略【大家都是这么做的，例如 NPM】
+<ul>
+<li>Adam 优化器优化参数是根据当前梯度和历史平均梯度【被约分了】</li>
+</ul></li>
+<li>于是把采样光源上的点 <span class="math inline">\(\mathbf{Z}_j\)</span> 也写进去，式子是这样的</li>
+</ul>
+<p><span class="math display">\[
+\langle \nabla_\theta D_{\text{KL}}(q, p_\theta) \rangle = -\frac{1}{N}
+\sum_{j=1}^{N} \left[ \frac{F(\mathbf{x}, \mathbf{Z}_j,
+\omega_o)}{p(\mathbf{Z}_j | Y_j) p_\theta(Y_j)} \nabla_\theta \log
+p_\theta(Y_j) \right]
+\]</span></p>
+<h2 id="网络架构">网络架构</h2>
+<ul>
+<li>3 hidden layers of 64 neurons</li>
+<li>输入
+<ul>
+<li>position：dense grid</li>
+<li>outgoing direction：spherical harmonics with degree 4</li>
+<li>normal：one-blob with 32 bins</li>
+</ul></li>
+</ul>
+<h1 id="neural-light-cluster-sampling">Neural Light Cluster
+Sampling</h1>
+<ul>
+<li>光源数目多了之后，直接输出数组不现实</li>
+<li><strong>使用传统方法将光源划分为 clusters</strong>
+<ul>
+<li><strong>这个 cluster 是全局共享的【也就是说 <span class="math inline">\(p(y\mid c)\)</span> 是全局一样的】</strong></li>
+</ul></li>
+<li>于是采样过程转变为先采样 cluster，然后从 cluster 里面采样光源</li>
+</ul>
+<p><span class="math display">\[
+p_\theta(y)=p_{\theta}(c)p(y\mid c)
+\]</span></p>
+<ul>
+<li>网络只估计 <span class="math inline">\(p_{\theta}(c)\)</span></li>
+</ul>
+<p><img src="/2025/10/22/CG/Papers/2025/NIS-ML/fig2-pipeline.png"></p>
+<ul>
+<li>另外的好处：可以使用传统数据结构的优势【后面说的残差学习】</li>
+</ul>
+<h2 id="cluster-构建">cluster 构建</h2>
+<ul>
+<li>使用传统方法构建 light hierarchy【<span style="color:red;font-weight:bold">论文使用 ATS 方法</span>】
+<ul>
+<li>ATS：Importance Sampling of ManyLights with Adaptive Tree
+Splitting【2018-CGIT】</li>
+<li><span style="color:red;font-weight:bold">TODO：还没看</span></li>
+</ul></li>
+<li>固定全局的 <span class="math inline">\(k\)</span>，让深度 <span class="math inline">\(\ge k\)</span> 的成为 clusters</li>
+</ul>
+<p><img src="/2025/10/22/CG/Papers/2025/NIS-ML/fig3-clusters.png"></p>
+<h2 id="优化-1">优化</h2>
+<ul>
+<li>就是把 <span class="math inline">\(p\)</span> 拆开</li>
+</ul>
+<p><span class="math display">\[
+\langle \nabla_\theta D_{\text{KL}}(q, p_\theta) \rangle = -\frac{1}{N}
+\sum_{j=1}^{N} \left[ \frac{F(\mathbf{x}, \mathbf{Z}_j,
+\omega_o)}{p(\mathbf{Z}_j | Y_j) p(Y_j | C_j) p_\theta(C_j)}
+\nabla_\theta \log p_\theta(C_j) \right]
+\]</span></p>
+<h2 id="残差学习">残差学习</h2>
+<ul>
+<li>问题：差的初始化让一开始训练慢</li>
+<li>使用传统方法作为基础，NN 估计和传统方法的残差</li>
+<li>如何保证最后的权重是正数？转化为指数上的残差
+<ul>
+<li>神经网络估计：<span class="math inline">\(f_\theta(\mathbf{x},
+\omega_o)[c]\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+p_\theta(c) = \exp{\left(\log(w_c) + f_\theta(\mathbf{x}, \omega_o)[c]
+\right)}\Big/{\sum_{s=1}^{S} \exp{\left(\log(w_s) + f_\theta(\mathbf{x},
+\omega_o)[c] \right)}}
+\]</span></p>
+<ul>
+<li><strong>分母归一化保证是个分布；残差在指数部分保证是个正数</strong></li>
+<li>这样 0
+初始化让初始分布是传统方法的结果，初始好的结果让训练过程更稳定</li>
+</ul>
+<h1 id="结果">结果</h1>
+<ul>
+<li>实现：ATS 构建 light hierarchy；<span class="math inline">\(k=6\)</span>【网络输出 64 个权重】</li>
+<li><strong>PBRT v4 + GPU 实现</strong></li>
+<li>对比算法：ATS、SLCRT、ReSTIR、VARL
+<ul>
+<li>ReSTIR：<span class="math inline">\(M=32,K=3,R=30\)</span> spatial
+reuse</li>
+</ul></li>
+<li>对比：<span style="color:red;font-weight:bold">第一个非 specular
+面的 DI</span></li>
+<li>光源数量：几千个面
+<ul>
+<li>例如 bedroom 场景就是镜子上面那两个灯；一共 4.7k 个面</li>
+</ul></li>
+</ul>
+<h2 id="实验">实验</h2>
+<ul>
+<li>同时间比较（包括训练时间，<strong>一共几秒</strong>）</li>
+</ul>
+<p><img src="/2025/10/22/CG/Papers/2025/NIS-ML/result.png"></p>
+<ul>
+<li>同样本数比较</li>
+<li>收敛性分析</li>
+</ul>
+<h2 id="消融实验">消融实验</h2>
+<ul>
+<li>残差学习
+<ul>
+<li>使用不同的传统方法构建初始 light hierarchy；或者不用</li>
+</ul></li>
+<li>位置输入编码</li>
+<li>训练时间占比【15% 最佳】</li>
+<li>连续表示：对比 pos 用 32x32x32 网格中心；dir 用 8 bins</li>
+<li>不同的 cluster level（<span class="math inline">\(k=6\)</span>
+大部分最优）</li>
+</ul>
+<h1 id="总结">总结</h1>
+<ul>
+<li>future work
+<ul>
+<li>保守优化减少 outliers</li>
+<li>目前使用一个全局的 cut；可以动态变化</li>
+<li>没有考虑光源内部的采样</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/NN/" rel="tag"># NN</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/SIG/" rel="tag"># SIG</a>
+              <a href="/tags/ManyLight/" rel="tag"># ManyLight</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/10/22/CG/Papers/2025/KPNSM/" rel="prev" title="(论文)[2025-SIGC] Kernel Predicting Neural Shadow Maps">
+                  <i class="fa fa-chevron-left"></i> (论文)[2025-SIGC] Kernel Predicting Neural Shadow Maps
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/10/23/CG/Papers/2025/ML-ReSTIR-SM/" rel="next" title="(论文)[2025-EG] Many-Light Rendering Using ReSTIR-Sampled Shadow Maps">
+                  (论文)[2025-EG] Many-Light Rendering Using ReSTIR-Sampled Shadow Maps <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
