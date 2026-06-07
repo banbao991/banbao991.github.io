@@ -114592,4 +114592,651 @@ N_{\text{res}}\times N_{vpl}\)</span>，ISM 分辨率 128x128 差不多</li>
         <tag>SIG</tag>
       </tags>
   </entry>
+  <entry>
+    <title>(论文)[2022-EGSR] Spatiotemporal Blue Noise Masks</title>
+    <url>/2026/05/25/CG/Papers/2022/STBN/</url>
+    <content><![CDATA[<h1 id="spatiotemporal-blue-noise-masks">Spatiotemporal Blue Noise
+Masks</h1>
+<ul>
+<li>蓝噪声：能够降低<strong>低频噪声</strong></li>
+<li>本文：时间、空间上都是蓝噪声【传统时间上不是】
+<ul>
+<li>扩展到 temporal</li>
+</ul></li>
+<li><a href="https://github.com/NVIDIAGameWorks/SpatiotemporalBlueNoiseSDK">仓库</a></li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>目前一般是空间 Blue Noise + TAA（EMA）</li>
+<li>两大类蓝噪声方法
+<ul>
+<li>sets of blue noise distributed <strong>sample points</strong></li>
+<li><strong>masks</strong> containing values in an
+image【本文是这个】</li>
+</ul></li>
+<li>我们支持任意 pdf【也就是说支持重要性采样】</li>
+<li>针对实时渲染【优先蓝噪声质量，再考率收敛性】</li>
+<li>蓝噪声 + 降噪效果有提升
+<ul>
+<li>使用我们的 mask 效果更好</li>
+</ul></li>
+<li>limitation：收敛性比白噪声差
+<ul>
+<li>只有在不动的像素好</li>
+</ul></li>
+</ul>
+<h1 id="相关工作">相关工作</h1>
+<ul>
+<li>生成蓝噪声 mask【不考虑时间轴】
+<ul>
+<li>scaler：void and cluster</li>
+<li>vector：Georgiev and Fajardo</li>
+</ul></li>
+<li>蓝噪声的提升会随着<strong>样本数</strong>、<strong>样本维度</strong>增加而<strong>降低</strong></li>
+<li>很多工作都是<strong>收敛性</strong>、<strong>质量</strong>的 trade
+off</li>
+</ul>
+<h1 id="背景知识">背景知识</h1>
+<h2 id="void-and-cluster-algorithm">Void and Cluster Algorithm</h2>
+<ul>
+<li><strong>scalar</strong></li>
+<li>算法目的
+<ul>
+<li>生成一张
+mask，对于<strong>任意的阈值</strong>切割得到的二值图像，都是一张满足蓝噪音分布的图片</li>
+</ul></li>
+<li>算法实现，每个像素维护
+<ul>
+<li>一个布尔变量【表示这个像素是否被 turn on】</li>
+<li>一个索引 index，表示这个像素被 turn on 的顺序
+<ul>
+<li>用于生成图片，index 从小到大，对应 black =&gt; white</li>
+</ul></li>
+</ul></li>
+<li>turn on 像素 <span class="math inline">\(p\)</span> 的能量辐射
+<ul>
+<li>总能量（推荐设置：<span class="math inline">\(\sigma=1.5\)</span>），高斯核函数【这里 <span class="math inline">\(\in M\)</span> 就表示状态为 on】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+F(p) = \sum_{q \in M} E(p, q) = \sum \exp\left(-\frac{\|p -
+q\|^2}{2\sigma^2}\right)
+\]</span></p>
+<ul>
+<li>mask 的总能量</li>
+</ul>
+<p><span class="math display">\[
+E(M) = \sum_{p,q \in M} E(p, q) = \sum \exp\left(-\frac{\|p -
+q\|^2}{2\sigma^2}\right)
+\]</span></p>
+<ul>
+<li>总共有 3 ordering phases</li>
+</ul>
+<h3 id="phase-1">Phase 1</h3>
+<ul>
+<li>目的：得到一个高质量的二值蓝噪声 mask</li>
+<li>随机 turn on 一部分像素【<strong>小于一半</strong>】</li>
+<li>反复执行如下操作，<strong>直到两者找到的像素相同</strong>【收敛】
+<ul>
+<li>在状态为 on 的像素中找到 <span class="math inline">\(F(p)\)</span>
+最大的像素，turn off
+<ul>
+<li>turn off the tightest <strong>cluster</strong> pixel，<span class="math inline">\(\arg\max_{p\in M}F(p)\)</span></li>
+</ul></li>
+<li>在状态为 off 的像素中找到 <span class="math inline">\(F(p)\)</span>
+最小的像素，turn on
+<ul>
+<li>turn on the largest <strong>void</strong> pixel，<span class="math inline">\(\arg\min_{p\in M}F(p)\)</span></li>
+</ul></li>
+</ul></li>
+<li>按照 <span class="math inline">\(F(p)\)</span> 从大到小，逐个 turn
+off 像素，并将这些像素的索引设置为状态为 on 的像素个数
+<ul>
+<li>这个步骤的目的就是建立索引</li>
+</ul></li>
+<li>结束之后把刚刚 turn off（即有索引的像素）的像素再 turn on</li>
+</ul>
+<h3 id="phase-2">Phase 2</h3>
+<ul>
+<li>目的：生成较暗部分的 ordering</li>
+<li>反复执行如下操作，直到状态为 on 的像素数量到达一半
+<ul>
+<li>在状态为 off 的像素中找到 <span class="math inline">\(F(p)\)</span>
+最小的像素，turn on，并接着上面的索引顺次标号</li>
+</ul></li>
+</ul>
+<h3 id="phase-3">Phase 3</h3>
+<ul>
+<li>目的：处理较亮部分</li>
+<li>切换所有像素的 on/off 状态【感觉这个转换是为了降低计算复杂度，<span class="math inline">\(M\)</span> 越来越小】</li>
+<li>反复执行如下操作，所有像素状态都为 off
+<ul>
+<li>在状态为 on 的像素中找到 <span class="math inline">\(F(p)\)</span>
+最大的像素，turn off，并接着上面的索引顺次标号</li>
+</ul></li>
+</ul>
+<h3 id="end">End</h3>
+<ul>
+<li>此时所有的像素都有一个索引，把这个索引除以总像素数量，便映射到了
+<span class="math inline">\([0,1)\)</span> 的浮点图片蓝噪声 mask
+<ul>
+<li>对于 k-bit 图，再映射到 <span class="math inline">\([0,
+2^k)\)</span></li>
+</ul></li>
+</ul>
+<h2 id="swap-algorithm">Swap Algorithm</h2>
+<ul>
+<li><strong>vector</strong></li>
+<li>定义图片总能量【高斯核函数】
+<ul>
+<li><span class="math inline">\(p,q\)</span> 表示坐标位置</li>
+<li><span class="math inline">\(V_p,V_q\)</span> 表示保存的 vector
+值</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+E(M) = \sum_{p \neq q} E(p, q) = \sum_{p \neq q} \exp\left( -\frac{\Vert
+p - q\Vert^2}{\sigma_i^2} - \frac{\Vert V_p -
+V_q\Vert^{d/2}}{\sigma_s^2} \right)
+\]</span></p>
+<ul>
+<li>参数设置
+<ul>
+<li><span class="math inline">\(\sigma_i=2.1,\sigma_s=1.0\)</span></li>
+<li><span class="math inline">\(d/2\)</span>
+表示平均空间位置、保存值的权重
+<ul>
+<li>整理理解就是，想要不同维度中的值更接近、尺度平均</li>
+<li>系数越大，减轻重要性</li>
+</ul></li>
+</ul></li>
+<li>算法流程
+<ul>
+<li>使用白噪声初始化整张图片</li>
+<li><strong>重复操作</strong>
+<ul>
+<li>随机选中两个像素，如果交换两个像素能够让总能量下降，则交换他俩</li>
+</ul></li>
+</ul></li>
+<li>可控参数
+<ul>
+<li>error threshold</li>
+<li>maximum swap count</li>
+</ul></li>
+</ul>
+<h1 id="spatiotemporal-blue-noise-masks-1">Spatiotemporal Blue Noise
+Masks</h1>
+<ul>
+<li>STBN</li>
+<li>V&amp;C 快</li>
+<li>swap 慢，但是能够支持 general vector、importance-sampled masks</li>
+<li>STBN 可定制</li>
+</ul>
+<h2 id="scalar-valued-masks">Scalar Valued Masks</h2>
+<ul>
+<li>一个像素一个随机数</li>
+<li>重新定义能量函数
+<ul>
+<li><span class="math inline">\(p=(p_{xy},p_z)=(p_x,p_y,p_z)\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+E(p, q) =
+\begin{cases}
+\exp\left(-\dfrac{\Vert{p-q}\Vert^2}{2\sigma^2}\right), &amp; \text{if }
+p_{xy} = q_{xy} \text{ or } p_z = q_z \\
+0, &amp; \text{otherwise}
+\end{cases}
+\]</span></p>
+<ul>
+<li>可视化：STBN 能量函数<strong>只考虑当前像素的值在空间上【<span class="math inline">\(z\)</span> 相同】或者时间上【<span class="math inline">\(xy\)</span> 相同】是蓝噪声</strong></li>
+</ul>
+<p><img src="/2026/05/25/CG/Papers/2022/STBN/energy-function.png"></p>
+<ul>
+<li>参数
+<ul>
+<li>初始化二值图片的时候，赋值 10% 像素</li>
+<li><span class="math inline">\(\sigma=1.9\)</span></li>
+</ul></li>
+</ul>
+<h2 id="vector-valued-masks">Vector Valued Masks</h2>
+<ul>
+<li>类似的修改能量函数</li>
+</ul>
+<p><span class="math display">\[
+E(p,q) =
+\begin{cases}
+\exp\left(
+-\dfrac{\Vert p-q\Vert^2}{\sigma_i^2}
+- \dfrac{\Vert V_p - V_q\Vert^{d/3}}{\sigma_s^2}
+\right),
+&amp; \text{if } p_{xy} = q_{xy} \text{ or } p_z = q_z \\[1.5em]
+0, &amp; \text{otherwise}
+\end{cases}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(d/2\)</span> 变成 <span class="math inline">\(d/3\)</span>：现在 <span class="math inline">\(p,q\)</span> 是 3d 的
+<ul>
+<li>思考上，类似于第一项得乘 <span class="math inline">\(3/2\)</span></li>
+</ul></li>
+<li>这个方法也能生成 scalar mask【但是比 V&amp;C 慢】</li>
+</ul>
+<h3 id="结合重要性采样"><span style="color:red">结合重要性采样</span></h3>
+<ul>
+<li>初始纹理可以使用重要性采样生成，可以把 pdf 也保存到其中的 channel
+里面【或者推导得到】</li>
+<li><span style="color:red">不太理解，这样经过 swap
+之后还能好吗？</span></li>
+</ul>
+<h1 id="分析">分析</h1>
+<ul>
+<li>分析：频域特征、误差、收敛性</li>
+</ul>
+<h2 id="scalar">Scalar</h2>
+<ul>
+<li>1d 函数积分：ramp（斜坡函数）、sine、step</li>
+<li>实验：EMA；累计</li>
+<li>spatial error 低的同时，收敛性也好</li>
+</ul>
+<h2 id="vector">Vector</h2>
+<ul>
+<li>测试了多种 Vector、同时测试了重要性采样【Cosine-Weighted、skybox
+image】</li>
+</ul>
+<p><img src="/2026/05/25/CG/Papers/2022/STBN/vector-test.png"></p>
+<ul>
+<li>V&amp;C 生成 scalar 质量高，但是只能生成
+scalar，而且不能结合重要性采样</li>
+<li>收敛速度：2d 函数积分（circle、gauss、step）
+<ul>
+<li>EMA；累计</li>
+</ul></li>
+<li>这个重要性采样效果感觉有点猛【<span style="color:red">但是没有跟白噪的重要性采样比？</span>】</li>
+</ul>
+<p><img src="/2026/05/25/CG/Papers/2022/STBN/vector-exp.png"></p>
+<h2 id="taa">TAA</h2>
+<ul>
+<li>对于低差异序列，大部分好的随机数都在开头；STBN
+任意张蓝噪声贴图开始都好【toroidally progressive】
+<ul>
+<li>在 TAA 失败的时候，STBN 效果好</li>
+</ul></li>
+<li>STBN 序列是绑定在像素上的，在像素移动的时候，STBN
+没有跟着移动，因此会丢失时间上的蓝噪属性
+<ul>
+<li>STBN 没有迁移序列</li>
+</ul></li>
+<li>累计收敛测试：White×Sobol 最好</li>
+<li>TAA + EMA
+<ul>
+<li>静态像素 STBN 效果都是最好的</li>
+<li>动态和 Vec2 Blue2D x White 差不多</li>
+</ul></li>
+</ul>
+<h2 id="properties-after-spatiotemporal-filtering">Properties After
+Spatiotemporal Filtering</h2>
+<ul>
+<li>STBN 收敛比 spatial blue2d 快</li>
+</ul>
+<h1 id="结果">结果</h1>
+<h2 id="scalar-masks-volumetric-rendering">Scalar Masks-Volumetric
+Rendering</h2>
+<ul>
+<li>各向异性体渲染，单次散射</li>
+<li>STBN，RMSE 降低 36%</li>
+</ul>
+<h2 id="vector-masks-ambient-occlusion">Vector Masks: Ambient
+Occlusion</h2>
+<ul>
+<li>three-dimensional unit vector</li>
+<li>他的 AO 计算方式
+<ul>
+<li>AO 的值插值得到【ray hit length = <span class="math inline">\(t\)</span>，AO 值为 <span class="math inline">\(t/t_{\max}\)</span>】</li>
+<li>另外再乘上 cosine weight</li>
+</ul></li>
+<li>STBN：质量、收敛性都更好</li>
+<li><span style="color:red">感觉这个加上 cosine-weighted
+重要性采样会更好</span></li>
+</ul>
+<h2 id="importance-sampled-vector-masks-stochasticconvolution">Importance
+Sampled Vector Masks: StochasticConvolution</h2>
+<ul>
+<li>多个卷积核，采样卷积核</li>
+</ul>
+<h2 id="denoising">Denoising</h2>
+<ul>
+<li><a href="https://media.contentapi.ea.com/content/dam/ea/seed/presentations/2019-ray-tracing-gems-chapter-25-barre-brisebois-et-al.pdf">PICA
+PICA renderer + spatial-temporal denoiser</a></li>
+</ul>
+<h1 id="补充材料">补充材料</h1>
+<h2 id="masks-vs.-samples">Masks vs. Samples</h2>
+<ul>
+<li>blue noise samples
+<ul>
+<li>输入是整数下标【表示需要第几个点】，返回点的坐标</li>
+<li>所有的点画在二值图像上，做 DFT，展现出来的结果是蓝噪声</li>
+</ul></li>
+<li>blue noise masks
+<ul>
+<li>输入是整数坐标，返回 N 维向量</li>
+<li>对于所有的坐标，返回的 N 维向量构成蓝噪声</li>
+<li>【应用：<span style="color:red">需要给每一个像素提供一个随机数；samples
+做不到</span>】</li>
+</ul></li>
+</ul>
+<p><img src="/2026/05/25/CG/Papers/2022/STBN/masks-vs-samples.png"></p>
+<h2 id="rendering-应用">Rendering 应用</h2>
+<ul>
+<li>蓝噪图片比白噪看着更舒服</li>
+<li>加上 Gaussian Blur 之后变得平滑，蓝噪更好了</li>
+</ul>
+<h1 id="更多结果">更多结果</h1>
+<ul>
+<li>Stochastic Transparency
+<ul>
+<li>4 帧累计 / 64 帧 EMA 后，STBN 效果显著好</li>
+</ul></li>
+<li>Dithering
+<ul>
+<li>把量化误差转化为噪声</li>
+</ul></li>
+<li>Volumetric Rendering</li>
+<li>Preserving Blue Noise Over Time</li>
+</ul>
+<h1 id="扩展">扩展</h1>
+<h2 id="getting-multiple-values-per-pixel">Getting Multiple Values Per
+Pixel</h2>
+<ul>
+<li>例如每帧多个样本</li>
+<li>简单处理：随着样本数 advance z 轴，而不是随着 frame index</li>
+<li>相邻像素具有相关性【差别很大】，但是随着距离增大，相关性消失
+<ul>
+<li>读取多个 offset 的样本</li>
+</ul></li>
+</ul>
+<h2 id="higher-dimensional-stbn">Higher Dimensional STBN</h2>
+<ul>
+<li>这里的指的 Dimension 就是纹理尺寸【例如 128x128x64，大小为 128x128
+的纹理，64 帧】</li>
+<li>D 的一个划分为 <span class="math inline">\(G\)</span>，那么 STBN
+只需要在任意的 <span class="math inline">\(g\in G\)</span>
+中保持蓝噪声即可</li>
+<li>定义 <span class="math inline">\(h\)</span> 为不在 <span class="math inline">\(g\)</span> 中的其他维度</li>
+<li>那么能量函数如下</li>
+</ul>
+<p><span class="math display">\[
+E_g(p,q) =
+\begin{cases}
+\exp\left(-\dfrac{\Vert p_g - q_g\|^2}{2\sigma_g^2}\right), &amp;
+\text{if } p_h = q_h \\
+0, &amp; \text{otherwise}
+\end{cases}
+\]</span></p>
+<p><span class="math display">\[
+E(p,q) = \sum_{g \in G} E_g(p,q)
+\]</span></p>
+<p><span class="math display">\[
+F(p) = \sum_{q \in M} E(p,q)
+\]</span></p>
+<ul>
+<li>不同的 group 可以有不一样的 <span class="math inline">\(\sigma_g\)</span>
+<ul>
+<li><strong>其实距离的幂次也不一样</strong></li>
+</ul></li>
+<li>例如 128x128x64 的 STBN
+<ul>
+<li><span class="math inline">\(G=\{xy,z\}\)</span>
+<ul>
+<li><span class="math inline">\(g=xy\)</span> 时，<span class="math inline">\(h=z\)</span></li>
+<li><span class="math inline">\(g=z\)</span> 时，<span class="math inline">\(h=xy\)</span></li>
+</ul></li>
+</ul></li>
+<li>耗时：8 bit 纹理
+<ul>
+<li>分辨率 <span class="math inline">\(O(n^2)\)</span></li>
+</ul></li>
+</ul>
+<p><img src="/2026/05/25/CG/Papers/2022/STBN/generation-time.png"></p>
+<ul>
+<li>实时渲染 64x64x16 就够用了</li>
+</ul>
+<h2 id="spatial-bn-stratification-over-time">Spatial BN Stratification
+Over Time</h2>
+<ul>
+<li>分层采样
+<ul>
+<li>例如原来是在 <span class="math inline">\([0,1]\)</span>
+均匀采样两个样本，分层采样则是子啊 <span class="math inline">\([0,0.5],[0.5,1]\)</span> 中各采样一个样本</li>
+<li>目的也是让样本分得开一点</li>
+</ul></li>
+<li>分层采样的问题：需要所有样本都用上效果才好
+<ul>
+<li>不适配 TAA 中可能中断与重启的情形</li>
+</ul></li>
+</ul>
+<p><img src="/2026/05/25/CG/Papers/2022/STBN/stratification.png"></p>
+<h2 id="spatiotemporal-point-sets">Spatiotemporal Point Sets</h2>
+<ul>
+<li>给定一个阈值，我们的 STBN 可以生成 blue noise 点集
+<ul>
+<li>仅考虑 spatial，我们不是最好的【例如更好的 blue noise through
+optimal transport】</li>
+<li>但是我们是第一个考虑 Spatial-Temporal 的</li>
+</ul></li>
+</ul>
+<h2 id="curve-inversion">Curve Inversion</h2>
+<ul>
+<li>从 scalar 随机数生成 vector</li>
+<li>scalar spatiotemporal blue noise value + a spacefilling curve
+<ul>
+<li>生成很快，但是使用效果不如 STBN</li>
+<li>正向：坐标 =&gt; Hilbert curves / Morton curves 坐标
+<ul>
+<li>归一化反向变换得到 vector</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2026/05/25/CG/Papers/2022/STBN/curve-inversion.png"></p>
+<h1 id="频谱分析">频谱分析</h1>
+<ul>
+<li>考虑一个具体像素的 1D 积分 <span class="math inline">\(f(y)\)</span>，N 样本 MC 估计如下
+<ul>
+<li><span class="math inline">\(s(\cdot)\)</span> 是 sample pattern</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I_N=\frac{1}{N}\sum_{i=1}^{N}f(y_i)=\int s(y)f(y)\;\mathrm{d}y,\quad
+s(y)=\frac{1}{N}\sum_{i=1}^{N}\delta(y-y_i)
+\]</span></p>
+<ul>
+<li>频域变换</li>
+</ul>
+<p><span class="math display">\[
+F(\omega)=\mathcal{F}\{f\}(\omega)=\int_{-\infty}^{\infty}f(y)e^{-i\omega
+y}\;\mathrm{d}y
+\]</span></p>
+<p><span class="math display">\[
+S(\omega)=\int_{-\infty}^{\infty}s(y)e^{-i\omega y}\;\mathrm{d}y
+\]</span></p>
+<ul>
+<li>逆变换</li>
+</ul>
+<p><span class="math display">\[
+f(y)
+=\mathcal{F}^{-1}\{F\}(y)
+=\frac{1}{2\pi}\int_{-\infty}^{\infty}F(\omega)e^{i\omega
+y}\;\mathrm{d}\omega
+\]</span></p>
+<ul>
+<li>对于任意函数 <span class="math inline">\(h(y)\)</span>，<span class="math inline">\(w=0\)</span> 处的傅里叶变换</li>
+</ul>
+<p><span class="math display">\[
+H(0)
+=
+\int_{-\infty}^{\infty}
+h(y)e^{-i\cdot 0\cdot y}\;\mathrm{d}y
+=
+\int_{-\infty}^{\infty}
+h(y)\;\mathrm{d}y
+\]</span></p>
+<ul>
+<li>令 <span class="math inline">\(h(x)=s(x)y(x)\)</span></li>
+</ul>
+<p><span class="math display">\[
+I_N=\mathcal{F}\{s(y)f(y)\}(0)
+\]</span></p>
+<ul>
+<li>Fourier transform 的乘积——卷积定理
+<ul>
+<li>时域中的乘积对应于频域中的卷积：<span class="math inline">\(\dfrac{1}{2\pi}\)</span> 系数</li>
+<li>时域中的卷积对应于频域中的乘积</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathcal{F}\{s(y)f(y)\}(\omega)
+=\frac{1}{2\pi}(S*F)(\omega)
+=\frac{1}{2\pi}\int_{-\infty}^{\infty}S(\xi)F(\omega-\xi)\;\mathrm{d}\xi
+\]</span></p>
+<ul>
+<li>令 <span class="math inline">\(\omega=0\)</span>
+<ul>
+<li>共轭对称性</li>
+<li>后面的 <span class="math inline">\(\omega\)</span>
+是积分变量，不是原始的频域</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I_N
+=\frac{1}{2\pi}\int_{-\infty}^{\infty}S(\omega)F(-\omega)\;\mathrm{d}\omega
+=\frac{1}{2\pi}\int_{-\infty}^{\infty}S(\omega)F^{\ast}(\omega)\;\mathrm{d}\omega
+\]</span></p>
+<ul>
+<li><span style="color:red">之后讨论，和论文一致，忽略 <span class="math inline">\(\dfrac{1}{2\pi}\)</span> </span></li>
+<li>对 <span class="math inline">\(y_i\)</span> 进行常数扰动 <span class="math inline">\(y_i+\gamma\)</span>【应用里面，像素间的 <span class="math inline">\(\gamma\)</span> 不同，例如蓝噪声扰动】
+<ul>
+<li>时域平移只改变频域相位【或者直接代进去算】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+s(y;\gamma) = s(y-\gamma)
+\]</span></p>
+<p><span class="math display">\[
+S(\omega;\gamma) = e^{-i\omega\gamma}S(\omega)
+\]</span></p>
+<ul>
+<li>此时
+<ul>
+<li>【记号 <span class="math inline">\(G\)</span>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+I_N = \int S(\omega)F^*(\omega)e^{-i\omega\gamma}\;\mathrm{d}\omega
+= \int G(\omega)e^{-i\omega\gamma}\;\mathrm{d}\omega
+\]</span></p>
+<ul>
+<li>这可以看成是一个傅里叶变换，那么对应的 <span class="math inline">\(g\)</span>
+就是逆变换结果【<strong>忽略常数</strong>】</li>
+</ul>
+<p><span class="math display">\[
+g(x)
+= \int G(\omega)e^{i\omega x}\;\mathrm{d}\omega
+= \int S(\omega)F^*(\omega)e^{i\omega x}\;\mathrm{d}\omega
+= s\otimes f
+\]</span></p>
+<p><span class="math display">\[
+I_N = g(-\gamma)
+\]</span></p>
+<ul>
+<li>这个函数不仅分析了 <span class="math inline">\(I_N\)</span>
+的值，同时反应了他的误差</li>
+<li>和之前工作一样，假定 <span class="math inline">\(f\)</span>【因此
+<span class="math inline">\(g\)</span>】 在小 patch 里面是 constant</li>
+</ul>
+<p><span class="math display">\[
+I_N(x) = g\bigl(-\gamma(x)\bigr)
+\]</span></p>
+<ul>
+<li>期望 <span class="math inline">\(I_N(x)\)</span>
+分布是蓝噪；因此使用蓝噪的 <span class="math inline">\(\gamma\)</span>
+<ul>
+<li>这并不一定成立【因为经过了 <span class="math inline">\(g\)</span>
+变换】</li>
+</ul></li>
+<li>理想情况，反解 <span class="math inline">\(g\)</span></li>
+<li>期望目标蓝噪</li>
+</ul>
+<p><span class="math display">\[
+I_N(x) = g\bigl(-\gamma(x)\bigr) = \alpha(x)
+\]</span></p>
+<ul>
+<li>输入噪声【省略负号】</li>
+</ul>
+<p><span class="math display">\[
+\gamma(x) = g^{-1}\bigl(\alpha(x)\bigr)
+\]</span></p>
+<ul>
+<li>实际不可行，<span class="math inline">\(g\)</span> 依赖于 <span class="math inline">\(f\)</span></li>
+<li>使用 <a href="https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.13778">Heitz
+and Belcour[2019]</a> 的做法
+<ul>
+<li>只做排序意义上的逆函数求解【基于一个小的 block 实现，上面的 block
+内部 <span class="math inline">\(f,g\)</span> constant 假设】</li>
+<li>dither：蓝噪声分布；frame t：原始结果</li>
+<li>二者各自排序，使用 dither 的坐标对应 frame 的值，这样 frame
+的结果就符合蓝噪声分布
+<ul>
+<li>假设：block 内部的 frame 值相同【实际没这么简单，论文中还有 retarget
+pass，用于解决帧间抖动问题；感觉 STBN 不需要这一步了】</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><img src="/2026/05/25/CG/Papers/2022/STBN/Heitz-and-Belcour-egsr-2019-sorting-pass.png"></p>
+<h1 id="其他资源">其他资源</h1>
+<ul>
+<li><a href="https://static.laszlokorte.de/blue-noise/">V&amp;C
+算法在线展示</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>CG.Paper</category>
+      </categories>
+      <tags>
+        <tag>CG</tag>
+        <tag>Paper</tag>
+        <tag>EGSR</tag>
+        <tag>BlueNoise</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>(论文)[] </title>
+    <url>/2026/06/01/CG/Papers/2019/BNPermuteSeeds/</url>
+    <content><![CDATA[
+]]></content>
+      <categories>
+        <category>CG.Paper</category>
+      </categories>
+      <tags>
+        <tag>CG</tag>
+        <tag>Paper</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>(论文)[GDC-2016] Rendering Antialiased Shadows with Moment Shadow Mapping</title>
+    <url>/2026/06/02/CG/Papers/2016/MSM-GDC/</url>
+    <content><![CDATA[<h1 id="msm-gdc">MSM-GDC</h1>
+<ul>
+<li><a href="https://www.gdcvault.com/play/1023808/Rendering-Antialiased-Shadows-with-Moment">GDC-2016</a>，8.15-16</li>
+<li>Christoph Peters，University of Bonn</li>
+</ul>
+]]></content>
+      <categories>
+        <category>CG.Paper</category>
+      </categories>
+      <tags>
+        <tag>CG</tag>
+        <tag>Shadow</tag>
+        <tag>Paper</tag>
+        <tag>GDC</tag>
+      </tags>
+  </entry>
 </search>
