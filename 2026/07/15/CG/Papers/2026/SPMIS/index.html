@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本文提出了随机 MIS 的算法，在 MIS 系数中引入随机性，不需要完整计算周围 M 个样本的权重，而是随机采样 N 个样本的方式计算，能够进行更大的空间复用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time">
+<meta property="og:url" content="http://example.com/2026/07/15/CG/Papers/2026/SPMIS/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="本文提出了随机 MIS 的算法，在 MIS 系数中引入随机性，不需要完整计算周围 M 个样本的权重，而是随机采样 N 个样本的方式计算，能够进行更大的空间复用">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2026/07/15/CG/Papers/2026/SPMIS/alg2-canonical-weight.png">
+<meta property="og:image" content="http://example.com/2026/07/15/CG/Papers/2026/SPMIS/alg2-non-canonical-weight.png">
+<meta property="article:published_time" content="2026-07-15T13:59:26.000Z">
+<meta property="article:modified_time" content="2026-07-23T11:22:54.757Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="EG">
+<meta property="article:tag" content="ReSTIR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2026/07/15/CG/Papers/2026/SPMIS/alg2-canonical-weight.png">
+
+
+<link rel="canonical" href="http://example.com/2026/07/15/CG/Papers/2026/SPMIS/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2026/07/15/CG/Papers/2026/SPMIS/","path":"2026/07/15/CG/Papers/2026/SPMIS/","title":"(论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-homepage"><a href="https://banbao990.github.io/" rel="noopener" target="_blank"><i class="fa fa-home fa-fw"></i>Homepage</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#stochastic-pairwise-mis-for-restir-pt"><span class="nav-text">Stochastic Pairwise MIS
+for ReSTIR PT</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-text">引言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="nav-text">背景知识</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#gris-%E7%90%86%E8%A7%A3"><span class="nav-text">GRIS 理解</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#stochastic-resampling-mis-weights"><span class="nav-text">Stochastic Resampling MIS
+Weights</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#general-stochastic-resampling-mis-estimator"><span class="nav-text">General Stochastic
+Resampling MIS Estimator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#stochastic-pairwise-mis"><span class="nav-text">Stochastic Pairwise MIS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#non-canonical"><span class="nav-text">non-canonical</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#canonical"><span class="nav-text">canonical</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#non-canonical-confidence-adjustment"><span class="nav-text">Non-Canonical Confidence
+Adjustment</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%BE%E7%9B%B8%E5%85%B3-cell"><span class="nav-text">找相关 cell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gpu-%E5%AE%9E%E7%8E%B0"><span class="nav-text">GPU 实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#cell-%E6%9E%84%E5%BB%BA"><span class="nav-text">Cell 构建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E9%87%87%E6%A0%B7"><span class="nav-text">空间采样</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94"><span class="nav-text">对比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%AF%E5%BD%95"><span class="nav-text">副录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#gris-with-stochastic-mis"><span class="nav-text">GRIS with Stochastic MIS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%81%E6%98%8E-smis-%E6%9C%9F%E6%9C%9B"><span class="nav-text">证明 SMIS 期望</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">382</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">116</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/07/15/CG/Papers/2026/SPMIS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time | Banbao">
+      <meta itemprop="description" content="本文提出了随机 MIS 的算法，在 MIS 系数中引入随机性，不需要完整计算周围 M 个样本的权重，而是随机采样 N 个样本的方式计算，能够进行更大的空间复用">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-07-15 21:59:26" itemprop="dateCreated datePublished" datetime="2026-07-15T21:59:26+08:00">2026-07-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-07-23 19:22:54" itemprop="dateModified" datetime="2026-07-23T19:22:54+08:00">2026-07-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">本文提出了随机 MIS 的算法，在 MIS 系数中引入随机性，不需要完整计算周围 M 个样本的权重，而是随机采样 N 个样本的方式计算，能够进行更大的空间复用</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="stochastic-pairwise-mis-for-restir-pt">Stochastic Pairwise MIS
+for ReSTIR PT</h1>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://research.nvidia.com/labs/rtr/publication/hedstrom2026stochastic/">主页</a>，<a target="_blank" rel="noopener" href="https://research.nvidia.com/labs/rtr/publication/hedstrom2026stochastic/hedstrom2026stochastic.zip">代码</a>（给了
+DI 的原型实现）</li>
+<li>本文提出了随机 MIS 的算法，通过在周围 <span class="math inline">\(M\)</span> 个样本中随机采样 <span class="math inline">\(N\)</span> 个样本的方式进行空间复用
+<ul>
+<li>在 MIS 系数中引入随机性，这样能够计算更大的 <span class="math inline">\(M\)</span>，复杂度为 <span class="math inline">\(O(MN)\)</span></li>
+<li>随机 PMIS 进一步降低了算法复杂度，<span class="math inline">\(O(N)\)</span></li>
+</ul></li>
+<li>提升 spatial reuse 效率</li>
+<li>实现上，通过 hash 的方式将像素划分为 cell
+<ul>
+<li>先采样 cell【找到一个邻域】，hash 的方式能够扩大邻域</li>
+<li>然后在 cell 中采样 <span class="math inline">\(N\)</span>
+个像素【本文的随机性】</li>
+<li>计算贡献</li>
+</ul></li>
+<li>额外开销
+<ul>
+<li>初始的 cell 选取【12 轮根据 confidence sum 的重采样】</li>
+<li><span class="math inline">\(\tilde{N}_c+\tilde{N}\)</span> 次 shift
+mapping</li>
+<li><del>不需要原来的空间复用开销（<span class="math inline">\(M+M\)</span>）</del></li>
+</ul></li>
+<li>一个 cell 中的相似性和 Hash 没关系【Hash
+理解为<strong>离散等价类划分</strong>】
+<ul>
+<li>连续属性的相似性 =&gt; 量化离散标签相同 =&gt; Hash 到同一个
+Cell</li>
+<li>离散属性分桶后用 Hash 实现高效索引</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">HashKey <span class="title">hashPixel</span><span class="params">(uint2 pixel, int4 attributes)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> HitInfo hit = <span class="built_in">HitInfo</span>(gVBuffer[pixel]);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">HashKey</span>(pixel.x / gReservoirCellSize.x) +</span><br><span class="line">           <span class="built_in">HashKey</span>(pixel.y / gReservoirCellSize.y) +</span><br><span class="line">           <span class="built_in">HashKey</span>(hit.<span class="built_in">getInstanceID</span>().index) + <span class="comment">// instance ID</span></span><br><span class="line">           <span class="built_in">HashKey</span>(attributes.x) + <span class="comment">// normal x</span></span><br><span class="line">           <span class="built_in">HashKey</span>(attributes.y) + <span class="comment">// normal y</span></span><br><span class="line">           <span class="built_in">HashKey</span>(attributes.z) + <span class="comment">// normal z</span></span><br><span class="line">           <span class="built_in">HashKey</span>(attributes.w);  <span class="comment">// roughness【论文没用，设置为 0，估计是没啥提升】</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Hash 碰撞，向后走；kLinearProbeLength=32</li>
+</ul>
+<h1 id="引言">引言</h1>
+<ul>
+<li>当样本稀疏分布的时候，之前的空间复用低效</li>
+<li>论文能够实现更大范围的无偏复用，进一步提升 PMIS（Pairwise
+MIS）的效率【需要评估所有复用的 MIS 时】
+<ul>
+<li>基于 GRIS</li>
+</ul></li>
+</ul>
+<h1 id="背景知识">背景知识</h1>
+<ul>
+<li>细节查看 <a href="/2024/03/01/CG/Papers/2023/ReSTIR-Course/00/">ReSTIR
+Notes</a></li>
+<li>基本 RIS 权重：都覆盖定义域</li>
+</ul>
+<p><span class="math display">\[
+w_i=\frac{\hat{p}(X_i)}{p_i(X_i)}
+\]</span></p>
+<ul>
+<li>Canonical samples【<strong>基准样本</strong>】
+<ul>
+<li>在 target domain 上</li>
+<li>shift mapping 是恒等变换 <span class="math inline">\(T_c(X_c)=X_c\)</span>【覆盖整个定义域】</li>
+<li>每次复用需要有一个基准样本，保证无偏
+<ul>
+<li>可以理解为当前像素的样本【reservoir 蓄水池】</li>
+</ul></li>
+</ul></li>
+<li>GRIS</li>
+<li>generalized balance heuristic：BH 基础上 <span class="math inline">\(p\)</span> 乘上 <span class="math inline">\(c_i\)</span>（confidence weight）
+<ul>
+<li>generalized 指的是使用 <span class="math inline">\(\hat{p}\)</span>
+代替 <span class="math inline">\(p\)</span>【UCW】</li>
+<li><strong>这里的 <span class="math inline">\(\leftarrow\)</span>
+下标指的是变换到 target 域下的函数值</strong></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+m_i^{\mathrm{bal}}(y)
+=
+\frac{
+    c_i\,\hat{p}_{\leftarrow i}(y)
+}{
+    \displaystyle
+    \sum_{j=1}^{M}
+    c_j\,\hat{p}_{\leftarrow j}(y)
+}
+\]</span></p>
+<ul>
+<li>confidence weights
+<ul>
+<li>一般设置为生成这个样本的总初始样本数目
+<ul>
+<li>可能重复计算导致过大；不同像素空间不一样这个近似不准</li>
+</ul></li>
+<li>加入 confidence cap【GRIS 设置为 20】</li>
+</ul></li>
+<li>本文输入：<span class="math inline">\((X_i,W_{X_i},c_i)\)</span></li>
+<li><a href="/2024/10/02/CG/Papers/2023/ReSTIR-Course/04/">Pairwise
+MIS</a>
+<ul>
+<li>降低 MIS 计算量：<span class="math inline">\(O(M^2)\to
+O(M)\)</span></li>
+<li>defensive 形式：避免给 canonical 样本过大权重，同时不能让其他样本的
+<span class="math inline">\(\hat{p}\)</span> 过大
+<ul>
+<li>canonical 样本权重除以 <span class="math inline">\((M-1)\)</span>，整体在加 1；然后所有平均</li>
+</ul></li>
+<li>confidence weight 版本：不使用 <span class="math inline">\(M-1\)</span> 而是用 <span class="math inline">\(c_i\)</span> 调制【<span class="math inline">\(c_i=1\)</span> 退化为上面的】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+m_i^{\mathrm{pw}}(y)
+=
+\left(
+\frac{c_{\Sigma}}
+{c_{\Sigma}+c_c}
+\right)
+\frac{
+c_i\hat{p}_{\leftarrow i}(y)
+}{
+c_{\Sigma}\hat{p}_{\leftarrow i}(y)+c_c\hat{p}(y)
+}
+\qquad (i\ne c)
+\tag{11(a)}
+\]</span></p>
+<p><span class="math display">\[
+m_c^{\mathrm{pw}}(y)
+=
+\frac{c_c}{c_{\Sigma}+c_c}
++
+\sum_{j=1}^{M}
+\left(
+\frac{c_j}{c_{\Sigma}+c_c}
+\right)
+\frac{
+c_c\hat{p}(y)
+}{
+c_{\Sigma}\hat{p}_{\leftarrow j}(y)+c_c\hat{p}(y)
+}
+\tag{11(b)}
+\]</span></p>
+<p><span class="math display">\[
+c_{\Sigma}=\sum_{k\ne c}^{M} c_k
+\]</span></p>
+<ul>
+<li>ReSTIR
+<ul>
+<li>初始样本（initial candidates）来自于 PT，多个的话，合并到 initial
+samlple 中【RIS】</li>
+<li>时间复用：和上一帧对应像素样本合并【GRIS】</li>
+<li>空间复用：和周围像素样本合并【GRIS】</li>
+</ul></li>
+</ul>
+<h2 id="gris-理解"><span id="bb-GRIS">GRIS</span> 理解</h2>
+<ul>
+<li>输入为 M 样本的 UCW 对 <span class="math inline">\((X_i,W_{X_i})\)</span>
+<ul>
+<li>可能不是当前像素的 UCW，但是经过 shift mapping
+之后有类似形式的当前像素中的 UCW</li>
+<li>理解为新 UCW 对
+<ul>
+<li><span class="math inline">\(Y_i=T_i(X_i)\)</span></li>
+<li><span class="math inline">\(W_{X_i}\left|\dfrac{\partial
+T_i}{\partial X_i}\right|\)</span>
+<ul>
+<li>pdf 的话是除以 Jacobian，因此 UCW 就是乘【pdf 和 UCW
+为倒数关系】</li>
+</ul></li>
+</ul></li>
+<li>对于当前像素的定义域的任意函数 <span class="math inline">\(g\)</span>【无偏性分析中，采样和积分函数 <span class="math inline">\(g\)</span> 无关】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}\left[
+g\left(T_i(X_i)\right)
+W_{X_i}
+\left|
+\frac{\partial T_i}{\partial X_i}
+\right|
+\right]
+= \int_{\Omega_i}
+g\left(T_i(x)\right)
+\left|
+\frac{\partial T_i}{\partial x}
+\right|
+\,\mathrm{d}x
+=
+\int_{T_i(\Omega_i)}g(y)\,\mathrm{d}y
+\]</span></p>
+<ul>
+<li>GRIS 重采样权重
+<ul>
+<li>RIS 基础上的变换
+<ul>
+<li><span class="math inline">\([\cdot]\)</span> 表示示性函数：表示
+<span class="math inline">\(T_i\)</span> 是否有定义</li>
+<li>shift mapping</li>
+<li><span class="math inline">\(p(X_i)\)</span> 使用 UCW</li>
+<li>MIS 系数</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+w_i
+=
+\left[X_i \in D(T_i)\right]
+m_i(Y_i)\,
+\hat{p}(Y_i)\,
+W_{X_i}\,
+\left|
+\frac{\partial T_i}{\partial X_i}
+\right|
+\tag{6}
+\]</span></p>
+<ul>
+<li>最终采样 index 权重</li>
+</ul>
+<p><span class="math display">\[
+P(z)=\frac{w_z}{\sum_{j=1}^{M}w_j}
+\]</span></p>
+<ul>
+<li>最终样本 <span class="math inline">\(Y_z\)</span> 的 UCW</li>
+</ul>
+<p><span class="math display">\[
+W_Y=\frac{1}{\hat{p}(Y)}\sum_{j=1}^{M}w_j
+\]</span></p>
+<h1 id="stochastic-resampling-mis-weights">Stochastic Resampling MIS
+Weights</h1>
+<ul>
+<li>如果 M 个蓄水池中大部分样本都是零贡献的，GRIS 变得低效</li>
+<li>不能直接根据样本挑选，有偏！</li>
+<li>论文：更大的 <span class="math inline">\(M\)</span> 中挑选 <span class="math inline">\(\tilde{N}\)</span> 个样本用于复用【设计
+MIS、无偏复用】</li>
+<li>构建 MIS 系数的随机估计
+<ul>
+<li>输入样本 <span class="math inline">\(\bar{X}=(X_1,\cdots,X_M)\)</span></li>
+<li>UCW <span class="math inline">\(\bar{W}=(W_{X_1},\cdots,W_{X_M})\)</span></li>
+<li>新随机变量 <span class="math inline">\(Z\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}
+\left[
+    \tilde{m}_i(Y_i;Z)
+    \mid
+    \bar{X},\bar{W}
+\right]
+=
+m_i(Y_i)
+\tag{13}
+\]</span></p>
+<ul>
+<li>重采样权重 <span class="math inline">\(\tilde{w}_i\)</span>【带入
+<span class="math inline">\(\tilde{m}_i\)</span> 即可】</li>
+</ul>
+<h2 id="general-stochastic-resampling-mis-estimator">General Stochastic
+Resampling MIS Estimator</h2>
+<ul>
+<li><span class="math inline">\(M\)</span>
+个样本，每个样本有一个采样概率 <span class="math inline">\(P(i)\)</span></li>
+<li>有放回采样 <span class="math inline">\(\tilde{N}\)</span>
+次，得到集合 <span class="math inline">\(\bar{S}=\{S_1,\cdots,S_{\vert
+S\vert}\}\)</span>
+<ul>
+<li><span class="math inline">\(\vert{S}\vert\le\tilde{N}\)</span>：因为有去重</li>
+<li><span class="math inline">\(\mathbf{K}_{\bar{S}}(i)\)</span>：记录像素 <span class="math inline">\(i\)</span> 出现的次数</li>
+</ul></li>
+<li>此时随机重采样 MIS 为
+<ul>
+<li><span class="math inline">\(m_i\)</span> 表示原来的非随机 MIS【例如
+BH 或者上面的 confidence weight】</li>
+<li>允许 <span class="math inline">\(P\)</span> 依赖于输入样本和
+UCW</li>
+<li><span class="math inline">\(P(i)=0\)</span> 的时候，<span class="math inline">\(\mathbf{K},\tilde{m}\)</span> 都设置为 0</li>
+<li>【<span style="color:red;font-weight:bold">满足期望为 <span class="math inline">\(m_i\)</span> 证明见附录</span>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\tilde{m}_i(Y_i; Z)
+=
+\frac{\mathbf{K}_{\bar{S}}(i)}
+{\tilde{N}{P}(i)}
+m_i(Y_i)
+\tag{15}
+\]</span></p>
+<h2 id="stochastic-pairwise-mis">Stochastic Pairwise MIS</h2>
+<ul>
+<li>不使用 Pairwise 的话，复杂度为 <span class="math inline">\(O(\tilde{N}M)\)</span></li>
+<li>用上：<span class="math inline">\(O(\tilde{N})\)</span>
+<ul>
+<li>当 <span class="math inline">\(\tilde{N}\ll M\)</span> 时高效</li>
+</ul></li>
+</ul>
+<h3 id="non-canonical">non-canonical</h3>
+<ul>
+<li>对于 <span class="math inline">\(i\ne c\)</span>，式子 11(a)
+的随机版本如下【<span style="color:red;font-weight:bold">怎么算 <span class="math inline">\(c_{\Sigma}\)</span>？</span>预计算好，后面 cell
+划分有讲】</li>
+</ul>
+<p><span class="math display">\[
+\tilde{m}_i^{\mathrm{pw}}(Y_i)
+=
+\frac{\mathbf{K}_{\bar{S}}(i)}
+{\tilde{N}{P}(i)}
+\left(
+\frac{c_{\Sigma}}
+{c_{\Sigma}+c_c}
+\right)
+\frac{
+c_i\hat{p}_{\leftarrow i}(Y_i)
+}{
+c_{\Sigma}\hat{p}_{\leftarrow i}(Y_i)+c_c\hat{p}(Y_i)
+}
+\qquad (i\ne c)
+\tag{16}
+\]</span></p>
+<ul>
+<li>理论上，<span class="math inline">\(P(i)\)</span> 正比于 <span class="math inline">\(w_i\)</span>（式子 6）时最优
+<ul>
+<li>但是需要 shift mapping 计算，这个很耗时</li>
+<li><span style="color:red;font-weight:bold">启发式</span>的使用如下式子
+<ul>
+<li>被 confidence 加权的 luminance，直接可以获得，设置 <span class="math inline">\(\hat{p}\)</span> 为 <span class="math inline">\(f\)</span> 的 luminance【<span style="color:red;font-weight:bold">怎么算 <span class="math inline">\(\hat{p}\)</span>？就是蓄水池保存的贡献结果</span>】</li>
+<li>shift mapping 高效的时候，结果好【高效：<span class="math inline">\(\hat{p}(X_i)\)</span> 和 <span class="math inline">\(\hat{p}(Y_i)\)</span> 高度相关】</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+P(i)\propto c_i\hat{p}(X_i)W_{X_i}
+\]</span></p>
+<ul>
+<li>好处是，和 GRIS 相比，大的 <span class="math inline">\(M\)</span>
+总能找到有效样本</li>
+</ul>
+<h3 id="canonical">canonical</h3>
+<ul>
+<li><span class="math inline">\(i=c\)</span></li>
+<li>采样一个不同的 <span class="math inline">\(\tilde{N}_c\)</span>
+像素，采样概率 <span class="math inline">\(P_c(i)\)</span></li>
+<li>有放回采样 <span class="math inline">\(\tilde{N}_c\)</span>
+次，得到集合 <span class="math inline">\(\bar{S}&#39;=\{S_1&#39;,\cdots,S_{\vert
+S&#39;\vert}&#39;\}\)</span>，计次 <span class="math inline">\(\mathbf{K}_{\bar{S}&#39;}(i)\)</span></li>
+<li>式子 11(b) 的随机版本</li>
+</ul>
+<p><span class="math display">\[
+\tilde{m}_{c}^{\mathrm{pw}}(Y_c)
+=
+\frac{c_c}{c_{\Sigma}+c_c}
++
+\sum_{i\in\mathcal{S}&#39;}
+\frac{
+\mathbf{K}_{\bar{S}&#39;}^{(i)}
+}{
+\tilde{N}_cP_c(i)
+}
+\beta_i(Y_c)
+\tag{18}
+\]</span></p>
+<p><span class="math display">\[
+\beta_i(Y_c)
+=
+\left(
+\frac{c_i}{c_{\Sigma}+c_c}
+\right)
+\frac{
+c_c\hat{p}(Y_c)
+}{
+c_{\Sigma}\hat{p}_{\leftarrow i}(Y_c)+c_c\hat{p}(Y_c)
+}
+\tag{19}
+\]</span></p>
+<ul>
+<li>无偏：<span class="math inline">\(c_i&gt;0 \Rightarrow
+P_c(i)&gt;0\)</span></li>
+<li>直观：<span class="math inline">\(P_c(i)\propto c_i\)</span>
+<ul>
+<li>实际上设置为 <span class="math inline">\(1/M\)</span>
+效果就不错</li>
+</ul></li>
+<li><span style="color:red;font-weight:bold">为什么要用两个估计？</span>我猜是因为二者估计的量差的很大，用两个质量更高，从不同的
+pdf 也可以看出</li>
+</ul>
+<h3 id="non-canonical-confidence-adjustment">Non-Canonical Confidence
+Adjustment</h3>
+<ul>
+<li><span class="math inline">\(M\)</span> 比较大的话，<span class="math inline">\(c_{\Sigma}\)</span>
+很大，此时选中样本权重很小，导致暗噪点
+<ul>
+<li>典型场景：周围像素邻居的 shift mapping
+失效，自身像素的质量很高；此时自身像素样本权重反而很低</li>
+</ul></li>
+<li>方案：对 <span class="math inline">\(c_{\Sigma}\)</span> 使用 <span class="math inline">\(\tilde{N}/M\)</span> 进行 scale</li>
+</ul>
+<h1 id="实现">实现</h1>
+<ul>
+<li>算法支持很大的 <span class="math inline">\(M\)</span></li>
+<li>但是随着距离变大，相似性变差</li>
+<li>把像素划分为 cell，然后在 cell 内部进行复用</li>
+<li>tile：8x8 像素块【只是一种物理划分，除了计算
+hash，似乎没啥用了】</li>
+<li>每个像素 hash
+<ul>
+<li>tile ID【8x8】、object ID、量化的 surface normal</li>
+<li>PCG【总体上相当于 pcg(a + pcg(b)) 这种形式】</li>
+</ul></li>
+</ul>
+<h2 id="找相关-cell"><span id="bb-sample-cell">找相关 cell</span></h2>
+<ul>
+<li>简单相邻复用效果不好
+<ul>
+<li>相关性</li>
+<li>无法处理 large occlusion【都落在里面】</li>
+</ul></li>
+<li>WRS 多轮采样 cell【12 轮迭代，每轮迭代半径 x1.25，初始 30px】
+<ul>
+<li>当前半径内，随机采样一个像素；找到对应 cell</li>
+<li>通过 Normall 和 Object ID 判断是否相似
+<ul>
+<li>相似则作为候选样本【WRS】，权重设置为 cell 内所有像素的 confidence
+sum</li>
+<li>否则直接丢弃</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="gpu-实现">GPU 实现</h2>
+<h3 id="cell-构建">Cell 构建</h3>
+<ul>
+<li>使用两个 multimap 实现
+<ul>
+<li>cellPixelIndices【gReservoirCellInverseMap】：保存这个 cell
+里面的所有像素</li>
+<li>cellReservoirs【gReservoirCellMap】：保存这个 cell
+里面的非零贡献的像素【UCW &gt; 0】</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GPU-side</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">MultiMap</span>&lt;T&gt;</span><br><span class="line">&#123;                                            <span class="comment">// 大小</span></span><br><span class="line">    RWStructuredBuffer&lt;T&gt;     data;          <span class="comment">// Max Elements   // 具体数据 </span></span><br><span class="line">    RWStructuredBuffer&lt;T&gt;     sortedData;    <span class="comment">// Max Elements   //</span></span><br><span class="line">    RWStructuredBuffer&lt;uint2&gt; dataIndices;   <span class="comment">// Max Elements   // 所在 cell 的索引；cell 内的索引</span></span><br><span class="line">    RWStructuredBuffer&lt;uint&gt;  cellCounters;  <span class="comment">// Max Cells      // 当前 cell 内部的像素数目</span></span><br><span class="line">    RWStructuredBuffer&lt;uint&gt;  cellOffsets;   <span class="comment">// Max Cells      // </span></span><br><span class="line">    RWStructuredBuffer&lt;uint&gt;  counters;      <span class="comment">// 2              // MultiMap 中当前有多少元素被占用；</span></span><br><span class="line">    uint maxSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>multimap 实现：3 个 pass【<span style="color:red;font-weight:bold">结果上来说就是让 cell
+中左右内部像素在 memory 中相邻</span>】</li>
+<li>pass 1：将所有像素插入 multimap 中，对于每个像素
+<ul>
+<li>计算 hashed cell ID</li>
+<li>插入到对应的 multimap 中，同时更新当前 cell 的 confidence
+sum【原子加法】</li>
+<li>【根据结构体中的含义更新即可】</li>
+</ul></li>
+<li>pass 2：更新 cellOffsets【前缀和，当前 cell 前面有多少个像素，cell
+中第一个元素在整个数组中的 offset】
+<ul>
+<li>两个 multimap 都更新</li>
+<li>GPU 并行前缀和【因为 cell 顺序没有用】；原子加法
+<ul>
+<li>前缀和，但是数组元素谁在前面无所谓</li>
+</ul></li>
+</ul></li>
+<li>pass 3：排序
+<ul>
+<li>根据 dataIndices 从 data 中读取原始信息，然后根据 cellOffsets 和
+dataIndices[1] 把具体信息填入 sortedData</li>
+</ul></li>
+</ul>
+<h3 id="空间采样">空间采样</h3>
+<ul>
+<li>下面所有的 <span class="math inline">\(c_{\Sigma}\)</span>
+都已经是被 <span class="math inline">\(\tilde{N}/M\)</span> scale
+了的</li>
+<li><span class="math inline">\(Y\leftarrow \emptyset\)</span></li>
+<li>采样一个 cell，<a href="#bb-sample-cell">上面找 cell</a>
+<ul>
+<li>这里需要用到每个像素对应蓄水池的 confidence weight【<span style="color:red;font-weight:bold">还是无偏的吗？</span>】以及 normal
+信息【样本无关】</li>
+<li>此时 cell 里面有 <span class="math inline">\(M\)</span> 个样本</li>
+</ul></li>
+<li>先根据式子 (18) 计算 canonical 权重
+<ul>
+<li>cell 中均匀采样 <span class="math inline">\(\tilde{N}_c\)</span>
+次【<span class="math inline">\(p=1/M\)</span>】</li>
+<li><span class="math inline">\(\mathbf{K}\)</span>
+计数，本质上就是每次采样得到一个样本，就把贡献加上去</li>
+<li>ReservoirMerge 就是 WRS</li>
+</ul></li>
+</ul>
+<p><img src="/2026/07/15/CG/Papers/2026/SPMIS/alg2-canonical-weight.png"></p>
+<ul>
+<li>式子 (16) 计算 non-canonical 权重</li>
+</ul>
+<p><img src="/2026/07/15/CG/Papers/2026/SPMIS/alg2-non-canonical-weight.png"></p>
+<ul>
+<li><span style="color:red;font-weight:bold">上面一共需要 <span class="math inline">\(\tilde{N}_c+\tilde{N}\)</span> 次 shift
+mapping</span></li>
+</ul>
+<h1 id="结果">结果</h1>
+<ul>
+<li>Falcor，4090，MAPE</li>
+<li>max bounces 8</li>
+<li>初始样本 1，NEE on</li>
+<li>DI、GI 使用一个蓄水池【不拆分计算】</li>
+<li>标准 ReSTIR PT：M=3、30px radius</li>
+<li>Ours：采样 cell【本质用的里面有贡献样本，此时 <span class="math inline">\(M\le64\)</span>】
+<ul>
+<li><span class="math inline">\(\tilde{N}=3,\tilde{N}_c=1\)</span></li>
+</ul></li>
+</ul>
+<h2 id="对比">对比</h2>
+<ul>
+<li>在遮挡严重的区域表现很好【camera motion、scene animation】</li>
+<li>大致开销（ms）
+<ul>
+<li>Initial Sampling：8.68</li>
+<li>Temporal Reuse：4.06</li>
+<li>Create Reuse Cells：1.57</li>
+<li>Compute <span class="math inline">\(\tilde{m}_c{^{\text{pw}}}\)</span>：4.40</li>
+<li>Stochastic Neighbor Reuse：9.19</li>
+</ul></li>
+<li>消融实验：<span class="math inline">\(c_{\Sigma}\)</span> 是否
+scale</li>
+<li>原始 ReSTIR PT 需要 <span class="math inline">\(M\)</span>
+个样本计算 canonical 权重【我们只需要 <span class="math inline">\(\tilde{N}_c=1\)</span> 个】
+<ul>
+<li>主要噪音在 non-canonical 权重那边</li>
+</ul></li>
+</ul>
+<h1 id="副录">副录</h1>
+<ul>
+<li>无偏性证明</li>
+</ul>
+<h2 id="gris-with-stochastic-mis">GRIS with Stochastic MIS</h2>
+<ul>
+<li>使用随机 <span class="math inline">\(\tilde{w}_i\)</span> 替换</li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}\left[f(Y)W_Y\right]
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[\tilde{w}_i&gt;0]
+f(Y_i)W_{Y_i}
+\frac{\tilde{w}_i}{\sum_{j=1}^{M}\tilde{w}_j}
+\right]
+\]</span></p>
+<ul>
+<li>代入 UCW 的估计</li>
+</ul>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[\tilde{w}_i&gt;0]
+f(Y_i)
+\left(
+\frac{1}{\hat{p}(Y_i)}
+\sum_{j=1}^{M}\tilde{w}_j
+\right)
+\frac{\tilde{w}_i}{\sum_{j=1}^{M}\tilde{w}_j}
+\right]
+\]</span></p>
+<ul>
+<li>约掉分母</li>
+</ul>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[\tilde{w}_i&gt;0]
+f(Y_i)
+\frac{\tilde{w}_i}{\hat{p}(Y_i)}
+\right]
+\]</span></p>
+<ul>
+<li>带入 Jacobian
+<ul>
+<li><span class="math inline">\([D_i]\)</span> 示性函数</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[D_i]
+f(Y_i)
+\frac{
+\tilde{m}_i(Y_i;Z)\hat{p}(Y_i)W_{X_i}
+\left|\frac{\partial T_i}{\partial X_i}\right|
+}{
+\hat{p}(Y_i)
+}
+\right]
+\]</span></p>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+\mathbb{E}
+\left[
+[D_i]
+f(Y_i)
+\tilde{m}_i(Y_i;Z)
+W_{X_i}
+\left|\frac{\partial T_i}{\partial X_i}\right|
+\right]
+\middle|
+\bar{X},\bar{W}
+\right]
+\]</span></p>
+<ul>
+<li>后续证明思路就是，找个地方把 <span class="math inline">\(\tilde{w}_i\)</span> 给求期望，换成 <span class="math inline">\(w_i\)</span>；然后就是原来的 ReSTIR 推导了</li>
+</ul>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[D_i]
+f(Y_i)
+\mathbb{E}
+\left[
+\tilde{m}_i(Y_i;Z)
+\middle|
+\bar{X},\bar{W}
+\right]
+W_{X_i}
+\left|\frac{\partial T_i}{\partial X_i}\right|
+\right]
+\]</span></p>
+<h2 id="证明-smis-期望">证明 SMIS 期望</h2>
+<ul>
+<li>满足 <span class="math inline">\(\mathbb{E}[\tilde{w}]=w\)</span></li>
+<li>对 <span class="math inline">\(Z\)</span> 求期望，也就是 <span class="math inline">\(\mathbf{K}\)</span></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}
+\left[
+\tilde{m}_i(y;Z)
+\middle|
+\bar{X},\bar{W}
+\right]
+=
+\mathbb{E}
+\left[
+[P(i;\bar{X},\bar{W})&gt;0]
+\frac{
+\mathbf{K}_{\bar{S}}{(i)}
+}{
+\tilde{N}P(i;\bar{X},\bar{W})
+}
+m_i(y)
+\middle|
+\bar{X},\bar{W}
+\right]
+\]</span></p>
+<ul>
+<li>考虑 <span class="math inline">\(m_i&gt;0\)</span>【=0 显然】</li>
+<li>给定 <span class="math inline">\(\bar{X},\bar{W}\)</span>，<span class="math inline">\(P\)</span> 是常数，直接提出来</li>
+</ul>
+<p><span class="math display">\[
+=
+\mathbb{E}
+\left[
+\frac{
+\mathbf{K}_{\bar{S}}{(i)}
+}{
+\tilde{N}P(i;\bar{X},\bar{W})
+}
+m_i(y)
+\middle|
+\bar{X},\bar{W}
+\right]
+\]</span></p>
+<p><span class="math display">\[
+=
+\mathbb{E}
+\left[
+\mathbf{K}_{\bar{S}}{(i)}
+\middle|
+\bar{X},\bar{W}
+\right]
+\frac{1}{
+\tilde{N}P(i;\bar{X},\bar{W})
+}
+m_i(y)
+\]</span></p>
+<ul>
+<li>有放回采样，伯努利分布
+<ul>
+<li>期望为 <span class="math inline">\(Np\)</span></li>
+<li>消掉分母</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/EG/" rel="tag"># EG</a>
+              <a href="/tags/ReSTIR/" rel="tag"># ReSTIR</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/" rel="prev" title="(论文)[2026-CGIT]Compatibility-Guided Neighbor Selection for ReSTIR">
+                  <i class="fa fa-chevron-left"></i> (论文)[2026-CGIT]Compatibility-Guided Neighbor Selection for ReSTIR
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

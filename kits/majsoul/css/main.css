@@ -1,0 +1,386 @@
+:root {
+    color-scheme: dark;
+    font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    --panel: rgba(8, 26, 34, 0.86);
+    --panel-border: rgba(157, 230, 222, 0.2);
+    --text: #effcf9;
+    --muted: #9bb9b5;
+    --accent: #f2c56b;
+    --accent-strong: #ffd990;
+    --teal: #65d9ca;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    color: var(--text);
+    background:
+        radial-gradient(circle at 17% 8%, rgba(31, 126, 124, 0.3), transparent 38%),
+        radial-gradient(circle at 86% 88%, rgba(176, 118, 47, 0.22), transparent 36%),
+        linear-gradient(145deg, #061117 0%, #071a21 52%, #10191d 100%);
+}
+
+body::before {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    pointer-events: none;
+    opacity: 0.16;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, black, transparent 82%);
+}
+
+button,
+canvas {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button {
+    font: inherit;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.app-shell {
+    width: min(1180px, 100%);
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding: 22px clamp(14px, 3vw, 34px) 18px;
+    display: grid;
+    grid-template-rows: auto minmax(320px, 1fr) auto auto;
+    gap: 14px;
+}
+
+.titlebar {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.eyebrow {
+    margin: 0 0 5px;
+    color: var(--teal);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+}
+
+h1 {
+    margin: 0;
+    font-family: "Noto Serif SC", "Songti SC", serif;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.runtime-status {
+    min-width: 116px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    background: rgba(5, 15, 20, 0.6);
+    border: 1px solid var(--panel-border);
+    border-radius: 999px;
+    backdrop-filter: blur(12px);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(242, 197, 107, 0.8);
+}
+
+.runtime-status.ready .status-dot {
+    background: var(--teal);
+    box-shadow: 0 0 12px rgba(101, 217, 202, 0.8);
+}
+
+.runtime-status.error .status-dot {
+    background: #ff7b75;
+    box-shadow: 0 0 12px rgba(255, 123, 117, 0.8);
+}
+
+.stage {
+    position: relative;
+    min-height: 320px;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+        radial-gradient(circle at 50% 42%, rgba(54, 128, 126, 0.16), transparent 56%),
+        rgba(1, 8, 12, 0.68);
+    border: 1px solid var(--panel-border);
+    border-radius: clamp(16px, 2.6vw, 28px);
+    box-shadow:
+        0 28px 90px rgba(0, 0, 0, 0.36),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.stage::after {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    content: "";
+    pointer-events: none;
+    border-radius: inherit;
+    box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.25);
+}
+
+#canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: pointer;
+    outline: none;
+    touch-action: manipulation;
+}
+
+#canvas:focus-visible {
+    box-shadow: inset 0 0 0 3px rgba(101, 217, 202, 0.72);
+}
+
+.loading-overlay,
+.error-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 11px;
+    padding: 24px;
+    text-align: center;
+    background: rgba(3, 13, 18, 0.86);
+    backdrop-filter: blur(12px);
+}
+
+.loading-overlay strong,
+.error-overlay strong {
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+}
+
+.loading-overlay span:last-child,
+.error-overlay span {
+    max-width: 620px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+.loader {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 4px;
+    border: 2px solid rgba(101, 217, 202, 0.18);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.error-overlay strong {
+    color: #ffaaa5;
+}
+
+.error-overlay button {
+    margin-top: 6px;
+    padding: 8px 16px;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.stage-hint {
+    position: absolute;
+    right: 16px;
+    bottom: 13px;
+    z-index: 3;
+    margin: 0;
+    padding: 6px 10px;
+    color: rgba(239, 252, 249, 0.78);
+    font-size: 0.72rem;
+    background: rgba(2, 12, 16, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(96px, 0.8fr);
+    gap: 9px;
+}
+
+.controls button {
+    min-height: 48px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 13px;
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+    backdrop-filter: blur(12px);
+}
+
+.controls button:hover:not(:disabled) {
+    color: var(--accent-strong);
+    background: rgba(18, 44, 51, 0.92);
+    border-color: rgba(242, 197, 107, 0.5);
+    transform: translateY(-1px);
+}
+
+.controls button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+}
+
+.controls button.active {
+    color: #1c1a12;
+    background: linear-gradient(135deg, var(--accent-strong), #dba951);
+    border-color: transparent;
+    box-shadow: 0 8px 24px rgba(219, 169, 81, 0.2);
+}
+
+.controls button:disabled {
+    cursor: wait;
+    opacity: 0.42;
+}
+
+.control-key {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-size: 0.68rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+}
+
+.active .control-key {
+    color: rgba(28, 26, 18, 0.7);
+    border-color: rgba(28, 26, 18, 0.15);
+}
+
+.pause-icon {
+    width: 20px;
+    font-weight: 700;
+    letter-spacing: -0.14em;
+}
+
+footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    color: var(--muted);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+}
+
+footer span:last-child {
+    text-align: right;
+}
+
+noscript {
+    position: fixed;
+    inset: auto 16px 16px;
+    padding: 12px;
+    color: white;
+    text-align: center;
+    background: #8b3030;
+    border-radius: 10px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 700px) {
+    .app-shell {
+        padding-top: 14px;
+        grid-template-rows: auto minmax(290px, 1fr) auto auto;
+    }
+
+    .titlebar {
+        align-items: center;
+    }
+
+    .runtime-status {
+        min-width: auto;
+    }
+
+    .controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pause-control {
+        grid-column: 1 / -1;
+    }
+
+    footer span:last-child {
+        display: none;
+    }
+}
+
+@media (max-width: 420px) {
+    .eyebrow {
+        font-size: 0.62rem;
+    }
+
+    .runtime-status {
+        padding: 7px 9px;
+        font-size: 0.7rem;
+    }
+
+    .stage-hint {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .controls button {
+        transition: none;
+    }
+
+    .loader {
+        animation-duration: 1.8s;
+    }
+}

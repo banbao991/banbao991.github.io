@@ -95331,6 +95331,8 @@ estimator，有些定义域上好，有些坏</li>
 <li>pairwise：每一种 estimator 都和 canonical 做一个 balance
 heuristic，然后归一化
 <ul>
+<li><span style="color:red;font-weight:bold"> BH
+处理之后所有样本都能够覆盖完整定义域了，此时 MIS 系数直接使用 <span class="math inline">\(1/(M-1)\)</span> 就行</span></li>
 <li>具体如下</li>
 </ul></li>
 </ul>
@@ -95365,8 +95367,8 @@ estimator，给 <span class="math inline">\(m_c(x)+1\)</span></li>
 \begin{aligned}
 &amp;m_{i}(x)=\frac{1}{M}\frac{\hat{p}_{i}(x)}{\hat{p}_{i}(x)+\hat{p}_{c}(x)/(M-1)}&amp;(i\neq
 c)\\
-&amp;m_{c}(x)=1+\frac{1}{M}\sum_{j\neq
-c}^{M}\frac{\hat{p}_{c}(x)/(M-1)}{\hat{p}_{j}(x)+\hat{p}_{c}(x)/(M-1)}&amp;\\
+&amp;m_{c}(x)=\frac{1}{M}\left(1+\sum_{j\neq
+c}^{M}\frac{\hat{p}_{c}(x)/(M-1)}{\hat{p}_{j}(x)+\hat{p}_{c}(x)/(M-1)}\right)&amp;\\
 \end{aligned}
 \]</span></p>
 <ul>
@@ -101497,6 +101499,30 @@ GI，如何在 PT 中重采样一条路径，如何做 shift mapping</a></li>
 加速</a></li>
 <li><a href="/2025/07/09/CG/Papers/2023/ReSTIR-Course/05/">ReSTIR GI
 实现</a></li>
+</ul>
+<h2 id="gris-的整体理解">GRIS 的整体理解</h2>
+<ul>
+<li>输入是很多样本的 UCW 对 <span class="math inline">\((X_i,W_{X_i})\)</span>
+<ul>
+<li>如果不在同一个定义域内，那么通过 shift mapping 和 Jacobian
+能够形成当前像素的 UCW 对
+<ul>
+<li><span class="math inline">\(Y_i=T_i(X_i)\)</span></li>
+<li><span class="math inline">\(W_{X_i}\left|\dfrac{\partial
+T_i}{\partial X_i}\right|\)</span></li>
+</ul></li>
+</ul></li>
+<li>输出的当前像素新的 UCW 对 <span class="math inline">\((X_c,W_{Y_c})\)</span></li>
+<li><a href="/2026/07/15/CG/Papers/2026/SPMIS/#bb-GRIS">辅助理解</a></li>
+<li>如果使用多个样本（<span class="math inline">\(M&gt;1\)</span>），来自多个定义域
+<ul>
+<li>使用普通 MIS：计算算法复杂度 <span class="math inline">\(O(M^2)\)</span></li>
+<li>Pairwise MIS 用于降低计算量：<span class="math inline">\(O(M)\)</span>
+<ul>
+<li>理解为每个样本和 <span class="math inline">\(X_c\)</span> 先 balance
+heuristic【此时所有样本都覆盖了当前定义域】，在使用 <span class="math inline">\(1/(M-1)\)</span> 作为 MIS 系数混合</li>
+</ul></li>
+</ul></li>
 </ul>
 ]]></content>
       <categories>
@@ -115208,19 +115234,6 @@ pass，用于解决帧间抖动问题；感觉 STBN 不需要这一步了】</li
       </tags>
   </entry>
   <entry>
-    <title>(论文)[] </title>
-    <url>/2026/06/01/CG/Papers/2019/BNPermuteSeeds/</url>
-    <content><![CDATA[
-]]></content>
-      <categories>
-        <category>CG.Paper</category>
-      </categories>
-      <tags>
-        <tag>CG</tag>
-        <tag>Paper</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>(论文)[GDC-2016] Rendering Antialiased Shadows with Moment Shadow Mapping</title>
     <url>/2026/06/02/CG/Papers/2016/MSM-GDC/</url>
     <content><![CDATA[<h1 id="msm-gdc">MSM-GDC</h1>
@@ -115237,6 +115250,1251 @@ pass，用于解决帧间抖动问题；感觉 STBN 不需要这一步了】</li
         <tag>Shadow</tag>
         <tag>Paper</tag>
         <tag>GDC</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>(论文)[2026-CGIT]Compatibility-Guided Neighbor Selection for ReSTIR</title>
+    <url>/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/</url>
+    <content><![CDATA[<h1 id="compatibility-guided-neighbor-selection-for-restir">Compatibility-Guided
+Neighbor Selection for ReSTIR</h1>
+<ul>
+<li>ETH、NVIDIA</li>
+<li><a href="https://github.com/orion-junkins/ReSTIR-CGNS">代码</a>、<a href="https://orion-junkins.github.io/CGNS/">主页</a></li>
+<li>总结
+<ul>
+<li>本文通过分析当前像素周围邻居（复用像素）的 G-Buffer 性质，提高了
+ReSTIR 空间复用的质量</li>
+<li>提出了一个启发式的函数评估周围像素对当前像素复用的优劣，然后选择最好的几个像素进行复用</li>
+<li>无偏性保证
+<ul>
+<li>只用了 G-Buffer 信息，没有用到样本信息</li>
+<li>只是提前确定了复用的像素范围（是什么），具体的复用还是和原来一样；因此不需要算
+pdf，很容易集成</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="引言">引言</h1>
+<ul>
+<li>很少 ReSTIR 工作提升空间复用</li>
+<li>论文
+<ul>
+<li>SMAPE 降低 6–29%</li>
+<li>降低 temporal covariance by 22–49%</li>
+<li>额外开销：2–5%</li>
+</ul></li>
+<li>ReSTIR：<strong>上千面光源</strong>
+<ul>
+<li>DI 不需要 SM；GI 不需要 light probes</li>
+<li>时空复用重采样，均摊开销</li>
+</ul></li>
+<li>本文
+<ul>
+<li>提出了启发式的 neighbor selection</li>
+<li>分析了半径对于误差、相关性的关系</li>
+</ul></li>
+</ul>
+<h1 id="相关工作">相关工作</h1>
+<ul>
+<li>shift mapping</li>
+<li>gradient-domain rendering
+<ul>
+<li>扩展到 path tracing</li>
+<li>结合 shift mapping</li>
+<li>邻居像素选择</li>
+</ul></li>
+<li>SVGF 挑选邻居像素的方式【启发】</li>
+<li>ReSTIR
+<ul>
+<li>DI：首次结合 RIS</li>
+<li>rough GI：长路径是最 virtual point light</li>
+<li>GRIS + shift mappings：ReSTIR PT 框架</li>
+<li>时域 ReSTIR 扩展
+<ul>
+<li>Area ReSTIR：扩展到 pixel filters【同时能做 DoF】</li>
+<li>ReSTIR Splatting：上一帧样本通过 motion vector
+给下一帧复用【同时能做 Motion Blur】</li>
+</ul></li>
+<li>降低相关性：MCMC</li>
+<li>扩展
+<ul>
+<li>ReSTIR BDPT</li>
+<li>PM：ReSTIR FG</li>
+<li>次表面散射</li>
+<li>Path Guiding：ReSTIR PG</li>
+</ul></li>
+<li>空间采样
+<ul>
+<li><a href="https://dl.acm.org/doi/10.1145/3585501">使用 vMF 拟合
+DI</a>【有偏，不能扩展到 GI】</li>
+<li><a href="https://dl.acm.org/doi/pdf/10.1145/3721238.3730723">对立采样</a>：正交</li>
+<li><a href="https://onlinelibrary.wiley.com/doi/10.1111/cgf.70391">stochastic
+pairwise MIS</a>：输入较差的区域降噪</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="背景知识">背景知识</h1>
+<ul>
+<li>shift mapping：常用的 reconnection shift、hybrid shift
+<ul>
+<li>好的设计如下</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+f(T(x))\vert{T&#39;(x)}\vert\approx f(x)
+\]</span></p>
+<ul>
+<li>Unbiased Contribution Weight（UCW）</li>
+<li>GRIS</li>
+<li>ReSTIR</li>
+<li>Spatial Neighbor Selection：ReSTIR DI 的方式
+<ul>
+<li>固定半径（box/disk，常见 30）内均匀采样；实际只能有 1 个样本</li>
+<li>根据 depth/normal
+拒绝样本【<strong>无偏性保证</strong>：只根据G-Buffer 而不是样本挑选】
+<ul>
+<li><span id="eq1">式子 (1)</span></li>
+</ul></li>
+<li>均匀采样效果不好，可能找不到可用样本</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\textbf{n}\cdot\textbf{n}_i\ge0.5\;\land\;\dfrac{\vert{d_i-d}\vert}{d}&lt;0.1\tag{1}
+\]</span></p>
+<h1 id="pixel-compatibility-heuristics">Pixel Compatibility
+Heuristics</h1>
+<ul>
+<li>变换 shift mapping 设计标准</li>
+</ul>
+<p><span class="math display">\[
+\frac{f(T(x))\vert{T&#39;(x)}\vert}{f(x)} \approx 1
+\]</span></p>
+<h2 id="direct-illumination">Direct Illumination</h2>
+<ul>
+<li><strong>simple reconnection</strong></li>
+</ul>
+<p><img src="/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/DI-reconnection-shift.png"></p>
+<ul>
+<li><span class="math inline">\(\bar{x}\to\bar{y}=T(\bar{x})\)</span></li>
+</ul>
+<p><span class="math display">\[
+f(\bar{x})
+=
+\underbrace{f_s(x_0 \to x_1 \to x_2)}_{\mathrm{BRDF}}
+\underbrace{G(x_1 \leftrightarrow x_2)}_{\mathrm{geometry\ term}}
+\underbrace{V(x_1 \leftrightarrow x_2)}_{\mathrm{visibility}}
+\underbrace{L_e(x_2 \to x_1)}_{\mathrm{emission}}
+\]</span></p>
+<ul>
+<li>带入启发式</li>
+</ul>
+<p><span class="math display">\[
+\frac{
+    f_s(x_0 \to y_1 \to x_2)\,
+    G(y_1 \leftrightarrow x_2)\,
+    V(y_1 \leftrightarrow x_2)\,
+    L_e(x_2 \to y_1)
+}{
+    f_s(x_0 \to x_1 \to x_2)\,
+    G(x_1 \leftrightarrow x_2)\,
+    V(x_1 \leftrightarrow x_2)\,
+    L_e(x_2 \to x_1)
+}
+\left|T&#39;(\bar{x})\right|
+\approx 1
+\]</span></p>
+<ul>
+<li>几何项、BSDF：随着距离拉远，会偏离 1</li>
+<li>同样的，距离拉远，则可见性一致性也会变化</li>
+<li><span class="math inline">\(T&#39;=1\)</span></li>
+<li>hint：在距离比较近的时候效果较好</li>
+<li>距离比较近也可能出问题：<span class="math inline">\(x_1\approx
+y_1\)</span>
+<ul>
+<li>emission、可见性项（除了阴影边缘）接近；此时几何项比值【此时和上面法线接近类似】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\frac{G(y_1 \leftrightarrow x_2)}
+     {G(x_1 \leftrightarrow x_2)}
+=
+\frac{
+    \displaystyle
+    \frac{
+        \left(\mathbf{n}_{y_1} \cdot \widehat{x_2-y_1}\right)
+        \left(\mathbf{n}_{x_2} \cdot \widehat{y_1-x_2}\right)
+    }{
+        \left\Vert y_1-x_2 \right\Vert^2
+    }
+}{
+    \displaystyle
+    \frac{
+        \left(\mathbf{n}_{x_1} \cdot \widehat{x_2-x_1}\right)
+        \left(\mathbf{n}_{x_2} \cdot \widehat{x_1-x_2}\right)
+    }{
+        \left\Vert x_1-x_2 \right\Vert^2
+    }
+}
+\approx
+\frac{
+    \mathbf{n}_{y_1} \cdot \widehat{x_2-y_1}
+}{
+    \mathbf{n}_{x_1} \cdot \widehat{x_2-x_1}
+}
+\approx
+\frac{
+    \mathbf{n}_{y_1} \cdot \widehat{x_2-x_1}
+}{
+    \mathbf{n}_{x_1} \cdot \widehat{x_2-x_1}
+}
+\]</span></p>
+<ul>
+<li>剩下 BSDF 项：表示材质相近再复用</li>
+</ul>
+<h2 id="global-illumination">Global Illumination</h2>
+<ul>
+<li><strong>hybrid shift</strong></li>
+<li>reconnection shift <span class="math inline">\(\bar{y}\)</span>【<span style="color:red;font-weight:bold">只变了 <span class="math inline">\(x_1\)</span> 合理吗</span>】
+<ul>
+<li><span class="math inline">\(\bar{x}=[x_0,x_1,x_2,\cdots,x_D]\to\bar{y}=[x_0,y_1,x_2,\cdots,x_D]\)</span></li>
+</ul></li>
+<li>此时变成如下式子【只剩下前面 3 项】
+<ul>
+<li>第 4 项，因为是同一个点的材质，<span class="math inline">\(x_1\approx y_1\)</span> 的时候相近</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\frac{
+        f_s(x_0 \to y_1 \to x_2)\,
+        G(y_1 \leftrightarrow x_2)\,
+        V(y_1 \leftrightarrow x_2)\,
+        f_s(y_1 \to x_2 \to x_3)\,
+        G(x_2 \leftrightarrow x_3)\,\cdots
+    }{
+        f_s(x_0 \to x_1 \to x_2)\,
+        G(x_1 \leftrightarrow x_2)\,
+        V(x_1 \leftrightarrow x_2)\,
+        f_s(x_1 \to x_2 \to x_3)\,
+        G(x_2 \leftrightarrow x_3)\,\cdots
+    }
+    \left|T&#39;(\bar{x})\right|
+    \approx 1.
+\]</span></p>
+<ul>
+<li><p>因此分析和 DI 类似</p></li>
+<li><p>ReSTIR PT 的 hybrid shift：延迟 specular 的连接，使用 random
+replay 直到找到一个相似材质的点</p>
+<ul>
+<li>Regardless of shift mapping and path length, we want to select
+neighbors with <strong>similar primary hit position, normal, and
+material.</strong></li>
+<li>【<span style="color:red;font-weight:bold">本质本文没有做任何分析</span>】</li>
+</ul></li>
+<li><p>本文将 Area ReSTIR / ReSTIR Splatting 关于 temporal 的分析用到
+spatial 中</p></li>
+</ul>
+<h2 id="quantifying-compatibility">Quantifying Compatibility</h2>
+<ul>
+<li>DI 的决定是通过阈值判断直接接受/丢弃，<a href="#eq1">式子 (1)</a>
+<ul>
+<li>可能全部都丢弃了</li>
+</ul></li>
+<li>本文：放到一个池子里面，然后通过一个启发式的概率采样他们</li>
+<li>使用 primary hit position, normal, and material properties
+信息做了一个启发式函数</li>
+<li>来源：edge-stopping functions + SVGF</li>
+<li>试了下简单使用材质 binary check，效果不好</li>
+<li>设计函数：primary hit 位置、法线</li>
+</ul>
+<p><span class="math display">\[
+h(x_1, y_1) = h_p(x_1, y_1)\,h_n(x_1, y_1)
+\]</span></p>
+<p><span class="math display">\[
+h_p(x_1, y_1)
+=
+\exp\left(
+    -\frac{\left\Vert x_1-y_1\right\Vert}{s}
+\right)
+\]</span></p>
+<p><span class="math display">\[
+h_n(x_1, y_1)
+=
+\max\left(
+    \mathbf{n}_{x_1}\cdot\mathbf{n}_{y_1},
+    0
+\right)^{\beta}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(s\)</span>
+表示世界空间的半径大小【立体角定义：<span class="math inline">\(\Omega=\pi s^2/d\)</span>】
+<ul>
+<li>推荐参数：<span class="math inline">\(\Omega=0.05,\beta=8\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+s=\sqrt{\frac{\Omega d^2}{\pi}},\;d=\left\Vert x_1-x_0\right\Vert
+\]</span></p>
+<p><img src="/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/heuristic-scale-factor.png"></p>
+<h1 id="compatibility-guided-neighbor-selection">Compatibility-Guided
+Neighbor Selection</h1>
+<ul>
+<li>目标
+<ul>
+<li>给定 M、R</li>
+<li>在半径为 R 的区域内，挑选得到 M 个邻居</li>
+</ul></li>
+<li>半径 R 内全都过一遍开销很大</li>
+<li>先采样 K 个样本，然后使用 Weighted Reservoir Sample（WRS）重采样得到
+M 个样本</li>
+<li>具体的
+<ul>
+<li>M=1：和之前的 ReSTIR 文章相同（A-Chao algorithm）【A-Chao 独立运行 M
+次可能有相同样本】</li>
+<li>M&gt;1：保证样本都不一样（A-ES algorithm）</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">AChaoReservoir</span></span><br><span class="line">&#123;</span><br><span class="line">    int2  selected;</span><br><span class="line">    <span class="type">float</span> weightSum;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 每个样本采样概率正比于：score/sum(score)</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">tryUpdate</span><span class="params">(int2 candidate, <span class="type">float</span> score, <span class="type">float</span> u)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        weightSum += score;</span><br><span class="line">        <span class="keyword">if</span> (weightSum &gt; <span class="number">0.0f</span> &amp;&amp; u &lt; score / weightSum)</span><br><span class="line">        &#123;</span><br><span class="line">            selected = candidate;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">AESReservoir</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">const</span> uint kMaxCapacity = <span class="number">5</span>;</span><br><span class="line">    int2  pixels[kMaxCapacity];</span><br><span class="line">    <span class="type">float</span> keys[kMaxCapacity]; <span class="comment">// 初始化：-1e38f</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Returns true if candidate was inserted (evicted a previous slot).</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">tryUpdate</span><span class="params">(int2 candidate, <span class="type">float</span> score, <span class="type">float</span> u, uint M)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="type">float</span> key    = <span class="built_in">log</span>(<span class="built_in">max</span>(u, EPSILON)) / <span class="built_in">max</span>(score, EPSILON);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 找到最小的 key</span></span><br><span class="line">        uint  minIdx = <span class="number">0</span>;</span><br><span class="line">        <span class="type">float</span> minKey = keys[<span class="number">0</span>];</span><br><span class="line">        <span class="comment">// Linear probe; can be optimized with a min heap for larger M.</span></span><br><span class="line">        <span class="keyword">for</span> (uint i = <span class="number">1</span>; i &lt; M; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (keys[i] &lt; minKey) &#123; minKey = keys[i]; minIdx = i; &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (key &gt; minKey)</span><br><span class="line">        &#123;</span><br><span class="line">            pixels[minIdx] = candidate;</span><br><span class="line">            keys[minIdx]   = key;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="wrs-分析a-es">WRS 分析：A-ES</h2>
+<ul>
+<li>计算 Top-M 的 <span class="math inline">\(\dfrac{\log
+u_i}{w_i}\)</span>【负数】
+<ul>
+<li>原始实现是找到 Top-M 的 <span class="math inline">\(q_i=u_i^{1/w_i}\)</span>【单调性等价】</li>
+</ul></li>
+</ul>
+<h3 id="m1">M=1</h3>
+<ul>
+<li><span class="math inline">\(t_i=-\dfrac{\log
+u_i}{w_i}\)</span>，那么有 <span class="math inline">\(T_i\sim
+\mathrm{Exp}(w_i)\)</span>【可以通过计算 CDF 得到】
+<ul>
+<li>CDF 都是 <span class="math inline">\(1-e^{-w_ix}\)</span></li>
+<li><span class="math inline">\(\mathrm{Exp}(\lambda)\)</span> 的 pdf 为
+<span class="math inline">\(\lambda e^{-\lambda x}(x\ge 0)\)</span></li>
+</ul></li>
+<li>现在等价于挑选最小的 <span class="math inline">\(T_i\)</span></li>
+<li><span class="math inline">\(T_i\)</span>
+被选中的概率【剩余值都比他大】
+<ul>
+<li>对 <span class="math inline">\(t\)</span> 求积分</li>
+<li>每一个 <span class="math inline">\(t\)</span>
+<ul>
+<li>采样概率为 <span class="math inline">\(\int_{0}^{\infty}w_ie^{-w_it}\)</span></li>
+<li>剩余值都大于 <span class="math inline">\(t\)</span> 的概率累乘【1 -
+CDF】</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\int_{0}^{\infty}w_ie^{-w_it}\prod_{j\ne
+i}e^{-w_jt}\;\mathrm{d}t=\frac{w_i}{\sum_j w_j}
+\]</span></p>
+<h3 id="m1-1">M&gt;1</h3>
+<ul>
+<li>此时精确的表示 pdf 并不容易【不好算】</li>
+<li>根据指数分布的无记忆性，对于之后样本的每个采样，还是满足上的式子
+<ul>
+<li><span class="math inline">\(\Pr(x&gt;t+s\mid
+X&gt;t)=\Pr(X&gt;t)\)</span></li>
+<li><span class="math inline">\(P(A\mid B)=\dfrac{P(AB)}{P(B)}\)</span>
+计算即证</li>
+</ul></li>
+<li>于是对于采样到的有序序列的 pdf 如下</li>
+</ul>
+<p><span class="math display">\[
+P(i_1,i_2,\ldots,i_M)
+=
+\prod_{r=1}^{M}
+\frac{
+    w_{i_r}
+}{
+    W
+    -
+    \sum_{s=1}^{r-1} w_{i_s}
+},
+\;W=\sum_{j=1}^{N} w_j
+\]</span></p>
+<ul>
+<li>如果是 <span class="math inline">\(i_1\)</span>
+被采样到的概率则需要对所有的可能序列求和</li>
+<li><span style="color:red;font-weight:bold">此时第 <span class="math inline">\(i\)</span> 个样本被采样到的概率，并不正比于 <span class="math inline">\(w_i\)</span></span></li>
+<li><span style="color:red;font-weight:bold">为什么这还是无偏的呢？</span>
+<ul>
+<li>本质上这里不需要计算
+pdf，而是启发式的给出和当前样本复用的其他像素是什么像素</li>
+<li>也就是决定了当前像素的复用范围【可以理解为不同像素使用了不同的复用范围而已，不影响无偏性】</li>
+</ul></li>
+</ul>
+<h2 id="early-stopping">Early stopping</h2>
+<ul>
+<li>如果检测到当前候选样本中已经有 M 个样本分数很高（<span class="math inline">\(h(i,j)&gt;0.5\)</span>），那么就不再继续找像素
+<ul>
+<li>无偏性分析和上面一样</li>
+</ul></li>
+</ul>
+<h2 id="disk-sampling">Disk Sampling</h2>
+<ul>
+<li>R2 序列；预计算 8192 个随机 offset</li>
+</ul>
+<h1 id="errorcorrelation-tradeoff">Error–Correlation Tradeoff</h1>
+<ul>
+<li>对比 ReSTIR PT，Area ReSTIR，ReSTIR Splatting
+<ul>
+<li>SMAPE 降低，但是相关性上升</li>
+</ul></li>
+<li>复用半径越小【图中数字】，SMAPE 越低，相关性越高</li>
+<li>半径相同的时候
+<ul>
+<li>论文方法 SMAPE 更低，但是相关性更高</li>
+</ul></li>
+</ul>
+<p><img src="/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/Error-vs-Spatial-Covariance-Variable-R.png"></p>
+<h2 id="相关性">相关性</h2>
+<ul>
+<li>相关性计算方式：计算 <span class="math inline">\(r_{ij}\)</span>
+在当前像素半径 8 内的平均值；然后全图算平均
+<ul>
+<li><span class="math inline">\(I\)</span>：灰度 luminance</li>
+<li><span class="math inline">\(\bar{I}\)</span>：GT（样本均值）</li>
+<li><span class="math inline">\(\epsilon=1e^{-4}\)</span></li>
+<li>对同一个静态场景独立渲染 N 次</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+r_{ij}
+=
+\frac{1}{N-1}
+\sum_{n=1}^{N}
+\left(
+    \frac{I_{ni}-\bar{I}_i}{\bar{I}_i+\epsilon}
+\right)
+\left(
+    \frac{I_{nj}-\bar{I}_j}{\bar{I}_j+\epsilon}
+\right)
+\]</span></p>
+<ul>
+<li>temporal 相关性：T=3 帧
+<ul>
+<li><span class="math inline">\(a_i^{(t)}\)</span>
+对所有像素多帧平均</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+a_i^{(t)}
+=
+\frac{1}{N-1}
+\sum_{n=1}^{N}
+\left(
+    \frac{
+        I_{ni}^{(t)}-\bar{I}_i^{(t)}
+    }{
+        \bar{I}_i^{(t)}+\epsilon
+    }
+\right)
+\left(
+    \frac{
+        I_{ni}^{(t+T)}-\bar{I}_i^{(t+T)}
+    }{
+        \bar{I}_i^{(t+T)}+\epsilon
+    }
+\right)
+\]</span></p>
+<h1 id="实验">实验</h1>
+<ul>
+<li>3 种配置，K=32，R 如下
+<ul>
+<li>fast（30），balanced（50），conservative（100）</li>
+</ul></li>
+<li>论文中结果都是静态相机</li>
+<li>渲染图：ReSTIR confidence 20，warm up 40 帧，然后截帧</li>
+<li>像素划分：Easy and hard pixels
+<ul>
+<li>30 像素内复用原始通过率排序，最低的 10% 成为 hard pixels</li>
+</ul></li>
+</ul>
+<h2 id="reduction-in-noise-and-temporal-correlation">Reduction in Noise
+and Temporal Correlation</h2>
+<ul>
+<li>fast 配置</li>
+<li>复杂场景（Emerald Sqare）提升明显：SMAPE 降低 20%，temporal
+covariance 降低 49%</li>
+<li>简单场景小幅提升：SMAPE ~10%，相关性 ~25%</li>
+<li>Largest improvement <strong>near geometric complexity</strong>
+<ul>
+<li>显然是对的</li>
+<li>例如桌子边缘，原始方式可能空间复用失败（落到其他物体上）；但是他的方式空间复用能够找到（还在桌子上）</li>
+</ul></li>
+<li>Spatial reuse <strong>decreases temporal covariance</strong>
+<ul>
+<li>本质还是样本质量高了</li>
+</ul></li>
+</ul>
+<h2 id="runtime-cost">Runtime Cost</h2>
+<ul>
+<li>开销：很小
+<ul>
+<li>额外的一个 Gbuffer Pass【应该能够合到原来的 GBuffer pass 中】</li>
+<li>额外的一个挑选 neighbor 的 pass</li>
+</ul></li>
+<li>Fast（1.3–4.4%）</li>
+<li>Balanced（2.0–6.4%）</li>
+<li>Conservative（4.3–7.4%）</li>
+</ul>
+<p><img src="/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/time-cost.png"></p>
+<h2 id="effect-of-parameters">Effect of Parameters</h2>
+<ul>
+<li>增大 R
+<ul>
+<li>降低 spatial 相关性</li>
+<li>降低了空间复用效率
+<ul>
+<li>误差、temporal 相关性稍增</li>
+<li>GBuffer cache 一致性变差；开销稍增</li>
+</ul></li>
+</ul></li>
+<li>增加 K
+<ul>
+<li>样本聚集，spatial 相关性稍增</li>
+<li>开销稍增【GBuffer 次数增加】</li>
+</ul></li>
+<li>推荐：K=32</li>
+</ul>
+<h2 id="effect-of-continuous-valued-heuristic">Effect of
+Continuous-Valued Heuristic</h2>
+<h2 id="effect-of-early-stopping">Effect of Early Stopping</h2>
+<ul>
+<li>开销变小</li>
+</ul>
+<h1 id="局限性">局限性</h1>
+<ul>
+<li>没有考虑 disocclusion</li>
+<li>heuristic 可以使用：confidence weights、多考虑 stable temporal
+histories</li>
+<li>结合 stochastic pairwise MIS</li>
+<li>启发式没有考虑可见性</li>
+<li>GBuffer 信息还是太少了【加上历史帧信息？】</li>
+<li>扩展到 volume</li>
+</ul>
+<h1 id="额外测试">额外测试</h1>
+<ul>
+<li>我在 ReSTIR PT 的 Veach Ajar 的一个场景中测了下，只开启 spatial
+reuse
+<ul>
+<li>调一调参数，RelMSE 能够从 2.27 =&gt; 2.12 左右【720p】</li>
+</ul></li>
+</ul>
+]]></content>
+      <categories>
+        <category>CG.Paper</category>
+      </categories>
+      <tags>
+        <tag>CG</tag>
+        <tag>Paper</tag>
+        <tag>ReSTIR</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>(论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time</title>
+    <url>/2026/07/15/CG/Papers/2026/SPMIS/</url>
+    <content><![CDATA[<h1 id="stochastic-pairwise-mis-for-restir-pt">Stochastic Pairwise MIS
+for ReSTIR PT</h1>
+<ul>
+<li><a href="https://research.nvidia.com/labs/rtr/publication/hedstrom2026stochastic/">主页</a>，<a href="https://research.nvidia.com/labs/rtr/publication/hedstrom2026stochastic/hedstrom2026stochastic.zip">代码</a>（给了
+DI 的原型实现）</li>
+<li>本文提出了随机 MIS 的算法，通过在周围 <span class="math inline">\(M\)</span> 个样本中随机采样 <span class="math inline">\(N\)</span> 个样本的方式进行空间复用
+<ul>
+<li>在 MIS 系数中引入随机性，这样能够计算更大的 <span class="math inline">\(M\)</span>，复杂度为 <span class="math inline">\(O(MN)\)</span></li>
+<li>随机 PMIS 进一步降低了算法复杂度，<span class="math inline">\(O(N)\)</span></li>
+</ul></li>
+<li>提升 spatial reuse 效率</li>
+<li>实现上，通过 hash 的方式将像素划分为 cell
+<ul>
+<li>先采样 cell【找到一个邻域】，hash 的方式能够扩大邻域</li>
+<li>然后在 cell 中采样 <span class="math inline">\(N\)</span>
+个像素【本文的随机性】</li>
+<li>计算贡献</li>
+</ul></li>
+<li>额外开销
+<ul>
+<li>初始的 cell 选取【12 轮根据 confidence sum 的重采样】</li>
+<li><span class="math inline">\(\tilde{N}_c+\tilde{N}\)</span> 次 shift
+mapping</li>
+<li><del>不需要原来的空间复用开销（<span class="math inline">\(M+M\)</span>）</del></li>
+</ul></li>
+<li>一个 cell 中的相似性和 Hash 没关系【Hash
+理解为<strong>离散等价类划分</strong>】
+<ul>
+<li>连续属性的相似性 =&gt; 量化离散标签相同 =&gt; Hash 到同一个
+Cell</li>
+<li>离散属性分桶后用 Hash 实现高效索引</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">HashKey <span class="title">hashPixel</span><span class="params">(uint2 pixel, int4 attributes)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> HitInfo hit = <span class="built_in">HitInfo</span>(gVBuffer[pixel]);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">HashKey</span>(pixel.x / gReservoirCellSize.x) +</span><br><span class="line">           <span class="built_in">HashKey</span>(pixel.y / gReservoirCellSize.y) +</span><br><span class="line">           <span class="built_in">HashKey</span>(hit.<span class="built_in">getInstanceID</span>().index) + <span class="comment">// instance ID</span></span><br><span class="line">           <span class="built_in">HashKey</span>(attributes.x) + <span class="comment">// normal x</span></span><br><span class="line">           <span class="built_in">HashKey</span>(attributes.y) + <span class="comment">// normal y</span></span><br><span class="line">           <span class="built_in">HashKey</span>(attributes.z) + <span class="comment">// normal z</span></span><br><span class="line">           <span class="built_in">HashKey</span>(attributes.w);  <span class="comment">// roughness【论文没用，设置为 0，估计是没啥提升】</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Hash 碰撞，向后走；kLinearProbeLength=32</li>
+</ul>
+<h1 id="引言">引言</h1>
+<ul>
+<li>当样本稀疏分布的时候，之前的空间复用低效</li>
+<li>论文能够实现更大范围的无偏复用，进一步提升 PMIS（Pairwise
+MIS）的效率【需要评估所有复用的 MIS 时】
+<ul>
+<li>基于 GRIS</li>
+</ul></li>
+</ul>
+<h1 id="背景知识">背景知识</h1>
+<ul>
+<li>细节查看 <a href="/2024/03/01/CG/Papers/2023/ReSTIR-Course/00/">ReSTIR
+Notes</a></li>
+<li>基本 RIS 权重：都覆盖定义域</li>
+</ul>
+<p><span class="math display">\[
+w_i=\frac{\hat{p}(X_i)}{p_i(X_i)}
+\]</span></p>
+<ul>
+<li>Canonical samples【<strong>基准样本</strong>】
+<ul>
+<li>在 target domain 上</li>
+<li>shift mapping 是恒等变换 <span class="math inline">\(T_c(X_c)=X_c\)</span>【覆盖整个定义域】</li>
+<li>每次复用需要有一个基准样本，保证无偏
+<ul>
+<li>可以理解为当前像素的样本【reservoir 蓄水池】</li>
+</ul></li>
+</ul></li>
+<li>GRIS</li>
+<li>generalized balance heuristic：BH 基础上 <span class="math inline">\(p\)</span> 乘上 <span class="math inline">\(c_i\)</span>（confidence weight）
+<ul>
+<li>generalized 指的是使用 <span class="math inline">\(\hat{p}\)</span>
+代替 <span class="math inline">\(p\)</span>【UCW】</li>
+<li><strong>这里的 <span class="math inline">\(\leftarrow\)</span>
+下标指的是变换到 target 域下的函数值</strong></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+m_i^{\mathrm{bal}}(y)
+=
+\frac{
+    c_i\,\hat{p}_{\leftarrow i}(y)
+}{
+    \displaystyle
+    \sum_{j=1}^{M}
+    c_j\,\hat{p}_{\leftarrow j}(y)
+}
+\]</span></p>
+<ul>
+<li>confidence weights
+<ul>
+<li>一般设置为生成这个样本的总初始样本数目
+<ul>
+<li>可能重复计算导致过大；不同像素空间不一样这个近似不准</li>
+</ul></li>
+<li>加入 confidence cap【GRIS 设置为 20】</li>
+</ul></li>
+<li>本文输入：<span class="math inline">\((X_i,W_{X_i},c_i)\)</span></li>
+<li><a href="/2024/10/02/CG/Papers/2023/ReSTIR-Course/04/">Pairwise
+MIS</a>
+<ul>
+<li>降低 MIS 计算量：<span class="math inline">\(O(M^2)\to
+O(M)\)</span></li>
+<li>defensive 形式：避免给 canonical 样本过大权重，同时不能让其他样本的
+<span class="math inline">\(\hat{p}\)</span> 过大
+<ul>
+<li>canonical 样本权重除以 <span class="math inline">\((M-1)\)</span>，整体在加 1；然后所有平均</li>
+</ul></li>
+<li>confidence weight 版本：不使用 <span class="math inline">\(M-1\)</span> 而是用 <span class="math inline">\(c_i\)</span> 调制【<span class="math inline">\(c_i=1\)</span> 退化为上面的】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+m_i^{\mathrm{pw}}(y)
+=
+\left(
+\frac{c_{\Sigma}}
+{c_{\Sigma}+c_c}
+\right)
+\frac{
+c_i\hat{p}_{\leftarrow i}(y)
+}{
+c_{\Sigma}\hat{p}_{\leftarrow i}(y)+c_c\hat{p}(y)
+}
+\qquad (i\ne c)
+\tag{11(a)}
+\]</span></p>
+<p><span class="math display">\[
+m_c^{\mathrm{pw}}(y)
+=
+\frac{c_c}{c_{\Sigma}+c_c}
++
+\sum_{j=1}^{M}
+\left(
+\frac{c_j}{c_{\Sigma}+c_c}
+\right)
+\frac{
+c_c\hat{p}(y)
+}{
+c_{\Sigma}\hat{p}_{\leftarrow j}(y)+c_c\hat{p}(y)
+}
+\tag{11(b)}
+\]</span></p>
+<p><span class="math display">\[
+c_{\Sigma}=\sum_{k\ne c}^{M} c_k
+\]</span></p>
+<ul>
+<li>ReSTIR
+<ul>
+<li>初始样本（initial candidates）来自于 PT，多个的话，合并到 initial
+samlple 中【RIS】</li>
+<li>时间复用：和上一帧对应像素样本合并【GRIS】</li>
+<li>空间复用：和周围像素样本合并【GRIS】</li>
+</ul></li>
+</ul>
+<h2 id="gris-理解"><span id="bb-GRIS">GRIS</span> 理解</h2>
+<ul>
+<li>输入为 M 样本的 UCW 对 <span class="math inline">\((X_i,W_{X_i})\)</span>
+<ul>
+<li>可能不是当前像素的 UCW，但是经过 shift mapping
+之后有类似形式的当前像素中的 UCW</li>
+<li>理解为新 UCW 对
+<ul>
+<li><span class="math inline">\(Y_i=T_i(X_i)\)</span></li>
+<li><span class="math inline">\(W_{X_i}\left|\dfrac{\partial
+T_i}{\partial X_i}\right|\)</span>
+<ul>
+<li>pdf 的话是除以 Jacobian，因此 UCW 就是乘【pdf 和 UCW
+为倒数关系】</li>
+</ul></li>
+</ul></li>
+<li>对于当前像素的定义域的任意函数 <span class="math inline">\(g\)</span>【无偏性分析中，采样和积分函数 <span class="math inline">\(g\)</span> 无关】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}\left[
+g\left(T_i(X_i)\right)
+W_{X_i}
+\left|
+\frac{\partial T_i}{\partial X_i}
+\right|
+\right]
+= \int_{\Omega_i}
+g\left(T_i(x)\right)
+\left|
+\frac{\partial T_i}{\partial x}
+\right|
+\,\mathrm{d}x
+=
+\int_{T_i(\Omega_i)}g(y)\,\mathrm{d}y
+\]</span></p>
+<ul>
+<li>GRIS 重采样权重
+<ul>
+<li>RIS 基础上的变换
+<ul>
+<li><span class="math inline">\([\cdot]\)</span> 表示示性函数：表示
+<span class="math inline">\(T_i\)</span> 是否有定义</li>
+<li>shift mapping</li>
+<li><span class="math inline">\(p(X_i)\)</span> 使用 UCW</li>
+<li>MIS 系数</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+w_i
+=
+\left[X_i \in D(T_i)\right]
+m_i(Y_i)\,
+\hat{p}(Y_i)\,
+W_{X_i}\,
+\left|
+\frac{\partial T_i}{\partial X_i}
+\right|
+\tag{6}
+\]</span></p>
+<ul>
+<li>最终采样 index 权重</li>
+</ul>
+<p><span class="math display">\[
+P(z)=\frac{w_z}{\sum_{j=1}^{M}w_j}
+\]</span></p>
+<ul>
+<li>最终样本 <span class="math inline">\(Y_z\)</span> 的 UCW</li>
+</ul>
+<p><span class="math display">\[
+W_Y=\frac{1}{\hat{p}(Y)}\sum_{j=1}^{M}w_j
+\]</span></p>
+<h1 id="stochastic-resampling-mis-weights">Stochastic Resampling MIS
+Weights</h1>
+<ul>
+<li>如果 M 个蓄水池中大部分样本都是零贡献的，GRIS 变得低效</li>
+<li>不能直接根据样本挑选，有偏！</li>
+<li>论文：更大的 <span class="math inline">\(M\)</span> 中挑选 <span class="math inline">\(\tilde{N}\)</span> 个样本用于复用【设计
+MIS、无偏复用】</li>
+<li>构建 MIS 系数的随机估计
+<ul>
+<li>输入样本 <span class="math inline">\(\bar{X}=(X_1,\cdots,X_M)\)</span></li>
+<li>UCW <span class="math inline">\(\bar{W}=(W_{X_1},\cdots,W_{X_M})\)</span></li>
+<li>新随机变量 <span class="math inline">\(Z\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}
+\left[
+    \tilde{m}_i(Y_i;Z)
+    \mid
+    \bar{X},\bar{W}
+\right]
+=
+m_i(Y_i)
+\tag{13}
+\]</span></p>
+<ul>
+<li>重采样权重 <span class="math inline">\(\tilde{w}_i\)</span>【带入
+<span class="math inline">\(\tilde{m}_i\)</span> 即可】</li>
+</ul>
+<h2 id="general-stochastic-resampling-mis-estimator">General Stochastic
+Resampling MIS Estimator</h2>
+<ul>
+<li><span class="math inline">\(M\)</span>
+个样本，每个样本有一个采样概率 <span class="math inline">\(P(i)\)</span></li>
+<li>有放回采样 <span class="math inline">\(\tilde{N}\)</span>
+次，得到集合 <span class="math inline">\(\bar{S}=\{S_1,\cdots,S_{\vert
+S\vert}\}\)</span>
+<ul>
+<li><span class="math inline">\(\vert{S}\vert\le\tilde{N}\)</span>：因为有去重</li>
+<li><span class="math inline">\(\mathbf{K}_{\bar{S}}(i)\)</span>：记录像素 <span class="math inline">\(i\)</span> 出现的次数</li>
+</ul></li>
+<li>此时随机重采样 MIS 为
+<ul>
+<li><span class="math inline">\(m_i\)</span> 表示原来的非随机 MIS【例如
+BH 或者上面的 confidence weight】</li>
+<li>允许 <span class="math inline">\(P\)</span> 依赖于输入样本和
+UCW</li>
+<li><span class="math inline">\(P(i)=0\)</span> 的时候，<span class="math inline">\(\mathbf{K},\tilde{m}\)</span> 都设置为 0</li>
+<li>【<span style="color:red;font-weight:bold">满足期望为 <span class="math inline">\(m_i\)</span> 证明见附录</span>】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\tilde{m}_i(Y_i; Z)
+=
+\frac{\mathbf{K}_{\bar{S}}(i)}
+{\tilde{N}{P}(i)}
+m_i(Y_i)
+\tag{15}
+\]</span></p>
+<h2 id="stochastic-pairwise-mis">Stochastic Pairwise MIS</h2>
+<ul>
+<li>不使用 Pairwise 的话，复杂度为 <span class="math inline">\(O(\tilde{N}M)\)</span></li>
+<li>用上：<span class="math inline">\(O(\tilde{N})\)</span>
+<ul>
+<li>当 <span class="math inline">\(\tilde{N}\ll M\)</span> 时高效</li>
+</ul></li>
+</ul>
+<h3 id="non-canonical">non-canonical</h3>
+<ul>
+<li>对于 <span class="math inline">\(i\ne c\)</span>，式子 11(a)
+的随机版本如下【<span style="color:red;font-weight:bold">怎么算 <span class="math inline">\(c_{\Sigma}\)</span>？</span>预计算好，后面 cell
+划分有讲】</li>
+</ul>
+<p><span class="math display">\[
+\tilde{m}_i^{\mathrm{pw}}(Y_i)
+=
+\frac{\mathbf{K}_{\bar{S}}(i)}
+{\tilde{N}{P}(i)}
+\left(
+\frac{c_{\Sigma}}
+{c_{\Sigma}+c_c}
+\right)
+\frac{
+c_i\hat{p}_{\leftarrow i}(Y_i)
+}{
+c_{\Sigma}\hat{p}_{\leftarrow i}(Y_i)+c_c\hat{p}(Y_i)
+}
+\qquad (i\ne c)
+\tag{16}
+\]</span></p>
+<ul>
+<li>理论上，<span class="math inline">\(P(i)\)</span> 正比于 <span class="math inline">\(w_i\)</span>（式子 6）时最优
+<ul>
+<li>但是需要 shift mapping 计算，这个很耗时</li>
+<li><span style="color:red;font-weight:bold">启发式</span>的使用如下式子
+<ul>
+<li>被 confidence 加权的 luminance，直接可以获得，设置 <span class="math inline">\(\hat{p}\)</span> 为 <span class="math inline">\(f\)</span> 的 luminance【<span style="color:red;font-weight:bold">怎么算 <span class="math inline">\(\hat{p}\)</span>？就是蓄水池保存的贡献结果</span>】</li>
+<li>shift mapping 高效的时候，结果好【高效：<span class="math inline">\(\hat{p}(X_i)\)</span> 和 <span class="math inline">\(\hat{p}(Y_i)\)</span> 高度相关】</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+P(i)\propto c_i\hat{p}(X_i)W_{X_i}
+\]</span></p>
+<ul>
+<li>好处是，和 GRIS 相比，大的 <span class="math inline">\(M\)</span>
+总能找到有效样本</li>
+</ul>
+<h3 id="canonical">canonical</h3>
+<ul>
+<li><span class="math inline">\(i=c\)</span></li>
+<li>采样一个不同的 <span class="math inline">\(\tilde{N}_c\)</span>
+像素，采样概率 <span class="math inline">\(P_c(i)\)</span></li>
+<li>有放回采样 <span class="math inline">\(\tilde{N}_c\)</span>
+次，得到集合 <span class="math inline">\(\bar{S}&#39;=\{S_1&#39;,\cdots,S_{\vert
+S&#39;\vert}&#39;\}\)</span>，计次 <span class="math inline">\(\mathbf{K}_{\bar{S}&#39;}(i)\)</span></li>
+<li>式子 11(b) 的随机版本</li>
+</ul>
+<p><span class="math display">\[
+\tilde{m}_{c}^{\mathrm{pw}}(Y_c)
+=
+\frac{c_c}{c_{\Sigma}+c_c}
++
+\sum_{i\in\mathcal{S}&#39;}
+\frac{
+\mathbf{K}_{\bar{S}&#39;}^{(i)}
+}{
+\tilde{N}_cP_c(i)
+}
+\beta_i(Y_c)
+\tag{18}
+\]</span></p>
+<p><span class="math display">\[
+\beta_i(Y_c)
+=
+\left(
+\frac{c_i}{c_{\Sigma}+c_c}
+\right)
+\frac{
+c_c\hat{p}(Y_c)
+}{
+c_{\Sigma}\hat{p}_{\leftarrow i}(Y_c)+c_c\hat{p}(Y_c)
+}
+\tag{19}
+\]</span></p>
+<ul>
+<li>无偏：<span class="math inline">\(c_i&gt;0 \Rightarrow
+P_c(i)&gt;0\)</span></li>
+<li>直观：<span class="math inline">\(P_c(i)\propto c_i\)</span>
+<ul>
+<li>实际上设置为 <span class="math inline">\(1/M\)</span>
+效果就不错</li>
+</ul></li>
+<li><span style="color:red;font-weight:bold">为什么要用两个估计？</span>我猜是因为二者估计的量差的很大，用两个质量更高，从不同的
+pdf 也可以看出</li>
+</ul>
+<h3 id="non-canonical-confidence-adjustment">Non-Canonical Confidence
+Adjustment</h3>
+<ul>
+<li><span class="math inline">\(M\)</span> 比较大的话，<span class="math inline">\(c_{\Sigma}\)</span>
+很大，此时选中样本权重很小，导致暗噪点
+<ul>
+<li>典型场景：周围像素邻居的 shift mapping
+失效，自身像素的质量很高；此时自身像素样本权重反而很低</li>
+</ul></li>
+<li>方案：对 <span class="math inline">\(c_{\Sigma}\)</span> 使用 <span class="math inline">\(\tilde{N}/M\)</span> 进行 scale</li>
+</ul>
+<h1 id="实现">实现</h1>
+<ul>
+<li>算法支持很大的 <span class="math inline">\(M\)</span></li>
+<li>但是随着距离变大，相似性变差</li>
+<li>把像素划分为 cell，然后在 cell 内部进行复用</li>
+<li>tile：8x8 像素块【只是一种物理划分，除了计算
+hash，似乎没啥用了】</li>
+<li>每个像素 hash
+<ul>
+<li>tile ID【8x8】、object ID、量化的 surface normal</li>
+<li>PCG【总体上相当于 pcg(a + pcg(b)) 这种形式】</li>
+</ul></li>
+</ul>
+<h2 id="找相关-cell"><span id="bb-sample-cell">找相关 cell</span></h2>
+<ul>
+<li>简单相邻复用效果不好
+<ul>
+<li>相关性</li>
+<li>无法处理 large occlusion【都落在里面】</li>
+</ul></li>
+<li>WRS 多轮采样 cell【12 轮迭代，每轮迭代半径 x1.25，初始 30px】
+<ul>
+<li>当前半径内，随机采样一个像素；找到对应 cell</li>
+<li>通过 Normall 和 Object ID 判断是否相似
+<ul>
+<li>相似则作为候选样本【WRS】，权重设置为 cell 内所有像素的 confidence
+sum</li>
+<li>否则直接丢弃</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="gpu-实现">GPU 实现</h2>
+<h3 id="cell-构建">Cell 构建</h3>
+<ul>
+<li>使用两个 multimap 实现
+<ul>
+<li>cellPixelIndices【gReservoirCellInverseMap】：保存这个 cell
+里面的所有像素</li>
+<li>cellReservoirs【gReservoirCellMap】：保存这个 cell
+里面的非零贡献的像素【UCW &gt; 0】</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// GPU-side</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">MultiMap</span>&lt;T&gt;</span><br><span class="line">&#123;                                            <span class="comment">// 大小</span></span><br><span class="line">    RWStructuredBuffer&lt;T&gt;     data;          <span class="comment">// Max Elements   // 具体数据 </span></span><br><span class="line">    RWStructuredBuffer&lt;T&gt;     sortedData;    <span class="comment">// Max Elements   //</span></span><br><span class="line">    RWStructuredBuffer&lt;uint2&gt; dataIndices;   <span class="comment">// Max Elements   // 所在 cell 的索引；cell 内的索引</span></span><br><span class="line">    RWStructuredBuffer&lt;uint&gt;  cellCounters;  <span class="comment">// Max Cells      // 当前 cell 内部的像素数目</span></span><br><span class="line">    RWStructuredBuffer&lt;uint&gt;  cellOffsets;   <span class="comment">// Max Cells      // </span></span><br><span class="line">    RWStructuredBuffer&lt;uint&gt;  counters;      <span class="comment">// 2              // MultiMap 中当前有多少元素被占用；</span></span><br><span class="line">    uint maxSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>multimap 实现：3 个 pass【<span style="color:red;font-weight:bold">结果上来说就是让 cell
+中左右内部像素在 memory 中相邻</span>】</li>
+<li>pass 1：将所有像素插入 multimap 中，对于每个像素
+<ul>
+<li>计算 hashed cell ID</li>
+<li>插入到对应的 multimap 中，同时更新当前 cell 的 confidence
+sum【原子加法】</li>
+<li>【根据结构体中的含义更新即可】</li>
+</ul></li>
+<li>pass 2：更新 cellOffsets【前缀和，当前 cell 前面有多少个像素，cell
+中第一个元素在整个数组中的 offset】
+<ul>
+<li>两个 multimap 都更新</li>
+<li>GPU 并行前缀和【因为 cell 顺序没有用】；原子加法
+<ul>
+<li>前缀和，但是数组元素谁在前面无所谓</li>
+</ul></li>
+</ul></li>
+<li>pass 3：排序
+<ul>
+<li>根据 dataIndices 从 data 中读取原始信息，然后根据 cellOffsets 和
+dataIndices[1] 把具体信息填入 sortedData</li>
+</ul></li>
+</ul>
+<h3 id="空间采样">空间采样</h3>
+<ul>
+<li>下面所有的 <span class="math inline">\(c_{\Sigma}\)</span>
+都已经是被 <span class="math inline">\(\tilde{N}/M\)</span> scale
+了的</li>
+<li><span class="math inline">\(Y\leftarrow \emptyset\)</span></li>
+<li>采样一个 cell，<a href="#bb-sample-cell">上面找 cell</a>
+<ul>
+<li>这里需要用到每个像素对应蓄水池的 confidence weight【<span style="color:red;font-weight:bold">还是无偏的吗？</span>】以及 normal
+信息【样本无关】</li>
+<li>此时 cell 里面有 <span class="math inline">\(M\)</span> 个样本</li>
+</ul></li>
+<li>先根据式子 (18) 计算 canonical 权重
+<ul>
+<li>cell 中均匀采样 <span class="math inline">\(\tilde{N}_c\)</span>
+次【<span class="math inline">\(p=1/M\)</span>】</li>
+<li><span class="math inline">\(\mathbf{K}\)</span>
+计数，本质上就是每次采样得到一个样本，就把贡献加上去</li>
+<li>ReservoirMerge 就是 WRS</li>
+</ul></li>
+</ul>
+<p><img src="/2026/07/15/CG/Papers/2026/SPMIS/alg2-canonical-weight.png"></p>
+<ul>
+<li>式子 (16) 计算 non-canonical 权重</li>
+</ul>
+<p><img src="/2026/07/15/CG/Papers/2026/SPMIS/alg2-non-canonical-weight.png"></p>
+<ul>
+<li><span style="color:red;font-weight:bold">上面一共需要 <span class="math inline">\(\tilde{N}_c+\tilde{N}\)</span> 次 shift
+mapping</span></li>
+</ul>
+<h1 id="结果">结果</h1>
+<ul>
+<li>Falcor，4090，MAPE</li>
+<li>max bounces 8</li>
+<li>初始样本 1，NEE on</li>
+<li>DI、GI 使用一个蓄水池【不拆分计算】</li>
+<li>标准 ReSTIR PT：M=3、30px radius</li>
+<li>Ours：采样 cell【本质用的里面有贡献样本，此时 <span class="math inline">\(M\le64\)</span>】
+<ul>
+<li><span class="math inline">\(\tilde{N}=3,\tilde{N}_c=1\)</span></li>
+</ul></li>
+</ul>
+<h2 id="对比">对比</h2>
+<ul>
+<li>在遮挡严重的区域表现很好【camera motion、scene animation】</li>
+<li>大致开销（ms）
+<ul>
+<li>Initial Sampling：8.68</li>
+<li>Temporal Reuse：4.06</li>
+<li>Create Reuse Cells：1.57</li>
+<li>Compute <span class="math inline">\(\tilde{m}_c{^{\text{pw}}}\)</span>：4.40</li>
+<li>Stochastic Neighbor Reuse：9.19</li>
+</ul></li>
+<li>消融实验：<span class="math inline">\(c_{\Sigma}\)</span> 是否
+scale</li>
+<li>原始 ReSTIR PT 需要 <span class="math inline">\(M\)</span>
+个样本计算 canonical 权重【我们只需要 <span class="math inline">\(\tilde{N}_c=1\)</span> 个】
+<ul>
+<li>主要噪音在 non-canonical 权重那边</li>
+</ul></li>
+</ul>
+<h1 id="副录">副录</h1>
+<ul>
+<li>无偏性证明</li>
+</ul>
+<h2 id="gris-with-stochastic-mis">GRIS with Stochastic MIS</h2>
+<ul>
+<li>使用随机 <span class="math inline">\(\tilde{w}_i\)</span> 替换</li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}\left[f(Y)W_Y\right]
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[\tilde{w}_i&gt;0]
+f(Y_i)W_{Y_i}
+\frac{\tilde{w}_i}{\sum_{j=1}^{M}\tilde{w}_j}
+\right]
+\]</span></p>
+<ul>
+<li>代入 UCW 的估计</li>
+</ul>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[\tilde{w}_i&gt;0]
+f(Y_i)
+\left(
+\frac{1}{\hat{p}(Y_i)}
+\sum_{j=1}^{M}\tilde{w}_j
+\right)
+\frac{\tilde{w}_i}{\sum_{j=1}^{M}\tilde{w}_j}
+\right]
+\]</span></p>
+<ul>
+<li>约掉分母</li>
+</ul>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[\tilde{w}_i&gt;0]
+f(Y_i)
+\frac{\tilde{w}_i}{\hat{p}(Y_i)}
+\right]
+\]</span></p>
+<ul>
+<li>带入 Jacobian
+<ul>
+<li><span class="math inline">\([D_i]\)</span> 示性函数</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[D_i]
+f(Y_i)
+\frac{
+\tilde{m}_i(Y_i;Z)\hat{p}(Y_i)W_{X_i}
+\left|\frac{\partial T_i}{\partial X_i}\right|
+}{
+\hat{p}(Y_i)
+}
+\right]
+\]</span></p>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+\mathbb{E}
+\left[
+[D_i]
+f(Y_i)
+\tilde{m}_i(Y_i;Z)
+W_{X_i}
+\left|\frac{\partial T_i}{\partial X_i}\right|
+\right]
+\middle|
+\bar{X},\bar{W}
+\right]
+\]</span></p>
+<ul>
+<li>后续证明思路就是，找个地方把 <span class="math inline">\(\tilde{w}_i\)</span> 给求期望，换成 <span class="math inline">\(w_i\)</span>；然后就是原来的 ReSTIR 推导了</li>
+</ul>
+<p><span class="math display">\[
+=
+\sum_{i=1}^{M}
+\mathbb{E}
+\left[
+[D_i]
+f(Y_i)
+\mathbb{E}
+\left[
+\tilde{m}_i(Y_i;Z)
+\middle|
+\bar{X},\bar{W}
+\right]
+W_{X_i}
+\left|\frac{\partial T_i}{\partial X_i}\right|
+\right]
+\]</span></p>
+<h2 id="证明-smis-期望">证明 SMIS 期望</h2>
+<ul>
+<li>满足 <span class="math inline">\(\mathbb{E}[\tilde{w}]=w\)</span></li>
+<li>对 <span class="math inline">\(Z\)</span> 求期望，也就是 <span class="math inline">\(\mathbf{K}\)</span></li>
+</ul>
+<p><span class="math display">\[
+\mathbb{E}
+\left[
+\tilde{m}_i(y;Z)
+\middle|
+\bar{X},\bar{W}
+\right]
+=
+\mathbb{E}
+\left[
+[P(i;\bar{X},\bar{W})&gt;0]
+\frac{
+\mathbf{K}_{\bar{S}}{(i)}
+}{
+\tilde{N}P(i;\bar{X},\bar{W})
+}
+m_i(y)
+\middle|
+\bar{X},\bar{W}
+\right]
+\]</span></p>
+<ul>
+<li>考虑 <span class="math inline">\(m_i&gt;0\)</span>【=0 显然】</li>
+<li>给定 <span class="math inline">\(\bar{X},\bar{W}\)</span>，<span class="math inline">\(P\)</span> 是常数，直接提出来</li>
+</ul>
+<p><span class="math display">\[
+=
+\mathbb{E}
+\left[
+\frac{
+\mathbf{K}_{\bar{S}}{(i)}
+}{
+\tilde{N}P(i;\bar{X},\bar{W})
+}
+m_i(y)
+\middle|
+\bar{X},\bar{W}
+\right]
+\]</span></p>
+<p><span class="math display">\[
+=
+\mathbb{E}
+\left[
+\mathbf{K}_{\bar{S}}{(i)}
+\middle|
+\bar{X},\bar{W}
+\right]
+\frac{1}{
+\tilde{N}P(i;\bar{X},\bar{W})
+}
+m_i(y)
+\]</span></p>
+<ul>
+<li>有放回采样，伯努利分布
+<ul>
+<li>期望为 <span class="math inline">\(Np\)</span></li>
+<li>消掉分母</li>
+</ul></li>
+</ul>
+]]></content>
+      <categories>
+        <category>CG.Paper</category>
+      </categories>
+      <tags>
+        <tag>CG</tag>
+        <tag>Paper</tag>
+        <tag>EG</tag>
+        <tag>ReSTIR</tag>
       </tags>
   </entry>
 </search>

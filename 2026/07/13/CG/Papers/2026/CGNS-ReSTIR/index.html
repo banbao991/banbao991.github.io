@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本文通过分析当前像素周围邻居（复用像素）的 G-Buffer 性质，提高了 ReSTIR 空间复用的质量；提出了一个启发式的函数评估周围像素对当前像素复用的优劣，然后选择最好的几个像素进行复用；">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2026-CGIT]Compatibility-Guided Neighbor Selection for ReSTIR">
+<meta property="og:url" content="http://example.com/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="本文通过分析当前像素周围邻居（复用像素）的 G-Buffer 性质，提高了 ReSTIR 空间复用的质量；提出了一个启发式的函数评估周围像素对当前像素复用的优劣，然后选择最好的几个像素进行复用；">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/DI-reconnection-shift.png">
+<meta property="og:image" content="http://example.com/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/heuristic-scale-factor.png">
+<meta property="og:image" content="http://example.com/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/Error-vs-Spatial-Covariance-Variable-R.png">
+<meta property="og:image" content="http://example.com/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/time-cost.png">
+<meta property="article:published_time" content="2026-07-13T14:17:29.000Z">
+<meta property="article:modified_time" content="2026-07-15T13:56:02.416Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="ReSTIR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/DI-reconnection-shift.png">
+
+
+<link rel="canonical" href="http://example.com/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/","path":"2026/07/13/CG/Papers/2026/CGNS-ReSTIR/","title":"(论文)[2026-CGIT]Compatibility-Guided Neighbor Selection for ReSTIR"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2026-CGIT]Compatibility-Guided Neighbor Selection for ReSTIR | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-homepage"><a href="https://banbao990.github.io/" rel="noopener" target="_blank"><i class="fa fa-home fa-fw"></i>Homepage</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#compatibility-guided-neighbor-selection-for-restir"><span class="nav-text">Compatibility-Guided
+Neighbor Selection for ReSTIR</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-text">引言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-text">相关工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="nav-text">背景知识</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#pixel-compatibility-heuristics"><span class="nav-text">Pixel Compatibility
+Heuristics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#direct-illumination"><span class="nav-text">Direct Illumination</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#global-illumination"><span class="nav-text">Global Illumination</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#quantifying-compatibility"><span class="nav-text">Quantifying Compatibility</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#compatibility-guided-neighbor-selection"><span class="nav-text">Compatibility-Guided
+Neighbor Selection</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#wrs-%E5%88%86%E6%9E%90a-es"><span class="nav-text">WRS 分析：A-ES</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#m1"><span class="nav-text">M&#x3D;1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#m1-1"><span class="nav-text">M&gt;1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#early-stopping"><span class="nav-text">Early stopping</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#disk-sampling"><span class="nav-text">Disk Sampling</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#errorcorrelation-tradeoff"><span class="nav-text">Error–Correlation Tradeoff</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E6%80%A7"><span class="nav-text">相关性</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#reduction-in-noise-and-temporal-correlation"><span class="nav-text">Reduction in Noise
+and Temporal Correlation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#runtime-cost"><span class="nav-text">Runtime Cost</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#effect-of-parameters"><span class="nav-text">Effect of Parameters</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#effect-of-continuous-valued-heuristic"><span class="nav-text">Effect of
+Continuous-Valued Heuristic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#effect-of-early-stopping"><span class="nav-text">Effect of Early Stopping</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-text">局限性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%9D%E5%A4%96%E6%B5%8B%E8%AF%95"><span class="nav-text">额外测试</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">382</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">116</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:2369896555@qq.com" title="E-Mail → mailto:2369896555@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2026-CGIT]Compatibility-Guided Neighbor Selection for ReSTIR | Banbao">
+      <meta itemprop="description" content="本文通过分析当前像素周围邻居（复用像素）的 G-Buffer 性质，提高了 ReSTIR 空间复用的质量；提出了一个启发式的函数评估周围像素对当前像素复用的优劣，然后选择最好的几个像素进行复用；">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2026-CGIT]Compatibility-Guided Neighbor Selection for ReSTIR
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-07-13 22:17:29" itemprop="dateCreated datePublished" datetime="2026-07-13T22:17:29+08:00">2026-07-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-07-15 21:56:02" itemprop="dateModified" datetime="2026-07-15T21:56:02+08:00">2026-07-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">本文通过分析当前像素周围邻居（复用像素）的 G-Buffer 性质，提高了 ReSTIR 空间复用的质量；提出了一个启发式的函数评估周围像素对当前像素复用的优劣，然后选择最好的几个像素进行复用；</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="compatibility-guided-neighbor-selection-for-restir">Compatibility-Guided
+Neighbor Selection for ReSTIR</h1>
+<ul>
+<li>ETH、NVIDIA</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/orion-junkins/ReSTIR-CGNS">代码</a>、<a target="_blank" rel="noopener" href="https://orion-junkins.github.io/CGNS/">主页</a></li>
+<li>总结
+<ul>
+<li>本文通过分析当前像素周围邻居（复用像素）的 G-Buffer 性质，提高了
+ReSTIR 空间复用的质量</li>
+<li>提出了一个启发式的函数评估周围像素对当前像素复用的优劣，然后选择最好的几个像素进行复用</li>
+<li>无偏性保证
+<ul>
+<li>只用了 G-Buffer 信息，没有用到样本信息</li>
+<li>只是提前确定了复用的像素范围（是什么），具体的复用还是和原来一样；因此不需要算
+pdf，很容易集成</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="引言">引言</h1>
+<ul>
+<li>很少 ReSTIR 工作提升空间复用</li>
+<li>论文
+<ul>
+<li>SMAPE 降低 6–29%</li>
+<li>降低 temporal covariance by 22–49%</li>
+<li>额外开销：2–5%</li>
+</ul></li>
+<li>ReSTIR：<strong>上千面光源</strong>
+<ul>
+<li>DI 不需要 SM；GI 不需要 light probes</li>
+<li>时空复用重采样，均摊开销</li>
+</ul></li>
+<li>本文
+<ul>
+<li>提出了启发式的 neighbor selection</li>
+<li>分析了半径对于误差、相关性的关系</li>
+</ul></li>
+</ul>
+<h1 id="相关工作">相关工作</h1>
+<ul>
+<li>shift mapping</li>
+<li>gradient-domain rendering
+<ul>
+<li>扩展到 path tracing</li>
+<li>结合 shift mapping</li>
+<li>邻居像素选择</li>
+</ul></li>
+<li>SVGF 挑选邻居像素的方式【启发】</li>
+<li>ReSTIR
+<ul>
+<li>DI：首次结合 RIS</li>
+<li>rough GI：长路径是最 virtual point light</li>
+<li>GRIS + shift mappings：ReSTIR PT 框架</li>
+<li>时域 ReSTIR 扩展
+<ul>
+<li>Area ReSTIR：扩展到 pixel filters【同时能做 DoF】</li>
+<li>ReSTIR Splatting：上一帧样本通过 motion vector
+给下一帧复用【同时能做 Motion Blur】</li>
+</ul></li>
+<li>降低相关性：MCMC</li>
+<li>扩展
+<ul>
+<li>ReSTIR BDPT</li>
+<li>PM：ReSTIR FG</li>
+<li>次表面散射</li>
+<li>Path Guiding：ReSTIR PG</li>
+</ul></li>
+<li>空间采样
+<ul>
+<li><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/10.1145/3585501">使用 vMF 拟合
+DI</a>【有偏，不能扩展到 GI】</li>
+<li><a target="_blank" rel="noopener" href="https://dl.acm.org/doi/pdf/10.1145/3721238.3730723">对立采样</a>：正交</li>
+<li><a target="_blank" rel="noopener" href="https://onlinelibrary.wiley.com/doi/10.1111/cgf.70391">stochastic
+pairwise MIS</a>：输入较差的区域降噪</li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="背景知识">背景知识</h1>
+<ul>
+<li>shift mapping：常用的 reconnection shift、hybrid shift
+<ul>
+<li>好的设计如下</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+f(T(x))\vert{T&#39;(x)}\vert\approx f(x)
+\]</span></p>
+<ul>
+<li>Unbiased Contribution Weight（UCW）</li>
+<li>GRIS</li>
+<li>ReSTIR</li>
+<li>Spatial Neighbor Selection：ReSTIR DI 的方式
+<ul>
+<li>固定半径（box/disk，常见 30）内均匀采样；实际只能有 1 个样本</li>
+<li>根据 depth/normal
+拒绝样本【<strong>无偏性保证</strong>：只根据G-Buffer 而不是样本挑选】
+<ul>
+<li><span id="eq1">式子 (1)</span></li>
+</ul></li>
+<li>均匀采样效果不好，可能找不到可用样本</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\textbf{n}\cdot\textbf{n}_i\ge0.5\;\land\;\dfrac{\vert{d_i-d}\vert}{d}&lt;0.1\tag{1}
+\]</span></p>
+<h1 id="pixel-compatibility-heuristics">Pixel Compatibility
+Heuristics</h1>
+<ul>
+<li>变换 shift mapping 设计标准</li>
+</ul>
+<p><span class="math display">\[
+\frac{f(T(x))\vert{T&#39;(x)}\vert}{f(x)} \approx 1
+\]</span></p>
+<h2 id="direct-illumination">Direct Illumination</h2>
+<ul>
+<li><strong>simple reconnection</strong></li>
+</ul>
+<p><img src="/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/DI-reconnection-shift.png"></p>
+<ul>
+<li><span class="math inline">\(\bar{x}\to\bar{y}=T(\bar{x})\)</span></li>
+</ul>
+<p><span class="math display">\[
+f(\bar{x})
+=
+\underbrace{f_s(x_0 \to x_1 \to x_2)}_{\mathrm{BRDF}}
+\underbrace{G(x_1 \leftrightarrow x_2)}_{\mathrm{geometry\ term}}
+\underbrace{V(x_1 \leftrightarrow x_2)}_{\mathrm{visibility}}
+\underbrace{L_e(x_2 \to x_1)}_{\mathrm{emission}}
+\]</span></p>
+<ul>
+<li>带入启发式</li>
+</ul>
+<p><span class="math display">\[
+\frac{
+    f_s(x_0 \to y_1 \to x_2)\,
+    G(y_1 \leftrightarrow x_2)\,
+    V(y_1 \leftrightarrow x_2)\,
+    L_e(x_2 \to y_1)
+}{
+    f_s(x_0 \to x_1 \to x_2)\,
+    G(x_1 \leftrightarrow x_2)\,
+    V(x_1 \leftrightarrow x_2)\,
+    L_e(x_2 \to x_1)
+}
+\left|T&#39;(\bar{x})\right|
+\approx 1
+\]</span></p>
+<ul>
+<li>几何项、BSDF：随着距离拉远，会偏离 1</li>
+<li>同样的，距离拉远，则可见性一致性也会变化</li>
+<li><span class="math inline">\(T&#39;=1\)</span></li>
+<li>hint：在距离比较近的时候效果较好</li>
+<li>距离比较近也可能出问题：<span class="math inline">\(x_1\approx
+y_1\)</span>
+<ul>
+<li>emission、可见性项（除了阴影边缘）接近；此时几何项比值【此时和上面法线接近类似】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\frac{G(y_1 \leftrightarrow x_2)}
+     {G(x_1 \leftrightarrow x_2)}
+=
+\frac{
+    \displaystyle
+    \frac{
+        \left(\mathbf{n}_{y_1} \cdot \widehat{x_2-y_1}\right)
+        \left(\mathbf{n}_{x_2} \cdot \widehat{y_1-x_2}\right)
+    }{
+        \left\Vert y_1-x_2 \right\Vert^2
+    }
+}{
+    \displaystyle
+    \frac{
+        \left(\mathbf{n}_{x_1} \cdot \widehat{x_2-x_1}\right)
+        \left(\mathbf{n}_{x_2} \cdot \widehat{x_1-x_2}\right)
+    }{
+        \left\Vert x_1-x_2 \right\Vert^2
+    }
+}
+\approx
+\frac{
+    \mathbf{n}_{y_1} \cdot \widehat{x_2-y_1}
+}{
+    \mathbf{n}_{x_1} \cdot \widehat{x_2-x_1}
+}
+\approx
+\frac{
+    \mathbf{n}_{y_1} \cdot \widehat{x_2-x_1}
+}{
+    \mathbf{n}_{x_1} \cdot \widehat{x_2-x_1}
+}
+\]</span></p>
+<ul>
+<li>剩下 BSDF 项：表示材质相近再复用</li>
+</ul>
+<h2 id="global-illumination">Global Illumination</h2>
+<ul>
+<li><strong>hybrid shift</strong></li>
+<li>reconnection shift <span class="math inline">\(\bar{y}\)</span>【<span style="color:red;font-weight:bold">只变了 <span class="math inline">\(x_1\)</span> 合理吗</span>】
+<ul>
+<li><span class="math inline">\(\bar{x}=[x_0,x_1,x_2,\cdots,x_D]\to\bar{y}=[x_0,y_1,x_2,\cdots,x_D]\)</span></li>
+</ul></li>
+<li>此时变成如下式子【只剩下前面 3 项】
+<ul>
+<li>第 4 项，因为是同一个点的材质，<span class="math inline">\(x_1\approx y_1\)</span> 的时候相近</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\frac{
+        f_s(x_0 \to y_1 \to x_2)\,
+        G(y_1 \leftrightarrow x_2)\,
+        V(y_1 \leftrightarrow x_2)\,
+        f_s(y_1 \to x_2 \to x_3)\,
+        G(x_2 \leftrightarrow x_3)\,\cdots
+    }{
+        f_s(x_0 \to x_1 \to x_2)\,
+        G(x_1 \leftrightarrow x_2)\,
+        V(x_1 \leftrightarrow x_2)\,
+        f_s(x_1 \to x_2 \to x_3)\,
+        G(x_2 \leftrightarrow x_3)\,\cdots
+    }
+    \left|T&#39;(\bar{x})\right|
+    \approx 1.
+\]</span></p>
+<ul>
+<li><p>因此分析和 DI 类似</p></li>
+<li><p>ReSTIR PT 的 hybrid shift：延迟 specular 的连接，使用 random
+replay 直到找到一个相似材质的点</p>
+<ul>
+<li>Regardless of shift mapping and path length, we want to select
+neighbors with <strong>similar primary hit position, normal, and
+material.</strong></li>
+<li>【<span style="color:red;font-weight:bold">本质本文没有做任何分析</span>】</li>
+</ul></li>
+<li><p>本文将 Area ReSTIR / ReSTIR Splatting 关于 temporal 的分析用到
+spatial 中</p></li>
+</ul>
+<h2 id="quantifying-compatibility">Quantifying Compatibility</h2>
+<ul>
+<li>DI 的决定是通过阈值判断直接接受/丢弃，<a href="#eq1">式子 (1)</a>
+<ul>
+<li>可能全部都丢弃了</li>
+</ul></li>
+<li>本文：放到一个池子里面，然后通过一个启发式的概率采样他们</li>
+<li>使用 primary hit position, normal, and material properties
+信息做了一个启发式函数</li>
+<li>来源：edge-stopping functions + SVGF</li>
+<li>试了下简单使用材质 binary check，效果不好</li>
+<li>设计函数：primary hit 位置、法线</li>
+</ul>
+<p><span class="math display">\[
+h(x_1, y_1) = h_p(x_1, y_1)\,h_n(x_1, y_1)
+\]</span></p>
+<p><span class="math display">\[
+h_p(x_1, y_1)
+=
+\exp\left(
+    -\frac{\left\Vert x_1-y_1\right\Vert}{s}
+\right)
+\]</span></p>
+<p><span class="math display">\[
+h_n(x_1, y_1)
+=
+\max\left(
+    \mathbf{n}_{x_1}\cdot\mathbf{n}_{y_1},
+    0
+\right)^{\beta}
+\]</span></p>
+<ul>
+<li><span class="math inline">\(s\)</span>
+表示世界空间的半径大小【立体角定义：<span class="math inline">\(\Omega=\pi s^2/d\)</span>】
+<ul>
+<li>推荐参数：<span class="math inline">\(\Omega=0.05,\beta=8\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+s=\sqrt{\frac{\Omega d^2}{\pi}},\;d=\left\Vert x_1-x_0\right\Vert
+\]</span></p>
+<p><img src="/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/heuristic-scale-factor.png"></p>
+<h1 id="compatibility-guided-neighbor-selection">Compatibility-Guided
+Neighbor Selection</h1>
+<ul>
+<li>目标
+<ul>
+<li>给定 M、R</li>
+<li>在半径为 R 的区域内，挑选得到 M 个邻居</li>
+</ul></li>
+<li>半径 R 内全都过一遍开销很大</li>
+<li>先采样 K 个样本，然后使用 Weighted Reservoir Sample（WRS）重采样得到
+M 个样本</li>
+<li>具体的
+<ul>
+<li>M=1：和之前的 ReSTIR 文章相同（A-Chao algorithm）【A-Chao 独立运行 M
+次可能有相同样本】</li>
+<li>M&gt;1：保证样本都不一样（A-ES algorithm）</li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">AChaoReservoir</span></span><br><span class="line">&#123;</span><br><span class="line">    int2  selected;</span><br><span class="line">    <span class="type">float</span> weightSum;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 每个样本采样概率正比于：score/sum(score)</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">tryUpdate</span><span class="params">(int2 candidate, <span class="type">float</span> score, <span class="type">float</span> u)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        weightSum += score;</span><br><span class="line">        <span class="keyword">if</span> (weightSum &gt; <span class="number">0.0f</span> &amp;&amp; u &lt; score / weightSum)</span><br><span class="line">        &#123;</span><br><span class="line">            selected = candidate;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">AESReservoir</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">const</span> uint kMaxCapacity = <span class="number">5</span>;</span><br><span class="line">    int2  pixels[kMaxCapacity];</span><br><span class="line">    <span class="type">float</span> keys[kMaxCapacity]; <span class="comment">// 初始化：-1e38f</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Returns true if candidate was inserted (evicted a previous slot).</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">tryUpdate</span><span class="params">(int2 candidate, <span class="type">float</span> score, <span class="type">float</span> u, uint M)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="type">float</span> key    = <span class="built_in">log</span>(<span class="built_in">max</span>(u, EPSILON)) / <span class="built_in">max</span>(score, EPSILON);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 找到最小的 key</span></span><br><span class="line">        uint  minIdx = <span class="number">0</span>;</span><br><span class="line">        <span class="type">float</span> minKey = keys[<span class="number">0</span>];</span><br><span class="line">        <span class="comment">// Linear probe; can be optimized with a min heap for larger M.</span></span><br><span class="line">        <span class="keyword">for</span> (uint i = <span class="number">1</span>; i &lt; M; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (keys[i] &lt; minKey) &#123; minKey = keys[i]; minIdx = i; &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (key &gt; minKey)</span><br><span class="line">        &#123;</span><br><span class="line">            pixels[minIdx] = candidate;</span><br><span class="line">            keys[minIdx]   = key;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="wrs-分析a-es">WRS 分析：A-ES</h2>
+<ul>
+<li>计算 Top-M 的 <span class="math inline">\(\dfrac{\log
+u_i}{w_i}\)</span>【负数】
+<ul>
+<li>原始实现是找到 Top-M 的 <span class="math inline">\(q_i=u_i^{1/w_i}\)</span>【单调性等价】</li>
+</ul></li>
+</ul>
+<h3 id="m1">M=1</h3>
+<ul>
+<li><span class="math inline">\(t_i=-\dfrac{\log
+u_i}{w_i}\)</span>，那么有 <span class="math inline">\(T_i\sim
+\mathrm{Exp}(w_i)\)</span>【可以通过计算 CDF 得到】
+<ul>
+<li>CDF 都是 <span class="math inline">\(1-e^{-w_ix}\)</span></li>
+<li><span class="math inline">\(\mathrm{Exp}(\lambda)\)</span> 的 pdf 为
+<span class="math inline">\(\lambda e^{-\lambda x}(x\ge 0)\)</span></li>
+</ul></li>
+<li>现在等价于挑选最小的 <span class="math inline">\(T_i\)</span></li>
+<li><span class="math inline">\(T_i\)</span>
+被选中的概率【剩余值都比他大】
+<ul>
+<li>对 <span class="math inline">\(t\)</span> 求积分</li>
+<li>每一个 <span class="math inline">\(t\)</span>
+<ul>
+<li>采样概率为 <span class="math inline">\(\int_{0}^{\infty}w_ie^{-w_it}\)</span></li>
+<li>剩余值都大于 <span class="math inline">\(t\)</span> 的概率累乘【1 -
+CDF】</li>
+</ul></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\int_{0}^{\infty}w_ie^{-w_it}\prod_{j\ne
+i}e^{-w_jt}\;\mathrm{d}t=\frac{w_i}{\sum_j w_j}
+\]</span></p>
+<h3 id="m1-1">M&gt;1</h3>
+<ul>
+<li>此时精确的表示 pdf 并不容易【不好算】</li>
+<li>根据指数分布的无记忆性，对于之后样本的每个采样，还是满足上的式子
+<ul>
+<li><span class="math inline">\(\Pr(x&gt;t+s\mid
+X&gt;t)=\Pr(X&gt;t)\)</span></li>
+<li><span class="math inline">\(P(A\mid B)=\dfrac{P(AB)}{P(B)}\)</span>
+计算即证</li>
+</ul></li>
+<li>于是对于采样到的有序序列的 pdf 如下</li>
+</ul>
+<p><span class="math display">\[
+P(i_1,i_2,\ldots,i_M)
+=
+\prod_{r=1}^{M}
+\frac{
+    w_{i_r}
+}{
+    W
+    -
+    \sum_{s=1}^{r-1} w_{i_s}
+},
+\;W=\sum_{j=1}^{N} w_j
+\]</span></p>
+<ul>
+<li>如果是 <span class="math inline">\(i_1\)</span>
+被采样到的概率则需要对所有的可能序列求和</li>
+<li><span style="color:red;font-weight:bold">此时第 <span class="math inline">\(i\)</span> 个样本被采样到的概率，并不正比于 <span class="math inline">\(w_i\)</span></span></li>
+<li><span style="color:red;font-weight:bold">为什么这还是无偏的呢？</span>
+<ul>
+<li>本质上这里不需要计算
+pdf，而是启发式的给出和当前样本复用的其他像素是什么像素</li>
+<li>也就是决定了当前像素的复用范围【可以理解为不同像素使用了不同的复用范围而已，不影响无偏性】</li>
+</ul></li>
+</ul>
+<h2 id="early-stopping">Early stopping</h2>
+<ul>
+<li>如果检测到当前候选样本中已经有 M 个样本分数很高（<span class="math inline">\(h(i,j)&gt;0.5\)</span>），那么就不再继续找像素
+<ul>
+<li>无偏性分析和上面一样</li>
+</ul></li>
+</ul>
+<h2 id="disk-sampling">Disk Sampling</h2>
+<ul>
+<li>R2 序列；预计算 8192 个随机 offset</li>
+</ul>
+<h1 id="errorcorrelation-tradeoff">Error–Correlation Tradeoff</h1>
+<ul>
+<li>对比 ReSTIR PT，Area ReSTIR，ReSTIR Splatting
+<ul>
+<li>SMAPE 降低，但是相关性上升</li>
+</ul></li>
+<li>复用半径越小【图中数字】，SMAPE 越低，相关性越高</li>
+<li>半径相同的时候
+<ul>
+<li>论文方法 SMAPE 更低，但是相关性更高</li>
+</ul></li>
+</ul>
+<p><img src="/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/Error-vs-Spatial-Covariance-Variable-R.png"></p>
+<h2 id="相关性">相关性</h2>
+<ul>
+<li>相关性计算方式：计算 <span class="math inline">\(r_{ij}\)</span>
+在当前像素半径 8 内的平均值；然后全图算平均
+<ul>
+<li><span class="math inline">\(I\)</span>：灰度 luminance</li>
+<li><span class="math inline">\(\bar{I}\)</span>：GT（样本均值）</li>
+<li><span class="math inline">\(\epsilon=1e^{-4}\)</span></li>
+<li>对同一个静态场景独立渲染 N 次</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+r_{ij}
+=
+\frac{1}{N-1}
+\sum_{n=1}^{N}
+\left(
+    \frac{I_{ni}-\bar{I}_i}{\bar{I}_i+\epsilon}
+\right)
+\left(
+    \frac{I_{nj}-\bar{I}_j}{\bar{I}_j+\epsilon}
+\right)
+\]</span></p>
+<ul>
+<li>temporal 相关性：T=3 帧
+<ul>
+<li><span class="math inline">\(a_i^{(t)}\)</span>
+对所有像素多帧平均</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+a_i^{(t)}
+=
+\frac{1}{N-1}
+\sum_{n=1}^{N}
+\left(
+    \frac{
+        I_{ni}^{(t)}-\bar{I}_i^{(t)}
+    }{
+        \bar{I}_i^{(t)}+\epsilon
+    }
+\right)
+\left(
+    \frac{
+        I_{ni}^{(t+T)}-\bar{I}_i^{(t+T)}
+    }{
+        \bar{I}_i^{(t+T)}+\epsilon
+    }
+\right)
+\]</span></p>
+<h1 id="实验">实验</h1>
+<ul>
+<li>3 种配置，K=32，R 如下
+<ul>
+<li>fast（30），balanced（50），conservative（100）</li>
+</ul></li>
+<li>论文中结果都是静态相机</li>
+<li>渲染图：ReSTIR confidence 20，warm up 40 帧，然后截帧</li>
+<li>像素划分：Easy and hard pixels
+<ul>
+<li>30 像素内复用原始通过率排序，最低的 10% 成为 hard pixels</li>
+</ul></li>
+</ul>
+<h2 id="reduction-in-noise-and-temporal-correlation">Reduction in Noise
+and Temporal Correlation</h2>
+<ul>
+<li>fast 配置</li>
+<li>复杂场景（Emerald Sqare）提升明显：SMAPE 降低 20%，temporal
+covariance 降低 49%</li>
+<li>简单场景小幅提升：SMAPE ~10%，相关性 ~25%</li>
+<li>Largest improvement <strong>near geometric complexity</strong>
+<ul>
+<li>显然是对的</li>
+<li>例如桌子边缘，原始方式可能空间复用失败（落到其他物体上）；但是他的方式空间复用能够找到（还在桌子上）</li>
+</ul></li>
+<li>Spatial reuse <strong>decreases temporal covariance</strong>
+<ul>
+<li>本质还是样本质量高了</li>
+</ul></li>
+</ul>
+<h2 id="runtime-cost">Runtime Cost</h2>
+<ul>
+<li>开销：很小
+<ul>
+<li>额外的一个 Gbuffer Pass【应该能够合到原来的 GBuffer pass 中】</li>
+<li>额外的一个挑选 neighbor 的 pass</li>
+</ul></li>
+<li>Fast（1.3–4.4%）</li>
+<li>Balanced（2.0–6.4%）</li>
+<li>Conservative（4.3–7.4%）</li>
+</ul>
+<p><img src="/2026/07/13/CG/Papers/2026/CGNS-ReSTIR/time-cost.png"></p>
+<h2 id="effect-of-parameters">Effect of Parameters</h2>
+<ul>
+<li>增大 R
+<ul>
+<li>降低 spatial 相关性</li>
+<li>降低了空间复用效率
+<ul>
+<li>误差、temporal 相关性稍增</li>
+<li>GBuffer cache 一致性变差；开销稍增</li>
+</ul></li>
+</ul></li>
+<li>增加 K
+<ul>
+<li>样本聚集，spatial 相关性稍增</li>
+<li>开销稍增【GBuffer 次数增加】</li>
+</ul></li>
+<li>推荐：K=32</li>
+</ul>
+<h2 id="effect-of-continuous-valued-heuristic">Effect of
+Continuous-Valued Heuristic</h2>
+<h2 id="effect-of-early-stopping">Effect of Early Stopping</h2>
+<ul>
+<li>开销变小</li>
+</ul>
+<h1 id="局限性">局限性</h1>
+<ul>
+<li>没有考虑 disocclusion</li>
+<li>heuristic 可以使用：confidence weights、多考虑 stable temporal
+histories</li>
+<li>结合 stochastic pairwise MIS</li>
+<li>启发式没有考虑可见性</li>
+<li>GBuffer 信息还是太少了【加上历史帧信息？】</li>
+<li>扩展到 volume</li>
+</ul>
+<h1 id="额外测试">额外测试</h1>
+<ul>
+<li>我在 ReSTIR PT 的 Veach Ajar 的一个场景中测了下，只开启 spatial
+reuse
+<ul>
+<li>调一调参数，RelMSE 能够从 2.27 =&gt; 2.12 左右【720p】</li>
+</ul></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/ReSTIR/" rel="tag"># ReSTIR</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/06/02/CG/Papers/2016/MSM-GDC/" rel="prev" title="(论文)[GDC-2016] Rendering Antialiased Shadows with Moment Shadow Mapping">
+                  <i class="fa fa-chevron-left"></i> (论文)[GDC-2016] Rendering Antialiased Shadows with Moment Shadow Mapping
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/07/15/CG/Papers/2026/SPMIS/" rel="next" title="(论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time">
+                  (论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
