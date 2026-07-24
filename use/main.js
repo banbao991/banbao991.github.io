@@ -27,16 +27,27 @@ function splitTitle(value) {
   };
 }
 
-function createCard(item, index, keys) {
-  const title = String(item[keys.info] || '').trim();
+function normalizeItem(item, keys) {
+  const rawLink = String(item[keys.link] || '').trim();
+  const isHidden = rawLink.startsWith('**');
+  return {
+    item,
+    isHidden,
+    link: isHidden ? rawLink.replace(/^\*+/, '').trim() : rawLink,
+  };
+}
+
+function createCard(entry, index, keys) {
+  const title = String(entry.item[keys.info] || '').trim();
   const titleParts = splitTitle(title);
-  const url = String(item[keys.link] || '').trim();
-  const date = String(item.date || '').trim();
+  const url = entry.link;
+  const date = String(entry.item.date || '').trim();
   const parsedDate = parseDate(date);
   const isNew = parsedDate && Date.now() - parsedDate.getTime() < MONTH;
 
   const article = document.createElement('article');
   article.className = 'item';
+  article.dataset.hiddenItem = String(entry.isHidden);
   article.style.animationDelay = `${Math.min(index * 35, 420)}ms`;
   article.dataset.search = `${title} ${date}`.toLowerCase();
 
@@ -96,6 +107,8 @@ async function init() {
   const count = document.querySelector('#visible-count');
   const empty = document.querySelector('#empty-state');
   const clearButton = document.querySelector('#clear-search');
+  const hiddenToggle = document.querySelector('#hidden-toggle');
+  let showHiddenItems = false;
 
   try {
     const data = await d3.csv('data/infos.csv');
@@ -103,18 +116,21 @@ async function init() {
       link: data.columns[0].trim(),
       info: data.columns[1].trim(),
     };
+    const entries = data.map((item) => normalizeItem(item, keys));
+    const hiddenCount = entries.filter((entry) => entry.isHidden).length;
     const fragment = document.createDocumentFragment();
-    const cards = data.map((item, index) => createCard(item, index, keys));
+    const cards = entries.map((entry, index) => createCard(entry, index, keys));
     cards.forEach((card) => fragment.append(card));
     grid.append(fragment);
     grid.setAttribute('aria-busy', 'false');
-    count.textContent = cards.length;
 
     const filterCards = () => {
       const keyword = input.value.trim().toLowerCase();
       let visible = 0;
       cards.forEach((card) => {
-        const matched = !keyword || card.dataset.search.includes(keyword);
+        const isHiddenItem = card.dataset.hiddenItem === 'true';
+        const matched = (!isHiddenItem || showHiddenItems)
+            && (!keyword || card.dataset.search.includes(keyword));
         card.hidden = !matched;
         if (matched) visible += 1;
       });
@@ -123,6 +139,12 @@ async function init() {
       grid.hidden = visible === 0;
     };
 
+    hiddenToggle.disabled = hiddenCount === 0;
+    hiddenToggle.addEventListener('click', () => {
+      showHiddenItems = !showHiddenItems;
+      hiddenToggle.setAttribute('aria-expanded', String(showHiddenItems));
+      filterCards();
+    });
     input.addEventListener('input', filterCards);
     clearButton.addEventListener('click', () => {
       input.value = '';
@@ -141,6 +163,7 @@ async function init() {
         input.blur();
       }
     });
+    filterCards();
   } catch (error) {
     grid.setAttribute('aria-busy', 'false');
     empty.hidden = false;
