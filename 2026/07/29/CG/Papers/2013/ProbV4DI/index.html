@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="把可见性判断转化为采样的一个过程，引入新噪声，但是减少了求交次数，效率提升">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[EGSR-2013] Probabilistic Visibility Evaluation for Direct Illumination">
+<meta property="og:url" content="http://example.com/2026/07/29/CG/Papers/2013/ProbV4DI/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="把可见性判断转化为采样的一个过程，引入新噪声，但是减少了求交次数，效率提升">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2026/07/29/CG/Papers/2013/ProbV4DI/basic-decomp.png">
+<meta property="og:image" content="http://example.com/2026/07/29/CG/Papers/2013/ProbV4DI/-1-decomp.png">
+<meta property="og:image" content="http://example.com/2026/07/29/CG/Papers/2013/ProbV4DI/binomial-decomp.png">
+<meta property="og:image" content="http://example.com/2026/07/29/CG/Papers/2013/ProbV4DI/reference.png">
+<meta property="article:published_time" content="2026-07-29T15:09:55.000Z">
+<meta property="article:modified_time" content="2026-07-31T15:40:20.034Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Shadow">
+<meta property="article:tag" content="Paper">
+<meta property="article:tag" content="EGSR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2026/07/29/CG/Papers/2013/ProbV4DI/basic-decomp.png">
+
+
+<link rel="canonical" href="http://example.com/2026/07/29/CG/Papers/2013/ProbV4DI/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2026/07/29/CG/Papers/2013/ProbV4DI/","path":"2026/07/29/CG/Papers/2013/ProbV4DI/","title":"(论文)[EGSR-2013] Probabilistic Visibility Evaluation for Direct Illumination"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[EGSR-2013] Probabilistic Visibility Evaluation for Direct Illumination | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-homepage"><a href="https://banbao990.github.io/" rel="noopener" target="_blank"><i class="fa fa-home fa-fw"></i>Homepage</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li><li class="menu-item menu-item-sites"><a href="/kits/sites/" rel="section"><i class="fa fa-link fa-fw"></i>Sites</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#probabilistic-visibility-evaluation-for-di"><span class="nav-text">Probabilistic
+Visibility Evaluation for DI</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%90%86%E8%AE%BA%E6%A1%86%E6%9E%B6"><span class="nav-text">理论框架</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E4%B8%AA%E9%81%AE%E6%8C%A1%E9%9D%A2%E6%8B%86%E5%88%86"><span class="nav-text">两个遮挡面拆分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E6%8B%86%E5%88%86%E6%96%B9%E5%BC%8F"><span class="nav-text">其他拆分方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E4%B8%80%E6%AD%A5%E8%AE%A8%E8%AE%BA"><span class="nav-text">进一步讨论</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%94%A8%E7%AE%97%E6%B3%95%E5%88%A9%E7%94%A8-occlusion-map"><span class="nav-text">实用算法：利用 Occlusion Map</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%84%E5%BB%BA-occlusion-map"><span class="nav-text">构建 Occlusion Map</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B8%B2%E6%9F%93"><span class="nav-text">渲染</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E7%8E%87%E4%B8%8E%E5%AE%9E%E7%8E%B0"><span class="nav-text">效率与实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90%E8%AE%A1%E7%AE%97%E5%85%89%E7%85%A7"><span class="nav-text">解析计算光照</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#stokes-%E5%AE%9A%E7%90%86"><span class="nav-text">Stokes 定理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%90%83%E9%9D%A2%E8%BE%B9%E7%A7%AF%E5%88%86"><span class="nav-text">球面边积分</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">384</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">115</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:banbao990@qq.com" title="E-Mail → mailto:banbao990@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/07/29/CG/Papers/2013/ProbV4DI/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[EGSR-2013] Probabilistic Visibility Evaluation for Direct Illumination | Banbao">
+      <meta itemprop="description" content="把可见性判断转化为采样的一个过程，引入新噪声，但是减少了求交次数，效率提升">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[EGSR-2013] Probabilistic Visibility Evaluation for Direct Illumination
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-07-29 23:09:55" itemprop="dateCreated datePublished" datetime="2026-07-29T23:09:55+08:00">2026-07-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-07-31 23:40:20" itemprop="dateModified" datetime="2026-07-31T23:40:20+08:00">2026-07-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">把可见性判断转化为采样的一个过程，引入新噪声，但是减少了求交次数，效率提升</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="probabilistic-visibility-evaluation-for-di">Probabilistic
+Visibility Evaluation for DI</h1>
+<ul>
+<li>将可见性的计算转换为要给随机过程</li>
+<li>两个遮挡物的情况下，可见性如下转换成 3 项【1 表示可见】</li>
+</ul>
+<p><span class="math display">\[
+ab=a+b+(1-a)(a-b)-1
+\]</span></p>
+<ul>
+<li>运行过程中通过采样其中的一项进行计算，这样能够减少和场景求交次数</li>
+<li>实现上，利用 light/occlusion photons
+来判定当前是否为半影区域，只有在半影区域使用随机过程</li>
+<li>利用 occlusion photons 提供的遮挡体信息，拆分为 A、B
+两组，然后使用上面随机过程
+<ul>
+<li>集合不一定完备，因此最终阴影区域可能偏小</li>
+</ul></li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>光追关注的两个问题
+<ul>
+<li>closest ray</li>
+<li>shadow ray</li>
+</ul></li>
+<li>常见加速结构：BVH、Grid</li>
+</ul>
+<h1 id="理论框架">理论框架</h1>
+<ul>
+<li><span class="math inline">\(x,y\)</span> 求可见性</li>
+<li><span class="math inline">\(Z=\{z_1,\cdots,z_n\}\)</span> 表示 <span class="math inline">\(x,y\)</span> 之间可能存在的几何原体</li>
+<li>可见性转换：乘积，有一个为 0，那么结果就为 0</li>
+</ul>
+<p><span class="math display">\[
+V(x,y)
+=
+V_{z_1}(x,y)\cdot V_{z_2}(x,y)\cdots V_{z_n}(x,y)
+=
+\prod_{i=1}^{n}V_{z_i}(x,y)
+\tag{1}
+\]</span></p>
+<ul>
+<li>注意只需要求值，不需要判定是那个面阻挡了</li>
+<li>核心思想：<span class="math inline">\(S=s_1+s_2+\cdots+s_n\)</span>
+的求值可以通过如下随机过程实现【<strong>无偏估计</strong>】
+<ul>
+<li><span class="math inline">\(s_i\)</span> 的采样概率为 <span class="math inline">\(p_i&gt;0\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\tilde{S}=\frac{s_i}{p_i}
+\]</span></p>
+<h2 id="两个遮挡面拆分">两个遮挡面拆分</h2>
+<ul>
+<li>对于 <span class="math inline">\(xy\)</span>
+之间只有两个遮挡面的情况
+<ul>
+<li><span class="math inline">\(ab=a+b+(1-a)(1-b)+1=a+b+\bar{a}\bar{b}-1\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+V(x,y)
+=
+V_A(x,y)\cdot V_B(x,y)
+=
+V_A(x,y)
++
+V_B(x,y)
++
+\left(
+\overline{V_A(x,y)}
+\cdot
+\overline{V_B(x,y)}
+-1
+\right)
+\]</span></p>
+<ul>
+<li>此时通过 <span class="math inline">\(p_i\)</span>
+对每个值进行采样即可
+<ul>
+<li>此时每次估计的 visibility 可能不在 [0,1] 范围内，可能为负数</li>
+</ul></li>
+<li>如下分析 <span class="math inline">\(p_i=1/3\)</span>
+<ul>
+<li>前 3 列为实际的值；中间 3 列为估计结果（<span class="math inline">\(\cdot/p_i\)</span>）；最后一项是方差【解析计算】</li>
+</ul></li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 11%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><span class="math inline">\(V_A\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(V_B\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(V_A\cdot
+V_B\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(3V_A\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(3V_B\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(3(\overline{V_A}\overline{V_B}-1)\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(\text{Var}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">-3</td>
+<td style="text-align: center;">6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-3</td>
+<td style="text-align: center;">6</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">-3</td>
+<td style="text-align: center;">8</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>对 DI 进行类似拆解
+<ul>
+<li>【<span style="color:red;font-weight:bold">这个拆分也涉及到了 Occ
+的类似转换</span>】，可能这就是审稿人让我们引用的原因</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+L(x)
+={}&amp;
+\int_S
+f_r(x)L(y\rightarrow x)V(x,y)G(x,y)\,\mathrm{d}S_y
+\\
+={}&amp;
+\int_S
+f_r(x)L(y\rightarrow x)V_A(x,y)G(x,y)\,\mathrm{d}S_y
+\\
+&amp;+
+\int_S
+f_r(x)L(y\rightarrow x)V_B(x,y)G(x,y)\,\mathrm{d}S_y
+\\
+&amp;+
+\int_S
+f_r(x)L(y\rightarrow x)
+\left(
+\overline{V_A(x,y)}
+\cdot
+\overline{V_B(x,y)}
+-1
+\right)
+G(x,y)\,\mathrm{d}S_y
+\end{aligned}
+\]</span></p>
+<ul>
+<li>结果【可以从上面的表格得到结论】
+<ul>
+<li>全影区域：方差为 0，结果是完全正确的</li>
+<li>全亮区域：有暗噪点</li>
+</ul></li>
+<li>好处：平均求交光线数 <span class="math inline">\(1.33=(1+1+2)/3&lt;2\)</span></li>
+<li><strong>提高了效率，引入了噪声</strong></li>
+</ul>
+<h2 id="其他拆分方式">其他拆分方式</h2>
+<ul>
+<li>把 -1 分给其他两个情况</li>
+</ul>
+<p><span class="math display">\[
+ab=\left(a-\frac{1}{3}\right)+\left(b-\frac{1}{3}\right)+\left(\bar{a}\bar{b}-\frac{1}{3}\right)
+\]</span></p>
+<table>
+<colgroup>
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 16%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 38%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><span class="math inline">\(V_A\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(V_B\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(V_A\cdot
+V_B\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(3V_A-1\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(3V_B-1\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(3\overline{V_A}\overline{V_B}-1\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(\text{Var}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-1</td>
+<td style="text-align: center;">-1</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-1</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">-1</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">-1</td>
+<td style="text-align: center;">-1</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">-1</td>
+<td style="text-align: center;">2</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>这样的拆分，让所有情况的方差都稍微降低了【除了被两个物体都遮挡的区域】</li>
+<li>binomial theorem【二项式定理】拆分</li>
+</ul>
+<p><span class="math display">\[
+\left(
+V_A(x,y)+V_B(x,y)
+\right)^n
+=
+V_A(x,y)+V_B(x,y)
++
+\left(2^n-2\right)
+V_A(x,y)V_B(x,y).
+\]</span></p>
+<p><span class="math display">\[
+V(x,y)
+=
+-
+\frac{
+V_A(x,y)
+}{
+2^n-2
+}
+-
+\frac{
+V_B(x,y)
+}{
+2^n-2
+}
++
+\frac{
+\left(
+V_A(x,y)+V_B(x,y)
+\right)^n
+}{
+2^n-2
+}
+\]</span></p>
+<ul>
+<li>令 <span class="math inline">\(n=8\)</span>
+<ul>
+<li>这样的方式，噪声集中到了亮区域</li>
+<li>论文原始表格似乎写错了 Var【第二行写成了 <span class="math inline">\(4.65\mathrm{e}{-5}\)</span>】</li>
+</ul></li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 10%">
+<col style="width: 4%">
+<col style="width: 11%">
+<col style="width: 17%">
+<col style="width: 16%">
+<col style="width: 22%">
+<col style="width: 17%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><span class="math inline">\(V_A\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(V_B\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(V_A\cdot
+V_B\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(-\dfrac{3V_A}{254}\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(-\dfrac{3V_B}{254}\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(\dfrac{3(V_A+V_B)^8}{254}\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(\text{Var}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;"><span class="math inline">\(-\dfrac{3}{254}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{3}{254}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(9.30\mathrm{e}{-5}\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;"><span class="math inline">\(-\dfrac{3}{254}\)</span></td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{3}{254}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(9.30\mathrm{e}{-5}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"><span class="math inline">\(-\dfrac{3}{254}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(-\dfrac{3}{254}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{768}{254}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(2.048\)</span></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>不同拆分 1 spp 结果</li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 23%">
+<col style="width: 28%">
+<col style="width: 23%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">basic</th>
+<th style="text-align: center;">-1 均摊</th>
+<th style="text-align: center;">二项式拆分</th>
+<th style="text-align: center;">reference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><img src="/2026/07/29/CG/Papers/2013/ProbV4DI/basic-decomp.png"></td>
+<td style="text-align: center;"><img src="/2026/07/29/CG/Papers/2013/ProbV4DI/-1-decomp.png"></td>
+<td style="text-align: center;"><img src="/2026/07/29/CG/Papers/2013/ProbV4DI/binomial-decomp.png"></td>
+<td style="text-align: center;"><img src="/2026/07/29/CG/Papers/2013/ProbV4DI/reference.png"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="进一步讨论">进一步讨论</h2>
+<ul>
+<li>多个遮挡体：上面只讨论了 2 个
+<ul>
+<li>可以直接把中间的遮挡提划分为 <span class="math inline">\(A,B\)</span> 两个集合，然后使用和上面类似的操作
+<ul>
+<li>对 <span class="math inline">\(A\)</span> 测试的时候，和 <span class="math inline">\(A\)</span> 内部所有的几何体进行求交</li>
+</ul></li>
+<li>递归的进行划分也是一种策略：<strong>实测噪声比较严重</strong>
+<ul>
+<li>递归进一步增大方差</li>
+<li>例如使用 Grid Cell</li>
+</ul></li>
+</ul></li>
+<li>可能有负值，引入估计导致的</li>
+<li>和 BRDF 拆分类似【diffuse + specular】</li>
+</ul>
+<h1 id="实用算法利用-occlusion-map">实用算法：利用 Occlusion Map</h1>
+<ul>
+<li>我们需要划分为两个区域，因此需要找到 <span class="math inline">\(x,y\)</span> 之间潜在的遮挡物体</li>
+<li>传统加速结构
+<ul>
+<li>Grid Cell、Bounding Volume
+效果不好【他们是针对找到第一个交点设计的】</li>
+<li>方向数据结构更加合适</li>
+</ul></li>
+<li>选择：<strong>Occlusion Map</strong>
+<ul>
+<li>和 Shadow Photon 类似（Photon Map 论文）</li>
+</ul></li>
+<li>利用 Occlusion Map 区分全影区、半影区、照亮区域
+<ul>
+<li><strong>只在半影区使用 probabilistic visibility</strong></li>
+</ul></li>
+<li>算法整体思路
+<ul>
+<li>构建 occlusion map
+<ul>
+<li>occlusion photon
+标记点和光源之间存在的遮挡物，如果没有遮挡物，则认为是 light photon</li>
+</ul></li>
+<li>邻域查找
+<ul>
+<li>没有 occlusion photon：没被遮挡，<a href="#bb-ana">解析计算光照</a></li>
+<li>只有 occlusion photon，没有 light photon：全黑</li>
+<li>mix：潜在的遮挡物取出来，划分为 <span class="math inline">\(A,B\)</span> 两组，然后使用 probabilistic
+visibility 计算</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="构建-occlusion-map">构建 Occlusion Map</h2>
+<ul>
+<li>直观想法
+<ul>
+<li>光源发射光线，最近交点为 light photon，其他交点为 occlusion
+photon</li>
+<li>我们希望在半影区有更多 occlusion
+photon；这种方式很难实现，效率很低</li>
+</ul></li>
+<li>camera-driven 算法
+<ul>
+<li>发射 200K view rays【没说屏幕分辨率】，每个交点 <span class="math inline">\(x\)</span> 发射 shadow ray
+<ul>
+<li>直接打中光源，<span class="math inline">\(x\)</span> 保存为 light
+photon</li>
+<li>否则，<span class="math inline">\(x\)</span> 保存为 occlusion
+photon，并且记录和光源之间的所有遮挡物</li>
+</ul></li>
+<li>再次发射 200K shadow ray
+<ul>
+<li>每个 8x8 的像素块，根据第一次的结果，向疑似半影区域发射更多 shadow
+ray
+<ul>
+<li>【<span style="color:red;font-weight:bold">具体 pdf
+如何</span>】</li>
+</ul></li>
+</ul></li>
+<li>此时半影区域 occlusion photons 更多</li>
+</ul></li>
+</ul>
+<h2 id="渲染">渲染</h2>
+<ul>
+<li>primary hit，搜索周围最近的 100 个 occlusion photons【给定距离内】
+<ul>
+<li>没有 occlusion photons，认为没有阴影，<a href="#bb-ana">解析计算光照</a>返回</li>
+</ul></li>
+<li>在给定半径内，搜索最近的 100 个 light photon
+<ul>
+<li>如果没有，则认为全在阴影中，返回全黑</li>
+</ul></li>
+<li>从 100 个 occlusion photons
+里面获取可能遮挡物构建集合【注意可能出现应该有的遮挡物，但是没出现在这个集合中的情况】【<span style="color:red;font-weight:bold">非保守的</span>】
+<ul>
+<li>划分为 <span class="math inline">\(A,B\)</span>，让两个划分的立体角求和近似相等【应该不考虑他们的遮挡了，只是求和近似】【概率近似】</li>
+</ul></li>
+</ul>
+<h2 id="效率与实现">效率与实现</h2>
+<ul>
+<li>重要性采样不同项
+<ul>
+<li>初始 <span class="math inline">\(1/3\)</span></li>
+<li>第一轮次 8x8 的 64 条 shadow ray 计算之后；按照 <span class="math inline">\(A/B\)</span> 的命中率调整【根据每一项值调整】</li>
+</ul></li>
+<li>Volumetric occluders
+<ul>
+<li>occlusion photon
+能够提供的候选遮挡物越准确，效果越好【可能出现漏选，小几何体的情况下】</li>
+<li>减少 miss 概率，可以实用 Volumetric occluder 把内部填上</li>
+</ul></li>
+</ul>
+<h1 id="结果">结果</h1>
+<ul>
+<li>都使用 occlusion map 的情况下，是否使用 probabilistic visibility
+的计算
+<ul>
+<li>求交次数降低，耗时降低</li>
+</ul></li>
+<li>问题：阴影区域变小了【Occlusion Photons 提供的遮挡物不完备】</li>
+</ul>
+<h1 id="解析计算光照"><span id="bb-ana">解析计算光照</span></h1>
+<ul>
+<li>论文中的解析计算多边形光照，假设
+<ul>
+<li>光源辐射亮度在四边形上恒定</li>
+<li>表面是 Lambertian 材质：<span class="math inline">\(f_r=\dfrac{K_d}{\pi}\)</span></li>
+<li>四边形顶点顺序一致</li>
+<li>四边形最好是平面且凸的</li>
+<li>整个光源位于着色点法线的同一侧【这个需要裁剪】</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+L_o(x)
+&amp;=
+\frac{K_d}{\pi}
+\int_{A_L}
+L_i(y\rightarrow x)
+V(x,y)
+\frac{
+\langle \mathbf n,\omega_{x\rightarrow y}\rangle^+
+\langle \mathbf n_y,\omega_{y\rightarrow x}\rangle^+
+}{
+|x-y|^2
+}
+\;\mathrm dA_y\\
+&amp;=
+\frac{K_d}{\pi}L_i
+\int_{\Omega_L}
+\langle \mathbf n,\omega\rangle^+
+\;\mathrm d\omega
+\end{aligned}
+\]</span></p>
+<ul>
+<li><strong>不考虑余弦截断</strong>的话，有如下的结果【进行 3D
+展开，然后再把常数 <span class="math inline">\(\mathbf{n}\)</span>
+提出来就行】
+<ul>
+<li>此时只需要计算光源在立体角上的投影面积</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\int_{\Omega_L}
+\langle \mathbf{n},\omega\rangle
+\;\mathrm d\omega
+=
+\left\langle
+\mathbf{n},
+\int_{\Omega_L}\omega\;\mathrm d\omega
+\right\rangle
+=
+\left\langle
+\mathbf{n},
+\phi
+\right\rangle
+\]</span></p>
+<ul>
+<li>球面上的 Stokes 定理【quad 四条边】
+<ul>
+<li><span class="math inline">\(\theta_i\)</span> 弧长；<span class="math inline">\(\gamma_i\)</span> 弧长所在平面的单位法向</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\phi
+=\int_{\Omega_L}\omega\;\mathrm d\omega
+=\frac12\oint_{\partial\Omega_L}\omega\times\mathrm d\omega
+=\frac{1}{2}\sum_i\theta_i\boldsymbol\gamma_i
+\]</span></p>
+<ul>
+<li>然后计算即可，具体证明在下面</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// https://github.com/neil3d/50YearsOfRayTracing/blob/master/1995.Arvo/code/AnalyticDirectIntegrator.cpp</span></span><br><span class="line">glm::vec3 AnalyticDirectIntegrator::_shade(glm::vec3 pt, glm::vec3 normal,</span><br><span class="line">                                           glm::vec3 Kd, QuadLight* lgt) &#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">float</span> PI = glm::<span class="built_in">pi</span>&lt;<span class="type">float</span>&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function">glm::vec3 <span class="title">phi</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">4</span>; i++) &#123;</span><br><span class="line">        glm::vec3 Vi = lgt-&gt;<span class="built_in">getQuadVertex</span>(i);</span><br><span class="line">        glm::vec3 Vj = lgt-&gt;<span class="built_in">getQuadVertex</span>((i + <span class="number">1</span>) % <span class="number">4</span>);</span><br><span class="line"></span><br><span class="line">        glm::vec3 gama = glm::<span class="built_in">normalize</span>(glm::<span class="built_in">cross</span>(Vi - pt, Vj - pt));</span><br><span class="line"></span><br><span class="line">        <span class="type">float</span> theta = glm::<span class="built_in">dot</span>(glm::<span class="built_in">normalize</span>(Vi - pt), glm::<span class="built_in">normalize</span>(Vj - pt));</span><br><span class="line">        theta = <span class="built_in">acosf</span>(theta);</span><br><span class="line"></span><br><span class="line">        phi += gama * theta;</span><br><span class="line">    &#125;</span><br><span class="line">    phi *= <span class="number">0.5f</span>;</span><br><span class="line"></span><br><span class="line">    glm::vec3 Li = lgt-&gt;<span class="built_in">getIntensity</span>();</span><br><span class="line">    <span class="keyword">return</span> Kd / PI * Li * glm::<span class="built_in">max</span>(<span class="number">0.0f</span>, glm::<span class="built_in">dot</span>(phi, normal));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>现代的有 LTC 算法</strong></li>
+</ul>
+<h1 id="stokes-定理">Stokes 定理</h1>
+<ul>
+<li>面积分转化为线积分</li>
+<li>曲面 <span class="math inline">\(S\)</span> 及其有向边界 <span class="math inline">\(\partial S\)</span></li>
+</ul>
+<p><span class="math display">\[
+\int_S
+(\nabla\times\mathbf F)\cdot\mathbf n
+\;\mathrm{d}A
+=
+\oint_{\partial S}
+\mathbf F\cdot\mathrm{d}\mathbf r.
+\]</span></p>
+<ul>
+<li>为了求解 <span class="math inline">\(\phi\)</span>，引入任意常向量
+<span class="math inline">\(\mathbf a\)</span>，并对两侧点乘：</li>
+</ul>
+<p><span class="math display">\[
+\mathbf a\cdot\phi
+=
+\mathbf a\cdot
+\int_{\Omega_L}
+\omega
+\;\mathrm{d}\Omega
+\]</span></p>
+<ul>
+<li>由于点积和积分都是线性的【代入即得】，因此，只需计算右侧的标量积分</li>
+</ul>
+<p><span class="math display">\[
+\mathbf a\cdot\phi
+=
+\int_{\Omega_L}
+\mathbf a\cdot\omega
+\;\mathrm{d}\Omega
+\]</span></p>
+<ul>
+<li>构造向量场，让他的旋度为 <span class="math inline">\(\mathbf
+a\)</span></li>
+<li>令空间位置向量为 <span class="math inline">\(\mathbf
+r\)</span>，构造向量场</li>
+</ul>
+<p><span class="math display">\[
+\mathbf F_{\mathbf a}(\mathbf r)
+=
+\frac{1}{2}
+\mathbf a\times\mathbf r
+\]</span></p>
+<ul>
+<li>对于常向量 <span class="math inline">\(\mathbf
+a\)</span>，有恒等式</li>
+</ul>
+<p><span class="math display">\[
+\nabla\times
+(\mathbf a\times\mathbf r)
+=
+2\mathbf a
+\]</span></p>
+<ul>
+<li>因此</li>
+</ul>
+<p><span class="math display">\[
+\int_S
+\mathbf a\cdot\mathbf n
+\;\mathrm{d}A
+=
+\oint_{\partial S}
+\frac{1}{2}
+(\mathbf a\times\mathbf r)
+\cdot\mathrm{d}\mathbf r
+\]</span></p>
+<ul>
+<li>利用标量三重积恒等式</li>
+</ul>
+<p><span class="math display">\[
+(\mathbf a\times\mathbf r)
+\cdot\mathrm{d}\mathbf r
+=
+\mathbf a\cdot
+\left(
+\mathbf r\times\mathrm{d}\mathbf r
+\right)
+\]</span></p>
+<ul>
+<li>可得</li>
+</ul>
+<p><span class="math display">\[
+\int_S
+\mathbf a\cdot\mathbf n
+\;\mathrm{d}A
+=
+\frac{1}{2}
+\mathbf a\cdot
+\oint_{\partial S}
+\mathbf r\times\mathrm{d}\mathbf r
+\]</span></p>
+<ul>
+<li>对于单位球面，有 <span class="math inline">\(\mathbf r=\mathbf
+n=\omega\)</span>，并且单位球面上的面积微元等于立体角微元 <span class="math inline">\(\mathrm{d}A=\mathrm{d}\Omega\)</span>，因此</li>
+</ul>
+<p><span class="math display">\[
+\int_{\Omega_L}
+\mathbf a\cdot\omega
+\;\mathrm{d}\Omega
+=
+\frac{1}{2}
+\mathbf a\cdot
+\oint_{\partial\Omega_L}
+\omega
+\times
+\mathrm{d}\omega
+\]</span></p>
+<ul>
+<li>令 <span class="math inline">\(\mathbf a\)</span> 为 <span class="math inline">\((1,1,1)\)</span>，即得上面式子</li>
+</ul>
+<h2 id="球面边积分">球面边积分</h2>
+<ul>
+<li>考虑球面多边形的一条边，它从单位方向 <span class="math inline">\(\omega_i\)</span> 连接到 <span class="math inline">\(\omega_j\)</span>，两个方向之间的夹角为</li>
+</ul>
+<p><span class="math display">\[
+\theta_i
+=
+\arccos
+\left(
+\omega_i
+\cdot
+\omega_j
+\right)
+\]</span></p>
+<ul>
+<li>该大圆所在平面的有向单位法向为</li>
+</ul>
+<p><span class="math display">\[
+\boldsymbol{\gamma}_i
+=
+\frac{
+\omega_i
+\times
+\omega_j
+}{
+\left\|
+\omega_i
+\times
+\omega_j
+\right\|
+}
+\]</span></p>
+<ul>
+<li>在单位球面上，大圆弧的弧长等于其圆心角，因此该边长度为 <span class="math inline">\(\theta_i\)</span></li>
+<li>可以将这条大圆弧参数化为
+<ul>
+<li>普通单位圆，<span class="math inline">\((0,1)\)</span>
+出发，旋转角度 <span class="math inline">\(t\)</span>，得到的位置为
+<span class="math inline">\((\cos t,\sin
+t)\)</span>，这里换一组正交基</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\omega(t)
+=
+\cos t\,\omega_i
++
+\sin t
+\left(
+\boldsymbol{\gamma}_i
+\times
+\omega_i
+\right),
+\qquad
+0\le t\le\theta_i
+\]</span></p>
+<ul>
+<li>对 <span class="math inline">\(t\)</span> 求导</li>
+</ul>
+<p><span class="math display">\[
+\frac{
+\mathrm{d}\omega(t)
+}{
+\mathrm{d}t
+}
+=
+-\sin t\,\omega_i
++
+\cos t
+\left(
+\boldsymbol{\gamma}_i
+\times
+\omega_i
+\right)
+\]</span></p>
+<ul>
+<li>由于 <span class="math inline">\(\omega_i\)</span>、<span class="math inline">\(\boldsymbol{\gamma}_i\times\omega_i\)</span> 和
+<span class="math inline">\(\boldsymbol{\gamma}_i\)</span>
+构成右手正交基，可以得到</li>
+</ul>
+<p><span class="math display">\[
+\omega(t)
+\times
+\frac{
+\mathrm{d}\omega(t)
+}{
+\mathrm{d}t
+}
+=
+\boldsymbol{\gamma}_i
+\]</span></p>
+<ul>
+<li>因此</li>
+</ul>
+<p><span class="math display">\[
+\omega
+\times
+\mathrm{d}\omega
+=
+\boldsymbol{\gamma}_i
+\;\mathrm{d}t
+\]</span></p>
+<ul>
+<li>沿整条球面边积分</li>
+</ul>
+<p><span class="math display">\[
+\int_{\text{edge }i}
+\omega
+\times
+\mathrm{d}\omega
+=
+\int_0^{\theta_i}
+\boldsymbol{\gamma}_i
+\;\mathrm{d}t
+=
+\theta_i
+\boldsymbol{\gamma}_i
+\]</span></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Shadow/" rel="tag"># Shadow</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+              <a href="/tags/EGSR/" rel="tag"># EGSR</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/07/28/CG/Papers/2018/AnaDIStoShadow/" rel="prev" title="(论文)[I3D-2018] Combining Analytic Direct Illumination and Stochastic Shadows">
+                  <i class="fa fa-chevron-left"></i> (论文)[I3D-2018] Combining Analytic Direct Illumination and Stochastic Shadows
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/07/31/CG/Papers/2014/ProxyV4DI/" rel="next" title="(论文)[EGSR-2014] Probabilistic visibility evaluation using geometry proxies">
+                  (论文)[EGSR-2014] Probabilistic visibility evaluation using geometry proxies <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

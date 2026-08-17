@@ -46,13 +46,13 @@ function createCard(entry, index, keys) {
   const isNew = parsedDate && Date.now() - parsedDate.getTime() < MONTH;
 
   const article = document.createElement('article');
-  article.className = 'item';
+  article.className = 'item directory-card';
   article.dataset.hiddenItem = String(entry.isHidden);
   article.style.animationDelay = `${Math.min(index * 35, 420)}ms`;
   article.dataset.search = `${title} ${date}`.toLowerCase();
 
   const link = document.createElement('a');
-  link.className = 'item-link';
+  link.className = 'item-link directory-card-link';
   link.href = url;
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
@@ -72,7 +72,7 @@ function createCard(entry, index, keys) {
   headingGroup.className = 'item-heading';
 
   const heading = document.createElement('h2');
-  heading.className = 'item-title';
+  heading.className = 'item-title directory-card-title';
   heading.textContent = titleParts.title;
   headingGroup.append(heading);
 
@@ -84,14 +84,14 @@ function createCard(entry, index, keys) {
   }
 
   const bottom = document.createElement('div');
-  bottom.className = 'item-bottom';
+  bottom.className = 'item-bottom directory-card-bottom';
 
   const detail = document.createElement('span');
-  detail.className = 'item-date';
+  detail.className = 'item-date directory-card-detail';
   detail.textContent = date ? formatDate(date) : '—';
 
   const arrow = document.createElement('span');
-  arrow.className = 'item-arrow';
+  arrow.className = 'item-arrow directory-card-arrow';
   arrow.setAttribute('aria-hidden', 'true');
   arrow.textContent = '↗';
 
@@ -103,8 +103,6 @@ function createCard(entry, index, keys) {
 
 async function init() {
   const grid = document.querySelector('#grid');
-  const input = document.querySelector('#search-input');
-  const count = document.querySelector('#visible-count');
   const empty = document.querySelector('#empty-state');
   const clearButton = document.querySelector('#clear-search');
   const hiddenToggle = document.querySelector('#hidden-toggle');
@@ -124,20 +122,16 @@ async function init() {
     grid.append(fragment);
     grid.setAttribute('aria-busy', 'false');
 
-    const filterCards = () => {
-      const keyword = input.value.trim().toLowerCase();
-      let visible = 0;
-      cards.forEach((card) => {
+    let filterCards;
+    filterCards = BanbaoDirectory.setup({
+      groups: [{ element: grid, items: cards }],
+      content: grid,
+      isMatch: (card, keyword) => {
         const isHiddenItem = card.dataset.hiddenItem === 'true';
-        const matched = (!isHiddenItem || showHiddenItems)
+        return (!isHiddenItem || showHiddenItems)
             && (!keyword || card.dataset.search.includes(keyword));
-        card.hidden = !matched;
-        if (matched) visible += 1;
-      });
-      count.textContent = visible;
-      empty.hidden = visible !== 0;
-      grid.hidden = visible === 0;
-    };
+      },
+    });
 
     hiddenToggle.disabled = hiddenCount === 0;
     hiddenToggle.addEventListener('click', () => {
@@ -145,37 +139,16 @@ async function init() {
       hiddenToggle.setAttribute('aria-expanded', String(showHiddenItems));
       filterCards();
     });
-    input.addEventListener('input', filterCards);
-    clearButton.addEventListener('click', () => {
-      input.value = '';
-      filterCards();
-      input.focus();
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === '/' && document.activeElement !== input) {
-        event.preventDefault();
-        input.focus();
-      }
-      if (event.key === 'Escape' && document.activeElement === input) {
-        input.value = '';
-        filterCards();
-        input.blur();
-      }
-    });
-    filterCards();
   } catch (error) {
     grid.setAttribute('aria-busy', 'false');
-    empty.hidden = false;
-    empty.querySelector('p').textContent = '项目暂时加载失败，请稍后再试';
-    clearButton.hidden = true;
+    BanbaoDirectory.showLoadError({
+      content: grid,
+      empty,
+      clearButton,
+      message: '项目暂时加载失败，请稍后再试',
+    });
     console.error('Failed to load project data:', error);
   }
-
-  document.querySelector('#back-to-top').addEventListener('click', (event) => {
-    event.preventDefault();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
 }
 
 init();

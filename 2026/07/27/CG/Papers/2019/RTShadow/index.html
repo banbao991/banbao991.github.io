@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg">
+  <link rel="mask-icon" href="/images/apple-touch-icon-next.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="光追阴影的基本实现；面积域归一化；适应性采样实现（估计局部变化量，分配样本，后处理）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(论文)[2019-RTGEM] Ray Traced Shadows: Maintaining Real-Time Frame Rates">
+<meta property="og:url" content="http://example.com/2026/07/27/CG/Papers/2019/RTShadow/index.html">
+<meta property="og:site_name" content="Banbao">
+<meta property="og:description" content="光追阴影的基本实现；面积域归一化；适应性采样实现（估计局部变化量，分配样本，后处理）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2026/07/27/CG/Papers/2019/RTShadow/block-mask.png">
+<meta property="og:image" content="http://example.com/2026/07/27/CG/Papers/2019/RTShadow/pipeline.png">
+<meta property="article:published_time" content="2026-07-27T07:23:02.000Z">
+<meta property="article:modified_time" content="2026-07-31T15:41:01.548Z">
+<meta property="article:author" content="banbao(990)">
+<meta property="article:tag" content="CG">
+<meta property="article:tag" content="Shadow">
+<meta property="article:tag" content="Paper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2026/07/27/CG/Papers/2019/RTShadow/block-mask.png">
+
+
+<link rel="canonical" href="http://example.com/2026/07/27/CG/Papers/2019/RTShadow/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2026/07/27/CG/Papers/2019/RTShadow/","path":"2026/07/27/CG/Papers/2019/RTShadow/","title":"(论文)[2019-RTGEM] Ray Traced Shadows: Maintaining Real-Time Frame Rates"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>(论文)[2019-RTGEM] Ray Traced Shadows: Maintaining Real-Time Frame Rates | Banbao</title>
+  
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Banbao</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-homepage"><a href="https://banbao990.github.io/" rel="noopener" target="_blank"><i class="fa fa-home fa-fw"></i>Homepage</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a></li><li class="menu-item menu-item-categories(2)"><a href="/kits/paper-lists/" rel="section"><i class="fa fa-print fa-fw"></i>Categories(2)</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-more-notes"><a href="https://github.com/banbao990/Use/" rel="noopener" target="_blank"><i class="fa fa-book fa-fw"></i>More notes</a></li><li class="menu-item menu-item-use"><a href="/use/" rel="section"><i class="fa fa-gamepad fa-fw"></i>Use</a></li><li class="menu-item menu-item-sites"><a href="/kits/sites/" rel="section"><i class="fa fa-link fa-fw"></i>Sites</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ray-traced-shadows"><span class="nav-text">Ray Traced Shadows</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction"><span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#adaptive-sampling"><span class="nav-text">Adaptive Sampling</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#temporal-reprojection"><span class="nav-text">Temporal Reprojection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%8A%E5%BD%B1%E5%8C%BA%E5%9F%9F%E5%88%A4%E5%AE%9A"><span class="nav-text">半影区域判定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E9%85%8D%E6%A0%B7%E6%9C%AC"><span class="nav-text">分配样本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sampling-mask"><span class="nav-text">Sampling Mask</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E6%9C%80%E7%BB%88%E5%80%BC"><span class="nav-text">计算最终值</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="banbao(990)"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">banbao(990)</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">384</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">115</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/banbao990" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;banbao990" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:banbao990@qq.com" title="E-Mail → mailto:banbao990@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/banbao990" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/07/27/CG/Papers/2019/RTShadow/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="banbao(990)">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Banbao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="(论文)[2019-RTGEM] Ray Traced Shadows: Maintaining Real-Time Frame Rates | Banbao">
+      <meta itemprop="description" content="光追阴影的基本实现；面积域归一化；适应性采样实现（估计局部变化量，分配样本，后处理）">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (论文)[2019-RTGEM] Ray Traced Shadows: Maintaining Real-Time Frame Rates
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2026-07-27 15:23:02" itemprop="dateCreated datePublished" datetime="2026-07-27T15:23:02+08:00">2026-07-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-07-31 23:41:01" itemprop="dateModified" datetime="2026-07-31T23:41:01+08:00">2026-07-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CG-Paper/" itemprop="url" rel="index"><span itemprop="name">CG.Paper</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+            <div class="post-description">光追阴影的基本实现；面积域归一化；适应性采样实现（估计局部变化量，分配样本，后处理）</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="ray-traced-shadows">Ray Traced Shadows</h1>
+<ul>
+<li>适应性采样：通过局部变化量来计算采样样本数
+<ul>
+<li>极差 =&gt; 空间滤波 =&gt; 时间平均</li>
+</ul></li>
+<li>后处理
+<ul>
+<li>时域平均 + 空间（可变半径高斯双边滤波）【半径由局部变化量决定】</li>
+</ul></li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>光栅化阴影的问题
+<ul>
+<li>Perspective aliasing【锯齿】</li>
+<li>自遮挡问题【shadow acne，peter panning】</li>
+<li>软阴影</li>
+<li>半透明物体</li>
+</ul></li>
+<li>这个论文对 DI 的近似
+<ul>
+<li>【式子没有考虑自发光，每个光源单独计算】</li>
+<li>这里阴影的定义就是 area-domain 的平均</li>
+<li>着色使用光源中心计算</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+L_d(P,\omega_o)
+\approx
+f(P,\omega_C,\omega_o)
+L_a(C,\omega_C)
+\frac{
+(\omega_C\cdot\hat{\mathbf{n}}_P)
+(-\omega_C\cdot\hat{\mathbf{n}}_C)
+}{
+\left\Vert P-C\right\Vert^2
+}
+\frac{1}{|S|}
+\sum_{X\in S}
+v(P,X)
+\]</span></p>
+<h1 id="adaptive-sampling">Adaptive Sampling</h1>
+<h2 id="temporal-reprojection">Temporal Reprojection</h2>
+<ul>
+<li>两个目的
+<ul>
+<li>估计 visibility variation【可见性变化程度】，从而计算光线数</li>
+<li>决定后处理的 kernel size</li>
+</ul></li>
+<li>一共保存 4 帧的样本作为 cache</li>
+<li>将当前帧重投影回前 3 帧【reverse reprojection】
+<ul>
+<li>【clip space，投影矩阵变换后未归一化的空间】</li>
+<li><strong>假设世界空间位置不变</strong></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\bar{P}_{t-1}
+=
+C_{t-1}
+V_{t-1}
+V_t^{-1}
+C_t^{-1}
+P_t
+\]</span></p>
+<ul>
+<li>通过深度连续性判断是否保留
+<ul>
+<li><span class="math inline">\(c_1=0.003,c_2=0.017\)</span></li>
+<li><span class="math inline">\(\hat{\mathbf{n}}_z\)</span>：view space
+normal</li>
+<li><span class="math inline">\(P^{z}\)</span>：深度【只保留了上一帧就足够】</li>
+<li>我看实现代码，就是把 <span class="math inline">\(\epsilon=0.003\)</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\left|
+1-\frac{\bar{P}_{t-1}^{z}}{P_{t-1}^{z}}
+\right|
+&lt;
+\varepsilon,
+\quad
+\varepsilon
+=
+c_1+c_2\left|\hat{\mathbf{n}}_z\right|
+\]</span></p>
+<h2 id="半影区域判定">半影区域判定</h2>
+<ul>
+<li>启发式的使用 temporal variation measure
+<ul>
+<li>四帧历史的 visibility 极差【存在一个 float4 中】</li>
+<li>历史 visibility 是重投影后的</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\Delta v_t(x)
+=
+\max\left(
+v_{t-1}(x),\ldots,v_{t-4}(x)
+\right)
+-
+\min\left(
+v_{t-1}(x),\ldots,v_{t-4}(x)
+\right)
+\]</span></p>
+<ul>
+<li>维持时域稳定，对 <span class="math inline">\(\Delta v_t\)</span>
+进行 spatial filter 得到 <span class="math inline">\(\widetilde{\Delta
+v_t}\)</span>
+<ul>
+<li>5x5 maximum filter【2 pass】</li>
+<li>13x13 tent filter【倒三角权重形式】
+<ul>
+<li>实现代码：9x9 average filter【2 pass】</li>
+</ul></li>
+</ul></li>
+<li>和历史保存信息平均</li>
+</ul>
+<p><span class="math display">\[
+\overline{\Delta v}_t
+=
+\frac{1}{2}
+\left(
+\widetilde{\Delta v}_t
++
+\frac{1}{4}
+\left(
+\Delta v_{t-1}
++
+\Delta v_{t-2}
++
+\Delta v_{t-3}
++
+\Delta v_{t-4}
+\right)
+\right)
+\]</span></p>
+<h2 id="分配样本">分配样本</h2>
+<ul>
+<li>通过阈值 <span class="math inline">\(\delta\)</span>
+动态调整样本个数【实现用的 0.1】</li>
+<li><span class="math inline">\(s_{\max}\)</span>：标准 5，高质量模式
+8</li>
+<li>调整
+<ul>
+<li><span class="math inline">\(\overline{\Delta
+v}_t&gt;\delta\)</span>：<span class="math inline">\(s_{t}(x)=\min\left(s_{t-1}(x)+1,s_{\max}\right)\)</span></li>
+<li><span class="math inline">\(\overline{\Delta
+v}_t&lt;\delta\)</span>：<span class="math inline">\(s_{t}(x)=\max\left(s_{t-1}(x)-1,0\right)\)</span></li>
+</ul></li>
+<li>比较稳定</li>
+<li>如果重投影失效，那么就重置为当前帧结果；设置为 <span class="math inline">\(s_{\max}\)</span></li>
+</ul>
+<h2 id="sampling-mask">Sampling Mask</h2>
+<ul>
+<li>variation 为 0 表示全白/全黑；直接使用历史信息
+<ul>
+<li>相机慢速 zoom、光源快速移动可能出问题【重投影成功，但是 visibility
+变化】</li>
+</ul></li>
+<li>实现：4 个像素至少发一条光线
+<ul>
+<li>直接这么做性能低，warp 依赖的问题【和都发一条性能差不多】</li>
+<li>采样一个 block <span class="math inline">\(n_b\times n_b\)</span>
+【8x8 效果不错】
+<ul>
+<li>只有被选中的 block 内部，variation = 0，此时才不发光线</li>
+</ul></li>
+<li>实现上使用一个 4x4 的 block mask【循环】，用于标记当前 block
+是否被选中【block 对应的 mask = frameCount%4 则被选中】</li>
+</ul></li>
+</ul>
+<p><img src="/2026/07/27/CG/Papers/2019/RTShadow/block-mask.png"></p>
+<h2 id="计算最终值">计算最终值</h2>
+<ul>
+<li>temporal filtering + spatial filtering
+<ul>
+<li>相关工作：SVGF，Optix</li>
+<li>这里使用简单的实现方案</li>
+</ul></li>
+<li>时域</li>
+</ul>
+<p><span class="math display">\[
+\tilde{v}_t
+=
+\frac{1}{4}
+\left(
+v_t
++
+v_{t-1}
++
+v_{t-2}
++
+v_{t-3}
+\right)
+\]</span></p>
+<ul>
+<li>空域：可变半径双边滤波【1x1 =&gt; 9x9】【2 pass】
+<ul>
+<li>半径和 <span class="math inline">\(\widetilde{\Delta v}_t\)</span>
+线性相关【kernel 半径：<span class="math inline">\(\widetilde{\Delta
+v}_t/\eta\times4\)</span>】
+<ul>
+<li>把最大半径对应到 <span class="math inline">\(\widetilde{\Delta
+v}_t=\eta=0.4\)</span></li>
+</ul></li>
+<li>防止抖动：预定义高斯权重，然后从相邻的两级高斯进行线性插值【根据半径】</li>
+<li>判断当前像素能否复用
+<ul>
+<li>view-space normal 差距【点积 &gt; 0.9】</li>
+<li>深度差异：通过视线方向插值【掠射角取最大阈值，正射最小阈值】【判断是不是属于一个表面】
+<ul>
+<li>阈值：0.003；0.02</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">bool</span> <span class="title">isValidTap</span><span class="params">(<span class="type">float</span> tapDepth, <span class="type">float</span> centerDepth, float3 tapNormal, float3 centerNormal)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">const</span> float3 centerNormalV = <span class="built_in">normalize</span>(<span class="built_in">mul</span>((float3x3)gViewMat, centerNormal));</span><br><span class="line">    <span class="type">const</span> <span class="type">float</span> dotViewNormal = <span class="built_in">abs</span>(centerNormalV.z);</span><br><span class="line">    <span class="type">const</span> <span class="type">float</span> depthEpsilon = <span class="built_in">lerp</span>(gDepthEpsilonMax, gDepthEpsilonMin, dotViewNormal);</span><br><span class="line">    <span class="keyword">if</span> (centerDepth &lt;= <span class="number">0.f</span> || <span class="built_in">abs</span>(<span class="number">1.f</span> - tapDepth / centerDepth) &gt; depthEpsilon) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;   </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">dot</span>(tapNormal, centerNormal) &gt;= gDotNormalsEpsilon;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>这样的空域滤波变成不可分的，但是还是 2 个 pass 实现，效果还行</li>
+</ul>
+<h1 id="实现">实现</h1>
+<ul>
+<li>对 Spherical Light
+内部采样进行了优化【蓝噪声类似，球内分布更加均匀】</li>
+<li>光源剔除：到光源距离</li>
+<li>总样本数控制：通过计算 <span class="math inline">\(\overline{\Delta
+v}_t\)</span> 的和【自定义层级 mipmap 计算】
+<ul>
+<li>对最后得到的样本数进行 scale</li>
+</ul></li>
+<li>整体 pipeline</li>
+</ul>
+<p><img src="/2026/07/27/CG/Papers/2019/RTShadow/pipeline.png"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CG/" rel="tag"># CG</a>
+              <a href="/tags/Shadow/" rel="tag"># Shadow</a>
+              <a href="/tags/Paper/" rel="tag"># Paper</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/07/15/CG/Papers/2026/SPMIS/" rel="prev" title="(论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time">
+                  <i class="fa fa-chevron-left"></i> (论文)[2026-EG] Stochastic Pairwise MIS for Unbiased Large-Kernel Reuse in Real-Time
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/07/28/CG/Papers/2018/AnaDIStoShadow/" rel="next" title="(论文)[I3D-2018] Combining Analytic Direct Illumination and Stochastic Shadows">
+                  (论文)[I3D-2018] Combining Analytic Direct Illumination and Stochastic Shadows <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">banbao(990)</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+  
+    <script src='https://unpkg.com/mermaid/dist/mermaid.min.js'></script>
+  
+    <script>
+      if (window.mermaid) {
+        mermaid.initialize({theme: 'forest'});
+      }
+    </script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.1.7/mermaid.min.js","integrity":"sha256-G58AID1YoX5YaEtWfXSI0VLrZ6N4kvNvwg0BI8zUFxE="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
