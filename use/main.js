@@ -13,6 +13,84 @@ function formatDate(value) {
       .join(' · ');
 }
 
+function setupYearFilter(years, onChange) {
+  const container = document.querySelector('#year-filter');
+  const minInput = document.querySelector('#year-min');
+  const maxInput = document.querySelector('#year-max');
+  const output = document.querySelector('#year-range-output');
+  const validYears = years.filter(Number.isFinite);
+
+  if (!validYears.length) {
+    return {
+      matches: () => true,
+      reset: () => {},
+    };
+  }
+
+  const lowerBound = Math.min(...validYears);
+  const upperBound = Math.max(...validYears);
+  const rangeSize = upperBound - lowerBound;
+  const currentYear = new Date().getFullYear();
+  const defaultMax = Math.max(lowerBound, Math.min(currentYear, upperBound));
+  const defaultMin = Math.min(Math.max(2023, lowerBound), defaultMax);
+  let selectedMin = defaultMin;
+  let selectedMax = defaultMax;
+
+  [minInput, maxInput].forEach((input) => {
+    input.min = String(lowerBound);
+    input.max = String(upperBound);
+    input.step = '1';
+  });
+  minInput.value = String(defaultMin);
+  maxInput.value = String(defaultMax);
+
+  function sync(source, notify = true) {
+    selectedMin = Number(minInput.value);
+    selectedMax = Number(maxInput.value);
+
+    if (selectedMin > selectedMax) {
+      if (source === minInput) {
+        selectedMax = selectedMin;
+        maxInput.value = String(selectedMax);
+      } else {
+        selectedMin = selectedMax;
+        minInput.value = String(selectedMin);
+      }
+    }
+
+    const start = rangeSize ? ((selectedMin - lowerBound) / rangeSize) * 100 : 0;
+    const end = rangeSize ? ((selectedMax - lowerBound) / rangeSize) * 100 : 100;
+    container.style.setProperty('--range-start', `${start}%`);
+    container.style.setProperty('--range-end', `${end}%`);
+    output.textContent = selectedMin === selectedMax
+      ? String(selectedMin)
+      : `${selectedMin} — ${selectedMax}`;
+    minInput.setAttribute('aria-valuetext', `${selectedMin} 年`);
+    maxInput.setAttribute('aria-valuetext', `${selectedMax} 年`);
+    const isCollapsed = selectedMin === selectedMax;
+    minInput.style.zIndex = isCollapsed && source !== maxInput ? '3' : '2';
+    maxInput.style.zIndex = isCollapsed && source === maxInput ? '3' : '2';
+
+    if (notify) onChange();
+  }
+
+  minInput.addEventListener('input', () => sync(minInput));
+  maxInput.addEventListener('input', () => sync(maxInput));
+  container.hidden = false;
+  sync(null, false);
+
+  return {
+    matches: (year) => Number.isFinite(year)
+      && year >= selectedMin
+      && year <= selectedMax,
+    reset: () => {
+      minInput.value = String(defaultMin);
+      maxInput.value = String(defaultMax);
+      sync(null);
+    },
+  };
+}
+
 function splitTitle(value) {
   const details = [];
   const title = value.replace(/\s*[（(]([^（）()]*)[）)]/g, (_, detail) => {
@@ -48,6 +126,7 @@ function createCard(entry, index, keys) {
   const article = document.createElement('article');
   article.className = 'item directory-card';
   article.dataset.hiddenItem = String(entry.isHidden);
+  article.dataset.year = parsedDate ? String(parsedDate.getFullYear()) : '';
   article.style.animationDelay = `${Math.min(index * 35, 420)}ms`;
   article.dataset.search = `${title} ${date}`.toLowerCase();
 
@@ -122,16 +201,25 @@ async function init() {
     grid.append(fragment);
     grid.setAttribute('aria-busy', 'false');
 
-    let filterCards;
+    const years = entries
+        .map((entry) => parseDate(entry.item.date))
+        .filter(Boolean)
+        .map((date) => date.getFullYear());
+    let filterCards = () => {};
+    const yearFilter = setupYearFilter(years, () => filterCards());
     filterCards = BanbaoDirectory.setup({
       groups: [{ element: grid, items: cards }],
       content: grid,
       isMatch: (card, keyword) => {
         const isHiddenItem = card.dataset.hiddenItem === 'true';
+        const year = card.dataset.year ? Number(card.dataset.year) : Number.NaN;
         return (!isHiddenItem || showHiddenItems)
+            && yearFilter.matches(year)
             && (!keyword || card.dataset.search.includes(keyword));
       },
     });
+
+    clearButton.addEventListener('click', () => yearFilter.reset());
 
     hiddenToggle.disabled = hiddenCount === 0;
     hiddenToggle.addEventListener('click', () => {

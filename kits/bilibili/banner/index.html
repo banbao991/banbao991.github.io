@@ -3,45 +3,52 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#e9f3ee">
     <title>Bilibili Header</title>
-    <link rel="shortcut icon" href="ddd/ddd.png" type="image/x-icon">
-    <script src="/libs/jquery.min.js"></script>
-    <script src="/libs/d3.v6.min.js"></script>
+    <link rel="stylesheet" href="../../common-utils/theme.css">
     <style>
         body {
-            background-color: black;
+            display: grid;
+            place-items: center;
+            min-height: 100vh;
+            min-height: 100svh;
+            padding: 0;
+            overflow: hidden;
         }
 
         .bili-header__banner {
             position: relative;
-            z-index: 0;
-            display: flex;
-            -ms-flex-pack: center;
-            justify-content: center;
+            z-index: 1;
+            width: 100%;
             margin: 0 auto;
             min-width: 1000px;
             min-height: 155px;
             height: 9.375vw;
             max-height: 240px;
+            overflow: hidden;
+            isolation: isolate;
+            contain: layout paint;
             background-color: #e3e5e7;
-            background-position: center 0;
-            background-size: cover;
-            background-repeat: no-repeat;
+            box-shadow: var(--shadow);
         }
 
         .animated-banner {
             position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            inset: 0;
             overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 400ms ease;
+        }
+
+        .animated-banner.is-ready {
+            opacity: 1;
         }
 
         .animated-banner>.layer {
             position: absolute;
-            left: 0;
-            top: 0;
+            inset: 0;
             height: 100%;
             width: 100%;
             display: flex;
@@ -49,6 +56,32 @@
             justify-content: center;
         }
 
+        .animated-banner>.layer>img,
+        .animated-banner>.layer>video {
+            display: block;
+            max-width: none;
+            flex: none;
+            transform-origin: center center;
+            will-change: transform, filter, opacity;
+            user-select: none;
+        }
+
+        .animated-banner>.layer>video {
+            object-fit: contain;
+        }
+
+        .banner-status {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: #61666d;
+            font: 14px/1.5 system-ui, sans-serif;
+        }
+
+        .banner-status[hidden] {
+            display: none;
+        }
 
         @media (max-width: 1099.9px) {
             .bili-header .bili-header__banner .header-banner__inner {
@@ -80,17 +113,22 @@
                 max-width: 2078px
             }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animated-banner {
+                transition: none;
+            }
+        }
     </style>
 </head>
 
-<body style="height: 100%;">
-    <div class="bili-header__banner" id="outter"></div>
+<body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <div class="bili-header__banner" id="outter" aria-label="Bilibili animated header">
+        <div class="banner-status">正在加载 banner…</div>
+    </div>
     <script src="js/main.js"></script>
-    <script>
-        $(window).on("load", () => {
-            main();
-        });
-    </script>
 </body>
 
 </html>
