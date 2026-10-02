@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<base href="../">
+<title>Fractal GPU integration checks</title>
+<style>body{background:#101b24;color:#dcebdc;font:14px monospace;padding:24px}canvas{width:640px;max-width:100%}pre{white-space:pre-wrap}</style>
+<h1>GPU 显示与精度检查</h1>
+<canvas id="canvas"></canvas><pre id="report">运行中…</pre>
+<script src="gpu-precision.js?v=9"></script>
+<script>
+'use strict';
+const canvas=document.getElementById('canvas'),report=document.getElementById('report');
+const renderer=createPrecisionRenderer(canvas),checks=[];
+function assert(condition,message){if(!condition)throw Error(message);}
+function renderFloat(view){return new Promise((resolve,reject)=>{
+  if(!renderer?.requestFloat(view,(_,result)=>resolve(result),reject))reject(Error('WebGPU float unavailable'));
+});}
+async function exportPixels(){
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+  assert(blob&&blob.size>1000,'PNG export empty');
+  const bitmap=await createImageBitmap(blob);
+  assert(bitmap.width===canvas.width&&bitmap.height===canvas.height,'PNG dimensions changed');
+  const image=new OffscreenCanvas(bitmap.width,bitmap.height),ctx=image.getContext('2d');
+  ctx.drawImage(bitmap,0,0);bitmap.close();
+  const pixels=ctx.getImageData(0,0,image.width,image.height).data;
+  assert(pixels.some((v,i)=>i%4!==3&&v>50),'PNG export has no fractal colors');
+  return {pixels,bytes:blob.size};
+}
+function expectedMandelbrot(x,y){
+  let zx=0,zy=0;
+  for(let n=0;n<320;n++){
+    const next=zx*zx-zy*zy+x;zy=2*zx*zy+y;zx=next;
+    const radius=zx*zx+zy*zy;
+    if(radius>16){
+      const t=n+1-Math.log2(Math.max(1,Math.log(Math.sqrt(radius))/Math.log(4)));
+      const stops=[[5,13,25],[18,58,82],[47,117,116],[166,219,143],[241,232,183],[97,155,165]];
+      const v=((t*.028)%1+1)%1*5,i=Math.floor(v),f=v-i,g=Math.max(0,Math.min(1,(t-2)/8));
+      return stops[i].map((a,k)=>(a*(1-f)+stops[Math.min(i+1,5)][k]*f)*g);
+    }
+  }
+  return [5,12,19];
+}
+async function run(){
+  assert(renderer,'WebGPU unavailable');
+  const S=1n<<192n;
+  const view={bits:192,cx:-S/2n,cy:0n,span:4n*S,width:320,height:200,
+    outputWidth:320,outputHeight:200,kind:'mandelbrot',kindIndex:0,iterations:320,palette:'aurora'};
+  await renderFloat(view);
+  const image=await exportPixels();
+  for(const [x,y] of [[10,10],[250,100],[150,100],[120,20],[310,190]]){
+    const expected=expectedMandelbrot(-.5+(x+.5-160)*4/320,(100-y-.5)*4/320);
+    const actual=[...image.pixels.slice((y*320+x)*4,(y*320+x)*4+3)];
+    assert(actual.every((v,i)=>Math.abs(v-expected[i])<=2),`GPU display color differs at ${x},${y}: ${actual}/${expected}`);
+  }
+  assert(canvas.dataset.readbackBytes==='0','Float path read back full image');
+  checks.push({test:'GPU color + native PNG export',pass:true,pngBytes:image.bytes});
+  const allocations=canvas.dataset.bufferAllocations;
+  await renderFloat({...view,palette:'ember'});
+  await exportPixels();
+  assert(canvas.dataset.bufferAllocations===allocations,'Same-size frame reallocated buffers');
+  checks.push({test:'Palette update + buffer reuse',pass:true});
+  for(const [kind,kindIndex,constant] of [['julia',3,['-.74543','.11301']],['power3',5,null],['ship',7,null]]){
+    await renderFloat({...view,kind,kindIndex,constant});await exportPixels();
+    checks.push({test:kind+' GPU display',pass:true});
+  }
+  await renderFloat({...view,outputWidth:2500,outputHeight:2480});
+  await exportPixels();
+  assert(canvas.dataset.readbackBytes==='0','Ultra frame was read back for display');
+  checks.push({test:'6.2 million pixels, full-resolution GPU display',pass:true});
+  const deep={...view,cx:-2n*S,span:S/(10n**32n),iterations:1600};
+  const worker=new Worker('render-worker.js?v=9');
+  try{
+    const reference=await new Promise((resolve,reject)=>{
+      worker.onerror=e=>reject(Error(e.message));
+      worker.onmessage=e=>{
+        const m=e.data;
+        if(m.type==='error')reject(Error(m.message));
+        if(m.type==='gpuReference'){
+          assert(m.length>=1601,'Reference orbit incomplete');
+          resolve({bits:192,cx:BigInt(m.refX),cy:BigInt(m.refY),length:m.length,data:new Float32Array(m.data)});
+        }
+      };
+      worker.postMessage({type:'render',id:1,w:320,h:200,bits:192,cx:String(deep.cx),cy:'0',span:String(deep.span),
+        kind:'mandelbrot',iterations:1600,palette:'aurora',method:'高精度参考轨道',wantGpu:true});
+    });
+    const result=await new Promise((resolve,reject)=>{
+      if(!renderer.requestPerturb(deep,reference,(_,r)=>resolve(r),reject))reject(Error('GPU perturb unavailable'));
+    });
+    const verified=await new Promise(resolve=>{
+      worker.onmessage=e=>{if(e.data.type==='gpuVerification')resolve(e.data);};
+      worker.postMessage({type:'verifyGpu',id:1,samples:result.samples});
+    });
+    assert(verified.checked===169&&verified.mismatches===0,'GPU perturb sample verification failed');
+    assert(canvas.dataset.readbackBytes==='676','Perturb readback is larger than 169 iterations');
+    await exportPixels();
+    checks.push({test:'1e-32 span / 1600 iterations / BigInt verification',pass:true,checked:verified.checked,readbackBytes:676});
+  }finally{worker.terminate();}
+  report.dataset.status='passed';report.textContent=JSON.stringify({status:'passed',checks},null,2);
+}
+run().catch(error=>{report.dataset.status='failed';report.textContent=JSON.stringify({status:'failed',error:error.message,checks},null,2);console.error(error);});
+</script>
+</html>
