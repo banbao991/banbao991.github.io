@@ -29,22 +29,23 @@ function drawPlazaCatHouse() {
   rect(s.right - 19, s.bottom + 6, 12, 3, '#a47d58'); rect(s.right - 18, s.bottom + 5, 10, 2, '#d5b477');
 }
 function drawPlazaCat(cat) {
-  const x = Math.round(cat.x), y = Math.round(cat.y);
+  const x = Math.round(cat.x), y = Math.round(cat.y), pose=plazaCatCompanyPose(cat)||cat.mode;
   const orange = cat.coat === 'ginger', white = '#f1e9d5', coat = orange ? '#d8a063' : '#514e47';
   const shade = orange ? '#b17b46' : '#363e39';
-  const walking = cat.mode === 'move' || cat.mode === 'return';
+  const walking = pose === 'move' || pose === 'return' || pose==='play';
   const leg = walking && !farm.paused ? Math.round(Math.sin(cat.step) * 2) : 0;
   const tail = Math.round(Math.sin(now * 1.3 + x) * 2);
   rect(x - 15, y + 5, 31, 4, '#586b4550');
-  if (cat.mode === 'sleep') {
-    rect(x - 12, y - 8, 26, 13, coat); rect(x - 9, y - 10, 21, 4, coat);
-    rect(x - 7, y - 1, 12, 6, white); rect(x + 5, y - 5, 10, 8, white);
-    rect(x + 8, y - 10, 4, 6, coat); rect(x + 14, y - 7, 3, 5, coat);
-    rect(x + 9, y - 2, 5, 1, shade); rect(x - 17, y, 9, 5, coat);
-    if (Math.sin(now * .65 + x) > .7) rect(x + 1, y - 15, 3, 2, '#e9d7a755');
+  if (pose === 'sleep') {
+    const curled=(dx,dy,w,h,color)=>rect(x+(cat.dir>0?dx:-dx-w),y+dy,w,h,color);
+    curled(-12,-8,26,13,coat); curled(-9,-10,21,4,coat);
+    curled(-7,-1,12,6,white); curled(5,-5,10,8,white);
+    curled(8,-10,4,6,coat); curled(14,-7,3,5,coat);
+    curled(9,-2,5,1,shade); curled(-17,0,9,5,coat);
+    if (Math.sin(now * .65 + x) > .7) curled(1,-15,3,2,'#e9d7a755');
   } else {
-    const stretch = cat.mode === 'stretch', sitting = cat.mode === 'watch' || cat.mode === 'groom';
-    const headX = x + cat.dir * (sitting ? 2 : 12), headY = y - (sitting ? 15 : stretch ? 5 : 12);
+    const stretch = pose === 'stretch', sitting = pose === 'watch' || pose === 'groom';
+    const headX = x + cat.dir * (sitting ? 2 : 12), headY = y - (pose==='drink' ? 5 : sitting ? 15 : stretch ? 5 : 12);
     rect(x - (sitting ? 8 : 14), y - (sitting ? 13 : 9), sitting ? 17 : 28, sitting ? 18 : 13, coat);
     rect(x - 10, y - 1, 20, 7, white);
     rect(x - 11, y + 1, 5, 7 + leg, white); rect(x + 7, y + 1, 5, 7 - leg, white);
@@ -63,7 +64,10 @@ function drawPlazaCat(cat) {
     rect(headX + 4, headY + 6, 2, blink ? 1 : 2, '#3f463b');
     rect(headX, headY + 9, 2, 2, '#c99889');
     rect(headX - 12, headY + 9, 5, 1, '#baa991'); rect(headX + 9, headY + 9, 5, 1, '#baa991');
-    if (cat.mode === 'groom') rect(headX - 5, headY + 6 + Math.round(Math.sin(now * 3) * 2), 5, 5, white);
+    if(pose==='play' && distance(cat,farm.town.catPlay.balls[farm.town.catPlay.ball] || cat)<22)
+      rect(headX+cat.dir*4,y+1+Math.round(Math.sin(now*4)*2),7,4,white);
+    if(pose==='drink'){rect(headX-3,headY+11,4,1+Math.round((Math.sin(now*7)+1)*.5),'#ce9b8d');}
+    if (pose === 'groom') rect(headX - 5, headY + 6 + Math.round(Math.sin(now * 3) * 2), 5, 5, white);
   }
   if (cat.purr > 0) {
     const hy = y - 32 + Math.round(Math.sin(now * 2) * 2);
@@ -74,7 +78,7 @@ function drawPlazaCat(cat) {
 function drawPlazaSparrow(bird) {
   const x = Math.round(bird.x), y = Math.round(bird.y - bird.lift);
   const flying = bird.mode === 'fly', peck = bird.mode === 'peck';
-  const bob = peck ? Math.round(Math.max(0, Math.sin(now * 4 + x)) * 3) : 0;
+  const bob = bird.headBob ?? (peck ? Math.round(Math.max(0, Math.sin(now * 4 + x)) * 3) : 0);
   const headX = x + bird.dir * 4;
   rect(x - 6, y - 8, 12, 8, '#997654'); rect(x - 4, y - 3, 8, 5, '#dcc498');
   rect(x - bird.dir * 9, y - 4, 6, 3, '#786449');

@@ -28,11 +28,13 @@ function terrainDetails() {
 }
 
 function drawPond() {
+  const water=groundTilePainter(),highlights=groundTilePainter();
   for (let y = 104; y < 276; y += 8) for (let x = 44; x < 247; x += 8) {
     const d = pondDepth(x, y);
-    if (d < 1.09) rect(x, y, 8, 8, d > .83 ? '#b6b888' : d > .66 ? '#6eafa9' : '#5f9fa9');
-    if (d < .61 && hash(x, y, 4) > .86) rect(x+2, y+2, 5, 2, '#91c4bb');
+    if (d < 1.09) water.add(x, y, 8, 8, d > .83 ? '#b6b888' : d > .66 ? '#6eafa9' : '#5f9fa9');
+    if (d < .61 && hash(x, y, 4) > .86) highlights.add(x+2, y+2, 5, 2, '#91c4bb');
   }
+  water.draw();highlights.draw();
   for (const [x, y] of [[72, 144],[217, 194],[92, 259],[222, 236]]) {
     rect(x, y, 3, 15, '#657e53'); rect(x+5, y-3, 3, 18, '#6e8551'); rect(x-4, y+4, 4, 2, '#d4af6c');
   }
@@ -54,16 +56,20 @@ function pathTile(x, y) {
 }
 
 function paths() {
-  for(let x=9;x<=25;x++) pathTile(x,8);
-  for(let y=5;y<=8;y++) for(let x=11;x<=14;x++) pathTile(x,y);
-  for(let y=6;y<=8;y++) for(let x=23;x<=25;x++) pathTile(x,y);
-  for(let y=8;y<=18;y++) pathTile(6,y);
-  for(let x=6;x<=19;x++) pathTile(x,18);
-  for(let y=8;y<=18;y++) pathTile(19,y);
-  for(let x=6;x<=8;x++) pathTile(x,8);
-  for(let x=19;x<=22;x++) pathTile(x,8);
-  for(let y=2;y<=8;y++) pathTile(8,y);
-  for(let x=6;x<=8;x++) pathTile(x,2);
+  // Development roads include the permanent farm yards. Keep the old tile painter
+  // only for a world without development data; never draw both road systems.
+  if(!farm.development){
+    for(let x=9;x<=25;x++) pathTile(x,8);
+    for(let y=5;y<=8;y++) for(let x=11;x<=14;x++) pathTile(x,y);
+    for(let y=6;y<=8;y++) for(let x=23;x<=25;x++) pathTile(x,y);
+    for(let y=8;y<=18;y++) pathTile(6,y);
+    for(let x=6;x<=19;x++) pathTile(x,18);
+    for(let y=8;y<=18;y++) pathTile(19,y);
+    for(let x=6;x<=8;x++) pathTile(x,8);
+    for(let x=19;x<=22;x++) pathTile(x,8);
+    for(let y=2;y<=8;y++) pathTile(8,y);
+    for(let x=6;x<=8;x++) pathTile(x,2);
+  }
   // Stepping stones from the house to the orchard.
   for(let i=0;i<5;i++){rect(295-i*29,203+i*15,18,8,'#d9c69d');rect(298-i*29,203+i*15,12,4,'#e9d9af');}
 }
@@ -109,12 +115,14 @@ function orchard(){
       });
     }
     scenePart('bees', 0, () => {
-      for(let i=0;i<6;i++){
+      ctx.save();ctx.globalAlpha=beeHiveActivityAlpha();
+      for(let i=1;i<6;i++){
         const hive=HIVE_SITES[i%HIVE_SITES.length];
         const bx=hive.x-15+i*7+Math.sin(motionNow*2+i)*7,by=hive.y-9+Math.sin(motionNow*2.5+i)*12;
         rect(bx,by,5,4,'#e8c35f');rect(bx+2,by+1,2,2,'#4b4934');
         if(farm.paused)rect(bx+1,by-2+pausePulse(i,5),3,2,'#f7e8b5');
       }
+      ctx.restore();
     }, 0, 1);
   }
 }
@@ -150,6 +158,13 @@ function house(){
 }
 
 function coop(){
+  if(chickenMealVisible())scenePart('coop-grain-tray',TOWN_LAYOUT.henMeal.tray.y+3,()=>{
+    const {x,y}=TOWN_LAYOUT.henMeal.tray;
+    rect(x-9,y-3,18,6,'#936f50');rect(x-7,y-3,14,3,'#c7a36b');
+    if(farm.town.inventory.henGrain || farm.town.henMeal.stage==='eat') {
+      rect(x-5,y-2,3,2,'#edd28d');rect(x+1,y-2,3,2,'#dec076');
+    }
+  });
   scenePart('coop-building', 110, () => {
     const x=36,y=6;
     rect(x+19,y+47,118,53,'#9f6b49');rect(x+24,y+50,108,49,'#e4b77f');
@@ -192,7 +207,7 @@ function barn(){
 
 function greenhouse(){
   if (sceneQueue) return scenePart('greenhouse', 242, () => greenhouse());
-  if(farm.upgrades<3)return;
+  if(!villageSiteOpen('greenhouse'))return;
   const x=525,y=84;
   rect(x+8,y+57,132,101,'#719279');rect(x+15,y+62,118,88,'#a4c9a7');
   for(let i=0;i<7;i++){const inset=Math.abs(3-i)*12;rect(x+inset,y+8+i*8,149-inset*2,8,i%2?'#d7bd8a':'#ece1b8');}

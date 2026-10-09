@@ -2,6 +2,7 @@
 // One world-space painter queue. Ground surfaces draw before the queue is flushed.
 let sceneQueue = null;
 function scenePart(id, y, draw, order = 0, layer = 0) {
+  if(!villageSceneItemVisible(id))return;
   if (sceneQueue) sceneQueue.push({ id, y, order, layer, draw });
   else draw();
 }
@@ -17,7 +18,7 @@ function collectSceneItems(drawScene) {
   return sortSceneItems(items);
 }
 function drawSceneItems(items) {
-  for (const item of sortSceneItems(items)) item.draw();
+  for (const item of sortSceneItems(items)) if(villageSceneItemVisible(item.id))item.draw();
 }
 // Depth uses the unanimated sole/contact point, never a jumping or swaying sprite.
 function actorDepth(actor, sole = 22) { return actor.y + sole; }

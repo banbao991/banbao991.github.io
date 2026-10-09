@@ -26,6 +26,7 @@ function lakeLily(x, y, flower) {
 }
 
 function drawSouthernLakePierDeck() {
+  if(!villageSiteOpen('lake'))return;
   // The walking surface stays below people; railings and posts are drawn in the scenery pass.
   rect(340, 849 + SOUTH_LAKE_SHIFT_Y, 112, 37, '#5d5948');
   rect(346, 844 + SOUTH_LAKE_SHIFT_Y, 108, 34, '#8a6747');
@@ -103,16 +104,19 @@ function drawFishingSpot(site) {
 function drawLakeDuck(duck) {
   if (sceneQueue) return scenePart(`lake-duck:${duck.x}:${duck.y}`, duck.y + 14, () => drawLakeDuck(duck));
   const x = duck.x, y = duck.y + Math.sin(duck.step) * 1.5 + pausePulse(duck.x,2.1), dir = duck.dir;
+  const preen=lakeDuckVisitCompanion(duck),hello=lakeDuckVisitHello()&&lakeDucks.indexOf(duck)===angler.duckVisit.duck;
+  const headDip=preen?3+Math.sin(now*2)*1.5:0;
   rect(x - dir * 21, y + 7, 9, 2, '#b8d8c7');
   rect(x - dir * 32, y + 10, 10, 2, '#9dc9bf');
   rect(x - 16, y + 10, 35, 4, '#9bc7b8');
   rect(x - 14, y - 3, 27, 15, duck.color === 'cream' ? '#f1e7c8' : '#b88761');
   rect(x - 17, y - 7, 12, 10, duck.color === 'cream' ? '#faf1d8' : '#cb9a70');
-  rect(x + dir * 6 - 5, y - 13, 14, 13, duck.color === 'cream' ? '#f9efd8' : '#b97959');
-  rect(x + dir * 14 - 2, y - 5, 10, 5, '#dda763');
-  rect(x + dir * 10, y - 10, 3, 3, '#453c35');
+  rect(x + dir * 6 - 5, y - 13+headDip, 14, 13, duck.color === 'cream' ? '#f9efd8' : '#b97959');
+  rect(x + dir * 14 - 2, y - 5+headDip, 10, 5, '#dda763');
+  if(hello&&Math.sin(now*5)>.2)rect(x+dir*16-2,y-3,8,1,'#705d44');
+  rect(x + dir * 10, y - 10+headDip, 3, 3, '#453c35');
   rect(x - 8, y + 2, 13, 4, duck.color === 'cream' ? '#ddd6b4' : '#9b694e');
-  if (farm.paused) rect(x - 11, y - 2 + pausePulse(duck.x,2.8)*2, 10, 5, duck.color === 'cream' ? '#ddd6b4' : '#9b694e');
+  if (farm.paused||preen) rect(x - 11, y - 2 + (preen?Math.sin(now*3.2)*1.2:pausePulse(duck.x,2.8)*2), 10, 5, duck.color === 'cream' ? '#ddd6b4' : '#9b694e');
 }
 
 function drawSouthernLakeLife() {
@@ -155,9 +159,12 @@ function drawSouthernLakeLife() {
       rect(x - 8, y - 9, 19, 22, '#668e83');
       rect(x - 6, y - 19, 15, 12, '#ddb994');
       rect(x - 10, y - 22, 24, 6, '#aa7754'); rect(x - 2, y - 27, 10, 7, '#b88358');
-      rect(x - 10, y - 1 + pausePulse(8,1.8)*2, 6, 13, '#d7ad88');
+      if(!anglerQuietAtPier())rect(x - 10, y - 1 + pausePulse(8,1.8)*2, 6, 13, '#d7ad88');
       rect(x - 3, y - 15, 2, 2, '#4b493c');
       const fishing = angler.fishing?.day === farm.day ? angler.fishing : null;
+      if(anglerQuietAtPier()){
+        drawAnglerAtRest(x,y);return;
+      }
       const site = farm.fishSpots.find(fish => fish.id === fishing?.targetId);
       const reel = fishing?.action > 1.8 ? (fishing.action - 1.8) / .6 : 0;
       const rodX = 319 + reel * 20, rodY = 810 + SOUTH_LAKE_SHIFT_Y - reel * 15;

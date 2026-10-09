@@ -14,9 +14,11 @@ function valleyHerbProgress(herb) {
   return clamp((farm.day + farm.phase - herb.pickedAt) / Math.max(.01, herb.readyAt - herb.pickedAt), 0, 1);
 }
 function valleyHerbAt(x, y) {
+  if(!villageSiteOpen('herbs'))return null;
   return farm.valleyHerbs.find(herb => Math.abs(herb.x - x) < 18 && Math.abs(herb.y - y) < 17) || null;
 }
 function collectValleyHerb(herb, workerName = null) {
+  if(!villageSiteOpen('herbs'))return false;
   const kind = VALLEY_HERB_TYPES[herb.kind];
   if (valleyHerbProgress(herb) < 1) {
     record(`${kind.name}还在生长，过些时候再来看看。`);
@@ -28,7 +30,7 @@ function collectValleyHerb(herb, workerName = null) {
     * (farm.nursery.level >= 1 ? .9 : 1);
   farm.herbTotal++;
   stockGood('valley', herb.kind, 1);
-  record(`${workerName || '你'}从山谷香草梯田采下一株${kind.name}，放进山谷货箱；其余香草继续生长。`);
+  record(`${workerName || '你'}从山谷香草梯田采下一株${kind.name}，放进山谷货箱。`);
   save();
   return true;
 }

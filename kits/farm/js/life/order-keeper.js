@@ -56,6 +56,6 @@ function updateOrderKeeper(dt) {
     updateFestivalActor(orderKeeper, dt, ORDER_KEEPER_HOME, 8, 'village');
   } else if (!festivalMorning(orderKeeper, dt, ORDER_KEEPER_MORNING_ROUTE, 100)) {
     orderKeeper.festival = null;
-    if (!updateEastGardenKeeper(dt)) updateOrdinaryOrderKeeper(dt);
+    if (!updateTownTeaPartyGuest(dt) && !updateEastGardenKeeper(dt)) updateOrdinaryOrderKeeper(dt);
   }
 }

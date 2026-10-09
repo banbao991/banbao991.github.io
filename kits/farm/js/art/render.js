@@ -4,8 +4,14 @@ function farmSceneItems() {
   return collectSceneItems(() => {
     paths(); drawRegionPaths(); drawSouthernLakePierDeck(); drawField(); drawDepots();
     farm.forage.forEach(drawForage);
+    drawTownPaperBoats();
+    drawBeeForager();
     orchard(); marketStall(); fences(); coop(); house(); barn(); greenhouse(); extras();
-    drawRegionScenery(); drawEastGardenFrontRow();
+    drawRegionScenery();
+    drawVillageDevelopment(); drawEastGardenFrontRow(); drawTownScenery(); drawTownEcology(); drawTownImprovements(); drawTownGardenVisitors(); drawTownCurios(); drawEastScenery(); drawEastCanopy(); drawEastShoreScenery(); drawTownBathBird(); drawTownHearth();
+    if (townTravellerVisible()) scenePart('town-traveller', actorDepth(farm.town.traveller), drawTownTraveller, 10);
+    drawTownDog();
+    drawTownDonkeyInn();
     drawPondDuck(); drawRegionAnimals(); drawValleyLife(); drawNurseryLife(); drawWetlandLife();
     drawMarketGoods(); drawMineMarketDisplay();
 
@@ -29,11 +35,14 @@ function farmSceneItems() {
         () => worker({ ...angler, shirt: '#668e83', hat: '#aa7754' }), 10);
     }
     if (!festivalAtHome(orderKeeper) && !(farm.phase >= NIGHT_START && distance(orderKeeper, ORDER_KEEPER_HOME) < 12)) {
-      scenePart('order-keeper', actorDepth(orderKeeper), () => worker({ ...orderKeeper, walk: orderKeeper.step,
-        gardenTending: orderKeeper.gardenWork?.stage === 'beds' && orderKeeper.gardenWork.action > 0,
-        shirt: '#c88762', hat: '#87634b' }), 10);
+      scenePart('order-keeper', actorDepth(orderKeeper), () => {
+        if(townTeaPartyGuestSeated())drawTownSeatedAdult({...orderKeeper,dir:1},'#c88762','#87634b',farm.town.teaParty.paid,'keeper');
+        else worker({ ...orderKeeper, walk: orderKeeper.step,
+          gardenTending: orderKeeper.gardenWork?.stage === 'beds' && orderKeeper.gardenWork.action > 0,
+          shirt: '#c88762', hat: '#87634b' });
+      }, 10);
     }
-    if (!festivalAtHome(villageWalker) && !(farm.phase >= NIGHT_START && villageWalkerAtHome()))
+    if (!festivalAtHome(villageWalker) && !townDonkeyVisitHome() && !townBoatHome() && !(farm.phase >= NIGHT_START && villageWalkerAtHome()))
       scenePart('village-walker', actorDepth(villageWalker, 22), drawVillageWalker, 10);
     if (nurseryKeeperAt(nurseryKeeper.x, nurseryKeeper.y))
       scenePart('nursery-keeper', actorDepth(nurseryKeeper),
@@ -42,19 +51,21 @@ function farmSceneItems() {
       && !(farm.phase >= NIGHT_START && miner.mode === 'home' && distance(miner, MINE_HOME) < 14))
       scenePart('miner', actorDepth(miner), drawMiner, 10);
     if (forestKeeperVisible()) scenePart('forest-keeper', actorDepth(forestKeeper), drawForestKeeper, 10);
-    if (farm.upgrades >= 4) for (const s of sheep)
+    if (villageSiteOpen('sheep')) for (const s of sheep)
       scenePart(`sheep:${s.x}:${s.y}`, actorDepth(s, 18), () => drawSheep(s), 10);
     if (farm.goatBarnOpen) for (const goat of meadowGoats)
       scenePart(`goat:${goat.name}`, actorDepth(goat, 16), () => drawGoat(goat), 10);
 
     scenePart('cow-fence-front', 17*T + 28, drawCowFenceFront, 20);
-    if (farm.upgrades >= 4) scenePart('sheep-fence-front', SHEEP_LAYOUT.pen.bottom, drawSheepFenceFront, 20);
+    if (villageSiteOpen('sheep')) scenePart('sheep-fence-front', SHEEP_LAYOUT.pen.bottom, drawSheepFenceFront, 20);
     if (farm.goatBarnOpen) scenePart('goat-fence-front', GOAT_LAYOUT.pen.bottom + 3, drawGoatFenceFront, 20);
     sceneQueue.push(...plazaSceneItems(), ...plazaLifeSceneItems());
     const perch = RIDGE_OWL_PERCHES[ridgeOwl.perchIndex] || RIDGE_OWL_HOME;
     scenePart('ridge-owl', ridgeOwl.flying ? ridgeOwl.y : perch.baseY + 9,
       drawRidgeOwl, 30, ridgeOwl.flying ? 1 : 0);
     scenePart('plaza-flying-sparrows', 0, drawPlazaFlyingSparrows, 0, 1);
+    drawTownLanterns();
+    drawTownFireflies();
   });
 }
 

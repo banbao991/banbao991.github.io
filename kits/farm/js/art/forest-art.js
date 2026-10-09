@@ -42,6 +42,12 @@ function drawSquirrel() {
   rect(x + dir * 9, y - 4, 4, 3, '#f0d5a0');
   rect(x - 5, y + 8, 5, 5, '#785b44');
   rect(x + 4, y + 8 + (squirrel.moving ? Math.sin(squirrel.step) * 2 : 0), 5, 5, '#785b44');
+  if(squirrelEating()){
+    const nibble=Math.sin(now*5)*.8;
+    rect(x+dir*6-3,y-2+nibble,7,5,'#638749');
+    for(const dx of [-1,2,5])circle(x+dir*6+dx-2,y+nibble,1.6,'#b95059');
+    rect(x+dir*3-2,y+1+nibble,4,3,'#e0aa70');
+  }
   if (squirrel.excited > 0) {
     rect(x - 1, y - 29, 4, 4, '#e3a57e');
     rect(x + 5, y - 25, 3, 3, '#f1d4a3');
@@ -51,10 +57,14 @@ function drawSquirrel() {
 function drawForestKeeper() {
   const actor = forestKeeper, picking = actor.mode === 'picking' && !isFestivalDay();
   const dip = picking ? Math.sin(Math.min(1, actor.action / 1.2) * Math.PI) * 5 : 0;
-  worker({ ...actor, y: actor.y + dip, shirt: '#8b9670', hat: '#b4865d', gardenTending: picking });
+  const handRaise=!isFestivalDay()&&now<actor.waveUntil?14+Math.sin(now*4)*1.2:undefined;
+  worker({ ...actor, y: actor.y + dip, shirt: '#8b9670', hat: '#b4865d', gardenTending: picking, handRaise });
   if (isFestivalDay()) return;
   const x = Math.round(actor.x), y = Math.round(actor.y + dip);
   rect(x - 16, y + 7, 9, 12, '#9b7248'); rect(x - 17, y + 5, 11, 3, '#d7ae73');
+  if (picking && farm.forage.some(site => site.id === actor.targetId && site.kind === 'acorn')) {
+    rect(x + 10, y - 2, 5, 6, '#c49759'); rect(x + 9, y - 4, 7, 3, '#785b3c');
+  }
   if (actor.choice === 'gather') for (let i = 0; i < Math.min(3, actor.picked); i++) {
     rect(x - 15 + i * 3, y + 4 - i % 2, 2, 4, '#e7d3a1'); rect(x - 16 + i * 3, y + 3 - i % 2, 4, 2, '#bb7857');
   }

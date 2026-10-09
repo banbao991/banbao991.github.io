@@ -25,6 +25,13 @@ canvas.addEventListener('pointerleave',()=>{clearMapHover(true);});
 canvas.addEventListener('click',e=>{
   if(performance.now()<suppressClickUntil){suppressClickUntil=0;return;}
   const {x,y}=mousePosition(e);
+  if(handleVillageDevelopmentClick(x,y))return;
+  const canopyAnimal=eastCanopyAnimalAt(x,y);if(canopyAnimal){greetEastCanopy(canopyAnimal);return;}
+  if(handleEastShoreClick(x,y))return;
+  const eastBird=eastPheasantAt(x,y);if(eastBird){greetEastPheasant(eastBird);return;}
+  if(beeForagerAt(x,y)){observeBeeForager();return;}
+  if(handleTownClick(x,y))return;
+  if(courierAt(x,y)){greetCourier();return;}
   const plazaCat=plazaCatAt(x,y);
   if(plazaCat){greetPlazaCat(plazaCat);return;}
   const plazaBird=plazaSparrowAt(x,y);
@@ -41,7 +48,8 @@ canvas.addEventListener('click',e=>{
   if(clickedWorker && (tool==='inspect'||!plotAt(x,y))){greetWorker(clickedWorker);return;}
   if(villagerAt(x,y)){villageWalker.waveUntil=now+2.3;record('阿宁笑着向你挥手：“集市快热闹起来啦。”');save();return;}
   if(orderKeeperAt(x,y)){orderKeeper.waveUntil=now+2.3;record(isFestivalDay()?'阿葵把订单本收好，递给你一块香甜的点心。':orderKeeper.gardenWork?.stage==='beds'?'阿葵笑着说：“这些菜长好后，村口的大家都能尝尝。”':'阿葵指了指村口告示牌，新的委托已经贴好。');save();return;}
-  if(anglerAt(x,y)){record(isFestivalDay()?'阿蓼把鱼竿留在小屋，今天来广场听大家唱歌。':'阿蓼轻轻晃了晃鱼竿，湖面泛起细小的波纹。');save();return;}
+  if(anglerAt(x,y)){if(anglerQuietAtPier())angler.waveUntil=now+2.3;record(isFestivalDay()?'阿蓼把鱼竿留在小屋，今天来广场听大家唱歌。':anglerQuietAtPier()?'阿蓼放下鱼竿，笑着向你挥了挥手。':'阿蓼轻轻晃了晃鱼竿，湖面泛起细小的波纹。');save();return;}
+  if(villageSiteOpen('plaza')&&landmarkAt(x,y)==='central-stage'){openTownLanternPanel();return;}
   const p=plotAt(x,y);
   if(p){
     if(tool==='plant'){
@@ -56,6 +64,7 @@ canvas.addEventListener('click',e=>{
     updateUI();save();return;
   }
   if(squirrelAt(x,y)){feedSquirrel();return;}
+  if(foxAt(x,y)){greetForestFox();return;}
   const goat=goatAt(x,y);
   if(goat){greetGoat(goat);return;}
   const ridgeAnimal=ridgeAnimalAt(x,y);
@@ -65,7 +74,7 @@ canvas.addEventListener('click',e=>{
   if(pondDuckAt(x,y)){record('池塘小鸭扑棱着翅膀，向你轻轻叫了一声。');return;}
   const valleyCreature=valleyCreatureAt(x,y);
   if(valleyCreature){interactValleyCreature(valleyCreature);return;}
-  if(nurseryFrogAt(x,y)){farm.nursery.frogJumpUntil=motionNow+2;record('湿地青蛙从芦苇旁轻轻一跃，落进浅水里。');save();return;}
+  if(nurseryFrogAt(x,y)){greetNurseryFrog();return;}
   const wetlandCreature=wetlandCreatureAt(x,y);
   if(wetlandCreature){interactWetlandCreature(wetlandCreature);return;}
   const foraged=forageAt(x,y);

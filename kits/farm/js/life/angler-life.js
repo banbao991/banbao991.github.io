@@ -36,6 +36,7 @@ function updateOrdinaryAngler(dt) {
 }
 
 function updateAngler(dt) {
+  if(farm.paused||!villageResidentWorking('阿蓼'))return;
   if (isFestivalDay()) {
     angler.routine = null;
     if (!angler.festival) { angler.x = ANGLER_HOME.x; angler.y = ANGLER_HOME.y; }
@@ -47,6 +48,7 @@ function updateAngler(dt) {
 }
 
 function updateAnglerFishing(dt) {
+  if(farm.paused||!villageResidentWorking('阿蓼'))return;
   if (farm.paused || isFestivalDay() || farm.phase < .02 || farm.phase >= NIGHT_START
     || angler.festival || angler.routine || distance(angler, ANGLER_PIER) >= 2) return;
   if (angler.fishing?.day !== farm.day) {
@@ -78,6 +80,7 @@ function anglerActivity() {
   if (distance(angler, ANGLER_HOME) < 2) return '在钓鱼小屋休息';
   if (farm.phase >= NIGHT_START) return '准备回钓鱼小屋';
   const fishing = angler.fishing?.day === farm.day ? angler.fishing : null;
+  if(lakeDuckVisitHello())return '收竿后向栈桥旁的水鸭挥手';
   if (fishing?.targetId) return '正在等鱼儿上钩';
   if (fishing && fishing.caught >= fishing.quota) return '今日收竿，在栈桥上看湖景';
   if (!farm.fishSpots.length) return '鱼点暂空，在栈桥歇脚';
@@ -91,6 +94,7 @@ function anglerPosition() {
 }
 
 function anglerAt(x, y) {
+  if(!villageResidentWorking('阿蓼'))return false;
   if (festivalAtHome(angler)) return false;
   const travelling = !!angler.routine || angler.festival?.stage === 'morning';
   const visible = isFestivalDay()

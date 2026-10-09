@@ -56,9 +56,11 @@ function mineStockCount() { return Object.values(farm.mine.stock).reduce((sum, c
 function mineCargoCount() { return Object.values(miner.cargo).reduce((sum, count) => sum + count, 0); }
 function mineNodeReady(index) { return mineClock() >= farm.mine.nodes[index].readyAt; }
 function mineNodeAt(x, y) {
+  if(!villageSiteOpen('mine'))return -1;
   return MINE_LAYOUT.nodes.findIndex(node => Math.abs(x - node.x) <= 23 && Math.abs(y - node.y) <= 22);
 }
 function minerAt(x, y) {
+  if(!villageResidentWorking('阿矿'))return false;
   return !festivalAtHome(miner) && !(farm.phase >= NIGHT_START
     && miner.mode === 'home' && distance(miner, MINE_HOME) < 14)
     && miner.mode !== 'homeRest'
@@ -69,6 +71,7 @@ function mineOreText(goods) {
     .map(([kind, count]) => `${MINE_ORES[kind].name} ${count}`).join('、') || '暂无矿石';
 }
 function collectMineNode(index, source = 'player') {
+  if(!villageSiteOpen('mine'))return false;
   if (index < 0 || !mineNodeReady(index)) return false;
   const kind = MINE_LAYOUT.nodes[index].kind;
   farm.mine.stock[kind]++;
@@ -86,8 +89,8 @@ function minerActivity() {
   if (miner.mode === 'toMarket') return `推着小车去村口送矿 · ${mineCargoCount()} 块`;
   if (miner.mode === 'returnCart') return '推着空车回棚屋对面的停放点';
   if (miner.mode === 'toTea') return '过南桥去茶亭喝茶';
-  if (miner.mode === 'teaRest') return '在茶亭边的小桌旁喝茶休息';
-  if (miner.mode === 'teaHome') return '沿新南桥回矿屋';
+  if (miner.mode === 'teaRest') return townSnackEating()?`在茶亭边品尝${TOWN_SNACK_NAMES[farm.town.snacks.meal.theme]}`:'在茶亭边的小桌旁喝茶休息';
+  if (miner.mode === 'teaHome') return '过南侧木桥回家';
   if (miner.mode === 'homeRest') return '喝完茶，已经回矿屋休息';
   if (miner.mode === 'returnHome' || miner.mode === 'returnWithCargo') return '正沿路回矿屋';
   if (miner.mode === 'returnRest') return '正去轨旁歇脚点';
@@ -161,6 +164,7 @@ function deliverMinerCargo() {
   setMinerRoute('returnCart', MINE_MARKET_ROUTE.slice().reverse());
 }
 function updateMineLife(dt) {
+  if(farm.paused||!villageResidentWorking('阿矿'))return;
   if (isFestivalDay()) {
     if (mineCargoCount()) {
       for (const [kind, count] of Object.entries(miner.cargo)) farm.mine.stock[kind] += count;

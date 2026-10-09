@@ -3,7 +3,7 @@
 function drawMeadowScenery() {
   const barn = GOAT_LAYOUT.barn, pen = GOAT_LAYOUT.pen;
   const winter = sceneSeason.winter;
-  if (farm.upgrades >= 4) {
+  if (villageSiteOpen('sheep')) {
     const { x, y } = PASTURE_WORKER_LAYOUT.rest;
     scenePart('pasture-bench', y + 14, () => {
       rect(x - 18, y + 2, 36, 5, '#765940');
@@ -15,7 +15,8 @@ function drawMeadowScenery() {
     });
   }
   if (!farm.goatBarnOpen) {
-    if (farm.upgrades < 4) return;
+    if(farm.development)return;
+    if (!villageSiteOpen('sheep')) return;
     // The building site appears only after the sheep pasture opens.
     for (const x of [pen.left + 7, pen.right - 7]) for (const y of [pen.top + 9, pen.bottom - 12]) {
       scenePart(`goat-site-post:${x}:${y}`, y + 18, () => {

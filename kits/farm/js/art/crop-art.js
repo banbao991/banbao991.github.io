@@ -2,7 +2,7 @@
 // Small pixel sprites grow continuously through six recognizable phases.
 function cropVisualProgress(plot) {
   if (!plot.crop) return 0;
-  const winterFactor = seasonIndex() === 3 && farm.upgrades < 3 ? .65 : 1;
+  const winterFactor = seasonIndex() === 3 && !villageSiteOpen('greenhouse') ? .65 : 1;
   const dailyGrowth = (plot.watered ? 1 : .45) * winterFactor;
   const activeTime = plot.plantedAt == null ? farm.phase : Math.max(0, farm.phase - plot.plantedAt);
   return clamp((plot.age + activeTime * dailyGrowth) / crops[plot.crop].days, 0, 1);

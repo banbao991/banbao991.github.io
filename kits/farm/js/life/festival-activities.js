@@ -14,7 +14,11 @@ const FESTIVAL_SPOTS = [
   { kind: 'perform', x: 902, y: 772 }, { kind: 'perform', x: 970, y: 772 }
 ];
 function festivalParticipants() {
-  return [...workers, courier, villageWalker, angler, orderKeeper, nurseryKeeper, miner, forestKeeper];
+  return [...workers, courier, villageWalker, orderKeeper,
+    ...(villageResidentWorking('阿蓼')?[angler]:[]),...(villageResidentWorking('阿芽')?[nurseryKeeper]:[]),
+    ...(villageResidentWorking('阿矿')?[miner]:[]),...(villageResidentWorking('阿森')?[forestKeeper]:[]),
+    ...farm.development.crew,...Object.values(farm.development.residents).flatMap(r=>r.actor?[r.actor]:[]),
+    ...(farm.town.traveller.mode !== 'away' ? [farm.town.traveller] : [])];
 }
 function festivalWalkable(point) {
   const s = CENTRAL_PLAZA;

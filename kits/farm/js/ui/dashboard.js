@@ -37,11 +37,12 @@ function updateUI() {
   setOverviewNumber(ui.honey, farm.honeyTotal);
   updateLedgerUI();
   updateWorldStatusUI();
+  updateVillageDevelopmentUI();
+  updateTownUI();
+  updateTownLanternUI();
   updateOrdersUI();
   $('night-indicator').hidden = farm.phase < NIGHT_START;
-  ui.unlock.textContent = farm.upgrades === 4 && !farm.goatBarnOpen
-    ? '下一步：建造山羊舍 · 1500 金'
-    : ['下一步：扩建东侧田地 · 250 金', '下一步：添置蜂箱 · 430 金', '下一步：建造温室 · 680 金', '下一步：开放南方牧场 · 1200 金', '下一步：举办村口集市 · 1900 金', '苔谷已完成主要建设，四季生活继续'][Math.min(5, farm.upgrades)];
+  ui.unlock.textContent=villageNextDevelopmentText();
   updateJournalUI();
   $('play-button').textContent = farm.paused ? '▶' : 'Ⅱ';
   $('play-button').setAttribute('aria-label', farm.paused ? '继续演变' : '暂停演变');

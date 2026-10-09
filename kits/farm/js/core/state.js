@@ -26,7 +26,7 @@ function nurseryLevelForShipments(total) { return NURSERY_THRESHOLDS.filter(limi
 function makeNurseryState(shippedTotal = 0, day = 1) {
   const level = nurseryLevelForShipments(shippedTotal);
   return { level, openedAt: level ? day : null, wetness: .46, harvestTotal: 0,
-    frogJumpUntil: 0, wildlifeStirUntil: 0, beds: NURSERY_LAYOUT.beds.map((_, index) => ({
+    frogJumpUntil: 0, wildlifeStirUntil: 0, frogSong:makeWetlandFrogSong(day), beds: NURSERY_LAYOUT.beds.map((_, index) => ({
       builtAt: level ? day - 3 : null,
       pickedAt: day - (level ? 3 : 0), readyAt: level ? day - .1 : day + 1 + index * .12
     })) };
@@ -78,8 +78,8 @@ function newFarm() {
     squirrelTrust: 0, woolReady: false, woolTotal: 0,
     fishSpots: [], fishSpawnDay: 0, fishTotal: 0, carpTotal: 0, goldFishTotal: 0, valleyHerbs: [], herbTotal: 0,
     depots: emptyDepots(), marketGoods: {}, shippedTotal: 0, goatMilkTotal: 0, ledgerExpanded: false,
-    nursery: makeNurseryState(), eastGarden: makeEastGardenState(), mine: makeMineState(), celebration: makeFestivalState(),
-    goatBarnOpen: false,
+    nursery: makeNurseryState(), eastGarden: makeEastGardenState(), mine: makeMineState(), celebration: makeFestivalState(), town: makeTownState(), eastWoods:makeEastWoods(), eastCanopy:makeEastCanopy(), eastShore:makeEastShore(),
+    goatBarnOpen: false, beeForager:makeBeeForager(), development:makeVillageDevelopmentState(),
     southFieldVersion: 3, fieldLayoutVersion: 2, lakeLayoutVersion: 2, mapLayoutVersion: 2,
     events: [{ day: 1, time: '06:00', text: '苔谷农场醒来了，新的故事开始了。' }, { day: 1, time: '06:00', text: '农场伙伴们已经在田间忙碌起来。' }]
   };

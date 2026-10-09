@@ -18,14 +18,14 @@ function valleyMove(actor, dt, speed) {
 function valleyRipple(x, y) { valleyRipples.push({ x, y, age: 0 }); }
 function resetValleyLife() {
   valleyOtter = { x: 155, y: 1202, tx: 224, ty: 1235, wait: 0, dive: 0, dir: 1, step: 0 };
-  valleyTurtle = { x: 251, y: 1241, tx: 225, ty: 1254, wait: 1, hide: 0, dir: -1, step: 0 };
-  valleyHeron = { x: 294, y: 1187, tx: 284, ty: 1180, wait: 1, flap: 0, dir: -1, step: 0 };
+  valleyTurtle = { x: 251, y: 1241, tx: 225, ty: 1254, wait: 1, hide: 0, dir: -1, step: 0, bask: makeTurtleBask() };
+  valleyHeron = { x: 294, y: 1187, tx: 284, ty: 1180, wait: 1, flap: 0, dir: -1, step: 0,fishing:makeHeronFishing() };
   valleyShoal = { x: 218, y: 1260, tx: 181, ty: 1245, scatter: 0, wait: 0, dir: -1, step: 0 };
   valleyRipples = [];
 }
 function valleyCreatureAt(x, y) {
   const heron = valleyHeron;
-  if (Math.abs(x - heron.x) < (heron.flap > 0 ? 26 : 22) && y >= heron.y - 45 && y <= heron.y + 14) return { kind: 'heron', actor: heron };
+  if ((Math.abs(x - heron.x) < (heron.flap > 0 ? 26 : 22) && y >= heron.y - 45 && y <= heron.y + 14) || heronFishingHeadHit(x,y)) return { kind: 'heron', actor: heron };
   const otter = valleyOtter;
   if (otter.dive <= 0 && Math.abs(x - otter.x) < 37 && y >= otter.y - 21 && y <= otter.y + 16) return { kind: 'otter', actor: otter };
   const turtle = valleyTurtle;
@@ -36,15 +36,15 @@ function valleyCreatureAt(x, y) {
 }
 function valleyCreatureHint(creature) {
   return {
-    heron: '西南小湖 · 苍鹭在浅滩觅食 · 点击看它振翅',
+    heron: `西南小湖 · 苍鹭${heronFishingActivity()} · 点击看它振翅`,
     otter: '西南小湖 · 水獭在水中游玩 · 点击看它潜水',
-    turtle: '西南小湖 · 慢吞吞的乌龟 · 点击打招呼',
+    turtle: `西南小湖 · 乌龟${turtleBaskActivity()} · 点击打招呼`,
     shoal: '西南小湖 · 一群小鱼 · 点击看它们散开'
   }[creature.kind];
 }
-function scatterValleyShoal() {
+function scatterValleyShoal(source=valleyOtter) {
   valleyShoal.scatter = 2.4;
-  const away = Math.atan2(valleyShoal.y - valleyOtter.y, valleyShoal.x - valleyOtter.x);
+  const away = Math.atan2(valleyShoal.y - source.y, valleyShoal.x - source.x);
   const angle = Number.isFinite(away) ? away + rand(-.5, .5) : rand(0, Math.PI * 2);
   valleyShoal.tx = clamp(valleyShoal.x + Math.cos(angle) * 36, 146, 246);
   valleyShoal.ty = clamp(valleyShoal.y + Math.sin(angle) * 22, 1190, 1259);
@@ -58,9 +58,10 @@ function interactValleyCreature(creature) {
     record('水獭打了个滚，潜进西南小湖，留下一圈泡泡。');
   } else if (creature.kind === 'turtle') {
     valleyTurtle.hide = 2.8;
-    valleyRipple(valleyTurtle.x, valleyTurtle.y);
-    record('小乌龟缩进壳里，等水面安静下来再探头。');
+    if(!turtleBaskOnLand())valleyRipple(valleyTurtle.x, valleyTurtle.y);
+    record(turtleBaskOnLand()?'晒背的小乌龟缩进壳里，过一会儿再探头看看。':'小乌龟缩进壳里，等水面安静下来再探头。');
   } else if (creature.kind === 'heron') {
+    stopHeronFishing();
     valleyHeron.flap = 2;
     valleyHeron.wait = 0;
     valleyHeron.tx = 300; valleyHeron.ty = 1207;
@@ -70,8 +71,10 @@ function interactValleyCreature(creature) {
     valleyRipple(valleyShoal.x, valleyShoal.y);
     record('小鱼们忽地四散，过一会儿又会聚到一起。');
   }
+  save();
 }
 function updateValleyLife(dt) {
+  if(farm.paused)return;
   const night = farm.phase >= NIGHT_START, rain = weatherVisual().rain;
   const otter = valleyOtter, turtle = valleyTurtle, heron = valleyHeron, shoal = valleyShoal;
   otter.step += dt * 5; otter.dive = Math.max(0, otter.dive - dt); otter.wait -= dt;
@@ -82,12 +85,17 @@ function updateValleyLife(dt) {
   if (night || rain > .75) valleyMove(otter, dt, 17);
   turtle.step += dt; turtle.hide = Math.max(0, turtle.hide - dt); turtle.wait -= dt;
   if (rain > .7) turtle.hide = Math.max(turtle.hide, .35);
-  if (night) { turtle.tx = 260; turtle.ty = 1238; }
-  else if (valleyMove(turtle, dt, 5.5) && turtle.wait <= 0) {
-    const target = valleyWaterTarget(.55); turtle.tx = target.x; turtle.ty = target.y; turtle.wait = rand(1.5, 3.5);
+  const basking=updateTurtleBask(dt);
+  if (!basking) {
+    if (night) { turtle.tx = 260; turtle.ty = 1238; }
+    else if (valleyMove(turtle, dt, 5.5) && turtle.wait <= 0) {
+      const target = valleyWaterTarget(.55); turtle.tx = target.x; turtle.ty = target.y; turtle.wait = rand(1.5, 3.5);
+    }
+    if (night) valleyMove(turtle, dt, 5.5);
   }
-  if (night) valleyMove(turtle, dt, 5.5);
   heron.step += dt; heron.flap = Math.max(0, heron.flap - dt); heron.wait -= dt;
+  const fishing=updateHeronFishing(dt);
+  if(!fishing){
   if (night || rain > .75) { heron.tx = 299; heron.ty = 1180; }
   else if (valleyMove(heron, dt, 7) && heron.wait <= 0) {
     const spots = [[294, 1187], [302, 1207], [277, 1194], [283, 1177]];
@@ -95,6 +103,7 @@ function updateValleyLife(dt) {
     heron.tx = x; heron.ty = y; heron.wait = rand(1.8, 3.7);
   }
   if (night || rain > .75) valleyMove(heron, dt, 8);
+  }
   shoal.step += dt * (shoal.scatter > 0 ? 13 : 5);
   shoal.scatter = Math.max(0, shoal.scatter - dt); shoal.wait -= dt;
   if (!night && otter.dive <= 0 && Math.hypot(shoal.x - otter.x, shoal.y - otter.y) < 38 && shoal.scatter <= 0) scatterValleyShoal();

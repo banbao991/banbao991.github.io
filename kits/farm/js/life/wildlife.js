@@ -31,6 +31,7 @@ function spawnForageForDay() {
       break;
     }
   }
+  spawnForestAcorn(sites);
   farm.forage = sites;
   farm.forageSpawnDay = farm.day;
 }
@@ -71,8 +72,9 @@ function chooseSquirrelTarget() {
   squirrel.ty = target.y + (target.kind ? -8 : 0);
 }
 function updateWildlife(dt) {
+  if(farm.paused||updateSquirrelMeal(dt))return;
   squirrel.excited = Math.max(0, squirrel.excited - dt);
-  const sheltering = farm.phase >= NIGHT_START || weatherVisual().rain > .72;
+  const sheltering = farm.phase >= NIGHT_START || squirrelMealWeather();
   if (sheltering) { squirrel.tx = 1126; squirrel.ty = 401; squirrel.wait = 0; }
   else if (squirrel.wait > 0) squirrel.wait -= dt;
   else if (Math.hypot(squirrel.tx - squirrel.x, squirrel.ty - squirrel.y) < 9) {
@@ -90,6 +92,7 @@ function updateWildlife(dt) {
   }
 }
 function feedSquirrel() {
+  stopSquirrelMeal();
   squirrel.excited = 2.8;
   squirrel.wait = 0;
   if (farm.berries < 1) {
@@ -112,10 +115,3 @@ function resetWildlife() {
   squirrel = { x: 1050, y: 420, tx: 1130, ty: 415, wait: 0, step: 0, moving: true, dir: 1, excited: 0 };
 }
 spawnForageForDay();
-
-function foxPosition() { return { x: 1190 + Math.sin(motionNow * .34) * 55, y: 466 + Math.sin(motionNow * .23) * 24 }; }
-
-function foxAt(x, y) {
-  const fox = foxPosition();
-  return farm.phase < NIGHT_START && x >= fox.x - 33 && x <= fox.x + 28 && y >= fox.y - 20 && y <= fox.y + 15;
-}

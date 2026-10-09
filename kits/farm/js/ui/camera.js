@@ -54,10 +54,24 @@ function updateViewUI() {
   $('zoom-in').disabled = view.zoom >= 1.6;
   $('zoom-label').textContent = `${Math.round(view.zoom * 100)}%`;
   const center = screenToWorld(W / 2, H / 2);
+  if(inRect(center.x,center.y,2160,1704,2540,1904)){$('region-label').textContent='山脚小塘与果林';return;}
+  if(inRect(center.x,center.y,2416,640,2540,925)){$('region-label').textContent='东缘林泉';return;}
+  if(inRect(center.x,center.y,2440,1000,2540,1350)){$('region-label').textContent='东岸四季花坡';return;}
+  const donkeyArea=TOWN_LAYOUT.donkeyInn.area,ridge=TOWN_LAYOUT.ridge;
+  if(inRect(center.x,center.y,donkeyArea.left,donkeyArea.top,donkeyArea.right,donkeyArea.bottom)){
+    $('region-label').textContent=farm.town.improvements.donkeyInn.level?'东岸小驴驿':'东岸草地';return;
+  }
+  if(inRect(center.x,center.y,ridge.left,ridge.top,ridge.right,ridge.bottom)){
+    $('region-label').textContent='矿坡东侧山脊';return;
+  }
   if (inRect(center.x, center.y, NURSERY_LAYOUT.area.left, NURSERY_LAYOUT.area.top,
     NURSERY_LAYOUT.area.right, NURSERY_LAYOUT.area.bottom)) {
     $('region-label').textContent = farm.nursery.level ? '西南湿地苗圃' : '西南旧苗圃';
     return;
+  }
+  const travellerDistrict=TOWN_LAYOUT.district;
+  if (inRect(center.x,center.y,travellerDistrict.left,travellerDistrict.top,travellerDistrict.right,travellerDistrict.bottom)) {
+    $('region-label').textContent = villageSiteOpen('traveller')?'东岸旅人驿屋':'村口东侧空地'; return;
   }
   if (lakeAt(center.x, center.y)) {
     $('region-label').textContent = '西湖';

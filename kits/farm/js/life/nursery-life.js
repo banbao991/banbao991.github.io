@@ -31,24 +31,31 @@ function collectNurseryBed(index, name = null) {
   save();
   return true;
 }
-function updateNurseryMilestones() {
+function updateNurseryMilestones(dt=0) {
+  if(!villageResidentWorking('阿芽')||!villageSiteOpen('nursery')||isFestivalDay()||farm.phase<.1||farm.phase>.4)return;
   const nursery = farm.nursery, level = nurseryLevelForShipments(farm.shippedTotal);
   if (level <= nursery.level) return;
+  if(farm.development){
+    nursery.restoreWork=(nursery.restoreWork||0)+dt;
+    if(nursery.restoreWork<VILLAGE_WORK_DAY*.8)return;
+    nursery.restoreWork=0;
+  }
   const oldCount = nurseryActiveBeds();
-  nursery.level = level;
+  nursery.level = Math.min(level,nursery.level+1);
   nursery.openedAt ??= nurseryClock();
   for (let index = oldCount; index < nurseryActiveBeds(); index++) {
     nursery.beds[index].builtAt = nurseryClock();
     nursery.beds[index].pickedAt = nurseryClock();
     nursery.beds[index].readyAt = nurseryClock() + nurseryGrowthDays() * .66 + (index % 2) * .22;
   }
-  record(level === 1 ? '村口送来修缮木料，阿芽的小屋旁修好了第一批旧苗床。'
-    : `湿地苗圃修复到第 ${level} 阶段，又添了 ${nurseryActiveBeds() - oldCount} 畦苗床。`);
+  record(nursery.level === 1 ? '村口送来修缮木料，阿芽的小屋旁修好了第一批旧苗床。'
+    : `湿地苗圃修复到第 ${nursery.level} 阶段，又添了 ${nurseryActiveBeds() - oldCount} 畦苗床。`);
 }
 function nurseryFrogPosition() {
   const leap = Math.max(0, farm.nursery.frogJumpUntil - motionNow);
-  return { x: 99 + Math.sin(motionNow * .36) * 12,
-    y: 1786 - (leap > 0 ? Math.sin((2 - leap) * Math.PI * 2) ** 2 * 13 : 0) };
+  const base=nurseryFrogContact();
+  return { x: base.x,
+    y: base.y - (leap > 0 ? Math.sin((2 - leap) * Math.PI * 2) ** 2 * 13 : 0) };
 }
 function nurseryFrogAt(x, y) {
   if (seasonTransition().winter > .7) return false;
@@ -56,6 +63,7 @@ function nurseryFrogAt(x, y) {
   return Math.abs(x - frog.x) < 16 && Math.abs(y - frog.y) < 14;
 }
 function nurseryKeeperAt(x, y) {
+  if(!villageResidentWorking('阿芽'))return false;
   if (festivalAtHome(nurseryKeeper)) return false;
   if (farm.nursery.level === 0 && !isFestivalDay()) return false;
   if (farm.phase >= NIGHT_START && distance(nurseryKeeper, NURSERY_LAYOUT.home.door) < 3) return false;
@@ -143,6 +151,7 @@ function nurseryKeeperMove(dt) {
   return nurseryKeeper.path.length === 0;
 }
 function updateNurseryKeeper(dt) {
+  if(farm.paused||!villageResidentWorking('阿芽'))return;
   const keeper = nurseryKeeper;
   if (isFestivalDay()) {
     keeper.path = []; keeper.goal = null; keeper.bedIndex = null; keeper.action = 0;
@@ -151,7 +160,14 @@ function updateNurseryKeeper(dt) {
   }
   if (festivalAtHome(keeper) && farm.phase < .02) return;
   if (keeper.festival) keeper.festival = null;
-  if (!farm.nursery.level) return;
+  if(farm.phase>=.1&&farm.phase<NIGHT_START&&nurseryLevelForShipments(farm.shippedTotal)>farm.nursery.level){
+    const bed=NURSERY_LAYOUT.beds[nurseryActiveBeds()],point={x:bed.x+28,y:bed.y+12};
+    if(keeper.goal!=='restore'){keeper.path=[point];keeper.goal='restore';}
+    if(nurseryKeeperMove(dt))updateNurseryMilestones(dt*villageWorkingWeather());
+    if(nurseryLevelForShipments(farm.shippedTotal)===farm.nursery.level)keeper.goal=null;
+    return;
+  }
+  if (!farm.nursery.level&&farm.phase<NIGHT_START) return;
   if (farm.phase >= NIGHT_START) {
     if (keeper.goal !== 'home') {
       keeper.path = nurseryKeeperPath('home'); keeper.goal = 'home'; keeper.action = 0;
@@ -180,8 +196,10 @@ function updateNurseryKeeper(dt) {
   }
 }
 function updateNurseryLife(dt) {
+  if(farm.paused)return;
   const target = farm.weather === 'rain' ? .9 : farm.weather === 'snow' ? .74
     : farm.weather === 'cloud' ? .55 : .32;
   farm.nursery.wetness = clamp(farm.nursery.wetness + (target - farm.nursery.wetness) * Math.min(1, dt * .075), 0, 1);
+  updateWetlandFrogSong(dt);
   updateNurseryKeeper(dt);
 }

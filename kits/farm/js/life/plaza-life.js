@@ -26,20 +26,25 @@ function plazaSparrowAt(x, y) {
 }
 function plazaCatHint(cat) {
   const actions = { home: '在猫屋里休息', return: '正回猫屋', move: '在广场散步',
-    sleep: '蜷着身子晒太阳', groom: '正在洗脸', stretch: '伸了个懒腰', watch: '坐着看麻雀' };
-  return `${cat.name} · ${cat.coat === 'ginger' ? '橘白猫' : '奶牛猫'} · ${actions[cat.mode]} · 点击摸摸它`;
+    sleep: '蜷着身子晒太阳', groom: '正在洗脸', stretch: '伸了个懒腰', watch: '坐着看麻雀', play:'拨着毛线球、追几步' };
+  return `${cat.name} · ${cat.coat === 'ginger' ? '橘白猫' : '奶牛猫'} · ${townCatWaterHint(cat) || plazaCatCompanyHint(cat) || actions[cat.mode]} · 点击摸摸它`;
 }
 function plazaSparrowHint(bird) {
-  return `广场麻雀 · ${{ fly: '正在短距离飞行', hop: '轻轻跳跃', peck: '在空地啄食',
+  const v=farm.town.eavesVisit,visiting=plazaEavesVisitActive()&&plazaSparrows[v.bird]===bird;
+  return `${visiting?'屋檐来客 · '+plazaEavesDescription():'广场麻雀'} · ${{ fly: '正在短距离飞行', hop: '轻轻跳跃', peck: '在空地啄食',
     preen: '正在整理羽毛', perch: '停在高处歇脚' }[bird.mode]} · 点击看它展翅`;
 }
 function plazaCatHouseHint() {
   const indoors = plazaCats.filter(cat => !plazaCatVisible(cat)).map(cat => cat.name);
   return `广场猫屋 · 橘白猫橘子与奶牛猫墨点的家 · ${indoors.length
-    ? `${indoors.join('、')}在屋里${farm.weather === 'rain' ? '避雨' : '休息'}` : '两只猫都在外面活动'} · 雨天不出门，夜里回家`;
+    ? `${indoors.join('、')}在屋里${plazaCatsBadWeather() ? '避雨雪' : '休息'}` : '两只猫都在外面活动'} · 雨雪天不出门，夜里回家`;
 }
 
 function plazaPetWalkable(point) {
+  const cushion = TOWN_LAYOUT.projects.catComfort.cushion;
+  if (farm.town.improvements.catComfort.level && inRect(point.x, point.y, cushion.x-10, cushion.y, cushion.x+10, 632)) return true;
+  const waterStand = TOWN_LAYOUT.catWater.stand;
+  if (townCatWaterBuilt() && inRect(point.x,point.y,waterStand.x-8,waterStand.y,waterStand.x+8,632)) return true;
   const s = CENTRAL_PLAZA;
   if (!centralPlazaAt(point.x, point.y) || point.x < s.left + 15
     || point.x > plazaRightAt(point.y) - 16 || point.y < s.top + 8 || point.y > s.bottom - 16) return false;
@@ -52,16 +57,19 @@ function plazaPetWalkable(point) {
   return !isFestivalDay() || (!s.tables.some(table => Math.abs(point.x - table.x) < 43
     && Math.abs(point.y - table.y) < 42) && !s.poles.some(pole => distance(point, pole) < 21));
 }
-function plazaPetPath(from, target) {
+function plazaPetPath(from, target, options = {}) {
   const step = 16, left = 688, top = 632, columns = 31, rows = 21;
   const nodes = new Map();
   for (let row = 0; row < rows; row++) for (let col = 0; col < columns; col++) {
     const point = { x: left + col * step, y: top + row * step };
-    if (plazaPetWalkable(point)) nodes.set(row * columns + col, point);
+    if (plazaPetWalkable(point) && !(options.avoid || []).some(other=>distance(point,other)<38))
+      nodes.set(row * columns + col, point);
   }
+  if(!nodes.size)return [];
   const nearest = point => [...nodes.keys()].reduce((best, key) =>
     distance(nodes.get(key), point) < distance(nodes.get(best), point) ? key : best);
   const start = nearest(from), end = nearest(target), queue = [start], previous = new Map([[start, null]]);
+  if(options.exact && (distance(nodes.get(start),from)>12 || distance(nodes.get(end),target)>12))return [];
   for (let index = 0; index < queue.length && !previous.has(end); index++) {
     const key = queue[index];
     for (const next of [key - columns, key + columns,
@@ -72,8 +80,13 @@ function plazaPetPath(from, target) {
   if (!previous.has(end)) return [];
   const path = [];
   for (let key = end; key !== null; key = previous.get(key)) path.unshift({ ...nodes.get(key) });
-  // Ground destinations use the nearest clear cell; only the two home doors sit outside the grid.
+  // Most rest points use a clear cell; paired seats must keep their exact 56px separation.
   if (PLAZA_PET_LAYOUT.house.doors.some(door => door.x === target.x && door.y === target.y)) path.push({ ...target });
+  if(townCatToyBalls().some(ball=>distance(ball,target)<.01) && plazaPetWalkable(target))path.push({x:target.x,y:target.y});
+  if(target === TOWN_LAYOUT.projects.catComfort.cushion && plazaPetWalkable(target))path.push({...target});
+  if(target === TOWN_LAYOUT.catWater.stand && plazaPetWalkable(target))path.push({...target});
+  if(options.exact && plazaPetWalkable(target))
+    path.push({x:target.x,y:target.y});
   return path;
 }
 function setPlazaCatGoal(cat, point, mode = 'move') {
@@ -94,11 +107,15 @@ function movePlazaPet(actor, point, dt, speed) {
   return length <= travel + .01;
 }
 function choosePlazaCatWalk(cat) {
-  const options = PLAZA_PET_LAYOUT.restSpots.filter(point => plazaPetWalkable(point)
+  const options = [...PLAZA_PET_LAYOUT.restSpots, ...(farm.town.improvements.catComfort.level ? [TOWN_LAYOUT.projects.catComfort.cushion] : [])].filter(point => plazaPetWalkable(point)
     && distance(cat, point) > 45 && plazaCats.every(other => other === cat
       || Math.hypot(point.x - other.tx, point.y - other.ty) > 42));
   if (!options.length) return;
-  setPlazaCatGoal(cat, options[Math.floor(Math.random() * options.length)]);
+  const cushion = TOWN_LAYOUT.projects.catComfort.cushion;
+  const toy = options.find(point => point === cushion) || options.find(point => point.x === 816 && point.y === 648);
+  const playful=townCatToyDestination(cat);
+  setPlazaCatGoal(cat, playful || ((farm.town.inventory.petToy || farm.town.improvements.catComfort.level) && toy && Math.random() < .4
+    ? toy : options[Math.floor(Math.random() * options.length)]));
 }
 function plazaNeighbours() {
   return festivalParticipants().filter(actor => !festivalAtHome(actor)
@@ -106,23 +123,31 @@ function plazaNeighbours() {
     && actor.y >= CENTRAL_PLAZA.top - 20 && actor.y <= CENTRAL_PLAZA.bottom + 20);
 }
 function updatePlazaCats(dt) {
-  const shelter = farm.weather === 'rain' || farm.phase >= NIGHT_START || farm.phase < .04;
+  const shelter = plazaCatsSheltering();
+  updatePlazaCatCompanyPlan(dt);
+  updateTownCatWaterPlan(dt);
   for (const [index, cat] of plazaCats.entries()) {
     cat.purr = Math.max(0, cat.purr - dt);
     if (shelter && !['home', 'return'].includes(cat.mode))
       setPlazaCatGoal(cat, PLAZA_PET_LAYOUT.house.doors[index], 'return');
+    if (updateTownCatWaterCat(cat,dt)) continue;
+    if (updatePlazaCatCompanyCat(cat,index,dt)) continue;
+    if (updateTownCatPlay(cat,index,dt,shelter)) continue;
     if (cat.mode === 'home') {
       if (!shelter && (cat.wait = Math.max(0, cat.wait - dt)) <= 0) choosePlazaCatWalk(cat);
       continue;
     }
     if (cat.mode === 'move' || cat.mode === 'return') {
       const point = cat.path[0];
+      if (townCatWaterHoldOther(cat,point,dt)) continue;
       if (point && movePlazaPet(cat, point, dt, cat.mode === 'return' ? 78 : 42)) cat.path.shift();
       if (cat.path.length) continue;
       if (cat.mode === 'return') { cat.mode = 'home'; cat.wait = 1 + index; continue; }
       const bird = plazaSparrows.find(item => plazaSparrowVisible(item) && distance(cat, item) < 150);
       cat.mode = bird && Math.random() < .35 ? 'watch' : ['sleep', 'groom', 'stretch'][Math.floor(Math.random() * 3)];
       cat.wait = cat.mode === 'stretch' ? 1.8 : rand(3.5, 7); cat.action = 0;
+      if (cat.mode === 'sleep' && farm.town.improvements.catComfort.level
+        && distance(cat, TOWN_LAYOUT.projects.catComfort.cushion) < 20) cat.wait += 2;
       if (bird) cat.dir = bird.x < cat.x ? -1 : 1;
     } else {
       cat.action += dt; cat.wait = Math.max(0, cat.wait - dt);
@@ -133,6 +158,8 @@ function updatePlazaCats(dt) {
 
 function sparrowSiteAvailable(bird, index) {
   const site = PLAZA_PET_LAYOUT.birdSites[index];
+  if(!villageSiteOpen('plaza')&&['well','stage','bench'].includes(site.kind))return false;
+  if (site.kind === 'village-roof') return false;
   if (site.kind === 'pole' && !isFestivalDay()) return false;
   if (plazaSparrows.some(other => other !== bird && other.site === index && plazaSparrowVisible(other))) return false;
   if (site.kind !== 'ground') return true;
@@ -155,10 +182,12 @@ function chooseSparrowSite(bird, highOnly = false) {
   flyPlazaSparrow(bird, choice.index);
 }
 function updatePlazaSparrows(dt) {
+  updatePlazaEavesPlan();
   const visit = farm.phase >= .07 && farm.phase < .49 && farm.weather !== 'rain'
     && (farm.phase - .07) % .15 < .115;
   const count = 3 + Math.floor(hash(farm.day, Math.floor(farm.phase / .15), 617) * 3);
   for (const [index, bird] of plazaSparrows.entries()) {
+    if(updatePlazaEavesBird(bird,index,dt))continue;
     const wanted = visit && index < count;
     if (!wanted && bird.mode !== 'away' && !bird.returning) flyPlazaSparrow(bird);
     if (bird.mode === 'away') {
@@ -198,14 +227,21 @@ function updatePlazaSparrows(dt) {
 }
 function updatePlazaLife(dt) {
   if (farm.paused) return;
+  updateTownCatToys(dt);
   updatePlazaCats(dt); updatePlazaSparrows(dt);
 }
 function greetPlazaCat(cat) {
   cat.purr = 2.5;
-  if (!['move', 'return'].includes(cat.mode)) { cat.mode = 'stretch'; cat.wait = 2; }
+  if(cat.mode==='play'||townCatWaterCat(cat)){save();return;}
+  if (!['move', 'return', 'company'].includes(cat.mode)) { cat.mode = 'stretch'; cat.wait = 2; }
   record(`${cat.name}轻轻喵了一声，抬头蹭蹭你的手。`); save();
 }
 function greetPlazaSparrow(bird) {
+  const v=farm.town.eavesVisit;
+  if(plazaEavesVisitActive()&&plazaSparrows[v.bird]===bird){
+    plazaEavesTurnBack();
+    record('小麻雀扑棱着翅膀，沿来路飞回广场。');save();return;
+  }
   if (bird.mode !== 'fly') chooseSparrowSite(bird, true);
   record('小麻雀扑棱着翅膀，换了个落脚的地方。'); save();
 }

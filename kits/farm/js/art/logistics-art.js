@@ -10,6 +10,7 @@ function goodsPalette(good) {
 
 function drawDepots() {
   for (const id of DEPOT_IDS) {
+    if(!villageDepotOpen(id))continue;
     if (id === 'nursery' && !farm.nursery.level) continue;
     const site = DEPOT_SITES[id], x = site.x, y = site.y;
     const goods = Object.entries(farm.depots[id]).filter(([, count]) => count > 0);
@@ -52,7 +53,9 @@ function drawCourier() {
   rect(x - 21, y - 10, 17, 19, '#8d9a72');
   rect(x - 19, y - 25, 14, 15, '#e5b990');
   rect(x - 22, y - 27, 20, 5, '#b47850'); rect(x - 17, y - 30, 11, 5, '#d6a36c');
-  rect(x - 5, y - 6, 8, 5, '#e5b990');
+  if(!courierMealEating())rect(x - 5, y - 6, 8, 5, '#e5b990');
+  rect(x-9,y-19,2,2,'#4a473c');
+  drawCourierMeal();
   if (farm.paused) rect(x - 8, y - 19 + pausePulse(x, 2), 3, 2, '#9a715a');
 }
 

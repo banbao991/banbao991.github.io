@@ -1,26 +1,29 @@
 'use strict';
 // Farm workers, responsibilities, task selection, movement, harvest and return home.
-let workers = [
+function createFarmWorkers() { return [
   { x: 567, y: 285, speed: 82, dir: -1, walk: 0, task: null, action: 0, shirt: '#e8a068', hat: '#ead08b', name: '阿满' },
   { x: 446, y: 298, speed: 76, dir: 1, walk: 0, task: null, action: 0, shirt: '#7394a0', hat: '#d8ba70', name: '小禾' }
-];
+]; }
+let workers = createFarmWorkers();
 function addSouthWorker() {
   if (workers.some(w => w.name === '阿青')) return;
   workers.push({ x: 795, y: 280, speed: 105, dir: 1, walk: 0, task: null, action: 0, shirt: '#a37fa9', hat: '#e8c77d', name: '阿青' });
 }
 function addFarmWorker() {
+  if (!villageResidentWorking('阿麦')) return;
   if (workers.some(w => w.name === '阿麦')) return;
   workers.push({ x: 520, y: 285, speed: 88, dir: 1, walk: 0, task: null, action: 0,
     shirt: '#a7ad72', hat: '#d8b782', name: '阿麦', route: [] });
 }
 function addValleyWorker() {
+  if (!villageResidentWorking('阿栀')) return;
   if (workers.some(w => w.name === '阿栀')) return;
   workers.push({ x: VALLEY_WORKER_LAYOUT.home.x, y: VALLEY_WORKER_LAYOUT.home.y,
     speed: 148, dir: 1, walk: 0, task: null, action: 0,
     shirt: '#a87567', hat: '#e0bd86', name: '阿栀', route: [] });
 }
 function addPastureWorker() {
-  if (farm.upgrades < 4 || workers.some(w => w.name === '阿牧')) return;
+  if (!villageResidentWorking('阿牧') || !villageSiteOpen('sheep') || workers.some(w => w.name === '阿牧')) return;
   workers.push({ x: PASTURE_WORKER_LAYOUT.home.x, y: PASTURE_WORKER_LAYOUT.home.y,
     speed: 92, dir: 1, walk: 0, task: null, action: 0,
     shirt: '#7d9274', hat: '#e5bd80', name: '阿牧', route: [] });
@@ -48,13 +51,22 @@ function pastureWorkerRestWaypoint(worker) {
   if (worker.x > layout.rest.x + 15 && worker.y > layout.rest.y + 40) return layout.goatApproach;
   return layout.rest;
 }
+function pastureWorkerNightWaypoint(w) {
+  const home=PASTURE_WORKER_LAYOUT.home;
+  if(distance(w,home)<12)return home;
+  if(w.y>1390)return pastureWorkerRestWaypoint(w);
+  if(w.x>744&&w.y>1283)return {x:970,y:1275};
+  if(w.x>680&&w.y<1290)return {x:672,y:1275};
+  if(w.y<1338)return {x:672,y:home.y};
+  return home;
+}
 
 function validTask(task) {
   if (!task) return false;
   if (task.type === 'eggs') return farm.eggsReady;
   if (task.type === 'fruit') return farm.fruitReady;
   if (task.type === 'honey') return farm.honeyReady && farm.upgrades >= 2;
-  if (task.type === 'wool') return farm.woolReady && farm.upgrades >= 4;
+  if (task.type === 'wool') return farm.woolReady && villageSiteOpen('sheep');
   if (task.type === 'goatMilk') return farm.goatMilkReady && farm.goatBarnOpen;
   if (task.type === 'herb') return farm.valleyHerbs[task.index] && valleyHerbProgress(farm.valleyHerbs[task.index]) >= 1;
   if (task.type === 'milk') return cows[task.index] && cows[task.index].milk;
@@ -85,7 +97,7 @@ function assignTask(worker) {
       if (valleyHerbProgress(herb) >= 1) options.push({ type: 'herb', index, priority: 0 });
     });
   } else if (worker.name === '阿牧') {
-    if (farm.woolReady && farm.upgrades >= 4) options.push({ type: 'wool', index: 0, priority: 1 });
+    if (farm.woolReady && villageSiteOpen('sheep')) options.push({ type: 'wool', index: 0, priority: 1 });
     if (farm.goatMilkReady && farm.goatBarnOpen) options.push({ type: 'goatMilk', index: 0, priority: 2 });
   } else {
     cows.forEach((c, index) => { if (c.milk) options.push({ type: 'milk', index, priority: -2 }); });
@@ -142,7 +154,7 @@ function finishTask(task, worker) {
     if (task.type === 'harvest') {
       const cropType = p.crop, crop = crops[cropType];
       farm.harvested++; p.crop = null; p.age = 0; p.plantedAt = null;
-      const depot = p.y >= FIELD_EXPANSIONS.south.top ? 'pasture' : 'farm';
+      const depot = p.y >= FIELD_EXPANSIONS.south.top && villageDepotOpen('pasture') ? 'pasture' : 'farm';
       stockGood(depot, cropType, 1);
       if (farm.harvested % 4 === 1) record(`${worker.name}收获了${crop.name}，放进${DEPOT_SITES[depot].name}。`);
     } else if (task.type === 'plant') {
@@ -157,6 +169,7 @@ function finishTask(task, worker) {
 function updateFarmWorkers(dt) {
   const sleeping = farm.phase >= NIGHT_START;
   workers.forEach(w => {
+    if(!villageResidentWorking(w.name))return;
     if (isFestivalDay()) {
       w.task = null; w.route = []; w.action = 0;
       const slot = { '阿满': 0, '小禾': 1, '阿青': 2, '阿栀': 3, '阿牧': 4, '阿麦': 12 }[w.name];
@@ -168,7 +181,7 @@ function updateFarmWorkers(dt) {
     if (w.festival) w.festival = null;
     if (sleeping) {
       w.task = null; w.route = []; w.action = 0;
-      const home = w.name === '阿栀' ? valleyWorkerNightWaypoint(w) : workerHome(w), d = distance(w, home);
+      const home = w.name === '阿栀' ? valleyWorkerNightWaypoint(w) : w.name==='阿牧'?pastureWorkerNightWaypoint(w):workerHome(w), d = distance(w, home);
       if (d > 8) { w.x += (home.x - w.x) / d * Math.min(w.speed * dt, d - 6); w.y += (home.y - w.y) / d * Math.min(w.speed * dt, d - 6); w.walk += dt * 12; }
       return;
     }

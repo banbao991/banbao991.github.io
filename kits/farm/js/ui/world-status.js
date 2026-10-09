@@ -3,16 +3,19 @@
 function updateWorldStatusUI() {
   const celebration = farm.celebration;
   $('plaza-life-status').textContent = `两只猫${plazaCats.every(cat => cat.mode === 'home')
-    ? farm.weather === 'rain' ? '在猫屋避雨' : '在猫屋休息' : `外出 ${plazaCats.filter(plazaCatVisible).length}/2`} · 麻雀 ${plazaSparrows.filter(plazaSparrowVisible).length} 只`;
+    ? plazaCatsBadWeather() ? '在猫屋避雨雪' : '在猫屋休息' : `外出 ${plazaCats.filter(plazaCatVisible).length}/2`} · 麻雀 ${plazaSparrows.filter(plazaSparrowVisible).length} 只 · ${plazaCatCompanyDescription()}${townCatWaterDescription()?' · '+townCatWaterDescription():''}${plazaEavesDescription()?' · '+plazaEavesDescription():''}`;
   const celebrating = isFestivalDay() && celebration.day === farm.day;
-  $('festival-status').textContent = celebrating
+  const plazaReady=villageSiteOpen('plaza');
+  $('festival-status').textContent = !plazaReady ? '广场建成后开启欢庆'
+    : celebrating
     ? `${festivalTheme().name} · ${FESTIVAL_LEVELS[celebration.level].name}`
     : `下次欢庆：第 ${Math.floor(farm.day / 10 + 1) * 10} 天`;
-  $('festival-budget-status').textContent = celebrating
+  $('festival-budget-status').textContent = !plazaReady ? '尚未筹备欢庆'
+    : celebrating
     ? `本次支出 ${celebration.budget} 金 · 清晨金币 ${celebration.openingCoins} 金`
     : `当前金币预计预算 ${festivalBudgetFor(farm.coins)} 金 · 当天清晨确定`;
-  $('festival-programme-status').textContent = celebrating ? festivalProgramme() : '按金币的 1% 筹备，保留 300 金经营储备';
-  $('forest-status').textContent = `可采 ${farm.forage.length} 处 · 果篮野莓 ${farm.berries} 份`;
+  $('festival-programme-status').textContent = !plazaReady ? '广场建成后，每逢第十天相聚' : celebrating ? festivalProgramme() : '按金币的 1% 筹备，保留 300 金经营储备';
+  $('forest-status').textContent = `可采 ${farm.forage.length} 处 · 果篮野莓 ${farm.berries} 份${squirrelEating()?' · 松鼠在吃野莓':''}${forestFox.mode==='nap'?' · 狐狸在打盹':''}`;
   $('keeper-status').textContent = `阿森 · ${forestKeeperActivity()}${forestKeeper.choice === 'gather'
     && forestKeeper.day === farm.day && !isFestivalDay() ? ` · 今日采菇 ${forestKeeper.picked}/3` : ''}`;
   $('lake-status').textContent = `鱼点 ${farm.fishSpots.length} 处 · 鱼箱 ${depotCount('lake')} 尾`;
@@ -23,6 +26,7 @@ function updateWorldStatusUI() {
   $('nursery-status').textContent = farm.nursery.level
     ? `已修 ${active} 畦 · 可采 ${ready} 畦 · 货箱 ${depotCount('nursery')} 件`
     : `再送达 ${Math.max(0, NURSERY_THRESHOLDS[0] - farm.shippedTotal)} 件货物，修复首批苗床`;
+  if(wetlandFrogSongDescription())$('nursery-status').textContent+=' · '+wetlandFrogSongDescription();
   $('nursery-keeper-status').textContent = `阿芽 · ${nurseryKeeperActivity()}`;
   $('mine-stock-status').textContent = `可采 ${MINE_LAYOUT.nodes.filter((_, index) => mineNodeReady(index)).length} 处 · 暂存 ${mineStockCount()} 块`;
   $('mine-status').textContent = `阿矿 · ${minerActivity()}`;
@@ -31,6 +35,7 @@ function updateWorldStatusUI() {
   $('shipping-status').textContent = `阿运 · ${courierActivity()}`;
   $('shipping-plan').textContent = courierPlanText();
   $('forest-statistics').textContent = `松鼠亲近度 ${farm.squirrelTrust} · 累计采集 ${farm.forageTotal} 处`;
+  $('valley-life-status').textContent=`水獭与小鱼 · 苍鹭${heronFishingActivity()} · 乌龟${turtleBaskActivity()}`;
   $('lake-statistics').textContent = `西湖累计钓获 ${farm.fishTotal} 尾 · 水鸭 ${lakeDucks.length} 只`;
 }
 function focusWorldStatus(region) {

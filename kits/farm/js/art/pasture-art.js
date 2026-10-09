@@ -24,7 +24,7 @@ function drawSheepPen() {
 }
 
 function drawSheepFenceFront() {
-  if (farm.upgrades < 4) return;
+  if (!villageSiteOpen('sheep')) return;
   for (let x = SHEEP_LAYOUT.pen.left; x < SHEEP_LAYOUT.pen.right - 5; x += 27) fencePost(x, SHEEP_LAYOUT.pen.bottom - 28);
 }
 

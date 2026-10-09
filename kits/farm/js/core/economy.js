@@ -10,8 +10,8 @@ function makeOrder(day, serial = 0) {
 }
 
 function record(text) {
+  farm.events = farm.events.filter(event => event.day === farm.day);
   farm.events.unshift({ day: farm.day, time: shortTime(), text });
-  farm.events = farm.events.slice(0, 10);
   updateUI();
 }
 
@@ -32,36 +32,22 @@ function addExpansionPlots(bounds) {
 }
 
 function expandIfReady() {
-  if (farm.upgrades === 0 && farm.coins >= 250) {
-    farm.coins -= 120;
-    addExpansionPlots(FIELD_EXPANSIONS.east);
-    farm.upgrades = 1;
-    record('收成不错！东侧新开垦了 18 格田地，路边留着草地。');
-  } else if (farm.upgrades === 1 && farm.coins >= 430) {
-    farm.coins -= 120;
-    farm.upgrades = 2;
-    record('果园边摆上了蜂箱，花香引来了蜜蜂。');
-  } else if (farm.upgrades === 2 && farm.coins >= 680) {
-    farm.coins -= 250;
-    farm.upgrades = 3;
-    addExpansionPlots(FIELD_EXPANSIONS.upperSouth);
-    record('温室落成啦！田地也延伸到了南边。');
-  } else if (farm.upgrades === 3 && farm.coins >= 1200) {
-    farm.coins -= 400;
-    farm.upgrades = 4;
-    addExpansionPlots(FIELD_EXPANSIONS.south);
-    farm.woolReady = true;
-    addPastureWorker();
-    record('南方牧场开放了！阿牧来到羊舍照顾羊群，闲时在两舍之间歇脚。');
-  } else if (farm.upgrades === 4 && !farm.goatBarnOpen && farm.coins >= 1500) {
-    farm.coins -= 300;
-    farm.goatBarnOpen = true;
-    farm.goatMilkReady = true;
-    resetMeadowLife();
-    record('山羊舍落成了！糯米和栗子搬进草甸，开始在围栏里散步。');
-  } else if (farm.upgrades === 4 && farm.goatBarnOpen && farm.coins >= 1900) {
-    farm.coins -= 600;
-    farm.upgrades = 5;
-    record('村口集市开张了，今后的作物能卖出更好的价钱。');
+  if(farm.paused||isFestivalDay())return;
+  const d=farm.development.independent;
+  const tasks=[
+    ['eastFields',250,120,FIELD_EXPANSIONS.east,'东侧田地开垦好了，又多了十八格土地。'],
+    ['beehives',430,120,null,'果园边摆上蜂箱，花香引来了蜜蜂。'],
+    ['upperFields',680,150,FIELD_EXPANSIONS.upperSouth,'主场田地向南延伸，阿麦也来帮忙了。'],
+    ['southFields',1200,250,FIELD_EXPANSIONS.south,'伙伴们开垦好了下面的新田地。'],
+    ['market',1900,600,null,'村口集市开张了，今后的作物能卖出更好的价钱。']
+  ];
+  const next=tasks.find(([id])=>!d[id]);
+  if(!next||farm.coins<next[1])return;
+  const [id,,price,bounds,text]=next;farm.coins-=price;d[id]=true;
+  if(bounds)addExpansionPlots(bounds);
+  farm.upgrades=Object.values(d).filter(Boolean).length;
+  if(id==='upperFields'){
+    farm.development.residents['阿麦']={stage:'home',project:null,arrivedAt:farm.day+farm.phase};addFarmWorker();
   }
+  record(text);
 }

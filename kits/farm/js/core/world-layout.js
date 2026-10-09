@@ -1,8 +1,11 @@
 'use strict';
 // Shared world geometry keeps terrain, bridges, interaction and mini-map aligned.
 const SOUTH_LAKE_SHIFT_Y = 64;
+// Water west of the pier, clear of its deck, boat and southern lily pads.
+const LAKE_DUCK_VISIT_POINT = {x:314,y:823+SOUTH_LAKE_SHIFT_Y};
 const FOREST_TREE_SITES = [[1000, 62], [1050, 86], [1214, 76], [1282, 108], [1455, 90],
   [1017, 390], [1127, 390], [1180, 421], [982, 508], [1115, 575], [1182, 568], [1030, 564]];
+const FOREST_FOX_LAYOUT={home:{x:1056,y:480},spots:[{x:1104,y:464},{x:1168,y:496},{x:1088,y:528},{x:1200,y:528}]};
 const RIVER_BRIDGES = [
   { y: 291, height: 33, west: 1247, east: 1363, westRoad: 930, eastRoad: 1950 },
   { y: 1005, height: 33, west: 1310, east: 1426, westRoad: 615, eastRoad: 1995 },
@@ -19,7 +22,7 @@ const MARKET_LAYOUT = {
   fountain: { x: 1713, y: 886 },
   notice: { x: 1450, y: 843 },
   receiving: { x: 1850, y: 934 },
-  lamps: [{ x: 1980, y: 777 }, { x: 2012, y: 932 }, { x: 1442, y: 932 }],
+  lamps: [{ x: 1980, y: 777 }, { x: 1980, y: 892 }, { x: 1442, y: 932 }],
   stalls: [{ x: 1530, color: '#bc7659' }, { x: 1820, color: '#d29c65' }],
   garden: { left: 1480, top: 1070, right: 1900, bottom: 1153, rowSpacing: 58,
     access: { left: 1444, top: 1031, width: 32, bottom: 1128 },
@@ -66,6 +69,8 @@ const NURSERY_LAYOUT = {
   ]
 };
 const NURSERY_BEDS_BY_LEVEL = [0, 4, 7, 10];
+const NURSERY_FROG_HOME={x:99,y:1786,range:12};
+
 function wetlandCreekCenter(y) {
   const points = NURSERY_LAYOUT.creek;
   for (let i = 1; i < points.length; i++) {
@@ -119,6 +124,8 @@ const COURIER_TRAILS = [
   { x: 1639, y: 950, w: 32, h: 71 }  // Market cart stop to the middle bridge.
 ];
 function courierRoadAt(x, y, padding = 0) {
+  if(farm.development)return villageRoadAt(x,y,farm,padding)||inRect(x,y,192-padding,576-padding,640+padding,608+padding)
+    ||inRect(x,y,MARKET_LAYOUT.district.left-padding,MARKET_LAYOUT.district.top-padding,MARKET_LAYOUT.district.right+padding,MARKET_LAYOUT.district.bottom+padding);
   const inside = (left, top, right, bottom) => inRect(x, y, left - padding, top - padding, right + padding, bottom + padding);
   if (inside(MARKET_LAYOUT.district.left, MARKET_LAYOUT.district.top, MARKET_LAYOUT.district.right, MARKET_LAYOUT.district.bottom)
     || inside(192, 576, 640, 608) || inside(604, 600, 638, SOUTH_VALLEY_ROAD_END)
@@ -127,6 +134,7 @@ function courierRoadAt(x, y, padding = 0) {
   return COURIER_TRAILS.some(trail => inside(trail.x, trail.y, trail.x + trail.w, trail.y + trail.h));
 }
 function mineRoadAt(x, y, padding = 0) {
+  if(farm.development)return courierRoadAt(x,y,padding);
   return courierRoadAt(x, y, padding) || MINE_LAYOUT.paths.some(path =>
     inRect(x, y, path.x - padding, path.y - padding,
       path.x + path.w + padding, path.y + path.h + padding))
@@ -166,13 +174,17 @@ const PLAZA_PET_LAYOUT = {
     { kind: 'bench', x: 772, y: 928, depth: 930 }, { kind: 'bench', x: 1118, y: 928, depth: 930 },
     { kind: 'pole', x: 704, y: 653, depth: 763 }, { kind: 'pole', x: 1168, y: 653, depth: 763 }]
 };
+const PLAZA_EAVES_SITES = [32,85].map(offset=>({kind:'village-roof',
+  x:MARKET_LAYOUT.homes[1].x+offset,y:MARKET_LAYOUT.homes[1].y+13,depth:MARKET_LAYOUT.homes[1].y+117}));
+const PLAZA_EAVES_SITE_START = PLAZA_PET_LAYOUT.birdSites.length;
+PLAZA_PET_LAYOUT.birdSites.push(...PLAZA_EAVES_SITES);
 const SOUTH_VALLEY_ROAD_END = 1699;
 const SCENIC_PATHS = [
   { x: 1188, y: 856, w: 33, h: 28 }, // Plaza to the eastern village road.
   { x: 918, y: 972, w: 32, h: 35 },  // Plaza to the southern bridge road.
   { x: 850, y: 1698, w: 32, h: 56 }, // Tea-house approach from the valley road.
   { x: 866, y: 1726, w: 92, h: 28 },
-  { x: 942, y: 1740, w: 32, h: 72 },
+  { x: 942, y: 1726, w: 32, h: 86 }, // Align the turn with the tea-house crosspath.
   { x: 604, y: 1683, w: 505, h: 31 } // Same width as the southern bridge road.
 ];
 const SHEEP_LAYOUT = {
@@ -188,7 +200,8 @@ const PASTURE_WORKER_LAYOUT = {
   rest: { x: 970, y: 1328 },
   goatApproach: { x: 970, y: 1381 },
   goatGate: { x: 1008, y: 1420 },
-  home: { x: 816, y: 1383 }
+  cottage: {left:676,top:1265,right:736,bottom:1341},
+  home: { x: 706, y: 1347 }
 };
 const VALLEY_GARDEN_LAYOUT = {
   herbs: { left: 1000, top: 1074, right: 1180, bottom: 1152 },
@@ -240,7 +253,8 @@ function riverAt(x, y, padding = 0) {
   return x >= center - 36 - padding && x < center + 38 + padding;
 }
 function bridgeAt(x, y) {
-  return RIVER_BRIDGES.some(bridge => x >= bridge.west && x <= bridge.east && y >= bridge.y - 8 && y <= bridge.y + bridge.height + 8);
+  return RIVER_BRIDGES.some((bridge,i) => (!farm.development||villageRoadBuilt(VILLAGE_ROAD_BY_ID[`bridge-${i}:0`]))
+    && x >= bridge.west && x <= bridge.east && y >= bridge.y - 8 && y <= bridge.y + bridge.height + 8);
 }
 function inRect(x, y, left, top, right, bottom) {
   return x >= left && x < right && y >= top && y < bottom;
@@ -254,6 +268,9 @@ function inRasterLake(x, y, left, top, right, bottom, depth, limit) {
 function pondDepth(x, y) { return ((x - 134) / 84) ** 2 + ((y - 190) / 80) ** 2; }
 function pondAt(x, y) { return inRasterLake(x, y, 44, 104, 252, 280, pondDepth, 1.09); }
 const VALLEY_LAKE_CENTER = { x: 195, y: 1220 };
+const VALLEY_HERON_FISHING={area:{left:255,right:279,top:1188,bottom:1232},home:{x:299,y:1180},beak:{x:-31,y:-3}};
+// Existing northwestern shore stone, with an in-water landing and return point.
+const VALLEY_TURTLE_BASK = {rock:{x:93,y:1172},water:{x:135,y:1185},inside:{x:154,y:1193}};
 function valleyLakeDepth(x, y) {
   return ((x - VALLEY_LAKE_CENTER.x) / 121) ** 2 + ((y - VALLEY_LAKE_CENTER.y) / 70) ** 2;
 }
@@ -266,6 +283,10 @@ function hiveAt(x, y) {
 
 function landmarkAt(x, y) {
   if (!inRect(x, y, 0, 0, WORLD_W, WORLD_H)) return null;
+  const ridge=TOWN_LAYOUT.ridge,donkeyArea=TOWN_LAYOUT.donkeyInn.area;
+  if(inRect(x,y,ridge.left,ridge.top,ridge.right,ridge.bottom))return 'mine-ridge';
+  if(inRect(x,y,donkeyArea.left,donkeyArea.top,donkeyArea.right,donkeyArea.bottom))
+    return townRoadAt(x,y)?'traveller-road':farm.town.improvements.donkeyInn.level?'donkey-inn':'east-pasture';
   // Specific objects take precedence over the ground and regional descriptions.
   if (inRect(x, y, PLAZA_PET_LAYOUT.house.left - 3, PLAZA_PET_LAYOUT.house.top,
     PLAZA_PET_LAYOUT.house.right + 3, PLAZA_PET_LAYOUT.house.bottom + 10)) return 'plaza-cat-house';
@@ -280,7 +301,7 @@ function landmarkAt(x, y) {
   if (inRect(x, y, MINE_LAYOUT.entrance.x - 45, MINE_LAYOUT.entrance.y - 62,
     MINE_LAYOUT.entrance.x + 47, MINE_LAYOUT.entrance.y + 18)) return 'mine-entrance';
   if (inRect(x, y, 943, 1771, 1016, 1823)) return 'mine-tea-table';
-  if (inRect(x, y, MARKET_LAYOUT.stalls[1].x, 844,
+  if (villageMarketStallOpen(1) && inRect(x, y, MARKET_LAYOUT.stalls[1].x, 844,
     MARKET_LAYOUT.stalls[1].x + 118, 917)) return 'mine-market-stall';
   if (inRect(x, y, MINE_LAYOUT.area.left, MINE_LAYOUT.area.top,
     MINE_LAYOUT.area.right, MINE_LAYOUT.area.bottom)) return 'mine-area';
@@ -304,16 +325,16 @@ function landmarkAt(x, y) {
   if (coopAt(x, y)) return 'coop';
   if (inRect(x, y, 313, 64, 503, 258)) return 'house';
   if (inRect(x, y, 701, 83, 934, 268)) return 'barn';
-  if (farm.upgrades >= 3 && inRect(x, y, 525, 92, 674, 243)) return 'greenhouse';
+  if (villageSiteOpen('greenhouse') && inRect(x, y, 525, 92, 674, 243)) return 'greenhouse';
   if (inRect(x, y, EAST_WINDMILL.bounds.left, EAST_WINDMILL.bounds.top,
     EAST_WINDMILL.bounds.right, EAST_WINDMILL.bounds.bottom)) return 'east-windmill';
   if (inRect(x, y, 1021, 109, 1188, 258)) return 'forest-cabin';
-  if (farm.upgrades >= 4 && inRect(x, y, SHEEP_LAYOUT.barn.left, SHEEP_LAYOUT.barn.top, SHEEP_LAYOUT.barn.right, SHEEP_LAYOUT.barn.bottom)) return 'sheep-barn';
-  if (farm.upgrades >= 4 && inRect(x, y, PASTURE_WORKER_LAYOUT.rest.x - 19,
+  if (villageSiteOpen('sheep') && inRect(x, y, SHEEP_LAYOUT.barn.left, SHEEP_LAYOUT.barn.top, SHEEP_LAYOUT.barn.right, SHEEP_LAYOUT.barn.bottom)) return 'sheep-barn';
+  if (villageSiteOpen('sheep') && inRect(x, y, PASTURE_WORKER_LAYOUT.rest.x - 19,
     PASTURE_WORKER_LAYOUT.rest.y - 15, PASTURE_WORKER_LAYOUT.rest.x + 20,
     PASTURE_WORKER_LAYOUT.rest.y + 16)) return 'pasture-bench';
-  if (farm.upgrades < 4 && inRect(x, y, 758, 1369, 918, 1413)) return 'future-pasture';
-  if ((farm.upgrades >= 4 || farm.goatBarnOpen) && inRect(x, y, GOAT_LAYOUT.barn.left, GOAT_LAYOUT.barn.top, GOAT_LAYOUT.barn.right, GOAT_LAYOUT.barn.bottom)) return farm.goatBarnOpen ? 'goat-barn' : 'future-goat-barn';
+  if (!villageSiteOpen('sheep') && inRect(x, y, 758, 1369, 918, 1413)) return 'future-pasture';
+  if ((villageSiteOpen('sheep') || farm.goatBarnOpen) && inRect(x, y, GOAT_LAYOUT.barn.left, GOAT_LAYOUT.barn.top, GOAT_LAYOUT.barn.right, GOAT_LAYOUT.barn.bottom)) return farm.goatBarnOpen ? 'goat-barn' : 'future-goat-barn';
   if (inRect(x, y, VALLEY_WORKER_LAYOUT.home.left, VALLEY_WORKER_LAYOUT.home.top,
     VALLEY_WORKER_LAYOUT.home.right, VALLEY_WORKER_LAYOUT.home.bottom)) return 'valley-worker-home';
   if (inRect(x, y, VALLEY_WORKER_LAYOUT.chair.x - 30, VALLEY_WORKER_LAYOUT.chair.y - 30,
@@ -348,7 +369,8 @@ function landmarkAt(x, y) {
   if (inRect(x, y, orderKeeperHome.x, orderKeeperHome.y + 13,
     orderKeeperHome.x + 117, orderKeeperHome.y + 116)) return 'order-keeper-home';
   if (Math.hypot(x - market.fountain.x, y - market.fountain.y) < 39) return 'fountain';
-  if (farm.upgrades >= 5 && market.stalls.some(stall => inRect(x, y, stall.x, 844, stall.x + 118, 917))) return 'village-market';
+  if (market.stalls.some((stall,index) => villageMarketStallOpen(index)
+    && inRect(x, y, stall.x, 844, stall.x + 118, 917))) return 'village-market';
   if (inRect(x, y, market.notice.x, market.notice.y, market.notice.x + 45, market.notice.y + 73)) return 'notice-board';
   if (market.lamps.some(lamp => Math.abs(x - lamp.x) <= 9 && y >= lamp.y - 8 && y <= lamp.y + 26)) return 'market-lamp';
   if (farm.upgrades < 5 && inRect(x, y, market.receiving.x - 10, market.receiving.y - 13,
@@ -360,8 +382,12 @@ function landmarkAt(x, y) {
   if (hiveAt(x, y)) return 'beehive';
   if (orchardAt(x, y)) return 'orchard';
   if (inRect(x, y, 672, 256, 952, 572)) return 'cow-pasture';
-  if (farm.upgrades >= 4 && inRect(x, y, SHEEP_LAYOUT.pen.left, SHEEP_LAYOUT.pen.top, SHEEP_LAYOUT.pen.right, SHEEP_LAYOUT.pen.bottom)) return 'sheep-pasture';
-  if ((farm.upgrades >= 4 || farm.goatBarnOpen) && inRect(x, y, GOAT_LAYOUT.pen.left, GOAT_LAYOUT.pen.top, GOAT_LAYOUT.pen.right, GOAT_LAYOUT.pen.bottom)) return farm.goatBarnOpen ? 'goat-pen' : 'future-goat-pen';
+  if (villageSiteOpen('sheep') && inRect(x, y, SHEEP_LAYOUT.pen.left, SHEEP_LAYOUT.pen.top, SHEEP_LAYOUT.pen.right, SHEEP_LAYOUT.pen.bottom)) return 'sheep-pasture';
+  if ((villageSiteOpen('sheep') || farm.goatBarnOpen) && inRect(x, y, GOAT_LAYOUT.pen.left, GOAT_LAYOUT.pen.top, GOAT_LAYOUT.pen.right, GOAT_LAYOUT.pen.bottom)) return farm.goatBarnOpen ? 'goat-pen' : 'future-goat-pen';
+  const travellerDistrict=TOWN_LAYOUT.district;
+  if(inRect(x,y,travellerDistrict.left,travellerDistrict.top,travellerDistrict.right,travellerDistrict.bottom))
+    return !villageSiteOpen('traveller')?'east-clearing':townRoadAt(x,y)?'traveller-road'
+      :inRect(x,y,TOWN_LAYOUT.teaYard.left,TOWN_LAYOUT.teaYard.top,TOWN_LAYOUT.teaYard.right,TOWN_LAYOUT.teaYard.bottom)?'traveller-yard':'traveller-district';
   if (y >= 1040 && x < 600) return 'southwest-meadow';
   if (y >= 1234 && x < riverCenterAt(y) - 36) return 'valley';
   if (x >= 960 && y >= 1020) return x > riverCenterAt(y) + 38 ? 'village-south' : 'village-west-south';

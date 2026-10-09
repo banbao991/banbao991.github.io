@@ -60,6 +60,7 @@ function nextDay() {
   const previousWeather = farm.weather;
   const growingSeason = seasonIndex();
   farm.day++;
+  farm.events = [];
   farm.phase = 0;
   if (isFestivalDay()) {
     prepareFestival();
@@ -72,7 +73,7 @@ function nextDay() {
   farm.eggsReady = true;
   farm.fruitReady ||= seasonIndex() !== 3
     && (farm.nursery.level >= 2 ? farm.day % 2 === 0 : farm.day % 3 === 0);
-  farm.woolReady ||= farm.upgrades >= 4 && farm.day % 3 === 0;
+  farm.woolReady ||= villageSiteOpen('sheep') && farm.day % 3 === 0;
   farm.honeyReady ||= farm.upgrades >= 2 && farm.day % 2 === 0;
   farm.goatMilkReady ||= farm.goatBarnOpen;
   farm.nightLogged = false;
@@ -84,7 +85,7 @@ function nextDay() {
   spawnFishForDay();
   farm.plots.forEach(p => {
     if (p.crop && p.age < crops[p.crop].days) {
-      const winterFactor = growingSeason === 3 && farm.upgrades < 3 ? .65 : 1;
+      const winterFactor = growingSeason === 3 && !villageSiteOpen('greenhouse') ? .65 : 1;
       const growingTime = p.plantedAt == null ? 1 : clamp(1 - p.plantedAt, 0, 1);
       p.age = Math.min(crops[p.crop].days, p.age + (p.watered ? 1 : .45) * winterFactor * growingTime);
     }

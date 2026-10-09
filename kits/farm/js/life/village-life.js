@@ -13,6 +13,7 @@ function villageWalkerAtHome() {
   return villageWalker.x === home.x && villageWalker.y === home.y;
 }
 function villagerAt(x, y) {
+  if(townDonkeyVisitHome()||townBoatHome())return false;
   if (festivalAtHome(villageWalker)) return false;
   if (farm.phase >= NIGHT_START && villageWalkerAtHome()) return false;
   return x >= villageWalker.x - 13 && x <= villageWalker.x + 13
@@ -20,9 +21,15 @@ function villagerAt(x, y) {
 }
 function updateVillageWalker(dt) {
   const { home, promenade } = VILLAGE_WALKER_LAYOUT;
-  if (isFestivalDay()) { updateFestivalActor(villageWalker, dt, home, 7, 'village'); return; }
+  if (isFestivalDay()) { plazaEavesReleaseChild();townCancelDonkeyVisitForFestival();townCancelBoatForFestival();updateFestivalActor(villageWalker, dt, home, 7, 'village'); return; }
   if (festivalAtHome(villageWalker) && farm.phase < .02) return;
   if (villageWalker.festival) villageWalker.festival = null;
+  if(townBoatActive() && updateTownBoatVisit(dt))return;
+  if(townDonkeyVisitActive() && updateTownDonkeyVisit(dt))return;
+  if (updateTownChildVisit(dt)) return;
+  if(updateTownDonkeyVisit(dt))return;
+  if(updatePlazaEavesChild(dt))return;
+  if(updateTownBoatVisit(dt))return;
   const night = farm.phase >= NIGHT_START;
   let target;
   if (night) {

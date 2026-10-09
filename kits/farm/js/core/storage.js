@@ -64,8 +64,9 @@ function parseFarmSave(saved) {
     !GOOD_IDS.includes(good) || !Number.isInteger(count) || count < 0 || count > 100000))) throw new Error('存档里的集市货物不正确。');
   if (state.view != null && (!finite(state.view.x) || !finite(state.view.y)
     || !finite(state.view.zoom) || state.view.zoom <= 0)) throw new Error('存档里的视角数据不正确。');
-  state.events = (Array.isArray(state.events) ? state.events : []).filter(e => e && typeof e.text === 'string')
-    .slice(0, 10).map(e => ({ day: e.day, time: e.time, text: e.text.replace('undefined', '团子') }));
+  state.events = (Array.isArray(state.events) ? state.events : [])
+    .filter(e => e && e.day === state.day && typeof e.text === 'string')
+    .map(e => ({ day: e.day, time: e.time, text: e.text.replace('undefined', '团子') }));
   delete state.ledgerHistoryPartial;
   for (const key of ['harvested', 'milkToday', 'eggsToday', 'milkTotal', 'eggTotal', 'honeyTotal', 'fruitTotal', 'cowLove', 'chickenLove',
     'forageSpawnDay', 'forageTotal', 'berries', 'berryPickedTotal', 'mushroomPickedTotal', 'acornPickedTotal',
@@ -139,6 +140,7 @@ function parseFarmSave(saved) {
     || nursery.beds.some(bed => !bed || (bed.builtAt != null && !finite(bed.builtAt))
       || !finite(bed.pickedAt) || !finite(bed.readyAt)
       || bed.readyAt <= bed.pickedAt)) throw new Error('存档里的湿地苗圃状态不正确。');
+  validateWetlandFrogSong(nursery,state.day);
   state.ledgerExpanded = !!state.ledgerExpanded;
   state.pureHints ??= true;
   state.eggsReady ??= true;
@@ -215,6 +217,14 @@ function parseFarmSave(saved) {
     }
     state.mapLayoutVersion = 2;
   }
+  state.town ??= makeTownState(state.day);
+  validateTownState(state.town, state.day);
+  validateEastWoods(state);
+  validateEastCanopy(state);
+  validateEastShore(state);
+  validateBeeForager(state);
+  migrateFarmSave(saved);
+  validateVillageDevelopment(state.development,state);
   return state;
 }
 let loadedRuntime = null;

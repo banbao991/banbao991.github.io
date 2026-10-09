@@ -43,10 +43,10 @@ function groundChannel(cell, channel, colors) {
   const far = valley[channel] + (villageEdge[channel] - valley[channel]) * cell.village;
   return clamp(Math.round(near + (far - near) * cell.low + (cell.tone - .42) * 8), 0, 255);
 }
-function lakePixel(x, y, colors) {
+function lakePixel(x, y, colors,water,highlights) {
   const d = lakeDepth(x, y);
-  if (d < 1.06) rect(x, y, 8, 8, d > .84 ? colors[0] : d > .66 ? colors[1] : colors[2]);
-  if (d < .62 && hash(x, y, 45) > .83) rect(x + 1, y + 2, 5, 2, colors[3]);
+  if (d < 1.06) water.add(x, y, 8, 8, d > .84 ? colors[0] : d > .66 ? colors[1] : colors[2]);
+  if (d < .62 && hash(x, y, 45) > .83) highlights.add(x + 1, y + 2, 5, 2, colors[3]);
 }
 function drawRegionGround() {
   const season = sceneSeason.palette, winter = sceneSeason.winter;
@@ -58,33 +58,42 @@ function drawRegionGround() {
   const top = Math.max(0, Math.floor(farm.view.y / GROUND_STEP) - 1);
   const right = Math.min(groundColumns, Math.ceil((farm.view.x + W / farm.view.zoom) / GROUND_STEP) + 1);
   const bottom = Math.min(groundRows, Math.ceil((farm.view.y + H / farm.view.zoom) / GROUND_STEP) + 1);
+  const ground=groundTilePainter();
   for (let gy = top; gy < bottom; gy++) for (let gx = left; gx < right; gx++) {
     const cell = groundCells[gy * groundColumns + gx];
-    ctx.fillStyle = `rgb(${groundChannel(cell, 0, colors)},${groundChannel(cell, 1, colors)},${groundChannel(cell, 2, colors)})`;
-    ctx.fillRect(cell.x, cell.y, GROUND_STEP, GROUND_STEP);
+    ground.add(cell.x, cell.y, GROUND_STEP, GROUND_STEP,
+      `rgb(${groundChannel(cell, 0, colors)},${groundChannel(cell, 1, colors)},${groundChannel(cell, 2, colors)})`);
   }
+  ground.draw();
   terrainDetails();
   drawMineGround();
   drawVillageGround();
+  drawEastShoreGround();
   const lakeColors = [
     blendHex('#b2bc8e', '#c7d0c5', winter),
     blendHex('#79afa8', '#a9c9c5', winter),
     blendHex('#639ba6', '#93b9bd', winter),
     blendHex('#aad0c2', '#d9e5dc', winter)
   ];
-  for (let y = 782 + SOUTH_LAKE_SHIFT_Y; y < 970 + SOUTH_LAKE_SHIFT_Y; y += 8) for (let x = 86; x < 400; x += 8) lakePixel(x, y, lakeColors);
+  const lakeWater=groundTilePainter(),lakeHighlights=groundTilePainter();
+  for (let y = 782 + SOUTH_LAKE_SHIFT_Y; y < 970 + SOUTH_LAKE_SHIFT_Y; y += 8) for (let x = 86; x < 400; x += 8) lakePixel(x, y, lakeColors,lakeWater,lakeHighlights);
+  lakeWater.draw();lakeHighlights.draw();
+  const valleyWater=groundTilePainter(),valleyHighlights=groundTilePainter();
   for (let y = 1152; y < 1298; y += 8) for (let x = 70; x < 325; x += 8) {
     const d = valleyLakeDepth(x, y);
-    if (d < 1.07) rect(x, y, 8, 8, d > .79 ? '#afbc91' : d > .65 ? '#7aaea5' : '#679ba3');
-    if (d < .62 && hash(x, y, 49) > .85) rect(x + 2, y + 3, 5, 2, '#acd3c4');
+    if (d < 1.07) valleyWater.add(x, y, 8, 8, d > .79 ? '#afbc91' : d > .65 ? '#7aaea5' : '#679ba3');
+    if (d < .62 && hash(x, y, 49) > .85) valleyHighlights.add(x + 2, y + 3, 5, 2, '#acd3c4');
   }
+  valleyWater.draw();valleyHighlights.draw();
   drawWetlandCreek();
   drawNurseryGround();
+  const river=groundTilePainter();
   for (let y = 0; y < WORLD_H; y += 8) {
     const center = riverCenterAt(y);
-    rect(center - 36, y, 74, 8, '#819d87');
-    rect(center - 28, y, 58, 8, '#64a2aa');
+    river.add(center - 36, y, 74, 8, '#819d87');
+    river.add(center - 28, y, 58, 8, '#64a2aa');
   }
+  river.draw();
   drawRiverCurrent();
   // Small flower glades that do not require any image downloads.
   for (let i = 0; i < 330; i++) {
@@ -96,6 +105,7 @@ function drawRegionGround() {
   }
 }
 function drawRegionPaths() {
+  if(farm.development){drawVillageRoads();return;}
   // Each road is one continuous ribbon; dithered edges merge into the grass.
   const horizontal = (x1, x2, y, height) => {
     rect(x1, y, x2 - x1, height, '#d0b586');
@@ -130,7 +140,17 @@ function drawRegionPaths() {
     if (path.w > path.h) horizontal(path.x, path.x + path.w, path.y, path.h);
     else vertical(path.x, path.y, path.y + path.h, path.w);
   }
+  for (const path of TOWN_LAYOUT.paths) {
+    if (path.w > path.h) horizontal(path.x, path.x + path.w, path.y, path.h);
+    else vertical(path.x, path.y, path.y + path.h, path.w);
+  }
+  // Only outer road edges are feathered; fill the east-bank junctions once.
+  for (const [x, y, w, h] of [[1972,938,32,32],[2256,938,32,32],[2256,804,32,28],
+    [2139,804,32,28],[1972,970,32,32],[2036,970,32,32],[2036,938,32,32]])
+    rect(x,y,w,h,'#d0b586');
   // The quarry road and market approach merge with the existing south road.
+  for(const [x,y,w,h]of [[2288,938,16,32],[2372,938,36,32],[2372,1480,36,32],[2020,938,32,14]])
+    rect(x,y,w,h,'#d0b586');
   rect(1812, 1191, 32, 31, '#d0b586');
   rect(1972, 1191, 32, 31, '#d0b586');
   rect(1812, 1416, 32, 32, '#d0b586');

@@ -7,12 +7,14 @@ function wetlandWaterhenPosition() {
   const pace = .38;
   const stir = wetlandStir();
   const pool = NURSERY_LAYOUT.wetlandPool;
-  return {
+  const bird={
     x: pool.x + Math.sin(motionNow * pace) * (68 - seasonTransition().winter * 16)
       + Math.sin(motionNow * 7) * stir * 13,
     y: pool.y + Math.cos(motionNow * pace * 1.4) * 17 + Math.sin(motionNow * 5) * stir * 4,
     dir: Math.cos(motionNow * pace) >= 0 ? 1 : -1
   };
+  if(wetlandWaterhenListening(bird))bird.dir=nurseryFrogContact().x<bird.x?-1:1;
+  return bird;
 }
 function wetlandDragonflyActivity() {
   return (1 - smoothRange(.35, .82, seasonTransition().winter))
@@ -63,7 +65,7 @@ function wetlandCreatureAt(x, y) {
   return null;
 }
 function wetlandCreatureHint(creature) {
-  if (creature.kind === 'waterhen') return '湿地黑水鸡 · 在睡莲间缓缓游动，点击看它划开水纹';
+  if (creature.kind === 'waterhen') return wetlandWaterhenListening(wetlandWaterhenPosition())?'湿地黑水鸡 · 转头留意芦苇边的蛙声，点击看它划开水纹':'湿地黑水鸡 · 在睡莲间缓缓游动，点击看它划开水纹';
   if (creature.kind === 'dragonfly') return '蓝尾蜻蜓 · 晴天在浅洼上巡飞，点击看它转向';
   return '湿地萤火虫 · 暖夜在芦苇间亮起，点击看它们闪烁';
 }

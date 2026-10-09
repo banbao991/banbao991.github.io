@@ -4,7 +4,7 @@ function captureRuntimeState() {
   return {
     now, motionNow, tool, seed: Object.hasOwn(crops, $('seed-select').value) ? $('seed-select').value : 'wheat',
     cows, chickens, sheep, workers, courier, villageWalker, angler, orderKeeper, nurseryKeeper, miner, forestKeeper,
-    squirrel, meadowGoats, lakeDucks, lakeRipples,
+    squirrel, forestFox, meadowGoats, lakeDucks, lakeRipples,
     valleyOtter, valleyTurtle, valleyHeron, valleyShoal, valleyRipples,
     ridgeDeer, ridgeHare, ridgeOwl, plazaCats, plazaSparrows
   };
@@ -49,6 +49,12 @@ function validateRuntimeSnapshot(runtime) {
       throw new Error('存档里的动物状态不正确。');
     }
   }
+  if (runtime.cows.some(cow => cow.grazing !== undefined && (!cow.grazing
+    || !Number.isSafeInteger(cow.grazing.day) || cow.grazing.day < 1
+    || !Number.isSafeInteger(cow.grazing.total) || cow.grazing.total < 0
+    || !finite(cow.grazing.duration) || cow.grazing.duration < 0 || cow.grazing.duration > 4.4
+    || !finite(cow.grazing.elapsed) || cow.grazing.elapsed < 0 || cow.grazing.elapsed > cow.grazing.duration)))
+    throw new Error('存档里的牛牛吃草状态不正确。');
   if (!Array.isArray(runtime.workers) || runtime.workers.length < 2 || runtime.workers.length > 6
     || runtime.workers.some(worker => !point(worker) || !finite(worker.speed) || worker.speed <= 0
       || !finite(worker.walk) || !finite(worker.action) || typeof worker.name !== 'string'
@@ -104,6 +110,8 @@ function validateRuntimeSnapshot(runtime) {
           || !Number.isInteger(runtime[name].routine.index)
           || runtime[name].routine.index < 0 || runtime[name].routine.index >= 3))))
     throw new Error('存档里的村民状态不正确。');
+  if(runtime.angler?.waveUntil!=null&&(!finite(runtime.angler.waveUntil)||runtime.angler.waveUntil<0))throw new Error('存档里的阿蓼问候状态不正确。');
+  if(runtime.angler?.duckVisit!=null)validateLakeDuckVisit(runtime.angler.duckVisit);
   const fishing = runtime.angler?.fishing;
   if (fishing != null && (!Number.isInteger(fishing.day) || fishing.day < 1
     || ![1, 2].includes(fishing.quota) || !Number.isInteger(fishing.caught)
@@ -116,6 +124,8 @@ function validateRuntimeSnapshot(runtime) {
     || !Number.isInteger(keeper.day) || keeper.day < 0
     || ![null, 'gather', 'stroll'].includes(keeper.choice)
     || !Number.isInteger(keeper.picked) || keeper.picked < 0 || keeper.picked > 3
+    || (keeper.acornDay !== undefined && (!Number.isSafeInteger(keeper.acornDay)
+      || keeper.acornDay < 0 || keeper.acornDay > keeper.day))
     || !['home', 'idle', 'toHome', 'toMushroom', 'picking', 'toWatch', 'watching'].includes(keeper.mode)
     || !Array.isArray(keeper.route) || keeper.route.length > 128 || keeper.route.some(stop => !point(stop))
     || !Number.isInteger(keeper.routeIndex) || keeper.routeIndex < 0 || keeper.routeIndex > keeper.route.length
@@ -143,7 +153,7 @@ function validateRuntimeSnapshot(runtime) {
   if (runtime.nurseryKeeper != null && (!point(runtime.nurseryKeeper)
     || !finite(runtime.nurseryKeeper.step) || !finite(runtime.nurseryKeeper.walk)
     || !finite(runtime.nurseryKeeper.action)
-    || ![null, 'home', 'bed', 'rest'].includes(runtime.nurseryKeeper.goal)
+    || ![null, 'home', 'bed', 'rest', 'restore'].includes(runtime.nurseryKeeper.goal)
     || (runtime.nurseryKeeper.bedIndex != null && (!Number.isInteger(runtime.nurseryKeeper.bedIndex)
       || runtime.nurseryKeeper.bedIndex < 0 || runtime.nurseryKeeper.bedIndex >= NURSERY_LAYOUT.beds.length))
     || !Array.isArray(runtime.nurseryKeeper.path) || runtime.nurseryKeeper.path.length > 12
@@ -176,6 +186,9 @@ function validateRuntimeSnapshot(runtime) {
     'ridgeDeer', 'ridgeHare', 'ridgeOwl']) {
     if (!moving(runtime[name])) throw new Error('存档里的野生动物状态不正确。');
   }
+  if(runtime.forestFox!=null)validateForestFox(runtime.forestFox);
+  if(runtime.valleyTurtle.bask!=null)validateTurtleBask(runtime.valleyTurtle.bask);
+  if(runtime.valleyHeron.fishing!=null)validateHeronFishing(runtime.valleyHeron.fishing);
   for (const name of ['lakeRipples', 'valleyRipples']) {
     if (!Array.isArray(runtime[name]) || runtime[name].length > 100
       || runtime[name].some(ripple => !point(ripple) || !finite(ripple.age))) throw new Error('存档里的水面动画不正确。');
@@ -183,7 +196,7 @@ function validateRuntimeSnapshot(runtime) {
   if (runtime.plazaCats != null && (!Array.isArray(runtime.plazaCats) || runtime.plazaCats.length !== 2
     || runtime.plazaCats.some((cat, index) => !moving(cat)
       || cat.name !== ['橘子', '墨点'][index] || cat.coat !== ['ginger', 'cow'][index]
-      || !['home', 'return', 'move', 'sleep', 'groom', 'stretch', 'watch'].includes(cat.mode)
+      || !['home', 'return', 'move', 'sleep', 'groom', 'stretch', 'watch', 'play', 'company', 'drink'].includes(cat.mode)
       || !Array.isArray(cat.path) || cat.path.length > 128 || cat.path.some(stop => !point(stop))
       || (['return', 'move'].includes(cat.mode) && !cat.path.length)
       || cat.wait < 0 || cat.wait > 20 || !finite(cat.action) || cat.action < 0
@@ -239,6 +252,7 @@ function restoreRuntimeSnapshot(runtime) {
     courier.plannedDepots = courier.leg === 'return' ? [...DEPOT_IDS] : [];
   }
   squirrel = runtime.squirrel;
+  forestFox = runtime.forestFox || makeForestFox(motionNow);
   meadowGoats = runtime.meadowGoats;
   lakeDucks = runtime.lakeDucks;
   lakeRipples = runtime.lakeRipples;

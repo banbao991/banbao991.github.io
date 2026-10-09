@@ -28,10 +28,12 @@ function spawnFishForDay() {
   farm.fishSpawnDay = farm.day;
 }
 function fishSpotAt(x, y) {
+  if(!villageSiteOpen('lake'))return null;
   return farm.fishSpots.find(site => Math.hypot(site.x - x, site.y - y) < 19) || null;
 }
 function fishName(site) { return site.kind === 'gold' ? '金鳞鱼' : '湖鲤'; }
 function catchFish(site, fisher = '') {
+  if(!villageSiteOpen('lake'))return false;
   const index = farm.fishSpots.findIndex(fish => fish.id === site.id);
   if (index < 0) return false;
   farm.fishSpots.splice(index, 1);
@@ -65,15 +67,19 @@ function duckAt(x, y) {
   return lakeDucks.find(duck => Math.hypot(duck.x - x, duck.y - y) < 23) || null;
 }
 function greetDuck(duck) {
-  duck.wait = 0;
-  chooseDuckTarget(duck);
+  const visiting=stopLakeDuckVisit();
+  if(!visiting){duck.wait = 0;chooseDuckTarget(duck);}
   duck.step += 2;
   lakeRipples.push({ x: duck.x, y: duck.y, age: 0 });
   record('水鸭嘎嘎叫了两声，划开一串细小的波纹。');
+  save();
 }
 function updateLake(dt) {
+  if(farm.paused)return;
+  updateLakeDuckVisitPlan(dt);
   for (const duck of lakeDucks) {
     duck.step += dt * 4;
+    if(updateLakeDuckVisitDuck(duck,dt))continue;
     duck.wait -= dt;
     if (farm.phase >= NIGHT_START && (duck.tx !== (duck.color === 'cream' ? 151 : 317) || duck.ty !== (duck.color === 'cream' ? 824 : 913) + SOUTH_LAKE_SHIFT_Y)) chooseDuckTarget(duck);
     const dx = duck.tx - duck.x, dy = duck.ty - duck.y;

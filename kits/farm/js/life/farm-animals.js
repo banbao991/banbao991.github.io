@@ -15,8 +15,10 @@ let sheep = [
 ];
 
 function updateFarmAnimals(dt) {
+  if (farm.paused) return;
   const sleeping = farm.phase >= NIGHT_START;
-  cows.forEach(c => {
+  cows.forEach((c, index) => {
+    if (updateCowGrazing(c, index, dt)) return;
     c.wait -= dt;
     if (sleeping) { c.tx = c.name === '奶糖' ? 742 : 800; c.ty = c.name === '奶糖' ? 331 : 336; c.wait = 2; }
     else if (c.wait <= 0 || distance(c, { x: c.tx, y: c.ty }) < 5) {
@@ -25,7 +27,9 @@ function updateFarmAnimals(dt) {
     const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy);
     if (d > 4) { c.x += dx / d * dt * 20; c.y += dy / d * dt * 20; c.dir = dx < 0 ? -1 : 1; c.step += dt * 5; }
   });
+  prepareChickenMeal();
   chickens.forEach((c, i) => {
+    if(updateChickenMeal(c,i,dt))return;
     c.wait -= dt;
     if (sleeping) { c.tx = 173 + i * 8; c.ty = 78; c.wait = 2; }
     else if (c.wait <= 0 || distance(c, { x: c.tx, y: c.ty }) < 4) {
@@ -34,7 +38,7 @@ function updateFarmAnimals(dt) {
     const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy);
     if (d > 2) { c.x += dx / d * dt * 15; c.y += dy / d * dt * 15; c.step += dt * 11; }
   });
-  if (farm.upgrades >= 4) sheep.forEach((s, i) => {
+  if (villageSiteOpen('sheep')) sheep.forEach((s, i) => {
     s.wait -= dt;
     if (sleeping) { s.tx = SHEEP_LAYOUT.pen.left + 70 + i * 34; s.ty = SHEEP_LAYOUT.pen.top + 56; s.wait = 2; }
     else if (s.wait <= 0 || distance(s, { x: s.tx, y: s.ty }) < 5) {
@@ -52,4 +56,4 @@ function pondDuckAt(x,y){const duck=pondDuckPosition();return x>=duck.x-9&&x<=du
 
 function cowAt(x,y){return cows.find(c=>Math.abs(c.x-x)<37&&Math.abs(c.y-y)<35)||null;}
 
-function sheepAt(x,y){return farm.upgrades>=4?sheep.find(s=>Math.abs(s.x-x)<30&&Math.abs(s.y-y)<28)||null:null;}
+function sheepAt(x,y){return villageSiteOpen('sheep')?sheep.find(s=>Math.abs(s.x-x)<30&&Math.abs(s.y-y)<28)||null:null;}

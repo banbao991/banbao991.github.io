@@ -1,13 +1,17 @@
 'use strict';
 // Shared seasonal celebration themes, meeting routes and attendance lifecycle.
-function isFestivalDay(day = farm.day) { return day % 10 === 0; }
+function isFestivalDay(day = farm.day) {
+  // A square finished during the day opens its celebrations from a later dawn.
+  const plaza=farm.development?.projects.plaza;
+  return day%10===0&&villageSiteOpen('plaza')&&(!plaza||plaza.completedAt<=day);
+}
 
 const FESTIVAL_SLOTS = [
   { x: 824, y: 810 }, { x: 880, y: 810 }, { x: 996, y: 810 },
   { x: 1052, y: 810 }, { x: 820, y: 862 }, { x: 1092, y: 864 },
   { x: 836, y: 934 }, { x: 1052, y: 932 }, { x: 936, y: 794 },
   { x: 940, y: 938 }, { x: 884, y: 890 }, { x: 996, y: 890 },
-  { x: 944, y: 878 }
+  { x: 944, y: 878 }, { x: 900, y: 938 }, { x: 770, y: 862 }, { x: 1130, y: 862 }
 ];
 const FESTIVAL_THEMES = [
   { name: '春花集', detail: '花环与花苗交换', action: 'flowers', colors: ['#cc9090', '#e7c88b', '#97b179'] },
@@ -20,6 +24,7 @@ const FESTIVAL_START = { x: 935, y: 974 };
 const FESTIVAL_EAST = { x: 1190, y: 870 };
 
 function festivalRoute(home, side, slot) {
+  if(side==='construction')return [{...home},...(villageWalkingPath(home,FESTIVAL_EAST)||[]),{...slot}];
   const village = side === 'village';
   const lake = side === 'lake';
   const south = side === 'south';
@@ -36,7 +41,7 @@ function festivalRoute(home, side, slot) {
       ? [{ x: home.x, y: 1019 }, { x: 620, y: 1019 },
         { x: 935, y: 1021 }, FESTIVAL_START]
       : pasture
-        ? [{ x: 704, y: 1394 }, { x: 620, y: 1394 }, { x: 620, y: 1021 },
+        ? [{ x: 652, y: home.y }, { x: 620, y: home.y }, { x: 620, y: 1021 },
           { x: 935, y: 1021 }, FESTIVAL_START]
       : nursery
         ? [{ x: home.x, y: NURSERY_LAYOUT.aisle.y },

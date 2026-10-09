@@ -3,19 +3,21 @@
 function drawWetlandCreek() {
   const first = NURSERY_LAYOUT.creek[0], last = NURSERY_LAYOUT.creek.at(-1);
   const winter = sceneSeason.winter;
+  const surface=groundTilePainter(),highlights=groundTilePainter();
   for (let y = Math.floor(first.y / 8) * 8; y < last.y + 8; y += 8) {
     const center = wetlandCreekCenter(y + 4);
     for (let x = Math.floor((center - 28) / 8) * 8; x < center + 32; x += 8) {
       const edge = Math.abs(x + 4 - center) + (hash(x, y, 731) - .5) * 4;
       if (edge > 27) continue;
       const bank = blendHex('#799d79', '#b7c9bd', winter);
-      if (edge > 19) rect(x, y, 8, 8, bank);
-      else if (edge > 13) rect(x, y, 8, 8, blendHex('#a7b78d', '#c9d7c9', winter));
-      else rect(x, y, 8, 8, blendHex('#75a9a4', '#a2c2c0', winter));
+      if (edge > 19) surface.add(x, y, 8, 8, bank);
+      else if (edge > 13) surface.add(x, y, 8, 8, blendHex('#a7b78d', '#c9d7c9', winter));
+      else surface.add(x, y, 8, 8, blendHex('#75a9a4', '#a2c2c0', winter));
       if (edge < 11 && hash(x, y, 732) > .86)
-        rect(x + 2, y + 3, 4, 2, blendHex('#c4d6bd', '#e3e9dc', winter));
+        highlights.add(x + 2, y + 3, 4, 2, blendHex('#c4d6bd', '#e3e9dc', winter));
     }
   }
+  surface.draw();highlights.draw();
   for (let i = 0; i < 7; i++) {
     const y = first.y + ((motionNow * 15 + i * 59) % (last.y - first.y));
     const x = wetlandCreekCenter(y) + (i % 2 ? 4 : -5);
@@ -29,6 +31,7 @@ function drawNurseryGround() {
   const top = Math.max(0, Math.floor(Math.min(...lobes.map(lobe => lobe.y - lobe.ry * 1.08)) / 8) * 8);
   const right = Math.min(WORLD_W, Math.max(...lobes.map(lobe => lobe.x + lobe.rx * 1.08)));
   const bottom = Math.min(WORLD_H, Math.max(...lobes.map(lobe => lobe.y + lobe.ry * 1.08)));
+  const marsh=groundTilePainter(),marshGrains=groundTilePainter();
   for (let y = top; y < bottom; y += 8)
     for (let x = left; x < right; x += 8) {
       const grain = (hash(Math.floor(x / 24), Math.floor(y / 24), 611) - .5) * .11;
@@ -36,25 +39,28 @@ function drawNurseryGround() {
       if (depth > 1.08) continue;
       const fade = 1 - smoothRange(.76, 1.08, depth);
       const damp = .43 + farm.nursery.wetness * .16;
-      rect(x, y, 8, 8, `rgba(74,124,103,${(fade * damp).toFixed(2)})`);
+      marsh.add(x, y, 8, 8, `rgba(74,124,103,${(fade * damp).toFixed(2)})`);
       if (depth < .9 && hash(x, y, 613) > .88)
-        rect(x + 2, y + 3, 5, 2, blendHex('#94a57a', '#c5d3be', winter));
+        marshGrains.add(x + 2, y + 3, 5, 2, blendHex('#94a57a', '#c5d3be', winter));
     }
+  marsh.draw();marshGrains.draw();
   const basins = [NURSERY_LAYOUT.wetlandPool, ...NURSERY_LAYOUT.wetlandPuddles];
   for (const [index, pool] of basins.entries()) {
+    const water=groundTilePainter(),highlights=groundTilePainter();
     const waterSpread = index === 0 ? wetlandWaterSpread() : wetlandPuddleSpread();
     const rx = pool.rx * waterSpread, ry = pool.ry * waterSpread;
     for (let y = Math.floor((pool.y - ry - 8) / 8) * 8; y < pool.y + ry + 8; y += 8)
       for (let x = Math.floor((pool.x - rx - 8) / 8) * 8; x < pool.x + rx + 8; x += 8) {
         const depth = ((x + 4 - pool.x) / rx) ** 2 + ((y + 4 - pool.y) / ry) ** 2;
         if (depth > 1.04) continue;
-        rect(x, y, 8, 8, depth > .8
+        water.add(x, y, 8, 8, depth > .8
           ? blendHex('#a8b795', '#ced9ca', winter)
           : depth > .53 ? blendHex('#7da9a0', '#a9c7bf', winter)
             : blendHex('#619b9d', '#95b6b7', winter));
         if (depth < .58 && hash(x, y, 612) > .85)
-          rect(x + 2, y + 3, 5, 2, '#bdd7c4');
+          highlights.add(x + 2, y + 3, 5, 2, '#bdd7c4');
       }
+    water.draw();highlights.draw();
   }
 }
 function drawNurseryBed(index) {
@@ -116,6 +122,7 @@ function drawNurseryScenery() {
     circle(h.left + 70, h.top + 66, 2, '#f3d395');
     rect(h.left + 49, h.top + 81, 31, 5, '#a98962');
     rect(h.left + 45, h.top + 86, 37, 4, '#826d53');
+    drawTownChime(2);
   });
   // A low birdwatch platform marks the stream even before the nursery opens.
   const lookout = NURSERY_LAYOUT.creekLookout;
@@ -128,6 +135,7 @@ function drawNurseryScenery() {
     rect(lookout.x - 30, lookout.y - 21, 61, 5, '#d2ac77');
   });
   const bridge = NURSERY_LAYOUT.creekBridge;
+  if(villageSiteOpen('nursery')) {
   rect(bridge.x - 37, bridge.y + 7, 76, 4, '#745d49');
   rect(bridge.x - 35, bridge.y - 7, 72, 15, '#a77e55');
   for (let i = 0; i < 8; i++) {
@@ -139,6 +147,7 @@ function drawNurseryScenery() {
     rect(bridge.x - 38, bridge.y - 10, 4, 20, '#84684b');
     rect(bridge.x + 35, bridge.y - 10, 4, 20, '#84684b');
   });
+  }
   for (const [x, y] of [[83, 1353], [206, 1338], [79, 1544], [141, 1582]]) {
     scenePart(`creek-flower:${x}:${y}`, y + 4, () => {
       rect(x - 9, y + 1, 21, 3, '#708f6d');
@@ -172,7 +181,7 @@ function drawNurseryScenery() {
 }
 function drawNurseryLife() {
   if (seasonTransition().winter < .7) {
-    scenePart('nursery-frog', nurseryFrogPosition().y + 8, () => {
+    scenePart('nursery-frog', nurseryFrogContact().y + 8, () => {
       const frog = nurseryFrogPosition();
       rect(frog.x - 9, frog.y + 5, 20, 3, '#5c875d');
       rect(frog.x - 7, frog.y - 4, 16, 11, '#719c61');
@@ -180,7 +189,8 @@ function drawNurseryLife() {
       rect(frog.x + 3, frog.y - 8, 5, 6, '#8ab374');
       rect(frog.x - 3, frog.y - 6, 2, 2, '#31453a');
       rect(frog.x + 5, frog.y - 6, 2, 2, '#31453a');
-      if (farm.paused) circle(frog.x + 1, frog.y + 2, 2 + Math.abs(pausePulse(frog.x, 2)), '#a3c789');
+      if (farm.paused&&!wetlandFrogCalling()) circle(frog.x + 1, frog.y + 2, 2 + Math.abs(pausePulse(frog.x, 2)), '#a3c789');
+      drawWetlandFrogThroat(frog);
     });
   }
   scenePart('nursery-air', 0, () => {

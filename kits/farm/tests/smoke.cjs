@@ -1,86 +1,28 @@
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
+const assert=require('node:assert/strict');
+const {run:runRaw,element,sandbox,root,elements,documentListeners,colors,painted,exportPainted,exportColors,downloads,downloadBlobs,pageScripts,scripts,fs,path,vm,context2d,imageContext2d,getLatestImageCanvas,getStoredSave}=require('./harness.cjs');
 
-const root = path.resolve(__dirname, '..');
-const elements = new Map();
-const documentListeners = {};
-let storedSave = null;
-function element(id = '') {
-  if (elements.has(id)) return elements.get(id);
-  const classes = new Set();
-  const value = {
-    id, style: {}, dataset: {}, hidden: false, textContent: '', listeners: {},
-    classList: { toggle(name, force) { const on = force ?? !classes.has(name); if (on) classes.add(name); else classes.delete(name); return on; },
-      add(name) { classes.add(name); }, remove(name) { classes.delete(name); }, contains(name) { return classes.has(name); } },
-    setAttribute() {}, addEventListener(type, handler) { this.listeners[type] = handler; },
-    replaceChildren(...children) { this.children = children; this.textContent = children.map(child => child.textContent ?? '').join(''); },
-    append(...children) { this.children ??= []; this.children.push(...children); this.textContent = this.children.map(child => child.textContent ?? '').join(''); },
-    click() { this.listeners.click?.(); }, remove() {},
-    getBoundingClientRect() { return { left: 0, top: 0, width: 1152, height: 816 }; }
-  };
-  elements.set(id, value);
-  return value;
-}
-const colors = [];
-const painted = [];
-const exportPainted = [];
-const exportColors = [];
-const downloads = [];
-const downloadBlobs = [];
-let latestImageCanvas = null;
-const context2d = {
-  fillRect(x, y) { colors.push(this.fillStyle); painted.push([x, y]); }, beginPath() {}, arc() {}, fill() {},
-  stroke() {}, moveTo() {}, lineTo() {}, strokeRect() {}, save() {}, restore() {},
-  translate() {}, rotate() {}, scale() {}, fillText() {}, setTransform() {},
-  createRadialGradient() { return { addColorStop() {} }; }
-};
-const imageContext2d = { ...context2d, fillRect(x, y) { exportPainted.push([x, y]); exportColors.push(this.fillStyle); } };
-element('farm-map').getContext = () => context2d;
-element('farm-map').width = 1152;
-element('farm-map').height = 816;
-element('mini-map').getContext = () => context2d;
-element('mini-map').width = 260;
-element('mini-map').height = 244;
-element('mini-map').getBoundingClientRect = () => ({ left: 0, top: 0, width: 260, height: 244 });
-const controls = {
-  '[data-speed]': [1, 2, 4].map(speed => Object.assign(element(`speed-${speed}`), { dataset: { speed } })),
-  '[data-tool]': ['inspect', 'plant', 'water'].map(tool => Object.assign(element(`tool-${tool}`), { dataset: { tool } }))
-};
-const sandbox = vm.createContext({
-  document: {
-    getElementById: element, createElement(tag) {
-      const item = element(`created-${Math.random()}`);
-      if (tag === 'canvas') {
-        item.getContext = () => imageContext2d;
-        item.toBlob = (callback, type) => callback(new Blob(['mock png'], { type }));
-        latestImageCanvas = item;
-      }
-      if (tag === 'a') item.click = () => downloads.push({ name: item.download, href: item.href });
-      return item;
-    }, createTextNode: text => ({ textContent: text }),
-    querySelector: () => element('live-pill'), querySelectorAll: selector => controls[selector] || [],
-    addEventListener(type, handler) { (documentListeners[type] ??= []).push(handler); },
-    body: { append() {} }, activeElement: { tagName: 'BODY' }
-  },
-  localStorage: { getItem: () => null, setItem(_key, value) { storedSave = value; } },
-  performance: { now: () => 0 }, requestAnimationFrame() {},
-  location: { protocol: 'http:' }, confirm: () => true,
-  Math, console, Blob, atob, URL: { createObjectURL: blob => { downloadBlobs.push(blob); return 'blob:smoke'; }, revokeObjectURL() {} }, setTimeout: handler => handler()
-});
-const page = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const pageScripts = [...page.matchAll(/<script src="([^"]+)" defer/g)].map(match => match[1]);
-const scripts = pageScripts.filter(filename => filename.startsWith('js/')).map(filename => filename.slice(3));
-// Sidebar sizing requires a real layout engine; exercise it in browser verification.
-
-for (const filename of pageScripts.filter(filename => filename !== 'js/ui/sidebar-layout.js')) {
-  vm.runInContext(fs.readFileSync(path.resolve(root, filename), 'utf8'), sandbox, { filename });
-}
-const run = code => vm.runInContext(code, sandbox);
+// Existing-life regressions use infrastructure from an imported old world. New construction has a dedicated suite.
+// Artificial scenario date jumps start a fresh journal page, like a real dawn.
+// The real nextDay() lifecycle and full daily retention have dedicated suites.
+runRaw(`function setRegressionDay(day){if(day!==farm.day)farm.events=[];farm.day=day;}
+function regressionFarmFixture(){const s=newFarm();s.development=makeLegacyVillageDevelopment({...s,upgrades:5,goatBarnOpen:true});s.development.independent=makeVillageDevelopmentState().independent;return s;}
+function syncRegressionInfrastructure(){if(!farm.development)return;for(const id of ['greenhouse','sheep','goats']){
+const built=id==='greenhouse'?farm.upgrades>=3:id==='sheep'?farm.upgrades>=4:!!farm.goatBarnOpen;
+const p=farm.development.projects[id];p.status=built?'complete':'natural';p.completedAt=built?farm.day:null;p.stage=built?'settle':'road';
+}farm.development.completedCount=Object.values(farm.development.projects).filter(p=>p.status==='complete').length;
+for(const p of Object.values(farm.development.projects))if(p.completedAt!==null)p.completedAt=Math.min(p.completedAt,farm.day);
+farm.development.independent={eastFields:farm.upgrades>=1,beehives:farm.upgrades>=2,upperFields:farm.upgrades>=3,southFields:farm.upgrades>=4,market:farm.upgrades>=5};
+if(farm.upgrades>=4)farm.development.residents['阿牧']={stage:'home',project:'sheep',arrivedAt:farm.day};}
+farm.development=makeLegacyVillageDevelopment(farm);`);
+const run=code=>runRaw('syncRegressionInfrastructure();'+code.replaceAll('newFarm()','regressionFarmFixture()')
+  .replace(/farm.upgrades\s*=\s*([0-9]+)\s*;/g,'farm.upgrades=$1;syncRegressionInfrastructure();')
+  .replace(/\bfarm\.day\s*=(?!=)\s*([^;]+);/g,'setRegressionDay($1);')
+  .replace(/\bfarm\.day\+\+;/g,'setRegressionDay(farm.day+1);'));
 run('function updateVillageNeighbours(dt) { updateAngler(dt); updateOrderKeeper(dt); }');
 
 assert.equal(run('farm.day'), 1);
+require('./world-reset-checks.cjs')(run, assert, element);
+runRaw('replaceFarmState(regressionFarmFixture())');
 
 const worldStatus = run(`(() => {
   const original = { farm, angler, nurseryKeeper, courier };
@@ -286,7 +228,7 @@ assert.ok(largeLedger.coins==='100万' && largeLedger.coinsExact==='1001234'
 'Only overview values are abbreviated; the expanded ledger and freight list keep exact counts');
 assert.match(run('timeText()'), /早晨 07:55/);
 run('farm.phase = .75; updateUI(); render()');
-assert.ok(painted.every(([x, y]) => x < 2100 && y < 2000), 'Region art stays in world coordinates');
+assert.ok(painted.every(([x, y]) => x < run('WORLD_W') + 52 && y < run('WORLD_H') + 80), 'Region art stays in world coordinates');
 assert.match(run('timeText()'), /凌晨 00:00/);
 assert.equal(run('farm.day'), 1, 'Midnight stays in the same farm day');
 assert.ok(colors.includes('rgba(29,43,82,0.66)'), 'Midnight is dark');
@@ -624,7 +566,7 @@ assert.ok(run(`(() => {
   let valid = true;
   for (let day = 1; day <= 48; day++) {
     farm.day = day; farm.forageSpawnDay = 0; spawnForageForDay();
-    valid &&= farm.forage.length >= 7 && farm.forage.length <= 10;
+    valid &&= farm.forage.length >= 7 && farm.forage.length <= 11;
     valid &&= farm.forage.every(site => !riverAt(site.x, site.y, 18) && !bridgeAt(site.x, site.y)
       && !(site.x > 1202 && site.x < 1268 && site.y > 300 && site.y < 1232)
       && !(site.x > 397 && site.x < 524 && site.y > 1214));
@@ -670,7 +612,7 @@ run('drawRegionNight(1)');
 assert.ok(colors.slice(nightColorStart).every(color => typeof color === 'object'),
   'Regional light overlays draw only soft gradients, never opaque windows or posts');
 
-assert.equal(run('WORLD_W'), 2048);
+assert.equal(run('WORLD_W'), 2560);
 assert.equal(run('WORLD_H'), 1920);
 assert.equal(run('W'), 1152);
 assert.equal(run('H'), 816);
@@ -680,7 +622,7 @@ assert.ok(run('farm.view.x + W / farm.view.zoom <= WORLD_W + .01 && farm.view.y 
 run('setZoom(1); centerCamera(480, 320)');
 run('centerCamera(1300, 600)');
 assert.ok(run('farm.view.x') > 0, 'Mini-map can move the viewport east');
-run('centerCamera(1950, 900)');
+run('centerCamera(WORLD_W, 900)');
 assert.ok(Math.abs(run('farm.view.x + W - WORLD_W')) < .01, 'The camera reaches the expanded eastern edge');
 run('centerCamera(1300, 600)');
 const focus = run('screenToWorld(480, 528)');
@@ -704,7 +646,7 @@ for (const [x, y, kind] of [
   [1100, 790, 'central-plaza'], [1060, 940, 'central-plaza'],
   [935, 728, 'central-stage'], [1076, 688, 'central-well'],
   [788, 934, 'central-bench'], [710, 687, 'central-flowers'],
-  [1980, 777, 'market-lamp'], [2012, 932, 'market-lamp'], [1442, 932, 'market-lamp'],
+  [1980, 777, 'market-lamp'], [1980, 892, 'market-lamp'], [1442, 932, 'market-lamp'],
   [800, 1380, 'future-pasture'],
   [400, 835, 'meadow'], [100, 1100, 'southwest-meadow'], [1100, 510, 'forest'],
   [10, 400, 'main-farm']
@@ -766,7 +708,8 @@ for (const [point, label] of [['foxPosition()', '狐狸'], ['villagerPosition()'
   assert.match(run(`describe(${point}.x,${point}.y).text`), new RegExp(label), `${label} hint follows the moving sprite`);
 }
 run('farm.phase=.8');
-assert.equal(run('foxAt(foxPosition().x,foxPosition().y)'), false, 'Fox hint disappears when the fox sleeps');
+run('for(let i=0;i<260;i++)updateForestFox(.05)');
+assert.equal(run('foxAt(foxPosition().x,foxPosition().y)'), false, 'Fox walks home before its sleeping hint disappears');
 run('for(let i=0;i<120;i++)updateVillageWalker(.05)');
 assert.equal(run('villageWalkerAtHome()'), true, `阿宁 walks into the second village home at night: ${JSON.stringify(run('villageWalker'))}`);
 assert.equal(run('villagerAt(villagerPosition().x,villagerPosition().y)'), false, 'Villager hint disappears after reaching home');
@@ -942,6 +885,7 @@ assert.equal(run('farm.coins'), coinBeforeForage, 'The same mushroom cannot be c
 const berry = run("farm.forage.find(site=>site.kind==='berry' && Math.hypot(site.x-squirrel.x,site.y-squirrel.y)>35)");
 clickWorld(berry.x, berry.y);
 assert.equal(run('farm.berries'), 1, 'Berries enter the basket');
+const acornsBeforeGift = run("farm.forage.filter(site=>site.kind==='acorn').length");
 const squirrelLocation = run('({x:squirrel.x,y:squirrel.y})');
 clickWorld(squirrelLocation.x, squirrelLocation.y);
 assert.equal(run('farm.berries'), 0, 'Feeding consumes one berry');
@@ -950,13 +894,13 @@ run('farm.berries=2;feedSquirrel();feedSquirrel()');
 assert.equal(run('farm.squirrelTrust'), 3);
 assert.ok(run("farm.forage.some(site=>site.kind==='acorn')"), 'The squirrel reveals an acorn after three feeds');
 element('ledger-toggle').click();
-assert.equal(element('ledger-acorn-left').textContent, '1 枚', 'The ledger shows the unpicked gift');
-run("collectForage(farm.forage.find(site=>site.kind==='acorn'))");
+assert.equal(element('ledger-acorn-left').textContent, `${acornsBeforeGift + 1} 枚`, 'The ledger shows the unpicked gift');
+run("collectForage(farm.forage.find(site=>site.id.includes('-gift-')))");
 assert.equal(run('farm.acornPickedTotal'), 1, 'Picked acorns receive their own running total');
 assert.equal(run('farm.mushroomPickedTotal'), 1, 'Mushrooms receive their own running total');
 assert.equal(run('farm.berryPickedTotal'), 1, 'Gathered berries are counted even after feeding');
 assert.equal(element('ledger-acorn-total').textContent, '1 枚', 'The expanded ledger reflects the collected acorn');
-assert.equal(element('ledger-acorn-left').textContent, '0 枚', 'The collected gift leaves the pending count');
+assert.equal(element('ledger-acorn-left').textContent, `${acornsBeforeGift} 枚`, 'The collected gift leaves the pending count');
 run('squirrel.wait=0;squirrel.tx=squirrel.x+75;squirrel.ty=squirrel.y');
 const squirrelBeforeMove = run('squirrel.x');
 run('updateWildlife(.5)');
@@ -1072,7 +1016,7 @@ assert.ok(run(`(() => {
   let valid=true;
   for (let day=1; day<=64; day++) {
     farm.day=day; farm.forageSpawnDay=0; spawnForageForDay();
-    valid &&= farm.forage.length>=7 && farm.forage.length<=10;
+    valid &&= farm.forage.length>=7 && farm.forage.length<=11;
     valid &&= farm.forage.every(site=>!ridgeForageClear(site.x,site.y));
   }
   farm.day=oldDay; farm.forageSpawnDay=oldSpawnDay; farm.forage=oldSites;
@@ -1115,13 +1059,14 @@ for (const [name, label] of [['valleyOtter', '水獭'], ['valleyTurtle', '乌龟
 const otterBeforeMove = run('valleyOtter.x');
 run('updateValleyLife(.5)');
 assert.ok(run('valleyOtter.x') > otterBeforeMove, 'The otter swims without input');
-assert.ok(run('valleyTurtle.x') < 251 && run('valleyHeron.x') < 294, 'Turtle and heron follow their own routes');
+assert.ok(run('valleyTurtle.x') !== 251 && run('valleyHeron.x') < 294, 'Turtle and heron follow their own routes');
 assert.ok(run('valleyLakeAt(valleyOtter.x,valleyOtter.y) && valleyLakeAt(valleyTurtle.x,valleyTurtle.y) && valleyLakeAt(valleyShoal.x,valleyShoal.y)'), 'Swimming routes remain in the lake');
 assert.match(run('describe(valleyOtter.x,valleyOtter.y).text'), /水獭/, 'The otter hint follows it after moving');
 assert.ok(run(`(() => {
   for (let i = 0; i < 400; i++) {
     updateValleyLife(.5);
-    if (![valleyOtter, valleyTurtle, valleyHeron, valleyShoal].every(actor => valleyLakeDepth(actor.x, actor.y) < 1.07)) return false;
+    if (![valleyOtter, valleyHeron, valleyShoal].every(actor => valleyLakeDepth(actor.x, actor.y) < 1.07)) return false;
+    if(!valleyLakeAt(valleyTurtle.x,valleyTurtle.y)&&!turtleBaskCorridor(valleyTurtle))return false;
   }
   return true;
 })()`), 'Valley creatures stay in or beside the lake over time');
@@ -1203,15 +1148,11 @@ assert.equal(upperExpansion.upperSouthCount, 10, 'The greenhouse expansion omits
 assert.ok(upperExpansion.clear && upperExpansion.rightGap && upperExpansion.bottomGap,
   'Expanded upper fields keep one full grass tile before both roads');
 run('farm.upgrades=3;farm.coins=1200;expandIfReady()');
-assert.equal(run('farm.upgrades'), 4, 'Southern pasture opens when the farm can afford it');
+assert.equal(run('farm.upgrades'), 4, 'The autonomous southern field expansion advances independently');
 assert.equal(run('farm.goatBarnOpen'), false, 'The goat barn does not open at the sheep threshold');
 assert.equal(run('landmarkAt(1100,1355)'), 'future-goat-barn');
 assert.equal(run('landmarkAt(1100,1460)'), 'future-goat-pen');
-assert.match(run('describe(1100,1355).text'), /1500/, 'The building site shows its unlock price after the sheep pasture opens');
-painted.length = 0;
-run('drawMeadowScenery()');
-assert.ok(painted.length > 0, 'Construction stakes and timber appear after the sheep pasture opens');
-assert.match(element('next-unlock').textContent, /山羊舍.*1500/, 'The next construction hint advertises the goat barn');
+assert.match(run('describe(1100,1355).text'), /自然地带/, 'An unbuilt goat barn remains natural terrain');
 assert.equal(run('landmarkAt(600,150)'), 'greenhouse');
 assert.equal(run('landmarkAt(800,1355)'), 'sheep-barn');
 assert.equal(run('landmarkAt(880,1490)'), 'sheep-pasture');
@@ -1220,7 +1161,8 @@ assert.equal(run('farm.plots.filter(p => p.x >= 10 && p.x <= 17 && p.y >= 20 && 
 assert.ok(run('farm.plots.filter(p => p.y >= 19).every(p => !lakeAt(p.x * T, p.y * T + T))'), 'Southern plots do not enter the lake');
 assert.ok(run('farm.plots.filter(p => p.y >= 19).every(p => p.y * T >= 608 + T && p.x * T + T + (T - 4) <= 604)'), 'Southern plots keep a grass strip from the inset road');
 assert.ok(run("workers.some(w=>w.name==='阿青')"));
-assert.ok(run("workers.some(w=>w.name==='阿牧')"), 'The sheep barn brings in its own caretaker');
+run('addPastureWorker()');
+assert.ok(run("workers.some(w=>w.name==='阿牧')"), 'An imported sheep barn retains its caretaker');
 assert.equal(run('landmarkAt(PASTURE_WORKER_LAYOUT.rest.x,PASTURE_WORKER_LAYOUT.rest.y)'), 'pasture-bench',
   'The caretaker has a resting place between both barns');
 assert.ok(run(`(() => {
@@ -1264,11 +1206,10 @@ run('localStorage.getItem = () => null');
 run('farm.upgrades=4;farm.goatBarnOpen=false;farm.coins=1499;expandIfReady()');
 assert.equal(run('farm.goatBarnOpen'), false, 'The goat barn stays closed below 1500 coins');
 run('farm.coins=1500;expandIfReady()');
-assert.equal(run('farm.goatBarnOpen'), true, 'The goat barn opens after the sheep barn at 1500 coins');
-assert.equal(run('farm.coins'), 1200, 'Building the goat barn invests 300 coins');
+assert.equal(run('farm.goatBarnOpen'), false, 'Autonomous chores never bypass the new goat construction contract');
+run('farm.goatBarnOpen=true;syncRegressionInfrastructure();updateUI()');
 assert.equal(run('landmarkAt(1100,1355)'), 'goat-barn');
 assert.equal(run('landmarkAt(1100,1460)'), 'goat-pen');
-assert.match(element('next-unlock').textContent, /集市.*1900/, 'The market follows the goat barn');
 run('farm.coins=1900;expandIfReady()');
 assert.equal(run('farm.upgrades'), 5, 'The village market opens on its threshold');
 assert.equal(run('landmarkAt(1550,880)'), 'village-market');
@@ -1290,7 +1231,7 @@ assert.ok(run('latePlot.age') < .25, 'Late planting grows only for elapsed dayli
 run('villageWalker.x=1690;villageWalker.y=812');
 element('reset-button').listeners.click();
 assert.equal(run('farm.upgrades'), 0, 'Reset starts a new farm');
-assert.equal(run('workers.length'), 5, 'Reset restores the four main-farm workers and herb worker');
+assert.equal(run('workers.length'), 3, 'Reset starts with the three main-farm residents');
 assert.equal(run('farm.view.x'), 0, 'Reset returns the camera home');
 assert.deepEqual(Array.from(run('[villageWalker.x,villageWalker.y]')), [1723,792], 'Reset returns 阿宁 to the middle home');
 assert.ok(run('farm.fishSpots.length') >= 3 && run('farm.fishTotal') === 0, 'Reset restores the lake');
@@ -1299,8 +1240,10 @@ assert.equal(run('ridgeDeer.x'), 1744, 'Reset restores the northern forest habit
 assert.equal(run('meadowGoats[0].x'), 1040, 'Reset restores the goat pasture');
 assert.equal(run('farm.goatBarnOpen'), false, 'Reset closes the goat barn again');
 assert.equal(run('farm.valleyHerbs.length'), 6, 'Reset replants the valley herb garden');
-assert.equal(run("workers.map(w=>w.name).join(',')"), '阿满,小禾,阿青,阿栀,阿麦', 'Every specialist is present from the first day');
+assert.equal(run("workers.map(w=>w.name).join(',')"), '阿满,小禾,阿青', 'Future specialists arrive with development');
+runRaw('replaceFarmState(regressionFarmFixture())');
 assert.equal(run('DAY_SECONDS'), 72, 'The longer day leaves time for a visible delivery circuit');
+run('farm.upgrades=5;farm.goatBarnOpen=true;syncRegressionInfrastructure()');
 assert.ok(run(`(() => {
   const routes = [[COURIER_HOME, ...COURIER_OUTBOUND]];
   for(let mask=0;mask<1<<DEPOT_IDS.length;mask++) {
@@ -1441,7 +1384,8 @@ for (const [x, y] of [[970, 1170], [715, 1209]]) {
   })()`), `The valley worker reaches the chair from ${x},${y} without waypoint jitter`);
 }
 element('reset-button').listeners.click();
-run("stockGood('farm','wheat',2);stockGood('pasture','wool',1);stockGood('valley','lavender',1);stockGood('lake','carp',1);stockGood('forest','mushroom',1);farm.phase=.2");
+runRaw('replaceFarmState(regressionFarmFixture())');
+run("farm.upgrades=4;stockGood('farm','wheat',2);stockGood('pasture','wool',1);stockGood('valley','lavender',1);stockGood('lake','carp',1);stockGood('forest','mushroom',1);farm.phase=.2");
 assert.equal(run('DEPOT_SITES.farm.y'), 558, 'The main farm box moves one tile north of the road');
 assert.ok(run('DEPOT_SITES.farm.y+16 < 576'), 'The main box artwork clears the road surface');
 assert.match(run('describe(DEPOT_SITES.farm.x,DEPOT_SITES.farm.y).text'), /主场货箱.*小麦 2/, 'Depot hover lists its actual cargo');
@@ -1476,6 +1420,7 @@ assert.equal(run('farm.shippedTotal'), 6, 'Goods from all five regions arrive at
 assert.equal(run('DEPOT_IDS.reduce((sum,id)=>sum+depotCount(id),0)'), 0, 'Delivered goods leave every source depot');
 assert.ok(run('farm.coins') > 120, 'Income is credited when the cart reaches the market');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const directJourney = run(`(() => {
   farm.phase=.2;
   updateCourier(.05);
@@ -1502,7 +1447,7 @@ assert.equal(run('farm.shippedTotal'), 2, 'Both newly stocked boxes are collecte
 const allDepotReturnPlans = run(`(() => {
   const goods={farm:'wheat',lake:'carp',nursery:'seedPacket',pasture:'wool',valley:'mint',forest:'acorn'};
   return DEPOT_IDS.every((id,index)=>{
-    replaceFarmState(newFarm());farm.nursery.level=1;farm.phase=.2;
+    replaceFarmState(newFarm());farm.upgrades=4;farm.nursery.level=1;farm.phase=.2;
     for(const box of DEPOT_IDS)stockGood(box,goods[box]);
     updateCourier(.05);
     if(courier.plannedDepots.length)return false;
@@ -1539,6 +1484,7 @@ const emptyReturnPlan = run(`(() => {
 assert.ok(emptyReturnPlan,
   'Boxes emptied before return departure are skipped, and later new goods wait for the next trip');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const plannedForestCollection = run(`(() => {
   stockGood('forest','mushroom',1);
   farm.phase=.2;updateCourier(.05);
@@ -1563,6 +1509,7 @@ assert.equal(plannedForestCollection.forestRemaining, 0, '阿运 empties the who
 assert.deepEqual([plannedForestCollection.mushrooms,plannedForestCollection.acorns], [1,6],
   'New forest goods added after return departure join the planned pickup');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const villageNight = run(`(() => {
   farm.phase=NIGHT_START+.02;
   let onRoad=true;
@@ -1645,6 +1592,7 @@ assert.equal(run('courier.night'), null);
 assert.deepEqual(Array.from(run('[courier.x,courier.y]')), [1785,800]);
 assert.equal(run('courier.cargo.mushroom'), 2);
 const interruptedRoutes = run(`(() => {
+  farm.upgrades=5;farm.goatBarnOpen=true;syncRegressionInfrastructure();
   const plans=[
     {name:'outbound',leg:'outbound',variant:null,depots:[],route:COURIER_OUTBOUND,start:COURIER_HOME},
     {name:'empty base',leg:'return',variant:null,depots:[],route:courierReturnBase([]),start:COURIER_REST},
@@ -1678,6 +1626,7 @@ const interruptedRoutes = run(`(() => {
 assert.equal(interruptedRoutes, run('COURIER_OUTBOUND.length + courierReturnBase([]).length + courierReturnBase(DEPOT_IDS).length + COURIER_DIRECT_RETURN.length + COURIER_FOREST_RETURN.length'),
   `Every route segment can pause for sleep and resume: ${interruptedRoutes}`);
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const fixedForestTrip = run(`(() => {
   stockGood('forest','mushroom',1); farm.phase=.2;
   updateCourier(.05);
@@ -1696,6 +1645,7 @@ assert.equal(fixedForestTrip.planned.join(','), '', 'Market departure does not c
 assert.equal(fixedForestTrip.forest, false, 'A forest box emptied before return departure skips the detour');
 assert.equal(fixedForestTrip.leg, 'market');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const returnForestLock = run(`(() => {
   farm.phase=.2;updateCourier(.05);
   for(let i=0;i<1000&&courier.leg!=='rest';i++)updateCourier(.05);
@@ -1713,6 +1663,7 @@ const returnForestLock = run(`(() => {
 })()`);
 assert.ok(returnForestLock, 'Once the return morning commits the forest loop, emptied stock and a save do not change the route');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const autonomousRun = run(`(() => {
   for (let i = 0; i < 4500 && farm.day < 4; i++) {
     const rate = farm.phase >= NIGHT_START ? 2.1 : 1;
@@ -1725,6 +1676,7 @@ const autonomousRun = run(`(() => {
 assert.ok(autonomousRun.day >= 4 && autonomousRun.shipped > 0 && autonomousRun.herbs >= 6
   && autonomousRun.coins >= 0, 'Several days of unattended play still harvest, transport and keep a valid economy');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const festivalRun = run(`(() => {
   farm.day = 9; farm.phase = .2;
   farm.orders = [{ id: 70, crop: 'wheat', target: 3, progress: 0, due: 10, reward: 80, focus: true }];
@@ -1758,10 +1710,16 @@ const festivalRun = run(`(() => {
   festivalRects = [];
   drawVillageWalker();
   const walkerSecond = JSON.stringify(festivalRects);
+  // A calm pose can round to the same pixels in two adjacent samples; inspect a whole gesture cycle.
+  let workerAnimated=workerFirst!==workerSecond,walkerAnimated=walkerFirst!==walkerSecond;
+  for(let i=1;i<=16;i++){
+    now=10+i*.23;festivalRects=[];worker(workers[0]);workerAnimated ||= JSON.stringify(festivalRects)!==workerFirst;
+    festivalRects=[];drawVillageWalker();walkerAnimated ||= JSON.stringify(festivalRects)!==walkerFirst;
+  }
   ctx.fillRect = originalFillRect;
   farm.paused = false;
   now = savedClock;
-  const pausedCelebration = workerFirst !== workerSecond && walkerFirst !== walkerSecond
+  const pausedCelebration = workerAnimated && walkerAnimated
     && motionNow === savedMotion && farm.phase === savedPhase
     && workers[0].x === savedWorker.x && workers[0].y === savedWorker.y
     && villageWalker.x === savedWalker.x && villageWalker.y === savedWalker.y;
@@ -1828,6 +1786,7 @@ assert.ok(festivalRun.dawnStayedHome && festivalRun.noMorningJump && festivalRun
   && festivalRun.morningRestored && festivalRun.nextDayResumed,
   'The next day each villager leaves home visibly, with the morning trip surviving a save');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const anglerCommute = run(`(() => {
   farm.day=12; farm.phase=NIGHT_START;
   updateVillageNeighbours(.05);
@@ -1851,6 +1810,7 @@ const anglerCommute = run(`(() => {
 assert.ok(Object.values(anglerCommute).every(Boolean),
   'The angler walks between pier and hut on ordinary nights and mornings, including after a save');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const orderKeeperCommute = run(`(() => {
   farm.day = 12; farm.phase = .03;
   orderKeeper = { ...resetOrderKeeper(), ...ORDER_KEEPER_HOME };
@@ -1901,6 +1861,7 @@ assert.ok(Object.values(orderKeeperCommute).every(Boolean),
   `A-Kui commutes around the market stalls, persists her trip and reaches the notice before garden work: ${JSON.stringify(orderKeeperCommute)}`);
 
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const restingCourier = run(`(() => {
   farm.day=10; farm.phase=.2; courier.leg='rest'; courier.journeyDay=9;
   courier.x=COURIER_REST.x; courier.y=COURIER_REST.y;
@@ -1913,16 +1874,18 @@ const restingCourier = run(`(() => {
 assert.ok(restingCourier.resting && restingCourier.resumed,
   'A courier already on the farm rests through the celebration and resumes the route afterward');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 const pastureCelebration = run(`(() => {
   farm.upgrades=4; addPastureWorker(); farm.day=10; farm.phase=.2;
   for(let i=0;i<250;i++) updateActors(.05);
   const keeper=workers.find(worker=>worker.name==='阿牧');
   return {atPlaza:keeper.festival?.stage==='gather', path:keeper.festival?.out
-    .some(point=>point.x===704&&point.y===1394)};
+    .some(point=>point.x===652&&point.y===PASTURE_WORKER_LAYOUT.home.y)};
 })()`);
 assert.ok(pastureCelebration.atPlaza && pastureCelebration.path,
-  'The pasture keeper uses the sheep-gate route to join the celebration');
+  'The pasture keeper leaves his cottage via the western access to join the celebration');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 run("farm.upgrades=2;farm.honeyReady=true;farm.eggsReady=false;farm.fruitReady=false;cows.forEach(c=>c.milk=false);workers[0].task=null;workers[1].task=null;assignTask(workers[0])");
 assert.equal(run('workers[0].task.type'), 'honey', 'A field worker collects the ready honey');
 run('finishTask(workers[0].task,workers[0])');
@@ -1952,10 +1915,11 @@ assert.ok(run(`(() => {
 })()`), 'A full runtime archive restores the pasture keeper at the bench');
 assert.ok(run(`(() => {
   farm.phase=.76;
-  for(let i=0;i<60;i++) updateActors(.1);
+  for(let i=0;i<150;i++) updateActors(.1);
   return distance(workers.find(w=>w.name==='阿牧'),PASTURE_WORKER_LAYOUT.home)<20;
-})()`), 'The pasture keeper returns to the sheep barn at night');
+})()`), 'The pasture keeper returns to his cottage at night');
 element('reset-button').listeners.click();
+runRaw('replaceFarmState(regressionFarmFixture())');
 assert.equal(run('landmarkAt(1550,880)'), 'village', 'Market hint closes again after reset');
 assert.equal(run('landmarkAt(800,1380)'), 'future-pasture', 'Sheep hint returns to its unopened state');
 
@@ -1987,7 +1951,7 @@ assert.equal(element('map-tooltip').hidden, true, 'The fullscreen hint switch hi
 element('pure-hints-toggle').click();
 element('farm-map').listeners.pointermove({clientX:pureHintPoint.x,clientY:pureHintPoint.y});
 assert.equal(element('map-tooltip').hidden, false, 'Hover text returns when the switch is enabled');
-run('setZoom(.7)');
+run('setZoom(W / WORLD_W * .95)');
 assert.ok(run('worldPadding().x') > 0, 'Side borders appear only after the map becomes narrower than the screen');
 assert.ok(Math.abs(run('screenToWorld(worldPadding().x,H/2).x')) < .01,
   'The zoomed-out world begins immediately after its centered side border');
@@ -2017,7 +1981,7 @@ run('resizeFarmViewport();setZoom(0)');
 element('pure-mode-toggle').click();
 assert.equal(run('farm.view.zoom'), .7, 'Exiting fullscreen restores the normal minimum even when backing dimensions stay unchanged');
 const fittedExitCenter = run('screenToWorld(W/2,H/2)');
-assert.ok(Math.abs(fittedExitCenter.x-1024)<.01 && Math.abs(fittedExitCenter.y-960)<.01,
+assert.ok(Math.abs(fittedExitCenter.x-run('WORLD_W / 2'))<.01 && Math.abs(fittedExitCenter.y-960)<.01,
   'Leaving a fitted fullscreen map keeps the same world center');
 element('map-panel').getBoundingClientRect = () => ({ left: 0, top: 0, width: 1920, height: 1080 });
 element('pure-mode-toggle').click();
@@ -2029,8 +1993,8 @@ run("farm.phase=.75;farm.weatherFrom='rain';farm.weather='rain'");
 exportPainted.length = 0;
 exportColors.length = 0;
 const fullImage = run('renderCompleteFarmCanvas()');
-assert.equal(fullImage, latestImageCanvas);
-assert.equal(fullImage.width, 2048);
+assert.equal(fullImage, getLatestImageCanvas());
+assert.equal(fullImage.width, run('WORLD_W'));
 assert.equal(fullImage.height, 1920);
 assert.ok(exportPainted.some(([x, y]) => x > 1800 && y > 700), 'The image includes the unseen eastern village');
 assert.ok(exportPainted.some(([x, y]) => x > 1900 && y > 1250), 'The image includes the unseen southern edge');
@@ -2053,6 +2017,7 @@ run('setZoom(1)');
 
 assert.equal(run('validateRuntimeSnapshot(captureRuntimeState())'), true, 'The current moving world forms a valid snapshot');
 run("farm.day=12;farm.phase=.34;farm.coins=777;farm.goatBarnOpen=true;farm.view.x=250;farm.plots[0].crop='pumpkin';farm.plots[0].age=1.5;farm.valleyHerbs[0].pickedAt=11;farm.valleyHerbs[0].readyAt=13;farm.herbTotal=4;farm.acornPickedTotal=2;farm.milkTotal=7;farm.depots.farm.wheat=3;farm.marketGoods={honey:2};farm.shippedTotal=7;farm.ledgerExpanded=true;cows[0].x=774;workers[0].x=540;courier.x=1180;courier.y=1206;courier.leg='return';courier.routeVariant=null;courier.plannedDepots=[...DEPOT_IDS];courier.journeyDay=11;courier.lastReturnDay=10;courier.stopIndex=7;courier.cargo={milk:2};meadowGoats[0].x=1080;now=123.4;motionNow=67.8;tool='plant';$('seed-select').value='corn'");
+run('farm.upgrades=5;farm.development=makeLegacyVillageDevelopment(farm,captureRuntimeState())');
 const archiveText = run('farmExportText()');
 const archiveData = JSON.parse(archiveText);
 const readableArchiveText = run('farmExportText(false)');
@@ -2131,7 +2096,7 @@ assert.equal(run('now'), 123.4, 'Import restores the animation clock');
 assert.equal(run('motionNow'), 67.8, 'Import restores paused travel positions');
 assert.equal(run('tool'), 'plant', 'Import restores the selected tool');
 assert.equal(run("$('seed-select').value"), 'corn', 'Import restores the selected seed');
-assert.equal(JSON.parse(storedSave).runtime.cows[0].x, 774, 'Automatic browser saves retain moving actors too');
+assert.equal(JSON.parse(getStoredSave()).runtime.cows[0].x, 774, 'Automatic browser saves retain moving actors too');
 const invalidMotion = JSON.parse(archiveText);
 invalidMotion.runtime.workers[0].x = null;
 sandbox.invalidMotionText = JSON.stringify(invalidMotion);
@@ -2186,10 +2151,10 @@ moduleLoadsBefore('ui/map-input.js', 'ui/app.js');
 assert.equal(scripts.at(-1), 'ui/app.js', 'Bootstrap starts only after all modules and listeners are defined');
 assert.equal(stylesheets.at(-1), 'css/responsive.css', 'Responsive overrides follow all component styles');
 assert.match(html, /id="farm-map" width="1152" height="816"/);
-assert.match(html, /id="mini-map" width="260" height="244"/);
+assert.match(html, /id="mini-map" width="260" height="217"/);
 assert.match(css, /\.map-wrap\{[^}]*aspect-ratio:24\/17/);
 assert.match(css, /\.map-panel:is\(:fullscreen,\.is-pure-mode\) \.map-wrap\{[^}]*width:100vw;height:100vh/, 'Pure mode uses the full viewport');
-assert.match(css, /#mini-map\{[^}]*aspect-ratio:65\/61/);
+assert.match(css, /#mini-map\{[^}]*aspect-ratio:260\/217/);
 assert.match(css, /\.ledger-goods-item\{[^}]*grid-template-columns:max-content minmax\(0,1fr\)/,
   'Wrapped freight details align under the contents after each depot name');
 assert.match(html, /id="pure-mode-toggle"/);
@@ -2212,7 +2177,7 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
   const viewBeforeImage = run('farm.view');
   await run('exportCompleteFarmImage()');
   assert.match(downloads.at(-1).name, /苔谷农场-第12天-.*-全图\.png/, 'Image export downloads a dated PNG');
-  assert.match(element('archive-status').textContent, /2048 × 1920/, 'Image export reports the full resolution');
+  assert.match(element('archive-status').textContent, /2560 × 1920/, 'Image export reports the full resolution');
   assert.equal(run('farm.day'), dayBeforeImage, 'Saving an image does not change the farm day');
   assert.equal(run('farm.view'), viewBeforeImage, 'Saving an image does not change the camera');
   assert.equal(element('export-map-image').disabled, false, 'The image button is re-enabled after encoding');
@@ -2270,13 +2235,19 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
   }
 
   // The release ZIP is the source; HTTP and file:// loading must restore the same full snapshot.
+  {
+  // Release snapshots must bypass the earlier legacy-world scenario adapter, which
+  // intentionally rewrites infrastructure dates to match each synthetic scenario.
+  const run=runRaw;
   const releaseZip = fs.readFileSync(path.join(root, run('DEFAULT_FARM_SAVE.url')));
   assert.deepEqual(Buffer.from(run('DEFAULT_FARM_SAVE.base64'), 'base64'), releaseZip,
     'The local-page fallback matches the published ZIP byte for byte');
   const releaseArchive = JSON.parse(run('farmZipArchiveText(Uint8Array.from(atob(DEFAULT_FARM_SAVE.base64), c => c.charCodeAt(0)))'));
   assert.equal(releaseArchive.state.day, run('DEFAULT_FARM_SAVE.day'));
+  sandbox.releaseSnapshot = JSON.parse(JSON.stringify(releaseArchive));
+  releaseArchive.state = JSON.parse(run('JSON.stringify(parseFarmSave(releaseSnapshot))'));
   const beforeDefault = JSON.parse(run('farmExportText()'));
-  const storedBeforeDefault = storedSave;
+  const storedBeforeDefault = getStoredSave();
   const loadDefault = element('load-default-farm').listeners.click;
   function assertReleaseWorld(actual, message) {
     // Camera clamping can introduce a subpixel floating-point rounding difference.
@@ -2295,7 +2266,7 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
     assert.match(element('archive-status').textContent, /已取消/);
     assert.deepEqual(JSON.parse(run('farmExportText()')).state, beforeDefault.state);
     assert.deepEqual(JSON.parse(run('farmExportText()')).runtime, beforeDefault.runtime);
-    assert.equal(storedSave, storedBeforeDefault, 'Cancel never overwrites the automatic save');
+    assert.equal(getStoredSave(), storedBeforeDefault, 'Cancel never overwrites the automatic save');
 
     sandbox.confirm = () => { throw new Error('Invalid archives must be rejected before confirmation'); };
     sandbox.fetch = async () => ({ ok: false });
@@ -2306,7 +2277,7 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
     assert.ok(element('archive-status').classList.contains('error'));
     assert.deepEqual(JSON.parse(run('farmExportText()')).state, beforeDefault.state);
     assert.deepEqual(JSON.parse(run('farmExportText()')).runtime, beforeDefault.runtime);
-    assert.equal(storedSave, storedBeforeDefault, 'Read and validation failures preserve the automatic save');
+    assert.equal(getStoredSave(), storedBeforeDefault, 'Read and validation failures preserve the automatic save');
 
     sandbox.confirm = () => true;
     for (const protocol of ['http:', 'file:']) {
@@ -2316,19 +2287,20 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
         return { ok: true, blob: async () => new Blob([releaseZip]) };
       };
       await loadDefault();
-      assert.match(element('archive-status').textContent, /已加载 v1\.0 默认农场/);
+      assert.ok(element('archive-status').textContent.includes(`已加载 v${run('DEFAULT_FARM_SAVE.release')} 默认农场`));
       assert.equal(element('load-default-farm').disabled, false);
       assertReleaseWorld(JSON.parse(run('farmExportText()')).state, `${protocol} loading retains all default farm fields`);
-      assert.deepEqual(JSON.parse(run('farmExportText()')).runtime, releaseArchive.runtime,
-        `${protocol} loading retains all default movement, cargo, animal and activity fields`);
-      assertReleaseWorld(JSON.parse(storedSave).state, 'Loaded farm is saved immediately');
-      assert.deepEqual(JSON.parse(storedSave).runtime, releaseArchive.runtime, 'Loaded runtime is saved immediately');
-      sandbox.releaseCachedText = storedSave;
+      const loadedReleaseRuntime=JSON.parse(run('farmExportText()')).runtime;
+      assert.deepEqual(loadedReleaseRuntime,releaseArchive.runtime,
+        `${protocol} loading retains every movement, cargo, animal and activity field`);
+      assertReleaseWorld(JSON.parse(getStoredSave()).state, 'Loaded farm is saved immediately');
+      assert.deepEqual(JSON.parse(getStoredSave()).runtime, loadedReleaseRuntime, 'The complete runtime is saved immediately');
+      sandbox.releaseCachedText = getStoredSave();
       const cachedRelease = run('parseFarmSave(JSON.parse(releaseCachedText))');
       sandbox.cachedRelease = cachedRelease;
       run('replaceFarmState(cachedRelease, JSON.parse(releaseCachedText).runtime)');
-      assert.deepEqual(JSON.parse(run('farmExportText()')).runtime, releaseArchive.runtime,
-        'The browser cache can restore the loaded release snapshot');
+      assert.deepEqual(JSON.parse(run('farmExportText()')).runtime, loadedReleaseRuntime,
+        'The browser cache restores every runtime field');
       sandbox.restoreDefaultState = structuredClone(beforeDefault.state);
       sandbox.restoreDefaultRuntime = structuredClone(beforeDefault.runtime);
       run('replaceFarmState(restoreDefaultState, restoreDefaultRuntime)');
@@ -2340,6 +2312,27 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
     sandbox.restoreDefaultRuntime = structuredClone(beforeDefault.runtime);
     run('replaceFarmState(restoreDefaultState, restoreDefaultRuntime)');
     delete sandbox.fetch;
+  }
+
+  // Keep old-release migration coverage separate from whichever default release is selected.
+  const legacyFolder=path.join(root,'saves/v1.0');
+  const legacyZipNames=fs.readdirSync(legacyFolder).filter(name=>name.endsWith('.zip'));
+  assert.equal(legacyZipNames.length,1);
+  sandbox.legacyZipBytes=new Uint8Array(fs.readFileSync(path.join(legacyFolder,legacyZipNames[0])));
+  const legacyArchive=JSON.parse(run('farmZipArchiveText(legacyZipBytes)'));
+  sandbox.legacySnapshot=structuredClone(legacyArchive);
+  run('replaceFarmState(parseFarmSave(legacySnapshot),legacySnapshot.runtime)');
+  const {forestFox: restoredFox,...originalRuntime}=JSON.parse(run('farmExportText()')).runtime;
+  const {acornDay: restoredAcornDay,...legacyKeeper}=originalRuntime.forestKeeper;
+  assert.equal(restoredAcornDay,0,'The v1.0 keeper starts with no new acorn collection');
+  originalRuntime.forestKeeper=legacyKeeper;
+  assert.deepEqual(originalRuntime,legacyArchive.runtime,'v1.0 migration preserves all original runtime fields');
+  const foxClock=legacyArchive.runtime.motionNow??legacyArchive.runtime.now;
+  assert.equal(restoredFox.x,1190+Math.sin(foxClock*.34)*55,'v1.0 fox retains the original visible x');
+  assert.equal(restoredFox.y,466+Math.sin(foxClock*.23)*24,'v1.0 fox retains the original visible y');
+  sandbox.restoreDefaultState=structuredClone(beforeDefault.state);
+  sandbox.restoreDefaultRuntime=structuredClone(beforeDefault.runtime);
+  run('replaceFarmState(restoreDefaultState,restoreDefaultRuntime)');
   }
 
   const liveHover = run(`(() => {
@@ -2395,7 +2388,7 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
   })()`);
   assert.ok(Object.values(liveHover).every(Boolean),
     `悬停文字在鼠标静止时更新；对象离开、采摘、拖动视角、页面滚动和指针取消均清除提示：${JSON.stringify(liveHover)}`);
-  const cachedSave = storedSave;
+  const cachedSave = getStoredSave();
   const bootWithCache = (cache, write = () => {}) => {
     const freshSandbox = vm.createContext({
       document: sandbox.document,
@@ -2473,11 +2466,11 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
   assert.ok(wetlandEcology.dragonflies && wetlandEcology.stirred && !wetlandEcology.rainy
     && wetlandEcology.fireflies && !wetlandEcology.winterFireflies,
   'Wetland insects respond to weather, daylight and seasons');
-  assert.ok(JSON.parse(storedSave).state.nursery.wildlifeStirUntil > 0,
+  assert.ok(JSON.parse(getStoredSave()).state.nursery.wildlifeStirUntil > 0,
     'The wetland interaction survives a complete save');
   run('replaceFarmState(newFarm())');
   const nurseryRun = run(`(() => {
-    farm.shippedTotal=100;updateNurseryMilestones();
+    farm.shippedTotal=100;farm.phase=.2;updateNurseryMilestones(VILLAGE_WORK_DAY);
     const opened=farm.nursery.level===1 && nurseryActiveBeds()===4
       && depotAt(NURSERY_LAYOUT.depot.x,NURSERY_LAYOUT.depot.y)==='nursery';
     farm.nursery.beds[0].pickedAt=farm.day-3;
@@ -2498,7 +2491,7 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
     const autonomous=farm.depots.nursery.seedPacket>=1 && farm.nursery.harvestTotal>=2;
     const herb=farm.valleyHerbs[0];herb.readyAt=farm.day-.1;
     const herbBoost=collectValleyHerb(herb) && herb.readyAt-herb.pickedAt<2;
-    farm.shippedTotal=200;updateNurseryMilestones();
+    farm.shippedTotal=200;farm.phase=.2;updateNurseryMilestones(VILLAGE_WORK_DAY);
     const expanded=nurseryActiveBeds()===7;
     farm.day=3;farm.fruitReady=false;nextDay();
     const orchardBoost=farm.fruitReady;
@@ -2534,6 +2527,7 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
   }))()`);
   assert.ok(restRoutes, '阿芽 crosses the grass to the bench without going back to the entry road');
   const relocatedRest = run(`(() => {
+    farm.shippedTotal=100;
     farm.day=3;farm.phase=.3;farm.nursery.level=1;
     for(const bed of farm.nursery.beds)bed.readyAt=nurseryClock()+5;
     nurseryKeeper=resetNurseryKeeper();
@@ -2588,7 +2582,7 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
     `阿芽连续采收，所有苗床未成熟才休息，苗畦间路线和存档保持正确：${JSON.stringify(nurseryChain)}`);
   run('replaceFarmState(newFarm())');
   const nurseryFreight = run(`(() => {
-    farm.nursery.level=1;farm.phase=.2;
+    farm.nursery.level=1;farm.phase=.2;farm.upgrades=5;syncRegressionInfrastructure();
     stockGood('lake','carp');stockGood('nursery','flowerBundle');stockGood('pasture','wool');
     updateCourier(.05);
     stockGood('nursery','seedPacket');
@@ -2935,10 +2929,11 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
       courier.stopIndex=2;const next=courierPlanText().startsWith('下一站：西湖鱼箱') && courierPlanText().includes('✓ 主场货箱');
       courier.routeVariant='forest';courier.stopIndex=2;
       const delivered=courierPlanText().startsWith('下一站：村口集市');
+      farm.events=[];
       for(let i=0;i<12;i++)record('日记测试 '+i);
-      const ten=farm.events.length===10 && $('event-list').children.length===10 && farm.events[0].text==='日记测试 11';
+      const today=farm.events.length===12 && $('event-list').children.length===12 && farm.events[0].text==='日记测试 11';
       const children=$('event-list').children;updateUI();updateUI();const stable=children===$('event-list').children;
-      const parsed=parseFarmSave({version:1,state:JSON.parse(JSON.stringify(farm))});const stored=parsed.events.length===10;
+      const parsed=parseFarmSave({version:1,state:JSON.parse(JSON.stringify(farm))});const stored=parsed.events.length===12;
       const createElement=document.createElement;
       let anchored=false;
       try {
@@ -2963,11 +2958,11 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
       farm.paused=true;farm.day=30;
       const actor={x:878},poseA=festivalGesture(actor);now+=.4;const poseB=festivalGesture(actor);
       const idle=poseA.bounce!==poseB.bounce;
-      return {pending,fixed,next,delivered,ten,stable,stored,anchored,seasons,idle};
+      return {pending,fixed,next,delivered,today,stable,stored,anchored,seasons,idle};
     } finally {replaceFarmState(originalState,originalRuntime);}
   })()`);
   assert.ok(Object.values(communityUI).every(Boolean),
-    `返程文字计划、十条完整日记、稳定列表和四季欢庆动作：${JSON.stringify(communityUI)}`);
+    `返程文字计划、当天完整日记、稳定列表和四季欢庆动作：${JSON.stringify(communityUI)}`);
 
   const celebrationChecks = run(`(() => {
     const originalState=JSON.parse(JSON.stringify(farm)), originalRuntime=JSON.parse(JSON.stringify(captureRuntimeState()));
@@ -3144,5 +3139,59 @@ for (const asset of [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"?]+)"/g)].m
     console.log(`Supplied day ${expectedState.day} archive verified: ${Buffer.byteLength(fixtureText)} JSON bytes -> ${fixtureFile.size} ZIP bytes.`);
   }
 
+  require('./town-checks.cjs')(run, assert);
+  require('./town-postcard-checks.cjs')(run, assert);
+  require('./town-projects-checks.cjs')(run, assert);
+  require('./town-care-checks.cjs')(run, assert);
+  require('./town-development-checks.cjs')(run, assert);
+  require('./town-garden-checks.cjs')(run, assert);
+  require('./town-social-checks.cjs')(run, assert);
+  require('./town-tea-checks.cjs')(run, assert);
+  require('./town-lantern-checks.cjs')(run, assert);
+  require('./town-firefly-checks.cjs')(run, assert);
+  require('./town-curio-checks.cjs')(run, assert);
+  require('./town-dog-checks.cjs')(run, assert);
+  require('./town-dog-stretch-checks.cjs')(run, assert);
+  require('./town-rest-checks.cjs')(run, assert);
+  require('./town-tea-party-checks.cjs')(run, assert);
+  require('./town-cat-play-checks.cjs')(run, assert);
+  require('./town-flower-care-checks.cjs')(run, assert);
+  require('./town-east-layout-checks.cjs')(run, assert);
+  require('./town-donkey-visit-checks.cjs')(run, assert);
+  require('./town-birdbath-checks.cjs')(run, assert);
+  require('./town-hearth-checks.cjs')(run, assert);
+  require('./town-butterfly-checks.cjs')(run, assert);
+  require('./town-fodder-checks.cjs')(run, assert);
+require('./town-donkey-water-checks.cjs')(run, assert);
+  require('./town-rain-gear-checks.cjs')(run, assert);
+  require('./town-sketch-checks.cjs')(run, assert);
+  require('./plaza-cat-company-checks.cjs')(run, assert);
+  require('./plaza-eaves-checks.cjs')(run, assert);
+require('./squirrel-meal-checks.cjs')(run, assert);
+require('./forest-fox-checks.cjs')(run, assert);
+require('./turtle-bask-checks.cjs')(run, assert);
+require('./lake-duck-visit-checks.cjs')(run, assert);
+require('./town-cat-water-checks.cjs')(run, assert);
+require('./wetland-frog-song-checks.cjs')(run, assert);
+require('./town-donkey-bond-checks.cjs')(run, assert);
+require('./town-music-checks.cjs')(run, assert);
+require('./town-chime-checks.cjs')(run, assert);
+require('./town-porch-light-checks.cjs')(run, assert);
+require('./town-snack-checks.cjs')(run, assert);
+require('./heron-fishing-checks.cjs')(run, assert);
+require('./town-child-snack-checks.cjs')(run, assert);
+require('./town-bird-meal-checks.cjs')(run, assert);
+require('./east-expansion-checks.cjs')(run, assert);
+require('./east-keeper-checks.cjs')(run, assert);
+require('./forest-acorn-checks.cjs')(run, assert);
+require('./town-special-offer-checks.cjs')(run, assert);
+  require('./cow-grazing-checks.cjs')(run, assert);
+  require('./chicken-meal-checks.cjs')(run, assert);
+  require('./town-boat-checks.cjs')(run, assert);
+require('./bee-forager-checks.cjs')(run, assert);
+require('./town-courier-meal-checks.cjs')(run, assert);
+require('./east-shore-checks.cjs')(run, assert);
+require('./east-duck-company-checks.cjs')(run, assert);
+require('./east-canopy-checks.cjs')(run, assert);
   console.log('Farm smoke test passed: world rules, fullscreen, full-map PNG, save export/import, camera and economy.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

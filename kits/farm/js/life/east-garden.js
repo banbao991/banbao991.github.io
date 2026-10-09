@@ -127,6 +127,8 @@ function updateEastGardenKeeper(dt) {
   return true;
 }
 function eastGardenKeeperActivity() {
+  const teaParty=townTeaPartyGuestActivity();
+  if(teaParty)return teaParty;
   if (orderKeeper.routine) return orderKeeper.routine.stage === 'toHome'
     ? '沿集市北侧回小屋休息' : '沿集市北侧走向告示牌';
   const work = orderKeeper.gardenWork;

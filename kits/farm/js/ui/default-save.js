@@ -1,6 +1,10 @@
 'use strict';
 // Release saves use exactly the same validation and full-state restoration as player imports.
 const defaultSaveButton = $('load-default-farm');
+if (typeof DEFAULT_FARM_SAVE !== 'undefined') {
+  defaultSaveButton.textContent = `✿ 加载 v${DEFAULT_FARM_SAVE.release} 默认农场`;
+  $('default-save-note').textContent = `第 ${DEFAULT_FARM_SAVE.day} 天的完整农场 · 加载前可先导出自己的进度`;
+}
 
 async function readDefaultFarmArchive() {
   if (typeof DEFAULT_FARM_SAVE === 'undefined') throw new Error('默认存档未能加载，请刷新页面后重试。');

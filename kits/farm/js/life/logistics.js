@@ -70,7 +70,7 @@ function stockGood(depot, good, count = 1) {
   return true;
 }
 function depotAt(x, y) {
-  return DEPOT_IDS.find(id => (id !== 'nursery' || farm.nursery.level > 0)
+  return DEPOT_IDS.find(id => villageDepotOpen(id) && (id !== 'nursery' || farm.nursery.level > 0)
     && Math.abs(x - DEPOT_SITES[id].x) <= 23
     && Math.abs(y - DEPOT_SITES[id].y) <= 24) || null;
 }
@@ -85,6 +85,7 @@ function courierActivity() {
   if (courier.festival?.stage === 'morning') return '从村口小屋步行到出发点';
   if (courier.festival?.day === farm.day) return courier.festival.attending
     ? festivalActivity(courier) || '在广场参加欢庆日' : '为欢庆日休息';
+  const meal=courierMealActivity();if(meal)return meal;
   if (courier.leg === 'market' && isFestivalDay(farm.day + 1)) return '为明天的欢庆日留在村口';
   const night = courier.night;
   if (night) {
@@ -220,6 +221,8 @@ function deliverCourierGoods() {
   }
 }
 function updateCourier(dt) {
+  if(farm.paused)return;
+  if(updateCourierMeal(dt))return;
   if (isFestivalDay()) {
     if (!courier.festival || courier.festival.day !== farm.day) {
       const villageHome = courier.night?.side === 'village'
@@ -256,7 +259,7 @@ function updateCourier(dt) {
   }
   if (courier.leg === 'rest' && farm.day > courier.journeyDay && farm.phase >= .02) {
     // Commit every pickup and the forest detour when the return journey starts.
-    courier.plannedDepots = DEPOT_IDS.filter(id => depotCount(id) > 0);
+    courier.plannedDepots = DEPOT_IDS.filter(id => villageDepotOpen(id) && depotCount(id) > 0);
     courier.leg = 'return';
     courier.stopIndex = 0;
     courier.routeVariant = null;
@@ -288,12 +291,14 @@ function updateCourier(dt) {
   if (stop.depot) { collectDepot(stop.depot); courier.wait = .32; }
   if (stop.rest) { courier.leg = 'rest'; courier.stopIndex = 0; return; }
   if (stop.market) {
+    const delivered=Object.values(courier.cargo).reduce((sum,n)=>sum+n,0);
     deliverCourierGoods();
     courier.leg = 'market';
     courier.lastReturnDay = farm.day;
     courier.stopIndex = 0;
     courier.routeVariant = null;
     courier.plannedDepots = [];
+    beginCourierMeal(delivered);
     save();
     return;
   }

@@ -24,6 +24,7 @@ function drawValleyHerb(herb) {
 }
 function drawValleyGardenScenery() {
   const winter = sceneSeason.winter;
+  if(villageSiteOpen('herbs')) {
   // Six separate stone-edged beds leave the meadow visible between them.
   for (let i = 0; i < VALLEY_GARDEN_LAYOUT.spots.length; i++) {
     const spot = VALLEY_GARDEN_LAYOUT.spots[i];
@@ -44,6 +45,7 @@ function drawValleyGardenScenery() {
     rect(1166, 1119, 16, 25, '#8a6149'); rect(1164, 1117, 20, 5, '#b98e61');
     rect(1168, 1121, 12, 4, '#77a9a2');
   });
+  }
   // The scenic pair moved south as one composition.
   const scenicShiftY = VALLEY_GARDEN_LAYOUT.teaHouse.top - 1255;
   // Low flower banks guide the eye toward the tea house and the lookout.
@@ -94,7 +96,7 @@ function drawValleyGardenScenery() {
     rect(978, 1784, 38, 8, '#835d43');
     rect(981, 1792, 5, 16, '#73543e'); rect(1007, 1792, 5, 16, '#73543e');
     rect(985, 1775, 14, 10, '#bb8b60'); rect(988, 1771, 8, 5, '#e1bb84');
-    rect(1002, 1780, 8, 4, '#f0d6a6');
+    if(!drawTownSnackPlate())rect(1002, 1780, 8, 4, '#f0d6a6');
   });
   scenePart('tea-chair', 1821, () => {
     rect(947, 1800, 22, 5, '#9c7651');
@@ -112,6 +114,7 @@ function drawValleyGardenScenery() {
   }, 0, 1);
 }
 function drawValleyGardenNight(night) {
+  if(!villageSiteOpen('scenic'))return;
   for (const [x, y] of [[887, 1799], [1116, 1787]]) {
     circle(x, y, 23, `rgba(255,203,118,${(night * .17).toFixed(3)})`);
     circle(x, y, 5, `rgba(255,225,153,${(night * .83).toFixed(3)})`);
@@ -154,6 +157,7 @@ function drawValleyWorkerHome() {
   rect(x + 36, y + 70, 17, 36, '#9b7451');
   circle(x + 49, y + 91, 2, '#f3d99e');
   rect(x + 27, y + 109, 39, 5, '#b8976d');
+  drawTownChime(1);
 }
 
 function drawValleyRestingWorker() {

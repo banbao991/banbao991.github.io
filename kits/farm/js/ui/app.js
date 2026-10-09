@@ -1,7 +1,9 @@
 'use strict';
 // Application bootstrap, cache motion restoration and the animation clock.
 function tick(stamp){
-  const dt=Math.min(.065,(stamp-last)/1000);last=stamp;now+=dt;
+  // A frame queued before a confirmation dialog may precede the reset clock.
+  // Never run the world, actors or autosave backwards; keep the latest baseline.
+  const dt=Math.max(0,Math.min(.065,(stamp-last)/1000));last=Math.max(last,stamp);now+=dt;
   if(!farm.paused){
     motionNow+=dt;
     const nightRate=farm.phase>=NIGHT_START?2.1:1;
@@ -14,6 +16,7 @@ function tick(stamp){
     if(Math.floor(stamp/200)!==Math.floor((stamp-dt*1000)/200))updateUI();
   }
   updateMapHover(dt);
+  updateVillageResidentPortraits();
   render();requestAnimationFrame(tick);
 }
 

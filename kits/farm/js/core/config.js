@@ -1,6 +1,6 @@
 'use strict';
 // World dimensions, crop catalogs, seasons, depot types and development thresholds.
-const T = 32, WORLD_W = 2048, WORLD_H = 1920, DAY_SECONDS = 72;
+const T = 32, WORLD_W = 2560, WORLD_H = 1920, DAY_SECONDS = 72;
 
 const NIGHT_START = 14 / 24;
 const SAVE_KEY = 'moss-valley-farm-v1';

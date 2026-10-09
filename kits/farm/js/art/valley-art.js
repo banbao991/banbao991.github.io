@@ -18,12 +18,21 @@ function drawValleyScenery() {
       rect(x + 2, y - 7, 3, 3, '#efbc72');
     }
   }
+  drawTurtleBaskRock();
   // Scattered stones mark the upper bank without covering the heron's feeding area.
-  for (const [x, y] of [[93, 1172], [115, 1159], [281, 1154], [310, 1262]]) {
+  for (const [x, y] of [[115, 1159], [281, 1154], [310, 1262]]) {
     rect(x - 8, y + 3, 23, 4, '#709073');
     rect(x - 6, y - 1, 17, 6, '#b7b89d');
     rect(x - 2, y - 4, 9, 4, '#d4d1b5');
   }
+}
+function drawTurtleBaskRock(){
+ const {x,y}=VALLEY_TURTLE_BASK.rock;
+ scenePart('valley-turtle-rock',y+9,()=>{
+  rect(x-22,y+7,45,4,'#708876');rect(x-20,y-1,40,10,'#a7aa92');
+  rect(x-16,y-7,32,11,blendHex('#d0c8a4','#dae1d8',sceneSeason.winter));
+  rect(x-12,y-6,18,3,'#dfd5b2');rect(x+10,y+2,5,3,'#8b9983');
+ });
 }
 function drawValleyShoal() {
   if (sceneQueue) return scenePart('valley-shoal', valleyShoal.y + 12, () => drawValleyShoal());
@@ -63,18 +72,19 @@ function drawValleyOtter() {
 function drawValleyTurtle() {
   if (sceneQueue) return scenePart('valley-turtle', valleyTurtle.y + 11, () => drawValleyTurtle());
   const t = valleyTurtle, x = t.x, y = t.y + Math.sin(t.step * 1.5) * .8 + pausePulse(t.x,1.3)*.8;
-  rect(x - 22, y + 8, 47, 3, '#a2c6b4');
+  rect(x - 22, y + 8, 47, 3, turtleBaskOnLand()?'#899379':'#a2c6b4');
   rect(x - 14, y + 5, 30, 4, '#618777');
   rect(x - 14, y - 5, 29, 14, '#5c7551');
   rect(x - 10, y - 10, 21, 17, '#789159');
-  rect(x - 5, y - 12, 11, 6, '#a6af69');
+  rect(x - 5, y - 12, 11, 6, turtleBasking()?'#c3c17a':'#a6af69');
   rect(x - 8, y - 4, 6, 5, '#9daa67');
   rect(x + 4, y - 4, 7, 5, '#9daa67');
   if (t.hide <= 0) {
     const nod = pausePulse(t.x,1.5)*2;
     rect(x + t.dir * 14 - 4, y - 4 + nod, 13, 9, '#8faa69');
     rect(x + t.dir * 21 - 3, y - 3 + nod, 6, 5, '#a7be7d');
-    rect(x + t.dir * 21, y - 2 + nod, 2, 2, '#344239');
+    const blink=turtleBasking()&&Math.sin(now*1.3)> .96;
+    rect(x + t.dir * 21, y - 2 + nod, 2, blink?1:2, '#344239');
   }
   rect(x - 10, y + 7, 5, 4, '#668657'); rect(x + 7, y + 7, 5, 4, '#668657');
 }
@@ -94,6 +104,7 @@ function drawValleyHeron() {
     rect(x - 10, y - 16, 9, 11, '#8ea8a0');
     rect(x + 5, y - 15, 7, 10, '#8ea8a0');
   }
+  if(drawHeronFishingHead())return;
   const headNod = pausePulse(h.x,1.4)*2;
   rect(x + h.dir * 4 - 2, y - 39 + headNod, 8, 22, '#d6d9c8');
   rect(x + h.dir * 7 - 5, y - 42 + headNod, 12, 8, '#e6e5d4');

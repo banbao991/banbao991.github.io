@@ -12,6 +12,7 @@ function miniToWorld(event) {
   };
 }
 function drawMiniMap() {
+  if(farm.development){drawVillageDevelopmentMiniMap();return;}
   const sx = MINI_W / WORLD_W, sy = MINI_H / WORLD_H;
   const area = (x, y, w, h, color) => { mini.fillStyle = color; mini.fillRect(x * sx, y * sy, w * sx, h * sy); };
   const lake = (cx, cy, rx, ry, color) => {
@@ -79,6 +80,7 @@ function drawMiniMap() {
   if (isFestivalDay()) {
     for (const table of central.tables) area(table.x - 20, table.y - 13, 40, 12, '#c9755a');
     area(central.stage.x - 70, central.stage.y - 74, 140, 8, '#e8c575');
+    if(farm.town.lanternEvent.lanterns.length)area(central.stage.x-9,central.stage.y-16,18,18,'#ffe5a7');
   }
   const sheepPen = SHEEP_LAYOUT.pen, sheepBarn = SHEEP_LAYOUT.barn;
   if (farm.upgrades >= 4) {
@@ -94,14 +96,14 @@ function drawMiniMap() {
   area(valley.herbs.left, valley.herbs.top, valley.herbs.right - valley.herbs.left, valley.herbs.bottom - valley.herbs.top, '#ab9772');
   area(valley.teaHouse.left, valley.teaHouse.top, valley.teaHouse.right - valley.teaHouse.left, valley.teaHouse.bottom - valley.teaHouse.top, '#bb8158');
   area(valley.lookout.left, valley.lookout.top, valley.lookout.right - valley.lookout.left, valley.lookout.bottom - valley.lookout.top, '#a5835c');
-  area(1700, 1440, WORLD_W - 1700, WORLD_H - 1440,
+  area(1700, 1440, MINE_LAYOUT.area.right - 1700, WORLD_H - 1440,
     blendHex('#938e78', '#b8c2bc', winter * .8));
-  area(1760, 1510, WORLD_W - 1760, WORLD_H - 1510, '#878777');
+  area(1760, 1510, MINE_LAYOUT.area.right - 1760, WORLD_H - 1510, '#878777');
   const district = MARKET_LAYOUT.district, garden = MARKET_LAYOUT.garden;
   area(district.left, 804, district.right - district.left, 28, '#c5b188');
   area(district.left, 938, district.right - district.left, 24, '#c5b188');
   for (const home of MARKET_LAYOUT.homes) area(home.x - 12, district.top, 142, 102, '#c5b188');
-  for (const stall of MARKET_LAYOUT.stalls) area(stall.x - 16, 826, 150, 120, '#c5b188');
+  for (const [i,stall] of MARKET_LAYOUT.stalls.entries())if(villageMarketStallOpen(i))area(stall.x - 16, 826, 150, 120, '#c5b188');
   area(MARKET_LAYOUT.fountain.x - 53, MARKET_LAYOUT.fountain.y - 53, 106, 106, '#c5b188');
   area(garden.left, garden.top, garden.right - garden.left, garden.bottom - garden.top, '#d4b783');
   area(garden.access.left, garden.access.top, garden.access.width,
@@ -144,8 +146,7 @@ function drawMiniMap() {
   for (const home of MARKET_LAYOUT.homes) area(home.x, home.y + 13, 117, 103, home.roof);
   area(MARKET_LAYOUT.fountain.x - 17, MARKET_LAYOUT.fountain.y - 17, 34, 34, '#80aba6');
   area(MARKET_LAYOUT.notice.x, MARKET_LAYOUT.notice.y, 45, 28, '#d7b476');
-  if (farm.upgrades >= 5) for (const stall of MARKET_LAYOUT.stalls) area(stall.x, 844, 118, 72, stall.color);
-  else area(MARKET_LAYOUT.stalls[1].x, 844, 118, 72, MARKET_LAYOUT.stalls[1].color);
+  for (const [i,stall] of MARKET_LAYOUT.stalls.entries())if(villageMarketStallOpen(i))area(stall.x, 844, 118, 72, stall.color);
   area(MINE_LAYOUT.home.left, MINE_LAYOUT.home.top,
     MINE_LAYOUT.home.right - MINE_LAYOUT.home.left,
     MINE_LAYOUT.home.bottom - MINE_LAYOUT.home.top, '#b9835f');
@@ -161,6 +162,9 @@ function drawMiniMap() {
     const site = DEPOT_SITES[id];
     area(site.x - 10, site.y - 8, 20, 16, depotCount(id) ? '#e5b46c' : '#987957');
   }
+  for(const [i,point]of TOWN_LAYOUT.porchLights.entries())if(townPorchLightGrowth(i)>.02)area(point.x-3,point.y+4,6,10,'#d8b780');
+  for(const [i,point]of TOWN_LAYOUT.chimes.entries())if(townChimeGrowth(i)>.02)area(point.x-3,point.y+8,6,10,TOWN_CHIME_PALETTES[farm.town.chimes.pieces[i].palette].color);
+  for(const ball of townCatToyBalls())area(ball.x-3,ball.y-3,6,6,'#d5b982');
   for (const cat of plazaCats) if (plazaCatVisible(cat)) area(cat.x - 4, cat.y - 4, 8, 8, cat.coat === 'ginger' ? '#e4ad6b' : '#eee7d6');
   for (const bird of plazaSparrows) if (plazaSparrowVisible(bird)) area(bird.x - 2, bird.y - bird.lift - 2, 4, 4, '#b38c61');
   mini.fillStyle = '#f8f2d2';
@@ -172,10 +176,11 @@ function drawMiniMap() {
   if (forestKeeperVisible()) {
     mini.fillStyle = '#d4b88a'; mini.fillRect(forestKeeper.x * sx, forestKeeper.y * sy, 3, 3);
   }
+  if(seasonTransition().winter<.7){const frog=nurseryFrogPosition();mini.fillStyle='#406e46';mini.fillRect(frog.x*sx,frog.y*sy,2,2);}
   const wetlandBird = wetlandWaterhenPosition();
   mini.fillStyle = '#454943'; mini.fillRect(wetlandBird.x * sx, wetlandBird.y * sy, 2, 2);
-  if (!festivalAtHome(villageWalker) && (farm.phase < NIGHT_START || !villageWalkerAtHome())) {
-    mini.fillStyle = '#a7c68d'; mini.fillRect(villageWalker.x * sx, villageWalker.y * sy, 2, 2);
+  if (!townDonkeyVisitHome() && !festivalAtHome(villageWalker) && (farm.phase < NIGHT_START || !villageWalkerAtHome())) {
+    mini.fillStyle = townChildSnackEating()?'#dfb577':'#a7c68d'; mini.fillRect(villageWalker.x * sx, villageWalker.y * sy, 2, 2);
   }
   if (!festivalAtHome(courier)) {
     mini.fillStyle = '#e7aa67'; mini.fillRect(courier.x * sx, courier.y * sy, 3, 3);
@@ -210,16 +215,75 @@ function drawMiniMap() {
   }
   mini.fillStyle = '#f9eacb';
   for (const duck of lakeDucks) mini.fillRect(duck.x * sx, duck.y * sy, 2, 2);
+  const baskRock=VALLEY_TURTLE_BASK.rock;area(baskRock.x-16,baskRock.y-7,32,16,'#c9c5a4');
   for (const [creature, color] of [[valleyOtter, '#bf815e'], [valleyTurtle, '#90a96e'], [valleyHeron, '#f4ead7']]) {
-    mini.fillStyle = color;
+    mini.fillStyle = creature===valleyHeron&&heronFishingActive()?'#e8c88d':color;
     mini.fillRect(creature.x * sx, creature.y * sy, 2, 2);
   }
   mini.fillStyle = '#c88750';mini.fillRect(squirrel.x * sx, squirrel.y * sy, 3, 3);
+  if(forestFoxVisible()){mini.fillStyle='#d58e5a';mini.fillRect(forestFox.x*sx,forestFox.y*sy,3,2);}
   for (const [animal, color] of [[ridgeDeer, '#e6ba88'], [ridgeHare, '#e9d7b7'], [ridgeOwl, '#e7d3a2']]) {
     mini.fillStyle = color;
     mini.fillRect(animal.x * sx, animal.y * sy, 2, 2);
   }
+  for (const path of TOWN_LAYOUT.paths) area(path.x, path.y, path.w, path.h, '#d0b586');
+  if(townSnackEating())area(TOWN_LAYOUT.snackPlate.x-4,TOWN_LAYOUT.snackPlate.y-4,8,8,TOWN_SNACK_COLORS[farm.town.snacks.meal.theme]);
+  for(const t of [...EAST_WOODS.trees,EAST_PICNIC.tree])area(t.x-13,t.y-22,26,39,'#6f9466');
+  for(const b of farm.eastWoods.birds)if(b.mode!=='home')area(b.x-3,b.y-3,6,6,b.id?'#cab18a':'#bb9267');
+  for(const a of farm.eastCanopy.chipmunks)if(a.mode!=='home')area(a.x-3,a.y-3,6,6,'#c9a574');
+  const woodpecker=farm.eastCanopy.woodpecker;
+  if(woodpecker.mode!=='nest')area(woodpecker.x-3,woodpecker.y-3,6,6,'#e1d8b4');
+  if(farm.town.improvements.travellerGarden.level)for(const b of EAST_GARDEN_EXTENSION.beds)if(farm.town.improvements.travellerGarden.level>b.stage)area(b.x-20,b.y-8,40,16,'#d4b784');
+  for(const p of [EAST_SHORE.spring,EAST_SHORE.pond])area(p.x-p.rx,p.y-p.ry,p.rx*2,p.ry*2,'#78aaa4');
+  for(const t of EAST_SHORE.trees)area(t.x-14,t.y-20,28,34,'#809966');
+  for(const p of EAST_SHORE.flowers)area(p.x-16,p.y-8,32,12,'#ccb482');
+  for(const b of farm.eastShore.ducks)area(b.x-3,b.y-3,6,6,b.id?'#b5a78b':'#d4b17d');
+  if(farm.eastShore.hedge.mode!=='hide')area(farm.eastShore.hedge.x-3,farm.eastShore.hedge.y-3,6,6,'#b19b76');
+  area(EAST_PICNIC.bench.x-30,EAST_PICNIC.bench.y-4,60,12,'#b39266');
+  const ridge=TOWN_LAYOUT.ridge,inn=TOWN_LAYOUT.donkeyInn;
+  area(ridge.left,ridge.top,ridge.right-ridge.left,ridge.bottom-ridge.top,'#8d967c');
+  if(farm.town.improvements.donkeyInn.level){
+    area(inn.pen.left,inn.pen.top,inn.pen.right-inn.pen.left,inn.pen.bottom-inn.pen.top,'#a8b785');
+    area(inn.stable.left,inn.stable.top,inn.stable.right-inn.stable.left,inn.stable.bottom-inn.stable.top,'#b79c75');
+    const rack=TOWN_LAYOUT.fodder.rack;area(rack.x-12,rack.y-6,24,10,'#bda378');
+    for(const animal of farm.town.donkeys)if(townDonkeyVisible(animal))area(animal.x-4,animal.y-4,8,8,animal.id?'#d2a875':'#e1e3cb');
+  }
+  if (villageSiteOpen('traveller')) {
+    const home = TOWN_LAYOUT.home;
+    area(home.left,home.top,home.right-home.left,home.bottom-home.top,'#b78157');
+    const postcard=townPostcardWallPoint();
+    if(postcard)area(postcard.x-8,postcard.y-5,16,10,'#e9d9b9');
+    for(const shelf of TOWN_LAYOUT.showcases)
+    if(shelf.slots.some(slot=>farm.town.inventory[slot.id]))area(shelf.left,shelf.top,shelf.right-shelf.left,shelf.bottom-shelf.top,'#bca478');
+    if (farm.town.traveller.mode !== 'away') {
+      const cart=townCartPosition();area(cart.x-61,cart.y-60,122,103,'#94a993');
+    }
+    if (townTravellerVisible()) area(farm.town.traveller.x,farm.town.traveller.y,22,22,'#ffe3a0');
+    for(const owner of ['merchant','child']) {
+      const canopy=townRainCanopy(owner);
+      if(canopy && canopy.opening>.25)area(canopy.actor.x-9,canopy.actor.y-6,18,8,TOWN_RAIN_PALETTES[farm.town.rainGear.palette][owner]);
+    }
+    if(farm.town.inventory.musicBox)area(TOWN_LAYOUT.music.x-4,TOWN_LAYOUT.music.y,8,8,townMusicPlaying()?'#f5d28d':'#ad8863');
+    if(townSketchDrawing())area(farm.town.traveller.x-6,farm.town.traveller.y+2,12,6,'#efdbb1');
+    if(townDogVisible())area(farm.town.dog.x-5,farm.town.dog.y-4,10,8,'#dbc49a');
+    for(const animal of farm.town.critters)if(animal.mode!=='hide')area(animal.x,animal.y,10,10,'#dcc798');
+    if(farm.town.improvements.teaChimes.level || farm.town.pavilion.tea || farm.town.snacks.pantry.length)
+      area(TOWN_LAYOUT.pavilionTea.x-8,TOWN_LAYOUT.pavilionTea.y-4,16,10,'#c5b487');
+    if(townDonkeyWaterBuilt()){const p=TOWN_LAYOUT.donkeyInn.trough;area(p.x-18,p.y,36,8,farm.town.donkeyWater.water>.2?'#8bb6af':'#a59c79');}
+    for (const [id, site] of Object.entries(TOWN_LAYOUT.projects)) {
+      if (farm.town.improvements[id].level) area(site.x-12,site.y-8,24,16,'#bda97a');
+      if (farm.town.construction?.id===id) area(site.materials.x-8,site.materials.y-8,16,16,'#e3c68f');
+    }
+  }
+  for(const butterfly of farm.town.butterflies)area(butterfly.x-4,butterfly.y-4,8,8,['#e6bd7e','#bba3c4','#e0a68f'][butterfly.variant]);
+  for(const bird of farm.town.birds){mini.fillStyle=townBirdEating(bird)?'#dfb577':bird.variant===1?'#65a7ab':'#b7996b';mini.fillRect(bird.x*sx,bird.y*sy,2,2);}
+  for(const b of farm.town.paperBoats.boats)if(!bridgeAt(b.x,b.y))area(b.x-5,b.y-3,10,6,'#efdbb8');
+  if(beeForagerVisible()){const b=farm.beeForager;area(b.x-3,b.y-3,6,6,'#e5bf60');}
+  const bath=farm.town.birdBath;
+  if(bath.bird)area(bath.bird.x-5,bath.bird.y-3,10,6,'#e6e8d4');
   mini.strokeStyle = '#fffbe7'; mini.lineWidth = 2;
+  for(const [habitat,site]of Object.entries(TOWN_LAYOUT.fireflyHabitats))
+    if(farm.town.fireflies.some(fly=>fly.habitat===habitat && fly.fade>.2))area(site.x-8,site.y-8,16,16,'#e3e6a4');
   mini.strokeRect(farm.view.x * sx + 1, farm.view.y * sy + 1,
     Math.min(W / farm.view.zoom, WORLD_W) * sx - 2, Math.min(H / farm.view.zoom, WORLD_H) * sy - 2);
   mini.strokeStyle = '#3a5646'; mini.lineWidth = 1; mini.strokeRect(.5, .5, MINI_W - 1, MINI_H - 1);
