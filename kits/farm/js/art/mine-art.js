@@ -6,11 +6,18 @@ function mineVisible() {
     && farm.view.y < MINE_LAYOUT.area.bottom + 80
     && farm.view.y + H / farm.view.zoom > MINE_LAYOUT.area.top - 80;
 }
-function drawMineGround() {
-  if (!mineVisible()) return;
-  const winter = sceneSeason.winter, rain = weatherVisual().rain;
-  const dirt = blendHex('#a69370', '#b7b9ad', winter * .7);
-  const rock = blendHex('#8e8b78', '#b8c2bc', winter * .8);
+// Only fixed terrain is retained. Clearing, puddles and visibility stay live.
+let mineGroundStrataCache=null,mineRockGeometryCache=null;
+function drawMineGroundStrata(dirt,rain){
+  const ridgeColor=`rgba(91,91,78,${(.14 + rain * .1).toFixed(2)})`;
+  let cached=mineGroundStrataCache;
+  if(!cached||cached.right!==MINE_LAYOUT.area.right||cached.height!==WORLD_H||cached.dirt!==dirt||cached.ridgeColor!==ridgeColor||cached.hash!==hash){
+    cached={right:MINE_LAYOUT.area.right,height:WORLD_H,dirt,ridgeColor,hash,...buildMineGroundStrata(dirt,ridgeColor)};
+    mineGroundStrataCache=cached;
+  }
+  cached.ground.draw();cached.ridges.draw();cached.grains.draw();
+}
+function buildMineGroundStrata(dirt,ridgeColor){
   const ground=groundTilePainter(),ridges=groundTilePainter(),grains=groundTilePainter();
   for (let y = 1424; y < WORLD_H; y += 16) {
     const edge = 1680 + Math.round(Math.sin(y / 57) * 27 + (hash(y, 1, 841) - .5) * 25);
@@ -22,16 +29,31 @@ function drawMineGround() {
     }
     const ridge = edge + 44 + Math.round(Math.sin(y / 44) * 20);
     ridges.add(ridge, y + 2, MINE_LAYOUT.area.right - 24 - ridge, 9,
-      `rgba(91,91,78,${(.14 + rain * .1).toFixed(2)})`);
+      ridgeColor);
     if (hash(y, 2, 842) > .42) grains.add(ridge + 22, y + 11, 90 + hash(y, 3, 843) * 120, 3, dirt);
   }
-  ground.draw();ridges.draw();grains.draw();
-  for (let i = 0; i < 130; i++) {
-    const x = 1690 + hash(i, 4, 844) * 346, y = 1450 + hash(i, 5, 845) * 455;
-    if (x > 1803 && x < 1852 && y < 1608) continue;
-    rect(x, y, 6 + hash(i, 6, 846) * 14, 3 + hash(i, 7, 847) * 5,
-      i % 3 ? rock : dirt);
+  return {ground,ridges,grains};
+}
+function drawMineRockFragments(dirt,rock){
+  if(!mineRockGeometryCache||mineRockGeometryCache.hash!==hash){
+    const fragments=[];
+    for(let i=0;i<130;i++){
+      const x=1690+hash(i,4,844)*346,y=1450+hash(i,5,845)*455;
+      if(x>1803&&x<1852&&y<1608)continue;
+      fragments.push([x,y,6+hash(i,6,846)*14,3+hash(i,7,847)*5,i%3]);
+    }
+    mineRockGeometryCache={hash,fragments};
   }
+  // Preserve separate rectangles and their original alternating color order.
+  for(const [x,y,width,height,useRock]of mineRockGeometryCache.fragments)rect(x,y,width,height,useRock?rock:dirt);
+}
+function drawMineGround() {
+  if (!mineVisible()) return;
+  const winter = sceneSeason.winter, rain = weatherVisual().rain;
+  const dirt = blendHex('#a69370', '#b7b9ad', winter * .7);
+  const rock = blendHex('#8e8b78', '#b8c2bc', winter * .8);
+  drawMineGroundStrata(dirt,rain);
+  drawMineRockFragments(dirt,rock);
   // The old decorative tufts are natural vegetation too: keep the meadow edge,
   // but clear actual rail/work areas with the same gradual project masks.
   const clearance=farm.development?villageWildPlantClearance():[];

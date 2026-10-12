@@ -5,8 +5,7 @@ function villageMaintenanceOpen() {
     &&Object.values(d.residents).every(r=>r.stage==='home')&&!farm.town.traveller.villageSettling;
 }
 function villageGrassGrowth(id) {return farm.development.maintenance.plants[id]?.growth??1;}
-function villageVisibleWeeds(clearance=villageWildPlantClearance(),onlyNew=false) {
-  const context=villagePlantGroundContext();
+function villageVisibleWeeds(clearance=villageWildPlantClearance(),onlyNew=false,context=villagePlantGroundContext()) {
   return [...villageGrassCatalog().values()].filter(p=>(!onlyNew||!p.original)&&villageGrassGrowth(p.id)>0
     &&villagePlantGroundAllowed(p.source,p,context)&&villagePlantVisible(p.source,p,clearance));
 }

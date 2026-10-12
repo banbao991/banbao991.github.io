@@ -1,6 +1,22 @@
 'use strict';
 // Visibility is shared by the painter, inspection and minimap, rather than covering finished sprites.
+// Only the identifier and ore-stall coordinate determine this classification.
+// Keep current visibility (construction/residents) outside the derived cache.
+const villageSceneProjectCache=new Map();
+let villageSceneProjectStallX=null;
 function villageSceneProject(id) {
+  if(typeof id!=='string')return villageSceneProjectDirect(id);
+  const stallX=MARKET_LAYOUT.stalls[1].x;
+  if(stallX!==villageSceneProjectStallX){villageSceneProjectCache.clear();villageSceneProjectStallX=stallX;}
+  const cached=villageSceneProjectCache.get(id);
+  if(cached!==undefined)return cached;
+  const project=villageSceneProjectDirect(id);
+  // Some IDs contain moving actors' coordinates; bound their lifetime too.
+  if(villageSceneProjectCache.size>=2048)villageSceneProjectCache.clear();
+  villageSceneProjectCache.set(id,project);
+  return project;
+}
+function villageSceneProjectDirect(id) {
   if(id===`village-stall:${MARKET_LAYOUT.stalls[1].x}`)return 'mine';
   if(/^(fishing-|pier-|lake-boat|angler-)/.test(id))return 'lake';
   if(id==='forest-cabin'||id==='forest-keeper')return 'forest';
@@ -147,12 +163,13 @@ function drawVillageCrewHome() {
 }
 function drawVillageDevelopment() {
   if(!farm.development)return;
-  const clearance=villageWildPlantClearance();
+  // This synchronous collection shares one snapshot; other filter callers stay fresh.
+  const clearance=villageWildPlantClearance(),context=villagePlantGroundContext();
   drawVillageCrewHome();
   drawVillagePastureHome();
   for(const id of VILLAGE_PROJECT_IDS){
     const p=farm.development.projects[id];
-    for(const plant of villageWildPlants(id)){
+    for(const plant of villageWildPlants(id,context)){
       if(!villagePlantVisible(id,plant,clearance))continue;
       if(plant.kind==='tree')drawVillageWildTree(id,plant);
       else {const growth=villageGrassGrowth(`${id}:${plant.seed}`);
@@ -160,7 +177,7 @@ function drawVillageDevelopment() {
     }
     if(p.status==='active')drawVillageConstructionFrame(id,p);
   }
-  for(const plant of villageVisibleWeeds(clearance,true))
+  for(const plant of villageVisibleWeeds(clearance,true,context))
     scenePart(`natural-growth:${plant.id}`,plant.y+2,()=>drawVillageWildGrass({...plant,growth:villageGrassGrowth(plant.id)}));
   const actors=[...farm.development.crew,...Object.values(farm.development.residents).flatMap(r=>r.actor?[r.actor]:[])];
   for(const a of actors)if(a.mode!=='home'&&!festivalAtHome(a))scenePart(`construction-actor:${a.name}`,actorDepth(a),()=>{

@@ -3,13 +3,7 @@
 function drawEastShoreGround(){
  const w=sceneSeason.winter;
  for(const site of [EAST_SHORE.spring,EAST_SHORE.pond]){
-  const water=groundTilePainter(),shore=groundTilePainter();
-  for(let y=site.y-site.ry-16;y<=site.y+site.ry+16;y+=4)for(let x=site.x-site.rx-16;x<=site.x+site.rx+16;x+=4){
-   const d=((x-site.x)/site.rx)**2+((y-site.y)/site.ry)**2,edge=1+(hash(x,y,876)-.5)*.07;
-   if(d<edge)water.add(x,y,4,4,blendHex(d>.79?'#8fab8c':d>.55?'#79aaa3':'#689fa7',d>.79?'#bccab1':'#a6c5c4',w));
-   else if(d<1.26&&hash(x,y,877)>.35)shore.add(x,y,4,4,`rgba(${colorChannels(blendHex('#8da37a','#bac9ae',w)).join(',')},${(1.26-d)*1.4})`);
-  }
-  shore.draw();water.draw();
+  drawEastShoreWaterGround(site,w);
   for(let i=0;i<8;i++){const p={x:site.x-site.rx*.64+i*site.rx*.17,y:site.y+Math.sin(i*3.2+motionNow*.35)*site.ry*.6};if(eastShoreWater(p,site,-10))rect(p.x,p.y,9,2,blendHex('#a7c8be','#d9e0cd',w));}
  }
  const p=EAST_SHORE.spring;circle(p.x+7,p.y-14,4,'#bad0be');

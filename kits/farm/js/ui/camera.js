@@ -1,8 +1,8 @@
 'use strict';
 // Viewport mathematics, zoom, panning and region labels.
 function minimumZoom() {
-  return typeof pureModeActive === 'function' && pureModeActive()
-    ? Math.min(W / WORLD_W, H / WORLD_H) : .7;
+  // Both normal and fullscreen views stop when the complete map first fits.
+  return Math.min(W / WORLD_W, H / WORLD_H);
 }
 function worldPadding(zoom = farm.view.zoom) {
   return { x: Math.max(0, (W - WORLD_W * zoom) / 2), y: Math.max(0, (H - WORLD_H * zoom) / 2) };
@@ -48,7 +48,7 @@ function centerCamera(worldX, worldY) {
 function updateViewUI() {
   const view = farm.view;
   $('zoom-range').min = String(minimumZoom());
-  $('zoom-range').step = minimumZoom() === .7 ? '.1' : 'any';
+  $('zoom-range').step = 'any';
   $('zoom-range').value = String(view.zoom);
   $('zoom-out').disabled = view.zoom <= minimumZoom() + 1e-9;
   $('zoom-in').disabled = view.zoom >= 1.6;

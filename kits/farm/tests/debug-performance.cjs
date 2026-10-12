@@ -1,0 +1,48 @@
+const assert=require('node:assert/strict');
+const {run,element,sandbox,documentListeners,fs,path,root}=require('./harness.cjs');
+const panel=element('debug-performance');
+const field=key=>element(`debug-${key}`).textContent;
+let clock=0,reads=0;
+sandbox.performance.now=()=>{reads++;return clock;};
+sandbox.debugTestCost=cost=>{clock+=cost;};
+// Deterministic costs in the actual tick, rather than a monitor-only imitation.
+run(`updateActors=()=>debugTestCost(2);save=()=>debugTestCost(3);
+  updateUI=()=>debugTestCost(1);updateMapHover=()=>debugTestCost(.5);
+  updateVillageResidentPortraits=()=>debugTestCost(.5);render=()=>debugTestCost(8);
+  farm.paused=false;farm.phase=.2;last=0;saveElapsed=4;`);
+assert.equal(/id="debug-performance"[^>]*\bopen\b/.test(fs.readFileSync(path.join(root,'index.html'),'utf8')),false);
+run('tick(0)');
+assert.equal(reads,0,'Collapsed diagnostics do not query the performance clock.');
+panel.open=true;panel.listeners.toggle();
+run('last=0;saveElapsed=4;for(let i=0;i<=10;i++)tick(i*100);');
+assert.equal(field('fps'),'10.0','FPS uses actual intervals, not the simulation dt capped at 65 ms.');
+assert.equal(field('interval'),'100.00');
+assert.equal(field('simulation'),'2.00');
+assert.equal(field('render'),'8.00');
+assert.equal(field('ui'),'1.45','Infrequent dashboard updates are averaged over all rendered frames.');
+assert.equal(field('save'),'0.27','A single autosave is included once, averaged over the window.');
+assert.equal(field('total'),'11.73');
+assert.equal(field('max'),'14.00');
+assert.match(element('debug-performance-status').textContent,/正在运行/);
+
+panel.open=false;panel.listeners.toggle();
+const stoppedReads=reads,stoppedText=field('total');
+run('tick(1100)');
+assert.equal(reads,stoppedReads);assert.equal(field('total'),stoppedText);
+panel.open=true;panel.listeners.toggle();
+assert.equal(field('fps'),'—');
+run('farm.paused=true;for(let i=0;i<=10;i++)tick(10000+i*100);');
+assert.equal(field('fps'),'10.0','Reopening excludes the long gap while collapsed.');
+assert.equal(field('simulation'),'0.00');assert.equal(field('save'),'0.00');
+assert.equal(field('ui'),'1.00');assert.equal(field('total'),'9.00');
+assert.match(element('debug-performance-status').textContent,/已暂停/);
+
+sandbox.document.hidden=true;
+for(const handler of documentListeners.visibilitychange)handler();
+const hiddenReads=reads;run('tick(40000)');assert.equal(reads,hiddenReads);
+sandbox.document.hidden=false;
+for(const handler of documentListeners.visibilitychange)handler();
+run('for(let i=0;i<=10;i++)tick(60000+i*100);');
+assert.equal(field('fps'),'10.0','Returning from the background starts a fresh visible sample.');
+assert.equal(run('Object.hasOwn(farm,"debugPerformance")'),false);
+console.log('Debug performance: default collapse, real frame intervals, per-stage timing, pause, close and background reset passed.');

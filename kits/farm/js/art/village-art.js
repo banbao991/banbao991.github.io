@@ -1,38 +1,6 @@
 'use strict';
 // Village houses, central square, market ground and 阿宁 painting.
-function drawVillageGround() {
-  // Village homes and stalls form a working frontage; the central plaza is west of the river.
-  const district = MARKET_LAYOUT.district;
-  const yards=groundTilePainter();
-  for (let y = district.top; y < district.bottom; y += 8) for (let x = district.left; x < district.right; x += 8) {
-    const homeYard = MARKET_LAYOUT.homes.some(home => x >= home.x - 12 && x <= home.x + 130 && y < 832);
-    const stallYard = MARKET_LAYOUT.stalls.some((stall,index) => villageMarketStallOpen(index)
-      && x >= stall.x - 16 && x <= stall.x + 134 && y >= 826 && y < 946);
-    const fountainYard = Math.hypot(x - MARKET_LAYOUT.fountain.x, y - MARKET_LAYOUT.fountain.y) < 57;
-    const lane = (y >= 804 && y < 832) || (y >= 938 && y < 962)
-      || (x >= 1697 && x < 1729 && y >= 815 && y < 951);
-    if (homeYard || stallYard || fountainYard || lane) {
-      const alpha = .54 + hash(x, y, 77) * .2;
-      yards.add(x, y, 8, 8, `rgba(189,169,121,${alpha.toFixed(2)})`);
-    }
-  }
-  yards.draw();
-  for (let i = 0; i < 115; i++) {
-    const x = district.left + 18 + hash(i, 74) * (district.right - district.left - 36);
-    const y = district.top + 18 + hash(i, 75) * (district.bottom - district.top - 36);
-    rect(x, y, 7, 3, '#d0ba87');
-  }
-  const square = CENTRAL_PLAZA;
-  if(!villageSiteOpen('plaza'))return;
-  const plaza=groundTilePainter(),grains=groundTilePainter();
-  for (let y = square.top; y < square.bottom; y += 8) for (let x = square.left; x < square.right; x += 8) {
-    const edge = Math.min(x - square.left, plazaRightAt(y) - x, y - square.top, square.bottom - y);
-    const alpha = smoothRange(0, 29, edge + (hash(x, y, 601) - .5) * 9);
-    if (alpha > .02) plaza.add(x, y, 8, 8, `rgba(207,185,139,${(alpha * .9).toFixed(2)})`);
-    if (edge > 27 && hash(x, y, 602) > .84) grains.add(x + 2, y + 3, 4, 2, '#e7d3a7');
-  }
-  plaza.draw();grains.draw();
-}
+function drawVillageGround() { drawCachedVillageGround(); }
 
 function drawVillage() {
   // Homes, notice board, fountain and both stalls share the east-bank village street.

@@ -114,8 +114,7 @@ function villageWildGrassCandidates(id,trees) {
   }
   return plants;
 }
-function villageWildPlants(id) {
-  const context=villagePlantGroundContext();
+function villageWildPlants(id,context=villagePlantGroundContext()) {
   return villageWildPlantCandidates(id).filter(plant=>villagePlantGroundAllowed(id,plant,context));
 }
 function villagePlantGroundContext() {
@@ -125,16 +124,46 @@ function villagePlantGroundContext() {
   const buildings=[VILLAGE_CREW_HOME,...MARKET_LAYOUT.homes.map(h=>
     ({left:h.x,top:h.y,right:h.x+117,bottom:h.y+116})),
     ...VILLAGE_PROJECT_IDS.filter(project=>villageSiteOpen(project)).flatMap(project=>VILLAGE_FACILITIES[project])];
-  return {graph,buildings};
+  return {graph,buildings,geometry:villagePlantGeometryContext(graph,buildings)};
 }
-function villagePlantGroundAllowed(id,plant,context=villagePlantGroundContext()) {
-    const {graph,buildings}=context;
+// Only the latest road/building geometry owns these weak plant entries. Actual
+// rectangle values are checked on every context creation; water stays live.
+let villagePlantGeometryCache=null;
+function villagePlantGeometryContext(graph,buildings){
+  const previous=villagePlantGeometryCache,roads=graph.nodes;
+  let same=previous?.graph===graph&&previous.roads.length===roads.length*4&&previous.buildings.length===buildings.length*4;
+  if(same)for(let i=0;i<roads.length;i++){
+    const r=roads[i],n=i*4;
+    if(previous.roads[n]!==r.x||previous.roads[n+1]!==r.y||previous.roads[n+2]!==r.w||previous.roads[n+3]!==r.h){same=false;break;}
+  }
+  if(same)for(let i=0;i<buildings.length;i++){
+    const b=buildings[i],n=i*4;
+    if(previous.buildings[n]!==b.left||previous.buildings[n+1]!==b.top||previous.buildings[n+2]!==b.right||previous.buildings[n+3]!==b.bottom){same=false;break;}
+  }
+  if(same)return previous;
+  return villagePlantGeometryCache={graph,roads:roads.flatMap(r=>[r.x,r.y,r.w,r.h]),
+    buildings:buildings.flatMap(b=>[b.left,b.top,b.right,b.bottom]),plants:new WeakMap()};
+}
+function villagePlantGeometryAllowed(plant,{graph,buildings}){
     const {x,y}=plant,padding=plant.kind==='tree'?20:14;
     for(let bx=Math.floor((x-padding)/64);bx<=Math.floor((x+padding)/64);bx++)
       for(let by=Math.floor((y-padding)/64);by<=Math.floor((y+padding)/64);by++)
         if((graph.buckets.get(`${bx}:${by}`)||[]).some(r=>x>=r.x-padding&&x<=r.x+r.w+padding
           &&y>=r.y-padding&&y<=r.y+r.h+padding))return false;
-    if(buildings.some(b=>inRect(x,y,b.left-padding,b.top-padding,b.right+padding,b.bottom+padding)))return false;
+    return !buildings.some(b=>inRect(x,y,b.left-padding,b.top-padding,b.right+padding,b.bottom+padding));
+}
+function villagePlantGroundAllowed(id,plant,context=villagePlantGroundContext()) {
+    const geometry=context.geometry,padding=plant.kind==='tree'?20:14,{x,y}=plant;
+    let allowed;
+    if(geometry){
+      let entry=geometry.plants.get(plant);
+      if(!entry||entry.x!==x||entry.y!==y||entry.padding!==padding){
+        entry={x,y,padding,allowed:villagePlantGeometryAllowed(plant,context)};
+        geometry.plants.set(plant,entry);
+      }
+      allowed=entry.allowed;
+    }else allowed=villagePlantGeometryAllowed(plant,context);
+    if(!allowed)return false;
     if(riverAt(x,y,10)||pondAt(x,y)||lakeAt(x,y)||valleyLakeAt(x,y))return false;
     if(id==='nursery'&&(wetlandCreekAt(x,y,18)||wetlandMarshDepth(x,y)<1.08))return false;
     return true;

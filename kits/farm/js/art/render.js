@@ -79,7 +79,7 @@ function render() {
     const padding = worldPadding();
     ctx.setTransform(farm.view.zoom, 0, 0, farm.view.zoom,
       padding.x - farm.view.x*farm.view.zoom, padding.y - farm.view.y*farm.view.zoom);
-    grass(); drawRegionGround(); drawPond();
+    drawRegionGround(); drawPond();
     drawSceneItems(farmSceneItems());
     weatherAndLight();
   } finally { ctx.restore(); }

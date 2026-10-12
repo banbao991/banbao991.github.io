@@ -1979,7 +1979,7 @@ assert.equal(run('farm.view.zoom'), run('minimumZoom()'),
 element('map-panel').getBoundingClientRect = () => ({ left: 0, top: 0, width: 1152, height: 816 });
 run('resizeFarmViewport();setZoom(0)');
 element('pure-mode-toggle').click();
-assert.equal(run('farm.view.zoom'), .7, 'Exiting fullscreen restores the normal minimum even when backing dimensions stay unchanged');
+assert.equal(run('farm.view.zoom'), run('minimumZoom()'), 'Exiting fullscreen retains the normal whole-map fit even when backing dimensions stay unchanged');
 const fittedExitCenter = run('screenToWorld(W/2,H/2)');
 assert.ok(Math.abs(fittedExitCenter.x-run('WORLD_W / 2'))<.01 && Math.abs(fittedExitCenter.y-960)<.01,
   'Leaving a fitted fullscreen map keeps the same world center');

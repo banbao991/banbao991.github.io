@@ -52,10 +52,33 @@ function villageRoadPaint() {
   }
   return villageRoadPaintCache={graph,edges,flecks:[...flecks.values()]};
 }
-function drawVillageRoadSurface() {
-  const paint=villageRoadPaint();
+function drawVillageRoadPaths(paint) {
   const left=farm.view.x-8,top=farm.view.y-8,
     right=farm.view.x+W/farm.view.zoom+8,bottom=farm.view.y+H/farm.view.zoom+8;
+  // Paths use world coordinates and the current context's transform. Keep the
+  // original edge culling bounds; changing the view rebuilds only the edge paths.
+  // A new road graph gets a new paint object, including during construction/reset.
+  if(typeof Path2D!=='undefined'){
+    if(!paint.bodyPath){
+      const body=new Path2D();
+      for(const r of paint.graph.nodes)if(!r.bridge&&!r.footBridge)body.rect(r.x,r.y,r.w,r.h);
+      paint.bodyPath=body;
+    }
+    const key=[left,top,right,bottom].join(':');
+    if(paint.pathBounds!==key){
+      const edges=[new Path2D(),new Path2D()];
+      for(const edge of paint.edges){
+        if(edge.x+edge.w<left||edge.x>right||edge.y<top||edge.y>bottom)continue;
+        edges[edge.alpha===48?0:1].rect(edge.x,edge.y,edge.w,1);
+      }
+      paint.edgePaths=edges;paint.pathBounds=key;
+    }
+    ctx.fillStyle='rgba(208,181,134,0.48)';ctx.fill(paint.edgePaths[0]);
+    ctx.fillStyle='rgba(208,181,134,0.52)';ctx.fill(paint.edgePaths[1]);
+    ctx.fillStyle='#d0b586';ctx.fill(paint.bodyPath);
+    return;
+  }
+  // Mock contexts and older browsers retain the original drawing commands.
   // Fill touching rectangles in one path: separate fillRect calls expose anti-aliased
   // internal edges at fractional zoom levels, even when their world coordinates touch.
   for(const alpha of [48,52]){
@@ -72,6 +95,10 @@ function drawVillageRoadSurface() {
     ctx.rect(r.x,r.y,r.w,r.h);
   }
   ctx.fillStyle='#d0b586';ctx.fill();
+}
+function drawVillageRoadSurface() {
+  const paint=villageRoadPaint();
+  drawVillageRoadPaths(paint);
   for(const grain of paint.flecks)rect(grain.x,grain.y,3,2,'#ead3a3');
   // Bridge decks cover the soil at their approaches and keep their original wood palette.
   for(const r of paint.graph.nodes){

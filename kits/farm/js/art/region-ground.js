@@ -48,24 +48,45 @@ function lakePixel(x, y, colors,water,highlights) {
   if (d < 1.06) water.add(x, y, 8, 8, d > .84 ? colors[0] : d > .66 ? colors[1] : colors[2]);
   if (d < .62 && hash(x, y, 45) > .83) highlights.add(x + 1, y + 2, 5, 2, colors[3]);
 }
-function drawRegionGround() {
-  const season = sceneSeason.palette, winter = sceneSeason.winter;
-  const colors = [season.grass, season.grass2,
-    blendHex('#759965', '#b7cbc1', winter), blendHex('#a4b97c', '#c6d6cb', winter),
-    blendHex('#aaa371', '#bdc6aa', winter), blendHex('#88a66f', '#b8cbbf', winter),
-    blendHex('#93aa72', '#bcccb9', winter)].map(colorChannels);
+// groundCells is immutable terrain geometry built once above, independent of
+// the camera and save state. Retain one exact palette, filling only seen cells.
+// Camera movement still rebuilds the raster at its original pixel alignment.
+let groundColorCache=null;
+function groundCellColors(colors) {
+  const key=colors.flat().join(':');
+  if(groundColorCache?.key!==key||groundColorCache.channel!==groundChannel)
+    groundColorCache={key,channel:groundChannel,values:[]};
+  return groundColorCache.values;
+}
+function drawBaseTerrain(colors) {
+  grass();
   const left = Math.max(0, Math.floor(farm.view.x / GROUND_STEP) - 1);
   const top = Math.max(0, Math.floor(farm.view.y / GROUND_STEP) - 1);
   const right = Math.min(groundColumns, Math.ceil((farm.view.x + W / farm.view.zoom) / GROUND_STEP) + 1);
   const bottom = Math.min(groundRows, Math.ceil((farm.view.y + H / farm.view.zoom) / GROUND_STEP) + 1);
-  const ground=groundTilePainter();
+  const ground=groundTilePainter(),cellColors=groundCellColors(colors);
   for (let gy = top; gy < bottom; gy++) for (let gx = left; gx < right; gx++) {
-    const cell = groundCells[gy * groundColumns + gx];
-    ground.add(cell.x, cell.y, GROUND_STEP, GROUND_STEP,
+    const index=gy*groundColumns+gx,cell=groundCells[index];
+    const color=cellColors[index]??=(
       `rgb(${groundChannel(cell, 0, colors)},${groundChannel(cell, 1, colors)},${groundChannel(cell, 2, colors)})`);
+    ground.add(cell.x, cell.y, GROUND_STEP, GROUND_STEP,
+      color);
   }
   ground.draw();
   terrainDetails();
+}
+function drawRegionGround() {
+  const season = sceneSeason.palette, winter = sceneSeason.winter;
+  const colorValues = [season.grass, season.grass2,
+    blendHex('#759965', '#b7cbc1', winter), blendHex('#a4b97c', '#c6d6cb', winter),
+    blendHex('#aaa371', '#bdc6aa', winter), blendHex('#88a66f', '#b8cbbf', winter),
+    blendHex('#93aa72', '#bcccb9', winter)];
+  // Include every resolved color used by terrainDetails, not continuous time.
+  // This preserves seasonal transitions while avoiding rebuilding unchanged RGBs.
+  const key=[...colorValues,season.dark,season.flower,
+    blendHex('#b5c584','#dfe6d9',winter),blendHex('#e9d8ac','#edf2e5',winter),
+    blendHex('#e8f0c1','#e5ece0',winter)].join(':');
+  drawCachedBaseTerrain(key,()=>drawBaseTerrain(colorValues.map(colorChannels)));
   drawMineGround();
   drawVillageGround();
   drawEastShoreGround();
@@ -75,25 +96,11 @@ function drawRegionGround() {
     blendHex('#639ba6', '#93b9bd', winter),
     blendHex('#aad0c2', '#d9e5dc', winter)
   ];
-  const lakeWater=groundTilePainter(),lakeHighlights=groundTilePainter();
-  for (let y = 782 + SOUTH_LAKE_SHIFT_Y; y < 970 + SOUTH_LAKE_SHIFT_Y; y += 8) for (let x = 86; x < 400; x += 8) lakePixel(x, y, lakeColors,lakeWater,lakeHighlights);
-  lakeWater.draw();lakeHighlights.draw();
-  const valleyWater=groundTilePainter(),valleyHighlights=groundTilePainter();
-  for (let y = 1152; y < 1298; y += 8) for (let x = 70; x < 325; x += 8) {
-    const d = valleyLakeDepth(x, y);
-    if (d < 1.07) valleyWater.add(x, y, 8, 8, d > .79 ? '#afbc91' : d > .65 ? '#7aaea5' : '#679ba3');
-    if (d < .62 && hash(x, y, 49) > .85) valleyHighlights.add(x + 2, y + 3, 5, 2, '#acd3c4');
-  }
-  valleyWater.draw();valleyHighlights.draw();
+  drawRegionLakeGround(lakeColors);
+  drawRegionValleyGround();
   drawWetlandCreek();
   drawNurseryGround();
-  const river=groundTilePainter();
-  for (let y = 0; y < WORLD_H; y += 8) {
-    const center = riverCenterAt(y);
-    river.add(center - 36, y, 74, 8, '#819d87');
-    river.add(center - 28, y, 58, 8, '#64a2aa');
-  }
-  river.draw();
+  drawRegionRiverGround();
   drawRiverCurrent();
   // Small flower glades that do not require any image downloads.
   for (let i = 0; i < 330; i++) {

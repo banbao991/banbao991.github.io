@@ -10,30 +10,61 @@ const circle = (x, y, r, color) => { ctx.fillStyle = color; ctx.beginPath(); ctx
 
 // Adjacent ground pixels must share a fill path. Separate fillRect calls leave
 // translucent grid lines when the camera scales or translates by fractions.
+const groundTileDrawCache=new WeakMap();
 function groundTilePainter() {
-  const groups=new Map();
+  const groups=new Map();let revision=0;
   return {
     add(x,y,w,h,color){
       if(!groups.has(color))groups.set(color,[]);
-      groups.get(color).push([Math.round(x),Math.round(y),Math.round(w),Math.round(h)]);
+      groups.get(color).push([Math.round(x),Math.round(y),Math.round(w),Math.round(h)]);revision++;
     },
-    draw(){
-      const transform=ctx.getTransform?.();
-      const align=transform&&transform.b===0&&transform.c===0&&transform.a>0&&transform.d>0;
-      const edge=(value,scale,offset)=>(Math.round(value*scale+offset)-offset)/scale;
-      for(const [color,tiles]of groups){
-        ctx.beginPath();for(const [x,y,w,h]of tiles){
-          if(align){
-            // Different colors and opacity bands must meet at the same device
-            // pixel too; keep the world mask unchanged and snap only its paint.
-            const left=edge(x,transform.a,transform.e),top=edge(y,transform.d,transform.f);
-            ctx.rect(left,top,edge(x+w,transform.a,transform.e)-left,edge(y+h,transform.d,transform.f)-top);
-          }else ctx.rect(x,y,w,h);
-        }
-        ctx.fillStyle=color;ctx.fill();
-      }
-    }
+    draw(){drawGroundTileGroups(groups,revision);}
   };
+}
+function drawGroundTileGroups(groups,revision) {
+  if(typeof Path2D==='undefined')return drawGroundTileGroupsDirect(groups);
+  const entry=groundTileDrawCache.get(groups);
+  // Many animated grounds create a painter for one draw only. Build native paths
+  // only when the same immutable groups are actually used again.
+  if(!entry||entry.revision!==revision){
+    groundTileDrawCache.set(groups,{revision,key:null,paths:null});
+    return drawGroundTileGroupsDirect(groups);
+  }
+  const transform=ctx.getTransform?.();
+  const align=transform&&transform.b===0&&transform.c===0&&transform.a>0&&transform.d>0;
+  const key=align?[transform.a,transform.d,transform.e,transform.f].join(':'):'world';
+  if(entry.key!==key){
+    const paths=[],edge=(value,scale,offset)=>(Math.round(value*scale+offset)-offset)/scale;
+    for(const [color,tiles]of groups){
+      const path=new Path2D();
+      for(const [x,y,w,h]of tiles){
+        if(align){
+          const left=edge(x,transform.a,transform.e),top=edge(y,transform.d,transform.f);
+          path.rect(left,top,edge(x+w,transform.a,transform.e)-left,edge(y+h,transform.d,transform.f)-top);
+        }else path.rect(x,y,w,h);
+      }
+      paths.push([color,path]);
+    }
+    entry.paths=paths;entry.key=key;
+  }
+  for(const [color,path]of entry.paths){ctx.fillStyle=color;ctx.fill(path);}
+}
+// Direct commands remain the fallback for one-use painters and older contexts.
+function drawGroundTileGroupsDirect(groups) {
+  const transform=ctx.getTransform?.();
+  const align=transform&&transform.b===0&&transform.c===0&&transform.a>0&&transform.d>0;
+  const edge=(value,scale,offset)=>(Math.round(value*scale+offset)-offset)/scale;
+  for(const [color,tiles]of groups){
+    ctx.beginPath();for(const [x,y,w,h]of tiles){
+      if(align){
+        // Different colors and opacity bands must meet at the same device
+        // pixel too; keep the world mask unchanged and snap only its paint.
+        const left=edge(x,transform.a,transform.e),top=edge(y,transform.d,transform.f);
+        ctx.rect(left,top,edge(x+w,transform.a,transform.e)-left,edge(y+h,transform.d,transform.f)-top);
+      }else ctx.rect(x,y,w,h);
+    }
+    ctx.fillStyle=color;ctx.fill();
+  }
 }
 
 let rain = Array.from({ length: 140 }, (_, i) => ({ x: hash(i, 1) * WORLD_W, y: hash(i, 2) * WORLD_H, speed: 170 + hash(i, 3) * 120 }));

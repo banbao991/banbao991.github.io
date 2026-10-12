@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/pure-mode.css">
   <link rel="stylesheet" href="css/town.css">
   <link rel="stylesheet" href="css/development.css">
+  <link rel="stylesheet" href="css/debug.css">
   <link rel="stylesheet" href="css/responsive.css">
   <script src="../../libs/fflate@0.8.3/fflate.min.js" defer></script>
   <script src="js/core/world-layout.js" defer></script>
@@ -161,6 +162,7 @@
   <script src="js/core/simulation.js" defer></script>
   <script src="js/core/runtime-snapshot.js" defer></script>
   <script src="js/art/drawing-context.js" defer></script>
+  <script src="js/art/terrain-cache.js" defer></script>
   <script src="js/art/scene-depth.js" defer></script>
   <script src="js/ui/camera.js" defer></script>
   <script src="js/ui/minimap.js" defer></script>
@@ -174,8 +176,10 @@
   <script src="js/art/ecology/bee-forager-art.js" defer></script>
   <script src="js/art/crop-art.js" defer></script>
   <script src="js/art/river-art.js" defer></script>
+  <script src="js/art/region-water-ground.js" defer></script>
   <script src="js/art/region-ground.js" defer></script>
   <script src="js/art/village/fountain-art.js" defer></script>
+  <script src="js/art/village/village-ground.js" defer></script>
   <script src="js/art/village-art.js" defer></script>
   <script src="js/art/plaza-art.js" defer></script>
   <script src="js/art/plaza-life-art.js" defer></script>
@@ -189,6 +193,7 @@
   <script src="js/art/community-art.js" defer></script>
   <script src="js/art/valley-art.js" defer></script>
   <script src="js/art/valley/heron-fishing-art.js" defer></script>
+  <script src="js/art/nursery-ground.js" defer></script>
   <script src="js/art/nursery-art.js" defer></script>
   <script src="js/art/wetland-art.js" defer></script>
   <script src="js/art/wetland/frog-song-art.js" defer></script>
@@ -211,6 +216,7 @@
   <script src="js/art/town/town-bird-meal-art.js" defer></script>
   <script src="js/art/east/east-art.js" defer></script>
   <script src="js/art/east/east-canopy-art.js" defer></script>
+  <script src="js/art/east/east-shore-ground.js" defer></script>
   <script src="js/art/east/east-shore-art.js" defer></script>
   <script src="js/art/east/east-duck-company-art.js" defer></script>
   <script src="js/art/town/town-ecology-art.js" defer></script>
@@ -262,6 +268,7 @@
   <script src="js/ui/development/development-dashboard.js" defer></script>
   <script src="js/ui/development/maintenance-dashboard.js" defer></script>
   <script src="js/ui/development/development-minimap.js" defer></script>
+  <script src="js/ui/debug-performance.js" defer></script>
   <script src="js/ui/app.js" defer></script>
 </head>
 <body>
@@ -272,7 +279,7 @@
         <span>苔谷<span class="brand-light">农场</span></span>
       </a>
       <div class="topbar-right">
-        <span class="topbar-note"><a class="release-link" href="../markdown/?file=kits/farm/logs/v1.2.md" target="_blank" rel="noopener">v1.2</a> · 一座会自己生长的小世界</span>
+        <span class="topbar-note"><a class="release-link" href="../markdown/?file=kits/farm/logs/v1.3.md" target="_blank" rel="noopener">v1.3</a> · 一座会自己生长的小世界</span>
         <span class="live-pill"><span class="live-dot"></span>正在生长</span>
       </div>
     </header>
@@ -356,7 +363,7 @@
           <section class="minimap-card" aria-label="农场小地图与缩放">
             <div class="section-title"><h2>苔谷小地图</h2><span>点击定位 · 拖动探索</span></div>
             <canvas id="mini-map" width="260" height="217" aria-label="小地图，浅色方框表示当前视野；点击可移动主地图"></canvas>
-            <div class="zoom-controls"><button id="zoom-out" type="button" aria-label="缩小地图">−</button><input id="zoom-range" type="range" min="0.7" max="1.6" step="0.1" value="1" aria-label="地图缩放比例"><button id="zoom-in" type="button" aria-label="放大地图">＋</button><strong id="zoom-label">100%</strong><button class="home-view" id="home-view" type="button">回农场</button></div>
+            <div class="zoom-controls"><button id="zoom-out" type="button" aria-label="缩小地图">−</button><input id="zoom-range" type="range" min="0.425" max="1.6" step="any" value="1" aria-label="地图缩放比例"><button id="zoom-in" type="button" aria-label="放大地图">＋</button><strong id="zoom-label">100%</strong><button class="home-view" id="home-view" type="button">回农场</button></div>
           </section>
 
           <section class="overview-card">
@@ -611,6 +618,23 @@
             <a class="rules-link" id="rules-link" href="../markdown/?file=kits/farm/doc/世界与玩法.md" target="_blank" rel="noopener">查看世界设定与操作说明 <span>↗</span></a>
             <div class="rules-footer"><span class="rule-dot"></span><span id="next-unlock">下一步：扩建东侧田地</span></div>
           </section>
+          <details class="debug-card" id="debug-performance">
+            <summary><span>Debug · 性能</span><span class="debug-toggle-hint">展开查看耗时</span></summary>
+            <div class="debug-content">
+              <p class="debug-status" id="debug-performance-status">展开后开始统计</p>
+              <dl class="debug-metrics">
+                <div><dt>帧率</dt><dd><span id="debug-fps">—</span><small>FPS</small></dd></div>
+                <div><dt>帧间隔</dt><dd><span id="debug-interval">—</span><small>ms</small></dd></div>
+                <div><dt>整帧脚本</dt><dd><span id="debug-total">—</span><small>ms</small></dd></div>
+                <div><dt>最慢一帧脚本</dt><dd><span id="debug-max">—</span><small>ms</small></dd></div>
+                <div><dt>世界模拟</dt><dd><span id="debug-simulation">—</span><small>ms</small></dd></div>
+                <div><dt>地图绘制</dt><dd><span id="debug-render">—</span><small>ms</small></dd></div>
+                <div><dt>界面与悬停</dt><dd><span id="debug-ui">—</span><small>ms</small></dd></div>
+                <div><dt>自动存档</dt><dd><span id="debug-save">—</span><small>ms</small></dd></div>
+              </dl>
+              <p class="debug-note">每秒刷新；除最慢帧外均为每帧平均值。脚本耗时不含浏览器合成与 GPU。收起后停止统计。</p>
+            </div>
+          </details>
         </aside>
       </div>
       <footer class="page-footer"><span>✿ &nbsp; 慢一点，万物自有时节。</span><button id="reset-button" type="button">重新开始这座农场 ↺</button></footer>
